@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# Alumco LMS
 
-First, run the development server:
+Una plataforma de gestión de aprendizaje (LMS) moderna y escalable, construida con Next.js y Supabase.
+
+## 🚀 Tecnologías Principales
+
+Este proyecto utiliza las siguientes tecnologías y librerías:
+
+* **Framework:** [Next.js 16](https://nextjs.org/) (App Router) con React 19.
+* **Lenguaje:** [TypeScript](https://www.typescriptlang.org/).
+* **Base de Datos y Autenticación:** [Supabase](https://supabase.com/) (`@supabase/ssr`, `@supabase/supabase-js`).
+* **Estilos:** [Tailwind CSS v4](https://tailwindcss.com/).
+* **Componentes UI:** [Shadcn UI](https://ui.shadcn.com/) (Radix UI) y [Lucide React](https://lucide.dev/) para iconos.
+* **Gestión de Estado y Fetching:** [TanStack React Query](https://tanstack.com/query/latest).
+* **Formularios y Validación:** [React Hook Form](https://react-hook-form.com/) y [Zod](https://zod.dev/).
+* **Utilidades adicionales:** `pdf-lib` para manejo de PDFs, `sonner` para notificaciones (toast), `next-themes` para modo oscuro/claro.
+
+---
+
+## 💻 Cómo iniciar el proyecto en un dispositivo nuevo
+
+Sigue estos pasos para configurar y ejecutar el entorno de desarrollo localmente.
+
+### 1. Requisitos previos
+* Tener instalado [Node.js](https://nodejs.org/) (versión 20 o superior recomendada).
+* Tener instalado un gestor de paquetes (`npm`, `yarn`, `pnpm` o `bun`).
+* Tener acceso a un proyecto de Supabase para las credenciales de base de datos.
+
+### 2. Clonar el repositorio
+```bash
+git clone <url-del-repositorio>
+cd alumco-lms
+````
+
+### 3\. Instalar las dependencias
+
+Ejecuta el siguiente comando para instalar todas las librerías necesarias definidas en el `package.json`:
+
+```bash
+npm install
+# o
+yarn install
+# o
+pnpm install
+```
+
+### 4\. Configurar las variables de entorno
+
+Crea un archivo `.env.local` en la raíz del proyecto. Deberás añadir las credenciales de tu proyecto de Supabase (puedes encontrarlas en el panel de configuración de tu proyecto en Supabase):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key
+```
+
+### 5\. Iniciar el servidor de desarrollo
+
+Una vez configurado todo, inicia la aplicación en modo desarrollo:
 
 ```bash
 npm run dev
-# or
+# o
 yarn dev
-# or
+# o
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) en tu navegador para ver la aplicación funcionando.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+-----
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📂 Estructura del Proyecto
 
-## Learn More
+El proyecto sigue una arquitectura modular utilizando el **App Router** de Next.js. Todo el código fuente principal se encuentra dentro de la carpeta `/src`.
 
-To learn more about Next.js, take a look at the following resources:
+```text
+alumco-lms/
+├── public/                 # Archivos estáticos (imágenes, SVGs como file.svg, globe.svg, etc.)
+├── src/
+│   ├── app/                # Rutas y páginas de la aplicación (Next.js App Router)
+│   │   ├── (auth)/         # Grupo de rutas para autenticación (ej. /login)
+│   │   ├── (dashboard)/    # Grupo de rutas para la vista principal del usuario (ej. /cursos)
+│   │   ├── admin/          # Panel de administración de la plataforma
+│   │   ├── globals.css     # Estilos globales y configuración de Tailwind
+│   │   └── layout.tsx      # Layout principal de la aplicación
+│   │
+│   ├── components/         # Componentes de React reutilizables
+│   │   ├── alumco/         # Componentes específicos del negocio (LoginForm, AdminSidebar, BottomNav)
+│   │   └── ui/             # Componentes base generados por Shadcn UI (botones, inputs, modales)
+│   │
+│   └── lib/                # Utilidades, configuraciones y funciones lógicas
+│       ├── actions/        # Server Actions de Next.js (ej. mutaciones de auth)
+│       ├── supabase/       # Configuración del cliente y middleware de Supabase (SSR)
+│       ├── types/          # Definiciones de tipos e interfaces de TypeScript (ej. base de datos)
+│       └── utils.ts        # Funciones utilitarias (ej. cn para Tailwind)
+│
+├── .gitignore              # Archivos ignorados por git
+├── components.json         # Configuración de Shadcn UI
+├── eslint.config.mjs       # Configuración del linter
+├── next.config.ts          # Configuración del framework Next.js
+├── package.json            # Dependencias y scripts del proyecto
+├── postcss.config.mjs      # Configuración de PostCSS
+└── tsconfig.json           # Configuración del compilador de TypeScript
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠 Scripts disponibles
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+En el directorio del proyecto, puedes ejecutar los siguientes comandos:
 
-## Deploy on Vercel
+  * `npm run dev`: Inicia la aplicación en modo desarrollo.
+  * `npm run build`: Construye la aplicación optimizada para producción.
+  * `npm run start`: Inicia el servidor de producción (requiere haber ejecutado el build previamente).
+  * `npm run lint`: Ejecuta ESLint para analizar el código en busca de errores y malas prácticas.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+<!-- end list -->
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+```
