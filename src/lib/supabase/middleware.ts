@@ -1,4 +1,3 @@
-// src/lib/supabase/middleware.ts
 import { createServerClient } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { type Database } from '@/lib/types/database'
@@ -15,10 +14,14 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
+          // Primero setear en el request
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
+          // Recrear response con el request actualizado
           supabaseResponse = NextResponse.next({ request })
+          // Luego setear TODAS las cookies en la response
+          // incluyendo las que ya existían antes
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -27,40 +30,21 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // IMPORTANTE: no agregar lógica entre createServerClient y getUser()
-  // Refrescar sesión requiere que no haya awaits intermedios
   const { data: { user } } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname
+  const isPublic = pathname === '/login'
 
-  // Rutas protegidas — redirige a login si no hay sesión
-  const protectedPaths = ['/cursos', '/perfil', '/admin']
-  const isProtected = protectedPaths.some(path =>
-    request.nextUrl.pathname.startsWith(path)
-  )
-
-  if (isProtected && !user) {
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/login'
-    loginUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+  if (!user && !isPublic) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
-  // Protección de rutas admin — verifica rol en DB
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user!.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.redirect(new URL('/cursos', request.url))
-    }
-  }
-
-  // Redirige a /cursos si ya está autenticado y va a login
-  if (user && request.nextUrl.pathname === '/login') {
+  if (user && isPublic) {
     return NextResponse.redirect(new URL('/cursos', request.url))
   }
 
+  // CRÍTICO: retornar siempre supabaseResponse, nunca un NextResponse nuevo
+  // para que las cookies de sesión lleguen al Server Component
   return supabaseResponse
 }

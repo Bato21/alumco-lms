@@ -1,4 +1,3 @@
-// src/lib/supabase/server.ts
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { type Database } from '@/lib/types/database'
@@ -20,7 +19,8 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server Component: las cookies se setean en middleware, no aquí
+            // En Server Components el set falla silenciosamente
+            // Las cookies se manejan en el middleware
           }
         },
       },
@@ -28,8 +28,6 @@ export async function createClient() {
   )
 }
 
-// Cliente con service_role para operaciones admin (SOLO en servidor)
-// Bypasea RLS — usar con extremo cuidado
 export async function createAdminClient() {
   const cookieStore = await cookies()
 
