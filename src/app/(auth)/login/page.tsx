@@ -1,49 +1,65 @@
-// src/app/(auth)/login/page.tsx
 import type { Metadata } from 'next'
 import { LoginForm } from '@/components/alumco/LoginForm'
-import { GraduationCap } from 'lucide-react'
+import { AlumcoLogo } from '@/components/alumco/AlumcoLogo'
 
 export const metadata: Metadata = {
-  title: 'Ingresar',
+  title: 'Login | Alumco LMS',
 }
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-muted/30 px-4 py-12">
+    <main className="min-h-screen flex flex-col justify-center items-center p-6 bg-[var(--md-surface)] relative">
+      {/* Logo Section */}
+      <AlumcoLogo className="mb-12" size="md" />
 
-      {/* Tarjeta central */}
-      <div className="w-full max-w-sm space-y-8">
-
-        {/* Logo + marca */}
-        <div className="flex flex-col items-center space-y-3 text-center">
-          <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary"
-            aria-hidden="true"
-          >
-            <GraduationCap className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Alumco LMS
-            </h1>
-            <p className="mt-1 text-muted-foreground text-base">
-              Plataforma de capacitación continua
-            </p>
-          </div>
-        </div>
-
-        {/* Formulario */}
-        <div className="rounded-2xl border bg-card p-8 shadow-sm">
-          <h2 className="mb-6 text-xl font-semibold">
-            Ingresa a tu cuenta
+      {/* Login Card */}
+      <div className="w-full max-w-[440px] bg-[var(--md-surface-container-lowest)] architectural-shadow rounded-xl p-8 md:p-10 ghost-border">
+        <div className="text-center mb-10">
+          <h2 className="text-[1.5rem] font-bold text-[#2B4FA0] leading-tight mb-2">
+            Bienvenido/a
           </h2>
-          <LoginForm />
+          <p className="text-[var(--md-secondary)] font-medium">
+            Ingresa a la plataforma de capacitación
+          </p>
         </div>
 
-        {/* Pie */}
-        <p className="text-center text-sm text-muted-foreground">
-          ¿Problemas para ingresar? Contacta a tu administrador.
-        </p>
+        <LoginForm />
+
+        {/* Card Footer */}
+        <div className="mt-8 pt-8 border-t border-[var(--md-outline-variant)]/10 text-center">
+          <p className="text-sm text-[var(--md-secondary)] leading-relaxed">
+            ¿Problemas para ingresar?{' '}
+            <br className="md:hidden" />
+            <a
+              href="#"
+              className="text-[var(--md-primary)] font-semibold hover:underline"
+            >
+              Contacta a tu administrador.
+            </a>
+          </p>
+        </div>
+      </div>
+
+      {/* External Links */}
+      <div className="mt-8 flex gap-6 text-sm text-[var(--md-outline)]">
+        <a
+          href="#"
+          className="hover:text-[var(--md-primary)] transition-colors"
+        >
+          Términos de servicio
+        </a>
+        <a
+          href="#"
+          className="hover:text-[var(--md-primary)] transition-colors"
+        >
+          Privacidad
+        </a>
+      </div>
+
+      {/* Visual Background Elements */}
+      <div className="fixed top-0 left-0 w-full h-full -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -right-[5%] w-[40%] h-[40%] bg-[var(--md-primary)]/5 rounded-full blur-[120px]"></div>
+        <div className="absolute -bottom-[10%] -left-[5%] w-[40%] h-[40%] bg-[var(--md-secondary)]/5 rounded-full blur-[120px]"></div>
       </div>
     </main>
   )

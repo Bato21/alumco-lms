@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//c/Users/Bato/Desktop/Alumco/alumco-lms/**)",
+      "Bash(done)",
+      "Bash(cd:*)",
+      "Bash(ls:*)",
+      "Bash(mv \"[id]/[courseId]/modulos\" \"[id]/modulos\")",
+      "Bash(rm -rf \"[id]/[courseId]\")"
+    ]
+  }
+}

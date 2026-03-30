@@ -235,3 +235,108 @@
     @apply font-sans;
   }
 }
+
+/* ── Material Design 3 Color Tokens (Alumco Theme) ── */
+:root {
+  /* Primary - Alumco Blue #2B4FA0 */
+  --md-primary: #4059aa;
+  --md-primary-dim: #334d9d;
+  --md-on-primary: #f8f7ff;
+  --md-primary-container: #dce1ff;
+  --md-on-primary-container: #334c9d;
+  --md-primary-fixed: #dce1ff;
+  --md-primary-fixed-dim: #c9d3ff;
+  --md-on-primary-fixed: #1d3989;
+  --md-on-primary-fixed-variant: #3d57a7;
+
+  /* Secondary */
+  --md-secondary: #5f5f62;
+  --md-secondary-dim: #535356;
+  --md-on-secondary: #fbf8fc;
+  --md-secondary-container: #e4e1e6;
+  --md-on-secondary-container: #525155;
+  --md-secondary-fixed: #e4e1e6;
+  --md-secondary-fixed-dim: #d6d3d8;
+  --md-on-secondary-fixed: #3f3f43;
+  --md-on-secondary-fixed-variant: #5b5b5f;
+
+  /* Tertiary */
+  --md-tertiary: #625b77;
+  --md-tertiary-dim: #564f6a;
+  --md-on-tertiary: #fdf7ff;
+  --md-tertiary-container: #e8ddff;
+  --md-on-tertiary-container: #554e69;
+  --md-tertiary-fixed: #e8ddff;
+  --md-tertiary-fixed-dim: #dacff0;
+  --md-on-tertiary-fixed: #423b56;
+  --md-on-tertiary-fixed-variant: #5f5773;
+
+  /* Surface */
+  --md-surface: #f7f9fb;
+  --md-surface-bright: #f7f9fb;
+  --md-surface-dim: #cfdce3;
+  --md-surface-container: #e8eff3;
+  --md-surface-container-low: #f0f4f7;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-high: #e1e9ee;
+  --md-surface-container-highest: #d9e4ea;
+  --md-surface-variant: #d9e4ea;
+  --md-on-surface: #2a3439;
+  --md-on-surface-variant: #566166;
+
+  /* Error */
+  --md-error: #9e3f4e;
+  --md-error-dim: #4f0116;
+  --md-on-error: #fff7f7;
+  --md-error-container: #ff8b9a;
+  --md-on-error-container: #782232;
+
+  /* Outline */
+  --md-outline: #717c82;
+  --md-outline-variant: #a9b4b9;
+
+  /* Inverse */
+  --md-inverse-surface: #0b0f10;
+  --md-inverse-on-surface: #9a9d9f;
+  --md-inverse-primary: #8fa7fe;
+
+  /* Background */
+  --md-background: #f7f9fb;
+  --md-on-background: #2a3439;
+
+  /* Custom Alumco Colors */
+  --alumco-blue: #2B4FA0;
+  --alumco-gold: #F5A623;
+  --alumco-success: #27AE60;
+  --alumco-error: #E74C3C;
+  --alumco-dark-sidebar: #1A2F6B;
+}
+
+/* ── Architectural Shadow (from mockup) ── */
+.architectural-shadow {
+  box-shadow: 0 20px 40px rgba(42, 52, 57, 0.06);
+}
+
+/* ── Ghost Border (from mockup) ── */
+.ghost-border {
+  border: 1px solid rgba(169, 180, 185, 0.15);
+}
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--md-surface-container-low);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--md-outline-variant);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--md-outline);
+}
