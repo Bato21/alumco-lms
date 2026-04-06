@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { RegisterForm } from '@/components/alumco/RegisterForm'
 
 export const metadata: Metadata = {
@@ -11,19 +12,18 @@ export default function RegistroPage() {
     <main className="min-h-screen flex flex-col items-center justify-center bg-[#F5F5F5] px-4 py-12">
       <div className="w-full max-w-[520px] space-y-8">
 
-        {/* Logo */}
-        <div className="flex flex-col items-center space-y-3 text-center">
-          <img
-            src="https://ongalumco.cl/wp-content/uploads/2023/11/logo-alumco-completoccc-300x102.png"
+        {/* Logo de la ONG (Local) */}
+        <div className="flex flex-col items-center space-y-4 mb-8">
+          <Image
+            src="/LogoAlumco.png" 
             alt="Alumco LMS"
-            width={180}
-            height={61}
-            className="object-contain"
+            width={200}
+            height={68}
+            className="object-contain" 
+            priority 
           />
-          <p className="text-muted-foreground text-base">
-            Plataforma de capacitación continua
-          </p>
-        </div>
+          <div className="h-px w-12 bg-white/20" />
+            </div>
 
         {/* Tarjeta */}
         <div className="rounded-2xl border bg-white p-8 shadow-sm">

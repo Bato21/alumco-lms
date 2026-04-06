@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
+import Image from 'next/image'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
