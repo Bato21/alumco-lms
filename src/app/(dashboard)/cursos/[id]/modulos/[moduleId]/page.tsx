@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { VideoPlayer } from '@/components/alumco/VideoPlayer'
@@ -73,6 +73,11 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
   if (!module) {
     notFound()
+  }
+
+  // Si el módulo es de tipo quiz, redirigir a la página del quiz
+  if (module.content_type === 'quiz') {
+    redirect(`/cursos/${courseId}/modulos/${moduleId}/quiz`)
   }
 
   // Fetch all modules for navigation
@@ -309,6 +314,7 @@ function ContentTypeBadge({ type }: { type: string }) {
     video: { label: 'Video', color: 'bg-red-100 text-red-700' },
     pdf: { label: 'PDF', color: 'bg-blue-100 text-blue-700' },
     slides: { label: 'Presentación', color: 'bg-purple-100 text-purple-700' },
+    quiz: { label: 'Evaluación', color: 'bg-[#F5A623]/20 text-[#F5A623]' },
   }
 
   const { label, color } = config[type as keyof typeof config] || { label: type, color: 'bg-gray-100 text-gray-700' }

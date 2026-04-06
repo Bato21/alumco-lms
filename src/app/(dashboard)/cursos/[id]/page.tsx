@@ -228,6 +228,11 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
       label: 'Presentación',
       bgColor: 'bg-purple-50',
     },
+    quiz: {
+      icon: 'quiz',
+      label: 'Evaluación',
+      bgColor: 'bg-[#FFF8E7]',
+    },
   }
 
   const config = contentTypeConfig[module.content_type]
@@ -277,6 +282,7 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
                     {module.content_type === 'video' && <><path d="M5 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" /><path d="m9 9 6 3-6 3V9z" /></>}
                     {module.content_type === 'pdf' && <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14,2 14,8 20,8" /></>}
                     {module.content_type === 'slides' && <><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></>}
+                    {module.content_type === 'quiz' && <><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></>}
                   </svg>
                   {config.label}
                 </span>

@@ -2,73 +2,102 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import {
+  LayoutDashboard,
+  BookOpen,
+  BarChart3,
+  Users,
+  UserCheck,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
 
-const navItems = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' },
-  { href: '/admin/cursos', label: 'Cursos', icon: 'school' },
-  { href: '/admin/trabajadores', label: 'Trabajadores', icon: 'group' },
-  { href: '/admin/reportes', label: 'Reportes', icon: 'assessment' },
-] as const
-
 interface AdminSidebarProps {
-  fullName?: string | null
+  fullName: string
 }
+
+const navItems = [
+  {
+    href: '/admin/dashboard',
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    href: '/admin/cursos',
+    label: 'Cursos',
+    icon: BookOpen,
+  },
+  {
+    href: '/admin/trabajadores/solicitudes',
+    label: 'Solicitudes',
+    icon: UserCheck,
+  },
+  {
+    href: '/admin/trabajadores',
+    label: 'Trabajadores',
+    icon: Users,
+  },
+  {
+    href: '/admin/reportes',
+    label: 'Reportes',
+    icon: BarChart3,
+  },
+] as const
 
 export function AdminSidebar({ fullName }: AdminSidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#1A2F6B] shadow-xl flex flex-col py-6 justify-between z-50">
-      <div>
-        {/* Logo */}
-        <div className="px-6 mb-8 flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-            <svg className="w-5 h-5 text-[#1A2F6B]" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
-            </svg>
-          </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Alumco LMS</h1>
-        </div>
-
-        {/* Navigation */}
-        <nav className="space-y-1 px-2">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href ||
-              pathname.startsWith(item.href + '/')
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-4 py-2.5 transition-all',
-                  isActive
-                    ? 'text-white font-semibold bg-white/10 scale-95'
-                    : 'text-white/70 hover:text-white hover:bg-white/5'
-                )}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <span className="material-symbols-outlined text-xl">{item.icon}</span>
-                <span className="text-sm font-medium tracking-tight">{item.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
+    <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r bg-background z-40">
+      {/* Logo */}
+      <div className="flex h-14 items-center border-b px-6">
+        <span className="font-bold text-primary text-lg">Alumco Admin</span>
       </div>
 
-      {/* User Role & Logout */}
-      <div className="px-4">
-        <div className="bg-white/5 rounded-xl p-4 mb-4">
-          <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest mb-1">Rol Actual</p>
-          <div className="flex items-center justify-between">
-            <span className="text-white font-semibold text-sm">Administrador</span>
-            <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
-          </div>
-        </div>
+      {/* Navegación */}
+      <nav
+        aria-label="Navegación de administración"
+        className="flex-1 overflow-y-auto px-3 py-4"
+      >
+        <ul className="space-y-1" role="list">
+          {navItems.map((item) => {
+            const Icon = item.icon
 
-        <LogoutButton variant="dark" />
+            const isActive =
+              item.href === '/admin/trabajadores'
+                ? pathname === '/admin/trabajadores'
+                : pathname === item.href ||
+                  pathname.startsWith(item.href + '/')
+
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5',
+                    'text-base font-medium transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  )}
+                >
+                  <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  {item.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
+
+      {/* Footer con nombre y logout */}
+      <div className="border-t p-4 space-y-1">
+        <p className="text-sm font-medium truncate text-foreground">
+          {fullName}
+        </p>
+        <LogoutButton />
       </div>
     </aside>
   )

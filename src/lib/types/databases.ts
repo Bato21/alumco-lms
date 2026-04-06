@@ -1,9 +1,10 @@
 // src/lib/types/database.ts
 
 export type UserRole = 'admin' | 'trabajador'
-export type ContentType = 'video' | 'pdf' | 'slides'
+export type ContentType = 'video' | 'pdf' | 'slides' | 'quiz'
 export type AttemptStatus = 'aprobado' | 'reprobado' | 'en_progreso'
 export type Sede = 'sede_1' | 'sede_2'
+export type ProfileStatus = 'pendiente' | 'activo' | 'suspendido'
 
 // ── Filas de cada tabla ────────────────────────────────────
 
@@ -16,10 +17,14 @@ export interface Profile {
   fecha_nacimiento: string | null
   avatar_url: string | null
   is_active: boolean
+  status: ProfileStatus
+  rut: string | null
+  requested_at: string | null
+  approved_by: string | null
+  approved_at: string | null
   created_at: string
   updated_at: string
 }
-
 export interface Course {
   id: string
   title: string
@@ -74,6 +79,25 @@ export interface Question {
 
 // JSONB tipado: respuestas del usuario { question_id: opcion_elegida }
 export type UserAnswers = Record<string, 'a' | 'b' | 'c' | 'd'>
+
+// Tipos para resultados de quiz
+export interface QuizSubmitResult {
+  success: boolean
+  score: number
+  passed: boolean
+  attemptNumber: number
+  attemptsRemaining: number
+  error?: string
+}
+
+export interface QuizStatus {
+  attemptsUsed: number
+  maxAttempts: number
+  attemptsRemaining: number
+  hasPassedBefore: boolean
+  lastScore: number | null
+  isBlocked: boolean
+}
 
 export interface QuizAttempt {
   id: string
@@ -179,6 +203,7 @@ export interface Database {
       content_type: ContentType
       attempt_status: AttemptStatus
       sede: Sede
+      profile_status: ProfileStatus
     }
   }
 }

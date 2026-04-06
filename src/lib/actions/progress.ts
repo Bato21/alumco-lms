@@ -264,3 +264,52 @@ export async function getCourseProgressAction(
     return { success: false, error: 'Error al obtener el progreso' }
   }
 }
+
+export async function resetModuleProgressAction(
+  moduleId: string,
+  courseId: string,
+  previousModuleId?: string
+): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return { success: false, error: 'No autenticado' }
+
+  const { data: progress } = await supabase
+    .from('course_progress')
+    .select('completed_modules, last_module_id')
+    .eq('user_id', user.id)
+    .eq('course_id', courseId)
+    .single()
+
+  if (!progress) return { success: false, error: 'Progreso no encontrado' }
+
+  // Remove quiz module from completed_modules
+  let updatedModules = (progress.completed_modules ?? []).filter(
+    (id: string) => id !== moduleId
+  )
+
+  // Also remove previous content module if provided (for quiz reset)
+  if (previousModuleId) {
+    updatedModules = updatedModules.filter((id: string) => id !== previousModuleId)
+  }
+
+  const { error } = await supabase
+    .from('course_progress')
+    .update({
+      completed_modules: updatedModules,
+      last_module_id: progress.last_module_id === moduleId
+        ? null
+        : progress.last_module_id,
+      is_completed: false,
+      completed_at: null,
+      last_quiz_reset_at: new Date(Date.now() - 1000).toISOString(),
+    })
+    .eq('user_id', user.id)
+    .eq('course_id', courseId)
+
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath(`/cursos/${courseId}`)
+  return { success: true }
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { LoginForm } from '@/components/alumco/LoginForm'
 import { AlumcoLogo } from '@/components/alumco/AlumcoLogo'
+import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Login | Alumco LMS',
@@ -26,16 +27,18 @@ export default function LoginPage() {
         <LoginForm />
 
         {/* Card Footer */}
-        <div className="mt-8 pt-8 border-t border-[var(--md-outline-variant)]/10 text-center">
-          <p className="text-sm text-[var(--md-secondary)] leading-relaxed">
-            ¿Problemas para ingresar?{' '}
-            <br className="md:hidden" />
-            <a
-              href="#"
-              className="text-[var(--md-primary)] font-semibold hover:underline"
+        <div className="space-y-2 text-center">
+          <p className="text-sm text-muted-foreground">
+            ¿Problemas para ingresar? Contacta a tu administrador.
+          </p>
+          <p className="text-base">
+            ¿Primera vez?{' '}
+            <Link
+              href="/registro"
+              className="text-[#2B4FA0] font-semibold hover:underline"
             >
-              Contacta a tu administrador.
-            </a>
+              Solicitar acceso
+            </Link>
           </p>
         </div>
       </div>

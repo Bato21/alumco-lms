@@ -34,15 +34,27 @@ export default async function CursosPage() {
   // Fetch course progress for the user
   const { data: progressData } = await supabase
     .from('course_progress')
-    .select('course_id, completed_modules, total_modules, is_completed')
+    .select('course_id, completed_modules, is_completed')
     .eq('user_id', user!.id)
+
+  // Fetch total modules count for each course
+  const { data: allModules } = await supabase
+    .from('modules')
+    .select('course_id')
+    .eq('course_id', courses?.map(c => c.id) || [])
+
+  const totalModulesByCourse = new Map<string, number>()
+  allModules?.forEach(module => {
+    totalModulesByCourse.set(module.course_id, (totalModulesByCourse.get(module.course_id) || 0) + 1)
+  })
 
   // Merge courses with progress data
   const coursesWithProgress: Course[] = (courses || []).map(course => {
     const progress = progressData?.find(p => p.course_id === course.id)
-    const completed = progress?.completed_modules || 0
-    const total = progress?.total_modules || 1
-    const progressPct = Math.round((completed / total) * 100)
+    const completedModules = progress?.completed_modules || []
+    const completed = Array.isArray(completedModules) ? completedModules.length : 0
+    const total = totalModulesByCourse.get(course.id) || 1
+    const progressPct = total > 0 ? Math.round((completed / total) * 100) : 0
 
     let status: 'completed' | 'in_progress' | 'not_started' = 'not_started'
     if (progress?.is_completed) status = 'completed'

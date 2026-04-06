@@ -72,11 +72,31 @@ export async function loginAction(
   }
 
   const supabase = await createClient()
-  const { error } = await supabase.auth.signInWithPassword(parsed.data)
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data)
 
-  if (error) {
-    // No revelar si el email existe o no (seguridad)
+  if (error || !data.user) {
     return { error: 'Correo o contraseña incorrectos' }
+  }
+
+  // Verificar estado del perfil antes de permitir acceso
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('status, role')
+    .eq('id', data.user.id)
+    .single()
+
+  if (profile?.status === 'pendiente') {
+    await supabase.auth.signOut()
+    return {
+      error: 'Tu cuenta está pendiente de aprobación. Te notificaremos por correo cuando sea activada.',
+    }
+  }
+
+  if (profile?.status === 'suspendido') {
+    await supabase.auth.signOut()
+    return {
+      error: 'Tu cuenta ha sido suspendida. Contacta a tu administrador.',
+    }
   }
 
   revalidatePath('/', 'layout')
