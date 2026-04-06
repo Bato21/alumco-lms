@@ -3,6 +3,9 @@
 import { useActionState } from 'react'
 import { loginAction, type ActionResult } from '@/lib/actions/auth'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 const initialState: ActionResult = {}
 
@@ -25,46 +28,66 @@ export function LoginForm() {
         </div>
       )}
 
-      {/* Email Input */}
+      {/* Email */}
       <div className="space-y-2">
-        <label
+        <Label
           htmlFor="email"
-          className="block text-sm font-medium text-[var(--md-on-surface-variant)]"
+          className="text-xs font-bold text-slate-700 uppercase tracking-wider"
         >
           Correo electrónico
-        </label>
+        </Label>
         <div className="relative">
-          <input
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <rect width="20" height="16" x="2" y="4" rx="2"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+          </svg>
+          <Input
             id="email"
             name="email"
             type="email"
             autoComplete="email"
             required
             disabled={isPending}
-            placeholder="nombre@empresa.com"
-            className="w-full h-[52px] px-4 bg-[var(--md-surface-container-low)] border-none rounded-lg text-[var(--md-on-surface)] placeholder:text-[var(--md-outline-variant)] focus:ring-2 focus:ring-[var(--md-primary)]/50 transition-all outline-none ghost-border"
+            placeholder="nombre@alumco.cl"
+            className="h-12 pl-10 text-sm bg-slate-50 border-slate-200"
           />
         </div>
       </div>
 
-      {/* Password Input */}
+      {/* Contraseña */}
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <label
+          <Label
             htmlFor="password"
-            className="block text-sm font-medium text-[var(--md-on-surface-variant)]"
+            className="text-xs font-bold text-slate-700 uppercase tracking-wider"
           >
             Contraseña
-          </label>
-          <a
-            href="#"
-            className="text-sm text-[var(--md-primary)] font-semibold hover:underline decoration-2 underline-offset-4"
-          >
-            ¿Olvidaste tu contraseña?
-          </a>
+          </Label>
         </div>
         <div className="relative">
-          <input
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <Input
             id="password"
             name="password"
             type="password"
@@ -72,43 +95,41 @@ export function LoginForm() {
             required
             disabled={isPending}
             placeholder="••••••••"
-            className="w-full h-[52px] px-4 bg-[var(--md-surface-container-low)] border-none rounded-lg text-[var(--md-on-surface)] placeholder:text-[var(--md-outline-variant)] focus:ring-2 focus:ring-[var(--md-primary)]/50 transition-all outline-none ghost-border"
+            className="h-12 pl-10 text-sm bg-slate-50 border-slate-200"
           />
         </div>
       </div>
 
-      {/* Submit Button */}
-      <button
+      {/* SubmitButton */}
+      <Button
         type="submit"
         disabled={isPending}
-        className="w-full h-[52px] bg-[#2B4FA0] text-white font-semibold rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+        className="w-full h-12 text-sm font-bold bg-[#1e3a8a] hover:bg-[#162a63] text-white rounded-xl shadow-lg shadow-blue-900/10"
         aria-busy={isPending}
       >
         {isPending ? (
           <>
-            <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-            <span>Ingresando...</span>
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
+            Ingresando...
           </>
         ) : (
           <>
-            <span>Ingresar</span>
+            Ingresar
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="ml-2 h-5 w-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
+              aria-hidden="true"
             >
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
+              <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
           </>
         )}
-      </button>
+      </Button>
     </form>
   )
 }
