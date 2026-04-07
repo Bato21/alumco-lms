@@ -1,14 +1,16 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Home, BookOpen, User, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
 
 const navItems = [
-  { href: '/cursos', label: 'Inicio', icon: 'home' },
-  { href: '/cursos', label: 'Mis Cursos', icon: 'school' },
-  { href: '/perfil', label: 'Mi Perfil', icon: 'person' },
+  { href: '/cursos', label: 'Inicio', icon: Home },
+  { href: '/cursos', label: 'Mis Cursos', icon: BookOpen },
+  { href: '/perfil', label: 'Mi Perfil', icon: User },
 ] as const
 
 interface WorkerSidebarProps {
@@ -18,57 +20,66 @@ interface WorkerSidebarProps {
   avatarUrl?: string | null
 }
 
-export function WorkerSidebar({ fullName, sede, area = 'Área de Enfermería', avatarUrl }: WorkerSidebarProps) {
+export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebarProps) {
   const pathname = usePathname()
 
   return (
-    <aside
-      className="fixed left-0 top-0 h-screen w-64 z-40 flex flex-col p-4 bg-slate-50 border-r border-slate-200 shadow-sm"
-      aria-label="Navegación principal"
-    >
+    <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r bg-[#1A2F6B] z-40">
       {/* Logo */}
-      <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-10 h-10 bg-[#2B4FA0] flex items-center justify-center rounded-lg rotate-45">
-          <svg
-            className="w-5 h-5 text-white -rotate-45"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M12 2L22 12L12 22L2 12L12 2Z" />
-          </svg>
-        </div>
-        <span className="text-2xl font-bold tracking-tight text-[#2B4FA0]">alumco</span>
+      <div className="px-6 pt-6 mb-6">
+        <Image
+          src="/LogoAlumco.png"
+          alt="Alumco"
+          width={300}
+          height={102}
+          className="object-contain brightness-0 invert"
+          priority
+        />
+        <div className="mt-3 h-px w-12 bg-white/20" />
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 space-y-1">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href ||
-            (item.href !== '/cursos' && pathname.startsWith(item.href))
+      {/* Navegación */}
+      <nav
+        aria-label="Navegación principal"
+        className="flex-1 overflow-y-auto px-3 py-4"
+      >
+        <ul className="space-y-1" role="list">
+          {navItems.map((item) => {
+            const Icon = item.icon
 
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-blue-50 text-[#4059aa] font-semibold'
-                  : 'text-slate-600 hover:bg-slate-100'
-              )}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              <span className="material-symbols-outlined text-xl">{item.icon}</span>
-              <span>{item.label}</span>
-            </Link>
-          )
-        })}
+            const isActive =
+              item.href === '/cursos'
+                ? pathname === '/cursos'
+                : pathname === item.href || pathname.startsWith(item.href + '/')
+
+            return (
+              <li key={item.label}>
+                <Link
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5',
+                    'text-base font-medium transition-colors',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    isActive
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  )}
+                >
+                  <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  {item.label}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
       </nav>
 
-      {/* User Profile & Logout */}
-      <div className="mt-auto border-t border-slate-200 pt-6 px-2 space-y-4">
+      {/* Footer con nombre y logout */}
+      <div className="border-t border-white/10 p-4 space-y-4">
+        {/* User Profile */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+          <div className="w-10 h-10 rounded-full bg-white/10 overflow-hidden shrink-0 flex items-center justify-center">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
@@ -76,17 +87,18 @@ export function WorkerSidebar({ fullName, sede, area = 'Área de Enfermería', a
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-[#2B4FA0] text-white font-semibold">
+              <span className="text-white font-semibold">
                 {fullName.charAt(0).toUpperCase()}
-              </div>
+              </span>
             )}
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-bold text-slate-900 truncate">{fullName.split(' ')[0]}</span>
-            <span className="text-[10px] text-slate-500 leading-tight">
+            <span className="font-bold text-white text-sm truncate">
+              {fullName.split(' ')[0]}
+            </span>
+            <span className="text-[10px] text-white/60 truncate">
               {sede === 'sede_1' ? 'Sede Principal' : 'Sede 2'}
-              <br />
-              {area}
+              {area && ` · ${area}`}
             </span>
           </div>
         </div>

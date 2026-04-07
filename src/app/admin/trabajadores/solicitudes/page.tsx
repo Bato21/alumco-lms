@@ -32,7 +32,7 @@ export default async function SolicitudesPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="p-8 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-[#1A1A2E]">

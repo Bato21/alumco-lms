@@ -26,6 +26,15 @@ interface CourseCompletion {
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user!.id)
+    .single()
+
+  const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
 
   const { data: stats } = await supabase.from('reporte_avance').select('*')
 
@@ -55,7 +64,9 @@ export default async function AdminDashboardPage() {
       {/* TopAppBar */}
       <header className="w-full bg-[#f7f9fb] flex justify-between items-center px-8 py-6 sticky top-0 z-40 border-b border-[#e8eff3]/50">
         <div>
-          <h2 className="text-2xl font-bold text-[#2B4FA0] tracking-tight">Dashboard</h2>
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#1A1A2E]">
+            Hola, {firstName}!
+          </h1>
           <p className="text-slate-500 text-sm mt-0.5">Resumen de capacitaciones · Todas las sedes</p>
         </div>
         <div className="flex items-center gap-4">
