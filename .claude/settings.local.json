@@ -11,7 +11,8 @@
       "Bash(ls:*)",
       "Bash(mv \"[id]/[courseId]/modulos\" \"[id]/modulos\")",
       "Bash(rm -rf \"[id]/[courseId]\")",
-      "Bash(node --check src/lib/actions/progress.ts)"
+      "Bash(node --check src/lib/actions/progress.ts)",
+      "Bash(npx next:*)"
     ]
   }
 }

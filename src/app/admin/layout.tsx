@@ -1,14 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import AdminNav from './AdminNav'
+// Importamos tu componente inteligente
+import { AdminSidebar } from '@/components/alumco/AdminSidebar'
 
-// Server Action for logout
-async function handleSignOut() {
-  'use server'
-  const supabase = await createClient()
-  await supabase.auth.signOut()
-  redirect('/login')
-}
+export const dynamic = 'force-dynamic'
 
 export default async function AdminLayout({
   children,
@@ -17,23 +12,23 @@ export default async function AdminLayout({
 }) {
   const supabase = await createClient()
 
-  // 1. Verificación de Autenticación
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // 2. Verificación de Rol Admin y obtención de datos
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, role, status')
+    .select('full_name, role')
     .eq('id', user.id)
     .single()
 
   if (profile?.role !== 'admin') redirect('/cursos')
-  if (profile?.status !== 'activo') redirect('/login')
 
   return (
     <div className="grid min-h-screen w-full grid-cols-[256px_1fr] bg-[#f7f9fb] font-sans text-[#2a3439]">
-      <AdminNav fullName={profile.full_name} onSignOut={handleSignOut} />
+      
+      {/* AQUÍ LA MAGIA: Inyectamos tu componente que sí sabe leer la URL */}
+      <AdminSidebar fullName={profile?.full_name || 'Administrador'} />
+
       <main className="flex flex-col min-w-0">
         {children}
       </main>

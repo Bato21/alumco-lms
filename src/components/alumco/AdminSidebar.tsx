@@ -7,16 +7,24 @@ import {
   BookOpen,
   BarChart3,
   Users,
-  UserCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
+import { usePendingRequestsCount } from '@/hooks/usePendingRequestsCount'
+import Image from 'next/image'
 
 interface AdminSidebarProps {
   fullName: string
 }
 
-const navItems = [
+interface NavItem {
+  href: string
+  label: string
+  icon: React.ElementType
+  badge?: boolean
+}
+
+const navItems: NavItem[] = [
   {
     href: '/admin/dashboard',
     label: 'Dashboard',
@@ -28,30 +36,36 @@ const navItems = [
     icon: BookOpen,
   },
   {
-    href: '/admin/trabajadores/solicitudes',
-    label: 'Solicitudes',
-    icon: UserCheck,
-  },
-  {
     href: '/admin/trabajadores',
     label: 'Trabajadores',
     icon: Users,
+    badge: true,
   },
   {
     href: '/admin/reportes',
     label: 'Reportes',
     icon: BarChart3,
   },
-] as const
+]
 
 export function AdminSidebar({ fullName }: AdminSidebarProps) {
   const pathname = usePathname()
+  const { count, isLoading } = usePendingRequestsCount()
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r bg-background z-40">
-      {/* Logo */}
-      <div className="flex h-14 items-center border-b px-6">
-        <span className="font-bold text-primary text-lg">Alumco Admin</span>
+    // CAMBIO 1: sticky en vez de fixed, fondo azul y sombra
+    <aside className="sticky top-0 h-screen w-full flex flex-col bg-[#1A2F6B] shadow-xl z-40">
+      
+      {/* Logo de la ONG (Local) */}
+      <div className="flex flex-col items-center justify-center py-6 border-b border-white/10 mb-2">
+        <Image
+          src="/LogoAlumco.png" 
+          alt="Alumco LMS"
+          width={160}
+          height={54}
+          className="object-contain brightness-0 invert" 
+          priority 
+        />
       </div>
 
       {/* Navegación */}
@@ -69,22 +83,31 @@ export function AdminSidebar({ fullName }: AdminSidebarProps) {
                 : pathname === item.href ||
                   pathname.startsWith(item.href + '/')
 
+            const showBadge = item.badge && !isLoading && (count ?? 0) > 0
+
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5',
-                    'text-base font-medium transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 transition-all',
+                    'text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+                    // CAMBIO 2: Colores para modo oscuro (Azul/Blanco)
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                      ? 'bg-white/10 text-white font-semibold'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
                   )}
                 >
-                  <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                  {item.label}
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+                    {item.label}
+                  </div>
+                  {showBadge && (
+                    <span className="bg-[#F5A623] text-white text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                      {count}
+                    </span>
+                  )}
                 </Link>
               </li>
             )
@@ -93,10 +116,14 @@ export function AdminSidebar({ fullName }: AdminSidebarProps) {
       </nav>
 
       {/* Footer con nombre y logout */}
-      <div className="border-t p-4 space-y-1">
-        <p className="text-sm font-medium truncate text-foreground">
-          {fullName}
-        </p>
+      <div className="border-t border-white/10 p-4 space-y-4">
+        <div className="bg-white/5 rounded-xl p-4">
+          <p className="text-white/50 text-[10px] uppercase font-bold tracking-widest mb-1">Rol Actual</p>
+          <div className="flex items-center justify-between">
+            <span className="text-white font-semibold text-sm truncate">{fullName}</span>
+            <span className="w-2 h-2 bg-emerald-400 rounded-full shrink-0"></span>
+          </div>
+        </div>
         <LogoutButton />
       </div>
     </aside>

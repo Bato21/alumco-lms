@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { approveWorkerAction } from '@/lib/actions/registro'
+import { approveWorkerAction, rejectWorkerAction } from '@/lib/actions/registro'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -22,6 +22,23 @@ export function ApprovalPanel({
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [isRejecting, startRejectTransition] = useTransition()
+
+  // NUEVA FUNCIÓN PARA RECHAZAR
+  function handleReject() {
+    setError(null)
+    startRejectTransition(async () => {
+      const formData = new FormData()
+      formData.append('profileId', profileId)
+      
+      const result = await rejectWorkerAction(formData)
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        setIsOpen(false)
+      }
+    })
+  }
 
   function handleSubmit(formData: FormData) {
     formData.append('profileId', profileId)
@@ -44,7 +61,7 @@ export function ApprovalPanel({
         onClick={() => setIsOpen(true)}
         className="px-4 py-2 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[40px]"
       >
-        Aprobar
+        Revisar solicitud
       </button>
 
       {/* Overlay + Panel */}
@@ -189,39 +206,42 @@ export function ApprovalPanel({
               </form>
             </div>
 
-            {/* Footer con acciones */}
+{/* Footer con acciones */}
             <div className="p-8 bg-[#F5F5F5] border-t space-y-3">
               <Button
                 type="submit"
                 form="approval-form"
-                disabled={isPending}
+                disabled={isPending || isRejecting}
                 className="w-full h-12 text-base font-bold bg-[#27AE60] hover:bg-[#27AE60]/90 text-white"
                 aria-busy={isPending}
               >
                 {isPending ? (
                   <>
-                    <Loader2
-                      className="mr-2 h-5 w-5 animate-spin"
-                      aria-hidden="true"
-                    />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
                     Aprobando...
                   </>
                 ) : (
                   <>
-                    <CheckCircle2
-                      className="mr-2 h-5 w-5"
-                      aria-hidden="true"
-                    />
+                    <CheckCircle2 className="mr-2 h-5 w-5" aria-hidden="true" />
                     Aprobar y activar cuenta
                   </>
                 )}
               </Button>
+              
               <button
-                onClick={() => setIsOpen(false)}
-                disabled={isPending}
-                className="w-full h-12 rounded-lg border-2 border-[#E74C3C] text-[#E74C3C] font-bold text-base hover:bg-[#E74C3C]/5 transition-colors"
+                type="button"
+                onClick={handleReject}
+                disabled={isPending || isRejecting}
+                className="w-full h-12 flex items-center justify-center rounded-lg border-2 border-[#E74C3C] text-[#E74C3C] font-bold text-base hover:bg-[#E74C3C]/5 transition-colors disabled:opacity-50"
               >
-                Cancelar
+                {isRejecting ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
+                    Rechazando...
+                  </>
+                ) : (
+                  'Rechazar solicitud'
+                )}
               </button>
             </div>
           </aside>

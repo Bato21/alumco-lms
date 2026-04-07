@@ -155,7 +155,7 @@ export interface Database {
       profiles: {
         Row: Profile
         Insert: Omit<Profile, 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Profile, 'id' | 'created_at'>>
+        Update: Partial<Pick<Profile, 'status' | 'sede' | 'area_trabajo' | 'role' | 'approved_by' | 'approved_at' | 'full_name' | 'rut' | 'fecha_nacimiento' | 'avatar_url'>>
       }
       courses: {
         Row: Course

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { type Sede, type UserRole } from '@/lib/types/database'
+import { type Sede, type UserRole, type ProfileStatus } from '@/lib/types/database'
 
 // ── Validación de RUT chileno ──────────────────────────────
 
@@ -159,13 +159,15 @@ export async function approveWorkerAction(
 
   const adminClient = await createAdminClient()
 
+  // Actualizar perfil usando update con match por id
+  // @ts-expect-error: Evitamos el error de tipo 'never' generado por Supabase
   const { error } = await adminClient
     .from('profiles')
     .update({
       status: 'activo',
-      sede: parsed.data.sede as Sede,
+      sede: parsed.data.sede,
       area_trabajo: parsed.data.area_trabajo,
-      role: parsed.data.role as UserRole,
+      role: parsed.data.role,
       approved_by: user.id,
       approved_at: new Date().toISOString(),
     })
@@ -175,37 +177,39 @@ export async function approveWorkerAction(
     return { error: 'Error al aprobar la solicitud. Intenta nuevamente.' }
   }
 
-  revalidatePath('/admin/trabajadores/solicitudes')
+  revalidatePath('/admin/trabajadores')
   return { success: true }
 }
 
 // ── Rechazar solicitud de acceso ───────────────────────────
 
-export async function rejectWorkerAction(
-  profileId: string
-): Promise<ActionResult> {
-  if (!profileId) return { error: 'ID de perfil inválido' }
-
+export async function rejectWorkerAction(formData: FormData) {
+  // 1. Usamos el cliente con privilegios de administrador para saltar el RLS
   const adminClient = await createAdminClient()
 
-  // Obtener el auth user id desde el profile
-  const { data: profile, error: profileError } = await adminClient
+  // 2. Extraemos el ID exactamente como lo enviamos desde el panel
+  const profileId = formData.get('profileId') as string
+  if (!profileId) return { error: 'ID de perfil no proporcionado' }
+
+  // 3. Buscamos el perfil usando el adminClient
+  const { data: profile, error: searchError } = await adminClient
     .from('profiles')
     .select('id')
     .eq('id', profileId)
     .single()
 
-  if (profileError || !profile) {
-    return { error: 'Perfil no encontrado' }
+  if (searchError || !profile) {
+    return { error: 'Perfil no encontrado' } // Aquí es donde fallaba antes
   }
 
-  // Eliminar el usuario de auth (cascade elimina el profile)
-  const { error } = await adminClient.auth.admin.deleteUser(profileId)
+  // 4. Borramos al usuario directamente desde Auth (elimina el perfil en cascada)
+  const { error: deleteError } = await adminClient.auth.admin.deleteUser(profileId)
 
-  if (error) {
+  if (deleteError) {
     return { error: 'Error al rechazar la solicitud. Intenta nuevamente.' }
   }
 
-  revalidatePath('/admin/trabajadores/solicitudes')
+  // 5. Actualizamos la vista
+  revalidatePath('/admin/trabajadores')
   return { success: true }
 }
