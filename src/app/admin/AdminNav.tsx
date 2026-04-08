@@ -51,8 +51,8 @@ export default function AdminNav({
           <Image
             src="/LogoAlumco.png"
             alt="Alumco"
-            width={300}
-            height={102}
+            width={160}
+            height={54}
             className="object-contain brightness-0 invert"
             priority
           />

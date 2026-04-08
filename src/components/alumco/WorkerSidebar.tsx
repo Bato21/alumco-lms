@@ -26,16 +26,15 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebar
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r bg-[#1A2F6B] z-40">
       {/* Logo */}
-      <div className="px-6 pt-6 mb-6">
+      <div className="flex flex-col items-center justify-center py-6 border-b border-white/10 mb-2">
         <Image
           src="/LogoAlumco.png"
-          alt="Alumco"
-          width={300}
-          height={102}
+          alt="Alumco LMS"
+          width={160}
+          height={54}
           className="object-contain brightness-0 invert"
           priority
         />
-        <div className="mt-3 h-px w-12 bg-white/20" />
       </div>
 
       {/* Navegación */}
