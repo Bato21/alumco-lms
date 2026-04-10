@@ -1,8 +1,12 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { CertificateBadge } from '@/components/alumco/CertificateBadge'
 import Link from 'next/link'
 import type { ContentType, Module, Quiz } from '@/lib/types/database'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 interface CourseDetailPageProps {
   params: Promise<{ id: string }>
@@ -67,6 +71,21 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .from('quiz_attempts')
     .select('id, quiz_id, status, score')
     .eq('user_id', user.id)
+
+  // Fetch perfil del usuario para el certificado
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .single()
+
+  // Fetch certificado si el curso está completado
+  const { data: certificate } = await supabase
+    .from('certificates')
+    .select('id, issued_at, pdf_url')
+    .eq('user_id', user.id)
+    .eq('course_id', id)
+    .single()
 
   // Calculate course progress
   const completedModuleIds = progress?.completed_modules || []
@@ -159,6 +178,17 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
               {completedModules} de {totalModules} módulos completados
             </p>
           </div>
+
+          {/* Certificate Badge */}
+          { isCourseCompleted && certificate && profile && (
+            <div className="mt-6 max-w-xl">
+              <CertificateBadge
+                certificate={certificate}
+                courseName={course.title}
+                workerName={profile.full_name}
+              />
+            </div>
+          )}
         </div>
       </section>
 

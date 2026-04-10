@@ -7,6 +7,8 @@ import {
   BookOpen,
   BarChart3,
   Users,
+  UserCheck,
+  Award,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
@@ -45,6 +47,11 @@ const navItems: NavItem[] = [
     href: '/admin/reportes',
     label: 'Reportes',
     icon: BarChart3,
+  },
+  {
+    href: '/admin/certificados',
+    label: 'Certificados',
+    icon: Award,
   },
 ]
 

@@ -1,6 +1,7 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
 import { markModuleCompleteAction } from './progress'
 import type { UserAnswers, QuizSubmitResult, QuizStatus } from '@/lib/types/database'
 
@@ -226,7 +227,7 @@ export async function submitQuizAction(
     const passed = score >= quiz.passing_score
     const status: 'aprobado' | 'reprobado' = passed ? 'aprobado' : 'reprobado'
 
-    // Insertar intento en la DB (el trigger SQL asignará attempt_number)
+    // Insertar intento en la DB
     const { data: newAttempt, error: insertError } = await supabase
       .from('quiz_attempts')
       .insert({
@@ -236,7 +237,7 @@ export async function submitQuizAction(
         status,
         answers,
       })
-      .select('attempt_number')
+      .select('id, attempt_number')
       .single()
 
     if (insertError) {
@@ -254,9 +255,25 @@ export async function submitQuizAction(
     const attemptNumber = newAttempt?.attempt_number || attemptsUsed + 1
     const attemptsRemaining = quiz.max_attempts - attemptNumber
 
-    // Si aprobó, marcar el módulo como completo
+    let courseCompleted = false // Variable para guardar el estado
+
+    // Si aprobó, marcar el módulo como completo y verificar si el curso se completó
     if (passed) {
-      await markModuleCompleteAction(moduleId, courseId)
+      const progressResult = await markModuleCompleteAction(moduleId, courseId)
+      courseCompleted = progressResult.courseCompleted || false
+
+      // Generar certificado SOLO si todo el curso está completo
+      if (courseCompleted) {
+        try {
+          const { generateCertificateAction } = await import('./certificates')
+          await generateCertificateAction(newAttempt.id, courseId)
+        } catch (certError) {
+          console.error('Error generando certificado:', certError)
+        }
+      }
+
+      // Obligamos a Next.js a actualizar la vista de cliente
+      revalidatePath('/cursos', 'layout')
     }
 
     return {
@@ -265,6 +282,7 @@ export async function submitQuizAction(
       passed,
       attemptNumber,
       attemptsRemaining,
+      courseCompleted, // Devolvemos si se completó el curso
     }
   } catch (error) {
     console.error('Error submitting quiz:', error)

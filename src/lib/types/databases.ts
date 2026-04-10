@@ -88,6 +88,7 @@ export interface QuizSubmitResult {
   attemptNumber: number
   attemptsRemaining: number
   error?: string
+  courseCompleted?: boolean
 }
 
 export interface QuizStatus {

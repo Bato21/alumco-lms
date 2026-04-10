@@ -221,6 +221,7 @@ export async function createModuleAction(
       .single()
 
     if (error) return { error: 'Error al crear el módulo de video.' }
+    await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
     return { success: true, id: module.id }
   }
@@ -249,6 +250,7 @@ export async function createModuleAction(
       .single()
 
     if (error) return { error: 'Error al crear el módulo PDF.' }
+    await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
     return { success: true, id: module.id }
   }
@@ -337,6 +339,7 @@ export async function deleteModuleAction(
 
   if (error) return { error: 'Error al eliminar el módulo.' }
 
+  await syncFinalModule(courseId)
   revalidatePath(`/admin/cursos/${courseId}/editar`)
   return { success: true }
 }
@@ -363,6 +366,37 @@ export async function reorderModulesAction(
     return { error: 'Error al reordenar los módulos.' }
   }
 
+  await syncFinalModule(courseId)
   revalidatePath(`/admin/cursos/${courseId}/editar`)
   return { success: true }
+}
+
+// ── Helper: Sincronizar el último módulo ───────────────────
+
+async function syncFinalModule(courseId: string) {
+  const adminClient = await createAdminClient()
+
+  // 1. Obtenemos todos los módulos del curso ordenados
+  const { data: modules } = await adminClient
+    .from('modules')
+    .select('id')
+    .eq('course_id', courseId)
+    .order('order_index', { ascending: true })
+
+  if (!modules || modules.length === 0) return
+
+  const lastModuleId = modules[modules.length - 1].id
+
+  // 2. Le quitamos la etiqueta a todos los que NO son el último
+  await adminClient
+    .from('modules')
+    .update({ is_final_module: false })
+    .eq('course_id', courseId)
+    .neq('id', lastModuleId)
+
+  // 3. Le ponemos la etiqueta exclusivamente al último
+  await adminClient
+    .from('modules')
+    .update({ is_final_module: true })
+    .eq('id', lastModuleId)
 }

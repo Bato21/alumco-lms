@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { submitQuizAction, getQuizStatusAction } from '@/lib/actions/quiz'
 import { resetModuleProgressAction } from '@/lib/actions/progress'
 import type { Question, QuestionOption, UserAnswers, QuizSubmitResult } from '@/lib/types/database'
+import { markModuleCompleteAction } from '@/lib/actions/progress'
 
 type QuizState = 'pre-quiz' | 'taking-quiz' | 'result'
 
@@ -13,6 +14,7 @@ interface QuizClientProps {
   courseId: string
   moduleId: string
   previousModuleId: string | null
+  nextModuleId: string | null
   quizId: string
   passingScore: number
   maxAttempts: number
@@ -23,6 +25,7 @@ export default function QuizClient({
   courseId,
   moduleId,
   previousModuleId,
+  nextModuleId,
   quizId,
   passingScore,
   maxAttempts,
@@ -33,6 +36,7 @@ export default function QuizClient({
   const [quizState, setQuizState] = useState<QuizState>('pre-quiz')
   const [answers, setAnswers] = useState<UserAnswers>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false) 
   const [quizStatus, setQuizStatus] = useState<{
     attemptsUsed: number
     attemptsRemaining: number
@@ -73,6 +77,28 @@ export default function QuizClient({
     setQuizResult(result)
     setQuizState('result')
     setIsSubmitting(false)
+  }
+
+const handleContinue = async () => {
+    setIsUpdating(true) // Bloqueamos la pantalla
+
+    try {
+      // AUTO-HEAL: Obligamos a esperar que termine de guardar en DB
+      if (quizStatus?.hasPassedBefore || quizResult?.passed) {
+        await markModuleCompleteAction(moduleId, courseId)
+      }
+    } catch (error) {
+      console.error("Error en auto-heal:", error)
+    } finally {
+      // Solo cuando el servidor nos confirme que guardó, saltamos al PDF
+      const isCourseCompleted = quizResult?.courseCompleted
+      
+      if (isCourseCompleted || !nextModuleId) {
+        window.location.href = `/cursos/${courseId}`
+      } else {
+        window.location.href = `/cursos/${courseId}/modulos/${nextModuleId}`
+      }
+    }
   }
 
   const handleRetry = () => {
@@ -171,15 +197,28 @@ export default function QuizClient({
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Obtuviste <span className="font-bold text-[#27AE60]">{quizStatus.lastScore}%</span> en tu intento anterior.
           </p>
-          <Link
-            href={`/cursos/${courseId}`}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors"
+          <button
+            onClick={handleContinue}
+            disabled={isPending || isUpdating}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-            Continuar al siguiente módulo
-          </Link>
+            {isUpdating ? (
+              <>
+                <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Guardando progreso...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+                Continuar al siguiente módulo
+              </>
+            )}
+          </button>
         </div>
       )
     }
@@ -343,6 +382,9 @@ export default function QuizClient({
   if (quizState === 'result' && quizResult) {
     const passed = quizResult.passed
     const attemptsRemaining = quizResult.attemptsRemaining
+    
+    // Leemos la nueva variable que nos envía el backend
+    const isCourseCompleted = quizResult.courseCompleted
 
     if (passed) {
       // A) Aprobó
@@ -356,8 +398,9 @@ export default function QuizClient({
             </svg>
           </div>
 
+          {/* TÍTULO DINÁMICO */}
           <h2 className="text-2xl font-bold text-[var(--md-on-surface)] mb-2">
-            ¡Felicitaciones, aprobaste!
+            {isCourseCompleted ? '¡Felicitaciones, completaste el curso!' : '¡Felicitaciones, aprobaste!'}
           </h2>
 
           <p className="text-[var(--md-on-surface-variant)] mb-6">
@@ -371,15 +414,22 @@ export default function QuizClient({
             </p>
           </div>
 
-          <Link
-            href={`/cursos/${courseId}`}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg"
+          {/* BOTÓN DINÁMICO */}
+          <button
+            onClick={handleContinue}
+            disabled={isPending}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14M12 5l7 7-7 7" />
+              {isCourseCompleted ? (
+                <path d="M12 15l-2 5l9-5l-9-5l2 5z" /> 
+              ) : (
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              )}
             </svg>
-            Continuar al siguiente módulo
-          </Link>
+            {/* AQUÍ EL TEXTO CLARO */}
+            {isCourseCompleted ? 'Volver al curso y ver certificado' : 'Continuar al siguiente módulo'}
+          </button>
         </div>
       )
     }

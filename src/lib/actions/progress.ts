@@ -10,46 +10,53 @@ import { revalidatePath } from 'next/cache'
 export async function markModuleCompleteAction(
   moduleId: string,
   courseId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; courseCompleted?: boolean }> {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      return { success: false, error: 'Usuario no autenticado' }
-    }
+    if (!user) return { success: false, error: 'Usuario no autenticado' }
 
-    // Use admin client to bypass RLS for this operation
     const adminClient = await createAdminClient()
 
-    // Get current progress
+    // 1. Averiguamos si es el último (Usamos maybeSingle para no romper la app si falta la columna)
+    const { data: moduleInfo } = await adminClient
+      .from('modules')
+      .select('is_final_module')
+      .eq('id', moduleId)
+      .maybeSingle()
+
+    const isFinal = moduleInfo?.is_final_module || false
+
+    // 2. Traemos el progreso (Usamos maybeSingle para evitar errores de Supabase)
     const { data: progress } = await adminClient
       .from('course_progress')
       .select('*')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle()
 
     if (progress) {
-      // Update existing progress
-      const completedModules = [...(progress.completed_modules || [])]
-      if (!completedModules.includes(moduleId)) {
-        completedModules.push(moduleId)
-      }
+      // Blindaje de Array: Aseguramos que sea un arreglo válido antes de sumar el nuevo ID
+      const currentModules = Array.isArray(progress.completed_modules) 
+        ? progress.completed_modules 
+        : []
+      
+      const completedModules = Array.from(new Set([...currentModules, moduleId]))
 
       const { error } = await adminClient
         .from('course_progress')
         .update({
           completed_modules: completedModules,
           last_module_id: moduleId,
-          is_completed: false, // Will check and update below
+          is_completed: isFinal ? true : progress.is_completed,
+          completed_at: isFinal ? new Date().toISOString() : progress.completed_at,
           updated_at: new Date().toISOString(),
         })
         .eq('id', progress.id)
 
       if (error) throw error
     } else {
-      // Create new progress entry
       const { error } = await adminClient
         .from('course_progress')
         .insert({
@@ -57,21 +64,17 @@ export async function markModuleCompleteAction(
           course_id: courseId,
           completed_modules: [moduleId],
           last_module_id: moduleId,
-          is_completed: false,
+          is_completed: isFinal,
+          completed_at: isFinal ? new Date().toISOString() : null,
         })
 
       if (error) throw error
     }
 
-    // Check if course is now complete
-    await checkAndUpdateCourseCompletion(courseId, user.id)
-
-    revalidatePath(`/cursos/${courseId}`)
-    revalidatePath(`/cursos/${courseId}/modulos/${moduleId}`)
-
-    return { success: true }
+    revalidatePath('/cursos', 'layout')
+    return { success: true, courseCompleted: isFinal }
   } catch (error) {
-    console.error('Error marking module complete:', error)
+    console.error('Error FATAL marking module complete:', error)
     return { success: false, error: 'Error al marcar el módulo como completado' }
   }
 }
@@ -166,17 +169,15 @@ export async function markCourseCompleteAction(
 async function checkAndUpdateCourseCompletion(
   courseId: string,
   userId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; isComplete?: boolean }> {
   try {
     const adminClient = await createAdminClient()
 
-    // Get all modules in the course
     const { data: modules } = await adminClient
       .from('modules')
       .select('id')
       .eq('course_id', courseId)
 
-    // Get current progress
     const { data: progress } = await adminClient
       .from('course_progress')
       .select('*')
@@ -184,20 +185,12 @@ async function checkAndUpdateCourseCompletion(
       .eq('course_id', courseId)
       .single()
 
-    if (!modules || !progress) {
-      return { success: true } // Nothing to do
-    }
+    if (!modules || !progress) return { success: true, isComplete: false }
 
     const totalModules = modules.length
-    const completedModules = progress.completed_modules?.length || 0
-
-    // Check if all modules are completed
-    const allCompleted = modules.every(m =>
-      progress.completed_modules?.includes(m.id)
-    )
+    const allCompleted = modules.every(m => progress.completed_modules?.includes(m.id))
 
     if (allCompleted && totalModules > 0 && !progress.is_completed) {
-      // Mark course as complete
       const { error } = await adminClient
         .from('course_progress')
         .update({
@@ -208,12 +201,10 @@ async function checkAndUpdateCourseCompletion(
         .eq('id', progress.id)
 
       if (error) throw error
-
-      // Create certificate for course completion
-      // This would typically involve more logic to check if certificate already exists
+      return { success: true, isComplete: true }
     }
 
-    return { success: true }
+    return { success: true, isComplete: progress.is_completed || (allCompleted && totalModules > 0) }
   } catch (error) {
     console.error('Error checking course completion:', error)
     return { success: false, error: 'Error al verificar completitud del curso' }

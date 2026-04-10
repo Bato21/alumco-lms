@@ -3,6 +3,9 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import QuizClient from './QuizClient'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface QuizPageProps {
   params: Promise<{
     id: string
@@ -62,16 +65,19 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .eq('course_id', courseId)
     .order('order_index')
 
-  // Find previous module (the content module before this quiz)
+  // Find previous and next module (the content modules before/after this quiz)
   const moduleIds = modules?.map(m => m.id) || []
   const currentIndex = moduleIds.indexOf(moduleId)
+  
   const previousModuleId = currentIndex > 0 ? moduleIds[currentIndex - 1] : null
+  const nextModuleId = currentIndex < moduleIds.length - 1 ? moduleIds[currentIndex + 1] : null
 
   return (
     <QuizClient
       courseId={courseId}
       moduleId={moduleId}
       previousModuleId={previousModuleId}
+      nextModuleId={nextModuleId} 
       quizId={quiz.id}
       passingScore={quiz.passing_score}
       maxAttempts={quiz.max_attempts}
