@@ -75,7 +75,7 @@ export function CertificateBadge({
       {/* Acciones */}
       <div className="flex gap-3 pt-2">
         <a
-          href={`/cursos/certificado/${certificate.id}`}
+          href={`/certificado/${certificate.id}`}
           className="flex-1 h-10 rounded-lg bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#F5A623]/90 transition-colors flex items-center justify-center gap-2"
         >
           <svg

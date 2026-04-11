@@ -18,18 +18,18 @@ export async function generateMetadata({ params }: ModulePageProps): Promise<Met
   const { id: courseId, moduleId } = await params
   const supabase = await createClient()
 
-  // Fetch module with course title via separate query
+  // Le decimos explícitamente a TypeScript qué forma tienen los datos
   const { data: module } = await supabase
     .from('modules')
     .select('title')
     .eq('id', moduleId)
-    .single()
+    .single() as { data: { title: string } | null }
 
   const { data: course } = await supabase
     .from('courses')
     .select('title')
     .eq('id', courseId)
-    .single()
+    .single() as { data: { title: string } | null }
 
   return {
     title: module?.title
@@ -104,7 +104,10 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const nextModule = currentIndex < (modules?.length || 0) - 1 ? modules?.[currentIndex + 1] : null
 
   // Check if previous module is completed (for unlocking)
-  const canAccess = currentIndex === 0 || completedModuleIds.includes(modules?.[currentIndex - 1]?.id || '')
+  // Nota: completedModuleIds ya debería incluir el quiz anterior si fue aprobado
+  const prevModuleId = currentIndex > 0 ? modules?.[currentIndex - 1]?.id : null
+  const prevModuleIsCompleted = prevModuleId ? completedModuleIds.includes(prevModuleId) : true
+  const canAccess = currentIndex === 0 || prevModuleIsCompleted
 
   if (!canAccess) {
     return (

@@ -80,24 +80,27 @@ export default function QuizClient({
   }
 
 const handleContinue = async () => {
-    setIsUpdating(true) // Bloqueamos la pantalla
+    setIsUpdating(true)
 
-    try {
-      // AUTO-HEAL: Obligamos a esperar que termine de guardar en DB
-      if (quizStatus?.hasPassedBefore || quizResult?.passed) {
+    // Si el usuario ya aprobó antes (hasPassedBefore) pero no hay quizResult (ej: refresh de página),
+    // necesitamos ejecutar markModuleCompleteAction ahora
+    if (quizStatus?.hasPassedBefore && !quizResult) {
+      try {
         await markModuleCompleteAction(moduleId, courseId)
+      } catch (error) {
+        console.error("Error marcando módulo como completado:", error)
       }
-    } catch (error) {
-      console.error("Error en auto-heal:", error)
-    } finally {
-      // Solo cuando el servidor nos confirme que guardó, saltamos al PDF
-      const isCourseCompleted = quizResult?.courseCompleted
-      
-      if (isCourseCompleted || !nextModuleId) {
-        window.location.href = `/cursos/${courseId}`
-      } else {
-        window.location.href = `/cursos/${courseId}/modulos/${nextModuleId}`
-      }
+    }
+
+    // Pequeña pausa para asegurar que revalidatePath haya hecho efecto
+    await new Promise(resolve => setTimeout(resolve, 300))
+
+    const isCourseCompleted = quizResult?.courseCompleted
+
+    if (isCourseCompleted || !nextModuleId) {
+      router.push(`/cursos/${courseId}`)
+    } else {
+      router.push(`/cursos/${courseId}/modulos/${nextModuleId}`)
     }
   }
 

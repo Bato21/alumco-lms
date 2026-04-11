@@ -271,10 +271,11 @@ export async function submitQuizAction(
           console.error('Error generando certificado:', certError)
         }
       }
-
-      // Obligamos a Next.js a actualizar la vista de cliente
-      revalidatePath('/cursos', 'layout')
     }
+
+    // CRÍTICO: Revalidar SIEMPRE, haya aprobado o no, para que el caché refleje el estado actual
+    revalidatePath(`/cursos/${courseId}`, 'page')
+    revalidatePath(`/cursos/${courseId}/modulos/${moduleId}`, 'page')
 
     return {
       success: true,

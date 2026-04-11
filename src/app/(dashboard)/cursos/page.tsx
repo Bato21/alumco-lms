@@ -38,10 +38,12 @@ export default async function CursosPage() {
     .eq('user_id', user!.id)
 
   // Fetch total modules count for each course
+  const courseIds = courses?.map(c => c.id) ?? []
+
   const { data: allModules } = await supabase
     .from('modules')
     .select('course_id')
-    .eq('course_id', courses?.map(c => c.id) || [])
+    .in('course_id', courseIds.length > 0 ? courseIds : ['none'])
 
   const totalModulesByCourse = new Map<string, number>()
   allModules?.forEach(module => {

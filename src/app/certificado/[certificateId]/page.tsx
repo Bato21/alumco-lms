@@ -74,7 +74,9 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
 
         {/* Navegación */}
         <Link
-          href="/cursos"
+          // Dinámico según rol:
+          // Como es Server Component puedes obtener el perfil y decidir
+          href={profile?.role === 'admin' ? '/admin/certificados' : '/cursos'}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#1A1A2E] transition-colors"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -178,7 +180,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
             <PrintButton />
 
             {certificate.pdf_url && (
-              
+              <a
                 href={certificate.pdf_url}
                 target="_blank"
                 rel="noopener noreferrer"

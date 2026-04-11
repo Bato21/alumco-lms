@@ -178,7 +178,7 @@ export default async function AdminCertificadosPage() {
                     {/* Acciones */}
                     <td className="px-6 py-4 text-right">
                       <Link
-                        href={`/cursos/certificado/${cert.id}`}
+                        href={`/certificado/${cert.id}`}
                         className="text-sm text-[#2B4FA0] font-semibold hover:underline"
                       >
                         Ver

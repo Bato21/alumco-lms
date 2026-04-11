@@ -10,69 +10,90 @@ import { revalidatePath } from 'next/cache'
 export async function markModuleCompleteAction(
   moduleId: string,
   courseId: string
-): Promise<{ success: boolean; error?: string; courseCompleted?: boolean }> {
+): Promise<{ success: boolean; error?: string; courseCompleted?: boolean; completedModules?: string[] }> {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-
     if (!user) return { success: false, error: 'Usuario no autenticado' }
 
-    const adminClient = await createAdminClient()
-
-    // 1. Averiguamos si es el último (Usamos maybeSingle para no romper la app si falta la columna)
-    const { data: moduleInfo } = await adminClient
-      .from('modules')
-      .select('is_final_module')
-      .eq('id', moduleId)
-      .maybeSingle()
-
-    const isFinal = moduleInfo?.is_final_module || false
-
-    // 2. Traemos el progreso (Usamos maybeSingle para evitar errores de Supabase)
-    const { data: progress } = await adminClient
+    // Usar el cliente del usuario — RLS garantiza que solo escribe su propio progreso
+    const { data: progress } = await supabase
       .from('course_progress')
-      .select('*')
+      .select('id, completed_modules, is_completed, completed_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
       .maybeSingle()
 
-    if (progress) {
-      // Blindaje de Array: Aseguramos que sea un arreglo válido antes de sumar el nuevo ID
-      const currentModules = Array.isArray(progress.completed_modules) 
-        ? progress.completed_modules 
-        : []
-      
-      const completedModules = Array.from(new Set([...currentModules, moduleId]))
+    let completedModules: string[]
 
-      const { error } = await adminClient
+    if (progress) {
+      const current = Array.isArray(progress.completed_modules)
+        ? progress.completed_modules
+        : []
+      completedModules = Array.from(new Set([...current, moduleId]))
+
+      const { error } = await supabase
         .from('course_progress')
         .update({
           completed_modules: completedModules,
           last_module_id: moduleId,
-          is_completed: isFinal ? true : progress.is_completed,
-          completed_at: isFinal ? new Date().toISOString() : progress.completed_at,
-          updated_at: new Date().toISOString(),
         })
         .eq('id', progress.id)
 
-      if (error) throw error
+      if (error) {
+        console.error('Error updating progress:', error)
+        return { success: false, error: error.message }
+      }
     } else {
-      const { error } = await adminClient
+      completedModules = [moduleId]
+
+      const { error } = await supabase
         .from('course_progress')
         .insert({
           user_id: user.id,
           course_id: courseId,
-          completed_modules: [moduleId],
+          completed_modules: completedModules,
           last_module_id: moduleId,
-          is_completed: isFinal,
-          completed_at: isFinal ? new Date().toISOString() : null,
+          is_completed: false,
+          completed_at: null,
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error inserting progress:', error)
+        return { success: false, error: error.message }
+      }
     }
 
-    revalidatePath('/cursos', 'layout')
-    return { success: true, courseCompleted: isFinal }
+    // Verificar si todos los módulos del curso están completos
+    const adminClient = await createAdminClient()
+    const { data: allModules } = await adminClient
+      .from('modules')
+      .select('id')
+      .eq('course_id', courseId)
+
+    let courseCompleted = false
+    if (allModules && allModules.length > 0) {
+      courseCompleted = allModules.every((m) =>
+        completedModules.includes(m.id)
+      )
+    }
+
+    // Si el curso está completo, actualizarlo
+    if (courseCompleted) {
+      await supabase
+        .from('course_progress')
+        .update({
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+        .eq('course_id', courseId)
+    }
+
+    revalidatePath(`/cursos/${courseId}`)
+    revalidatePath('/cursos')
+
+    return { success: true, courseCompleted, completedModules }
   } catch (error) {
     console.error('Error FATAL marking module complete:', error)
     return { success: false, error: 'Error al marcar el módulo como completado' }
