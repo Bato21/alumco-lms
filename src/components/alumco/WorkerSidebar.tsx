@@ -3,14 +3,15 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BookOpen, User, LogOut } from 'lucide-react'
+import { Home, BookOpen, User, Award } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
 
 const navItems = [
-  { href: '/cursos', label: 'Inicio', icon: Home },
-  { href: '/cursos', label: 'Mis Cursos', icon: BookOpen },
-  { href: '/perfil', label: 'Mi Perfil', icon: User },
+  { href: '/inicio', label: 'Inicio', icon: Home, exact: false },
+  { href: '/cursos', label: 'Mis Cursos', icon: BookOpen, exact: true },
+  { href: '/mis-certificados', label: 'Certificados', icon: Award, exact: false },
+  { href: '/perfil', label: 'Mi Perfil', icon: User, exact: false },
 ] as const
 
 interface WorkerSidebarProps {
@@ -45,11 +46,9 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebar
         <ul className="space-y-1" role="list">
           {navItems.map((item) => {
             const Icon = item.icon
-
-            const isActive =
-              item.href === '/cursos'
-                ? pathname === '/cursos'
-                : pathname === item.href || pathname.startsWith(item.href + '/')
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + '/')
 
             return (
               <li key={item.label}>
@@ -76,7 +75,6 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebar
 
       {/* Footer con nombre y logout */}
       <div className="border-t border-white/10 p-4 space-y-4">
-        {/* User Profile */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-white/10 overflow-hidden shrink-0 flex items-center justify-center">
             {avatarUrl ? (
@@ -101,7 +99,6 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebar
             </span>
           </div>
         </div>
-
         <LogoutButton />
       </div>
     </aside>

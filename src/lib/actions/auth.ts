@@ -163,3 +163,26 @@ export async function registerWorkerAction(
   revalidatePath('/admin/cursos')
   return { success: true }
 }
+
+export async function forgotPasswordAction(
+  formData: FormData
+): Promise<ActionResult> {
+  const email = formData.get('email')
+
+  const parsed = z.string().email('Ingresa un correo válido').safeParse(email)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+  })
+
+  // No revelar si el email existe o no
+  if (error) {
+    console.error('Reset password error:', error)
+  }
+
+  return { success: true }
+}
