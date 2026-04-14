@@ -130,7 +130,7 @@ function CourseCard({ course }: { course: Course }) {
 
   return (
     <div className="bg-white rounded-2xl border overflow-hidden hover:shadow-md transition-shadow">
-      <div className="h-36 relative">
+      <div className="h-28 sm:h-36 relative">
         {course.thumbnail_url ? (
           <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover"/>
         ) : (
@@ -141,12 +141,12 @@ function CourseCard({ course }: { course: Course }) {
             </svg>
           </div>
         )}
-        <div className={`absolute top-3 right-3 ${config.bgColor} ${config.textColor} px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
+        <div className={`absolute top-2 sm:top-3 right-2 sm:right-3 ${config.bgColor} ${config.textColor} px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
           {config.label}
         </div>
       </div>
 
-      <div className="p-5">
+      <div className="p-4 sm:p-5">
         <h3 className="font-bold text-[#2B4FA0] text-lg mb-3 line-clamp-1">
           {course.title}
         </h3>
@@ -168,7 +168,7 @@ function CourseCard({ course }: { course: Course }) {
 
         <Link
           href={`/cursos/${course.id}`}
-          className={`w-full py-2.5 font-semibold rounded-lg transition-colors flex items-center justify-center text-sm ${config.buttonClass}`}
+          className={`w-full py-2.5 font-semibold rounded-lg transition-colors flex items-center justify-center text-sm min-h-[48px] ${config.buttonClass}`}
         >
           {config.buttonText}
         </Link>

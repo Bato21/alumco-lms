@@ -83,11 +83,11 @@ export default async function InicioPage() {
     .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime())
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
 
       {/* Saludo */}
       <section>
-        <h1 className="text-3xl font-extrabold tracking-tight text-[#1A1A2E]">
+        <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-[#1A1A2E]">
           Hola, {firstName}
         </h1>
         <p className="text-muted-foreground font-medium mt-1">
@@ -96,46 +96,46 @@ export default async function InicioPage() {
       </section>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border p-5 flex items-center gap-4">
-          <div className="h-11 w-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
+          <div className="h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center shrink-0">
             <BookOpen className="h-5 w-5 text-[#185FA5]" aria-hidden="true"/>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Total</p>
-            <p className="text-2xl font-bold text-[#1A1A2E]">{totalCourses}</p>
+            <p className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">{totalCourses}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border p-5 flex items-center gap-4">
-          <div className="h-11 w-11 rounded-xl bg-[#FFF8E7] flex items-center justify-center shrink-0">
+        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
+          <div className="h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#FFF8E7] flex items-center justify-center shrink-0">
             <Clock className="h-5 w-5 text-[#F5A623]" aria-hidden="true"/>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">En progreso</p>
-            <p className="text-2xl font-bold text-[#1A1A2E]">{inProgress}</p>
+            <p className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">{inProgress}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border p-5 flex items-center gap-4">
-          <div className="h-11 w-11 rounded-xl bg-[#EAF3DE] flex items-center justify-center shrink-0">
+        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
+          <div className="h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#EAF3DE] flex items-center justify-center shrink-0">
             <CheckCircle className="h-5 w-5 text-[#27AE60]" aria-hidden="true"/>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Completados</p>
-            <p className="text-2xl font-bold text-[#1A1A2E]">{completedCount}</p>
+            <p className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">{completedCount}</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border p-5 flex items-center gap-4">
-          <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
+        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
+          <div className={`h-10 w-10 lg:h-11 lg:w-11 rounded-xl flex items-center justify-center shrink-0 ${
             overdue > 0 ? 'bg-[#FAECE7]' : 'bg-slate-100'
           }`}>
             <AlertTriangle className={`h-5 w-5 ${overdue > 0 ? 'text-[#E74C3C]' : 'text-slate-400'}`} aria-hidden="true"/>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Vencidos</p>
-            <p className={`text-2xl font-bold ${overdue > 0 ? 'text-[#E74C3C]' : 'text-[#1A1A2E]'}`}>
+            <p className={`text-xl lg:text-2xl font-bold ${overdue > 0 ? 'text-[#E74C3C]' : 'text-[#1A1A2E]'}`}>
               {overdue}
             </p>
           </div>
@@ -143,19 +143,20 @@ export default async function InicioPage() {
       </div>
 
       {/* Calendario de plazos */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
+      <section className="space-y-3 lg:space-y-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-[#2B4FA0]" aria-hidden="true"/>
-            <h2 className="text-xl font-bold text-[#1A1A2E]">
+            <h2 className="text-lg lg:text-xl font-bold text-[#1A1A2E]">
               Plazos de cursos
             </h2>
           </div>
           <Link
             href="/cursos"
-            className="text-sm text-[#2B4FA0] font-semibold hover:underline flex items-center gap-1"
+            className="text-sm text-[#2B4FA0] font-semibold hover:underline flex items-center gap-1 shrink-0"
           >
-            Ver todos los cursos
+            <span className="hidden sm:inline">Ver todos los cursos</span>
+            <span className="sm:hidden">Ver todos</span>
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
@@ -163,7 +164,7 @@ export default async function InicioPage() {
         </div>
 
         {coursesWithDeadline.length === 0 ? (
-          <div className="bg-white rounded-2xl border p-10 text-center space-y-3">
+          <div className="bg-white rounded-2xl border p-8 lg:p-10 text-center space-y-3">
             <div className="h-14 w-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
               <Calendar className="h-7 w-7 text-slate-400" aria-hidden="true"/>
             </div>
@@ -207,7 +208,7 @@ export default async function InicioPage() {
                 <li key={course.id}>
                   <Link
                     href={`/cursos/${course.id}`}
-                    className={`block bg-white rounded-xl border border-l-4 ${borderColor} p-5 hover:shadow-sm transition-shadow`}
+                    className={`block bg-white rounded-xl border border-l-4 ${borderColor} p-4 lg:p-5 hover:shadow-sm transition-shadow`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
@@ -215,7 +216,7 @@ export default async function InicioPage() {
                           {course.title}
                         </h3>
                         {course.deadline_description && (
-                          <p className="text-xs text-muted-foreground mt-0.5">
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                             {course.deadline_description}
                           </p>
                         )}
@@ -236,10 +237,10 @@ export default async function InicioPage() {
                       </div>
 
                       <div className="flex flex-col items-end gap-2 shrink-0">
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badgeColor}`}>
+                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badgeColor} whitespace-nowrap`}>
                           {deadlineLabel}
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {new Intl.DateTimeFormat('es-CL', {
                             day: '2-digit',
                             month: 'short',

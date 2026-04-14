@@ -78,11 +78,11 @@ export function CourseBuilder({
     <div className="min-h-screen bg-[#F5F5F5]">
 
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white border-b px-8 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 min-w-0">
+      <header className="sticky top-0 z-30 bg-white border-b px-4 lg:px-8 py-4 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 lg:gap-4 min-w-0 flex-1">
           <button
             onClick={() => router.push('/admin/cursos')}
-            className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+            className="text-muted-foreground hover:text-foreground transition-colors shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Volver a cursos"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -90,13 +90,13 @@ export function CourseBuilder({
             </svg>
           </button>
           <div className="min-w-0">
-            <h1 className="font-bold text-lg text-[#1A1A2E] truncate">
+            <h1 className="font-bold text-base lg:text-lg text-[#1A1A2E] truncate">
               {course.title}
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs lg:text-sm text-muted-foreground truncate">
               {modules.length} {modules.length === 1 ? 'módulo' : 'módulos'}
               {course.deadline && (
-                <span className="ml-2 text-[#F5A623]">
+                <span className="ml-2 text-[#F5A623] hidden sm:inline">
                   · Plazo: {new Date(course.deadline).toLocaleDateString('es-CL')}
                 </span>
               )}
@@ -104,13 +104,13 @@ export function CourseBuilder({
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 lg:gap-3 shrink-0">
           {error && (
-            <p className="text-sm text-[#E74C3C]">{error}</p>
+            <p className="text-xs lg:text-sm text-[#E74C3C] hidden md:block">{error}</p>
           )}
 
           {/* Badge de estado */}
-          <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+          <span className={`text-xs font-semibold px-2.5 lg:px-3 py-1 rounded-full whitespace-nowrap ${
             isPublished
               ? 'bg-[#27AE60]/10 text-[#27AE60]'
               : 'bg-slate-100 text-slate-500'
@@ -122,7 +122,7 @@ export function CourseBuilder({
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="px-4 py-2 rounded-lg border border-[#E74C3C] text-[#E74C3C] text-sm font-semibold hover:bg-[#E74C3C]/5 transition-colors min-h-[40px] disabled:opacity-50"
+            className="px-3 lg:px-4 py-2 rounded-lg border border-[#E74C3C] text-[#E74C3C] text-xs lg:text-sm font-semibold hover:bg-[#E74C3C]/5 transition-colors min-h-[40px] min-w-[44px] hidden sm:inline-flex items-center justify-center"
           >
             Eliminar
           </button>
@@ -131,7 +131,7 @@ export function CourseBuilder({
           <button
             onClick={handlePublish}
             disabled={isPending}
-            className={`px-5 py-2 rounded-lg text-sm font-bold transition-colors min-h-[40px] disabled:opacity-50 ${
+            className={`px-4 lg:px-5 py-2 rounded-lg text-xs lg:text-sm font-bold transition-colors min-h-[40px] min-w-[44px] disabled:opacity-50 whitespace-nowrap ${
               isPublished
                 ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 : 'bg-[#2B4FA0] text-white hover:bg-[#2B4FA0]/90'
@@ -141,13 +141,13 @@ export function CourseBuilder({
               ? 'Guardando...'
               : isPublished
               ? 'Despublicar'
-              : 'Publicar curso'}
+              : 'Publicar'}
           </button>
         </div>
       </header>
 
       {/* Cuerpo: canvas + paleta */}
-      <div className="flex gap-6 p-8 max-w-6xl mx-auto">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 p-4 lg:p-8 max-w-6xl mx-auto">
 
         {/* Canvas central */}
         <div className="flex-1 min-w-0">
@@ -158,8 +158,8 @@ export function CourseBuilder({
           />
         </div>
 
-        {/* Panel lateral */}
-        <div className="w-64 shrink-0">
+        {/* Panel lateral - debajo en mobile, a la derecha en desktop */}
+        <div className="w-full lg:w-64 shrink-0">
           <BlockPalette
             courseId={course.id}
             onModuleCreated={(newModule) => {

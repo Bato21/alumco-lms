@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
 import { createCourseAction } from '@/lib/actions/courses'
 
 export const metadata: Metadata = { title: 'Nuevo curso | Alumco LMS' }
@@ -15,21 +14,21 @@ export default function NuevoCursoPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-8 space-y-8">
+    <div className="max-w-2xl mx-auto p-4 lg:p-8 space-y-6 lg:space-y-8">
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-[#1A1A2E]">
+        <h1 className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">
           Crear nuevo curso
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1 text-sm">
           Completa los datos básicos. Luego podrás agregar módulos y evaluaciones.
         </p>
       </div>
 
       {/* Formulario */}
-      <form action={handleCreate} className="space-y-6">
-        <div className="bg-white rounded-xl border p-6 space-y-5">
+      <form action={handleCreate} className="space-y-4 lg:space-y-6">
+        <div className="bg-white rounded-xl border p-4 lg:p-6 space-y-4 lg:space-y-5">
 
           {/* Título */}
           <div className="space-y-1.5">
@@ -107,16 +106,16 @@ export default function NuevoCursoPage() {
         </div>
 
         {/* Acciones */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Link
             href="/admin/cursos"
-            className="flex-1 h-12 rounded-lg border text-base font-medium text-muted-foreground hover:bg-[#F5F5F5] transition-colors flex items-center justify-center"
+            className="flex-1 h-12 rounded-lg border text-base font-medium text-muted-foreground hover:bg-[#F5F5F5] transition-colors flex items-center justify-center min-h-[48px]"
           >
             Cancelar
           </Link>
           <button
             type="submit"
-            className="flex-1 h-12 rounded-lg bg-[#2B4FA0] text-white text-base font-bold hover:bg-[#2B4FA0]/90 transition-colors"
+            className="flex-1 h-12 rounded-lg bg-[#2B4FA0] text-white text-base font-bold hover:bg-[#2B4FA0]/90 transition-colors min-h-[48px]"
           >
             Crear y agregar módulos →
           </button>

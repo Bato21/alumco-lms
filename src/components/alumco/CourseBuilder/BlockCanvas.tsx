@@ -88,18 +88,18 @@ export function BlockCanvas({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 lg:space-y-4">
 
       {/* Instrucción */}
-      <div className="bg-white rounded-xl border px-6 py-4">
-        <p className="text-sm text-muted-foreground text-center">
+      <div className="bg-white rounded-xl border px-4 lg:px-6 py-3 lg:py-4">
+        <p className="text-xs lg:text-sm text-muted-foreground text-center">
           Arrastra los bloques para reordenar la ruta de aprendizaje
         </p>
       </div>
 
       {/* Lista de bloques */}
       {modules.length === 0 ? (
-        <div className="bg-white rounded-xl border px-6 py-16 flex flex-col items-center text-center space-y-3">
+        <div className="bg-white rounded-xl border px-4 lg:px-6 py-12 lg:py-16 flex flex-col items-center text-center space-y-3">
           <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center">
             <GraduationCap className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
           </div>
@@ -120,7 +120,7 @@ export function BlockCanvas({
             items={modules.map((m) => m.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="space-y-2">
+            <div className="space-y-1 lg:space-y-2">
               {modules.map((module, index) => (
                 <div key={module.id}>
                   <BlockCard

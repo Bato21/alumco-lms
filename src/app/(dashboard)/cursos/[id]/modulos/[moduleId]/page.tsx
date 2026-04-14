@@ -18,7 +18,6 @@ export async function generateMetadata({ params }: ModulePageProps): Promise<Met
   const { id: courseId, moduleId } = await params
   const supabase = await createClient()
 
-  // Le decimos explícitamente a TypeScript qué forma tienen los datos
   const { data: module } = await supabase
     .from('modules')
     .select('title')
@@ -51,7 +50,6 @@ export default async function ModulePage({ params }: ModulePageProps) {
     )
   }
 
-  // Fetch course data
   const { data: course } = await supabase
     .from('courses')
     .select('*')
@@ -63,7 +61,6 @@ export default async function ModulePage({ params }: ModulePageProps) {
     notFound()
   }
 
-  // Fetch module data
   const { data: module } = await supabase
     .from('modules')
     .select('*')
@@ -75,19 +72,16 @@ export default async function ModulePage({ params }: ModulePageProps) {
     notFound()
   }
 
-  // Si el módulo es de tipo quiz, redirigir a la página del quiz
   if (module.content_type === 'quiz') {
     redirect(`/cursos/${courseId}/modulos/${moduleId}/quiz`)
   }
 
-  // Fetch all modules for navigation
   const { data: modules } = await supabase
     .from('modules')
     .select('*')
     .eq('course_id', courseId)
     .order('order_index') as { data: Module[] | null }
 
-  // Fetch user's progress for this course
   const { data: progress } = await supabase
     .from('course_progress')
     .select('*')
@@ -98,13 +92,10 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const completedModuleIds = progress?.completed_modules || []
   const isModuleCompleted = completedModuleIds.includes(moduleId)
 
-  // Find current module index
   const currentIndex = modules?.findIndex(m => m.id === moduleId) ?? -1
   const prevModule = currentIndex > 0 ? modules?.[currentIndex - 1] : null
   const nextModule = currentIndex < (modules?.length || 0) - 1 ? modules?.[currentIndex + 1] : null
 
-  // Check if previous module is completed (for unlocking)
-  // Nota: completedModuleIds ya debería incluir el quiz anterior si fue aprobado
   const prevModuleId = currentIndex > 0 ? modules?.[currentIndex - 1]?.id : null
   const prevModuleIsCompleted = prevModuleId ? completedModuleIds.includes(prevModuleId) : true
   const canAccess = currentIndex === 0 || prevModuleIsCompleted
@@ -112,7 +103,6 @@ export default async function ModulePage({ params }: ModulePageProps) {
   if (!canAccess) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm">
           <Link
             href="/cursos"
@@ -139,7 +129,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </p>
           <Link
             href={`/cursos/${courseId}`}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors min-h-[48px]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="m12 19-7-7 7-7" />
@@ -156,16 +146,16 @@ export default async function ModulePage({ params }: ModulePageProps) {
     <div className="max-w-7xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm">
+          <nav className="flex items-center gap-2 text-sm overflow-x-auto">
             <Link
               href="/cursos"
-              className="text-[var(--md-on-surface-variant)] hover:text-[var(--md-primary)] transition-colors"
+              className="text-[var(--md-on-surface-variant)] hover:text-[var(--md-primary)] transition-colors shrink-0"
             >
               Mis cursos
             </Link>
-            <svg className="w-4 h-4 text-[var(--md-outline)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-4 h-4 text-[var(--md-outline)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="m9 18 6-6-6-6" />
             </svg>
             <Link
@@ -174,18 +164,18 @@ export default async function ModulePage({ params }: ModulePageProps) {
             >
               {course.title}
             </Link>
-            <svg className="w-4 h-4 text-[var(--md-outline)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="w-4 h-4 text-[var(--md-outline)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="m9 18 6-6-6-6" />
             </svg>
-            <span className="text-[var(--md-on-surface)] font-medium truncate">{module.title}</span>
+            <span className="text-[var(--md-on-surface)] font-medium truncate shrink-0">{module.title}</span>
           </nav>
 
           {/* Module Header */}
-          <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-6">
+          <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 md:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="px-3 py-1 bg-[var(--md-primary-container)] text-[var(--md-on-primary-container)] rounded-full text-xs font-bold uppercase">
+                <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+                  <span className="px-2.5 md:px-3 py-1 bg-[var(--md-primary-container)] text-[var(--md-on-primary-container)] rounded-full text-xs font-bold uppercase">
                     Módulo {currentIndex + 1}
                   </span>
                   <ContentTypeBadge type={module.content_type} />
@@ -195,7 +185,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
                     </span>
                   )}
                 </div>
-                <h1 className="text-2xl font-bold text-[var(--md-on-surface)]">{module.title}</h1>
+                <h1 className="text-xl md:text-2xl font-bold text-[var(--md-on-surface)]">{module.title}</h1>
                 {module.description && (
                   <p className="text-[var(--md-on-surface-variant)] mt-2">{module.description}</p>
                 )}
@@ -206,7 +196,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           {/* Content Player */}
           <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] overflow-hidden">
             {module.content_type === 'video' && (
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <VideoPlayer
                   videoUrl={module.content_url}
                   moduleId={moduleId}
@@ -217,7 +207,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
             )}
 
             {(module.content_type === 'pdf' || module.content_type === 'slides') && (
-              <div className="p-6">
+              <div className="p-4 md:p-6">
                 <PdfViewer
                   pdfUrl={module.content_url}
                   moduleId={moduleId}
@@ -230,21 +220,21 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between pt-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4">
             {prevModule ? (
               <Link
                 href={`/cursos/${courseId}/modulos/${prevModule.id}`}
-                className="inline-flex items-center gap-2 text-[var(--md-primary)] font-medium hover:underline"
+                className="inline-flex items-center justify-center gap-2 text-[var(--md-primary)] font-medium hover:underline min-h-[48px] px-4 py-2"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="m15 18-6-6 6-6" />
                 </svg>
-                Anterior: {prevModule.title}
+                <span className="truncate">Anterior: {prevModule.title}</span>
               </Link>
             ) : (
               <Link
                 href={`/cursos/${courseId}`}
-                className="inline-flex items-center gap-2 text-[var(--md-primary)] font-medium hover:underline"
+                className="inline-flex items-center justify-center gap-2 text-[var(--md-primary)] font-medium hover:underline min-h-[48px] px-4 py-2"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="m12 19-7-7 7-7" />
@@ -257,17 +247,17 @@ export default async function ModulePage({ params }: ModulePageProps) {
             {nextModule ? (
               <Link
                 href={`/cursos/${courseId}/modulos/${nextModule.id}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 shadow-md shadow-[#2B4FA0]/20 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 shadow-md shadow-[#2B4FA0]/20 transition-colors min-h-[48px]"
               >
-                Siguiente: {nextModule.title}
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <span className="truncate">Siguiente: {nextModule.title}</span>
+                <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="m9 18 6-6-6-6" />
                 </svg>
               </Link>
             ) : (
               <Link
                 href={`/cursos/${courseId}`}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 shadow-md shadow-[#27AE60]/20 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 shadow-md shadow-[#27AE60]/20 transition-colors min-h-[48px]"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
@@ -279,8 +269,8 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
+        {/* Sidebar - oculto en mobile, visible en desktop */}
+        <div className="hidden lg:block space-y-4 md:space-y-6">
           <ModuleIndex
             modules={modules || []}
             currentModuleId={moduleId}

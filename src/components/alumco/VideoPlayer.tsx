@@ -81,19 +81,19 @@ export function VideoPlayer({
 
   return (
     <div className="space-y-4">
-      {/* Video Container */}
-      <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+      {/* Video Container - 16:9 aspect ratio */}
+      <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
         {embedUrl ? (
           <iframe
             src={embedUrl}
             title="Video player"
-            className="w-full h-full"
+            className="absolute inset-0 w-full h-full rounded-lg"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white">
-            <div className="text-center">
+          <div className="absolute inset-0 w-full h-full bg-black rounded-lg flex items-center justify-center text-white">
+            <div className="text-center px-4">
               <svg
                 className="w-16 h-16 mx-auto mb-4 text-white/50"
                 viewBox="0 0 24 24"
@@ -122,6 +122,7 @@ export function VideoPlayer({
               rounded-lg hover:bg-[#27AE60]/90
               transition-colors disabled:opacity-50 disabled:cursor-not-allowed
               shadow-md shadow-[#27AE60]/20
+              min-h-[48px]
             "
           >
             {isCompletePending ? (

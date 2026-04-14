@@ -61,7 +61,7 @@ export default async function MisCertificadosPage() {
           </div>
           <Link
             href="/cursos"
-            className="px-5 py-2.5 bg-[#2B4FA0] text-white text-sm font-semibold rounded-lg hover:bg-[#2B4FA0]/90 transition-colors"
+            className="px-5 py-2.5 bg-[#2B4FA0] text-white text-sm font-semibold rounded-lg hover:bg-[#2B4FA0]/90 transition-colors min-h-[48px]"
           >
             Ver mis cursos
           </Link>
@@ -81,8 +81,8 @@ export default async function MisCertificadosPage() {
 
             return (
               <li key={cert.id}>
-                <div className="bg-white rounded-2xl border-2 border-[#F5A623]/30 hover:border-[#F5A623] transition-colors p-6">
-                  <div className="flex items-start gap-4">
+                <div className="bg-white rounded-2xl border-2 border-[#F5A623]/30 hover:border-[#F5A623] transition-colors p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
 
                     {/* Ícono */}
                     <div className="h-12 w-12 rounded-full bg-[#F5A623]/10 flex items-center justify-center shrink-0">
@@ -103,10 +103,10 @@ export default async function MisCertificadosPage() {
                     </div>
 
                     {/* Acciones */}
-                    <div className="flex flex-col gap-2 shrink-0">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0">
                       <Link
                         href={`/certificado/${cert.id}`}
-                        className="px-4 py-2 bg-[#F5A623] text-white text-sm font-semibold rounded-lg hover:bg-[#F5A623]/90 transition-colors text-center"
+                        className="flex-1 sm:flex-none px-4 py-2 bg-[#F5A623] text-white text-sm font-semibold rounded-lg hover:bg-[#F5A623]/90 transition-colors text-center min-h-[40px]"
                       >
                         Ver
                       </Link>
@@ -115,7 +115,7 @@ export default async function MisCertificadosPage() {
                           href={cert.pdf_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-4 py-2 border border-[#F5A623] text-[#F5A623] text-sm font-semibold rounded-lg hover:bg-[#F5A623]/5 transition-colors text-center"
+                          className="flex-1 sm:flex-none px-4 py-2 border border-[#F5A623] text-[#F5A623] text-sm font-semibold rounded-lg hover:bg-[#F5A623]/5 transition-colors text-center min-h-[36px] sm:min-h-[40px]"
                         >
                           PDF
                         </a>

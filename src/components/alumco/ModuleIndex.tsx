@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 import type { Module } from '@/lib/types/database'
 
@@ -97,7 +95,7 @@ export function ModuleIndex({
           const content = (
             <div
               className={`
-                p-4 flex items-start gap-3 transition-colors
+                p-4 min-h-[48px] flex items-start gap-3 transition-colors
                 ${status === 'active'
                   ? 'bg-[var(--md-primary-container)]'
                   : status === 'completed'
@@ -146,7 +144,7 @@ export function ModuleIndex({
                   {module.title}
                 </p>
 
-                <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   <span className={`
                     inline-flex items-center gap-1 text-xs
                     ${status === 'active'

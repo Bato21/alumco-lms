@@ -30,7 +30,7 @@ export function ApprovalPanel({
     startRejectTransition(async () => {
       const formData = new FormData()
       formData.append('profileId', profileId)
-      
+
       const result = await rejectWorkerAction(formData)
       if (result?.error) {
         setError(result.error)
@@ -59,9 +59,9 @@ export function ApprovalPanel({
       {/* Botón disparador */}
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[40px]"
+        className="px-4 py-2 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[44px] min-w-[48px]"
       >
-        Revisar solicitud
+        Revisar
       </button>
 
       {/* Overlay + Panel */}
@@ -79,16 +79,16 @@ export function ApprovalPanel({
             role="dialog"
             aria-modal="true"
             aria-label={`Aprobar solicitud de ${fullName}`}
-            className="fixed right-0 top-0 h-screen w-[420px] bg-white z-[60] shadow-2xl border-l-4 border-[#2B4FA0] flex flex-col"
+            className="fixed right-0 top-0 h-screen w-full md:w-[420px] bg-white z-[60] shadow-2xl border-l-4 border-[#2B4FA0] flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-8 border-b">
-              <h2 className="text-xl font-bold text-[#1A1A2E]">
+            <div className="flex items-center justify-between p-4 lg:p-8 border-b">
+              <h2 className="text-lg lg:text-xl font-bold text-[#1A1A2E]">
                 Aprobar solicitud
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors"
+                className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                 aria-label="Cerrar panel"
               >
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -96,12 +96,12 @@ export function ApprovalPanel({
             </div>
 
             {/* Contenido */}
-            <div className="flex-1 overflow-y-auto p-8">
+            <div className="flex-1 overflow-y-auto p-4 lg:p-8">
 
               {/* Resumen del solicitante */}
-              <div className="bg-[#F5F5F5] rounded-xl p-5 mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-lg shrink-0">
+              <div className="bg-[#F5F5F5] rounded-xl p-4 lg:p-5 mb-6 lg:mb-8">
+                <div className="flex items-center gap-3 lg:gap-4">
+                  <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-base lg:text-lg shrink-0">
                     {fullName
                       .split(' ')
                       .map((n) => n[0])
@@ -109,11 +109,11 @@ export function ApprovalPanel({
                       .join('')
                       .toUpperCase()}
                   </div>
-                  <div>
-                    <p className="font-bold text-[#1A1A2E] text-lg leading-tight">
+                  <div className="min-w-0">
+                    <p className="font-bold text-[#1A1A2E] text-base lg:text-lg leading-tight truncate">
                       {fullName}
                     </p>
-                    <p className="text-muted-foreground text-sm font-mono">
+                    <p className="text-muted-foreground text-xs lg:text-sm font-mono truncate">
                       RUT: {rut}
                     </p>
                   </div>
@@ -122,7 +122,7 @@ export function ApprovalPanel({
 
               {/* Error */}
               {error && (
-                <Alert variant="destructive" className="mb-6">
+                <Alert variant="destructive" className="mb-4 lg:mb-6">
                   <AlertCircle className="h-5 w-5" aria-hidden="true" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
@@ -132,11 +132,11 @@ export function ApprovalPanel({
               <form
                 id="approval-form"
                 action={handleSubmit}
-                className="space-y-6"
+                className="space-y-4 lg:space-y-6"
               >
                 {/* Sede */}
                 <div className="space-y-2">
-                  <Label htmlFor="sede" className="text-base font-medium">
+                  <Label htmlFor="sede" className="text-sm lg:text-base font-medium">
                     Sede
                   </Label>
                   <select
@@ -144,7 +144,7 @@ export function ApprovalPanel({
                     name="sede"
                     required
                     disabled={isPending}
-                    className="w-full h-12 px-3 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0] transition-colors"
+                    className="w-full h-11 lg:h-12 px-3 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0] transition-colors"
                   >
                     <option value="sede_1">Sede Principal</option>
                     <option value="sede_2">Sede Secundaria</option>
@@ -155,7 +155,7 @@ export function ApprovalPanel({
                 <div className="space-y-2">
                   <Label
                     htmlFor="area_trabajo"
-                    className="text-base font-medium"
+                    className="text-sm lg:text-base font-medium"
                   >
                     Área de trabajo
                   </Label>
@@ -166,13 +166,13 @@ export function ApprovalPanel({
                     required
                     disabled={isPending}
                     placeholder="Ej: Enfermería"
-                    className="h-12 text-base"
+                    className="h-11 lg:h-12 text-base"
                   />
                 </div>
 
                 {/* Rol */}
                 <div className="space-y-3">
-                  <Label className="text-base font-medium">
+                  <Label className="text-sm lg:text-base font-medium">
                     Rol en el sistema
                   </Label>
                   <div className="space-y-3">
@@ -185,7 +185,7 @@ export function ApprovalPanel({
                         disabled={isPending}
                         className="h-5 w-5 text-[#2B4FA0] border-gray-300 focus:ring-[#2B4FA0]"
                       />
-                      <span className="text-base font-medium group-hover:text-[#2B4FA0] transition-colors">
+                      <span className="text-sm lg:text-base font-medium group-hover:text-[#2B4FA0] transition-colors">
                         Trabajador
                       </span>
                     </label>
@@ -197,7 +197,7 @@ export function ApprovalPanel({
                         disabled={isPending}
                         className="h-5 w-5 text-[#2B4FA0] border-gray-300 focus:ring-[#2B4FA0]"
                       />
-                      <span className="text-base font-medium group-hover:text-[#2B4FA0] transition-colors">
+                      <span className="text-sm lg:text-base font-medium group-hover:text-[#2B4FA0] transition-colors">
                         Administrador
                       </span>
                     </label>
@@ -207,7 +207,7 @@ export function ApprovalPanel({
             </div>
 
 {/* Footer con acciones */}
-            <div className="p-8 bg-[#F5F5F5] border-t space-y-3">
+            <div className="p-4 lg:p-8 bg-[#F5F5F5] border-t space-y-3">
               <Button
                 type="submit"
                 form="approval-form"
@@ -227,7 +227,7 @@ export function ApprovalPanel({
                   </>
                 )}
               </Button>
-              
+
               <button
                 type="button"
                 onClick={handleReject}

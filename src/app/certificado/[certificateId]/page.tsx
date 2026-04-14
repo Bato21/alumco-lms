@@ -69,15 +69,13 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
   }).format(new Date(certificate.issued_at))
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] py-12 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#F5F5F5] py-8 md:py-12 px-4">
+      <div className="max-w-lg mx-auto space-y-4 md:space-y-6">
 
         {/* Navegación */}
         <Link
-          // Dinámico según rol:
-          // Como es Server Component puedes obtener el perfil y decidir
           href={profile?.role === 'admin' ? '/admin/certificados' : '/cursos'}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#1A1A2E] transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#1A1A2E] transition-colors min-h-[44px]"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -89,11 +87,11 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
         <div className="bg-white rounded-2xl border-2 border-[#F5A623] overflow-hidden">
 
           {/* Header dorado */}
-          <div className="bg-[#F5A623] px-8 py-6 text-center">
+          <div className="bg-[#F5A623] px-4 md:px-8 py-4 md:py-6 text-center">
             <div className="flex justify-center mb-3">
-              <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="h-14 w-14 md:h-16 md:w-16 rounded-full bg-white/20 flex items-center justify-center">
                 <svg
-                  className="h-8 w-8 text-white"
+                  className="h-7 w-7 md:h-8 md:w-8 text-white"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -107,57 +105,57 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
                 </svg>
               </div>
             </div>
-            <p className="text-white/80 text-sm font-medium uppercase tracking-widest mb-1">
+            <p className="text-white/80 text-xs md:text-sm font-medium uppercase tracking-widest mb-1">
               Certificado de aprobación
             </p>
-            <h1 className="text-white text-2xl font-extrabold">
+            <h1 className="text-white text-xl md:text-2xl font-extrabold">
               Alumco LMS
             </h1>
           </div>
 
           {/* Contenido */}
-          <div className="px-8 py-8 space-y-6 text-center">
+          <div className="px-4 md:px-8 py-6 md:py-8 space-y-4 md:space-y-6 text-center">
             <div>
-              <p className="text-muted-foreground text-sm mb-1">
+              <p className="text-muted-foreground text-xs md:text-sm mb-1">
                 Este certificado acredita que
               </p>
-              <p className="text-3xl font-extrabold text-[#1A1A2E]">
+              <p className="text-2xl md:text-3xl font-extrabold text-[#1A1A2E] break-words">
                 {ownerProfile?.full_name}
               </p>
             </div>
 
             <div>
-              <p className="text-muted-foreground text-sm mb-1">
+              <p className="text-muted-foreground text-xs md:text-sm mb-1">
                 ha completado satisfactoriamente el curso
               </p>
-              <p className="text-xl font-bold text-[#2B4FA0]">
+              <p className="text-lg md:text-xl font-bold text-[#2B4FA0] break-words">
                 {course?.title}
               </p>
             </div>
 
             {/* Detalles */}
-            <div className="grid grid-cols-3 gap-4 py-4 border-y border-[#F5A623]/20">
+            <div className="grid grid-cols-3 gap-3 md:gap-4 py-4 border-y border-[#F5A623]/20">
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider mb-1">
                   Fecha
                 </p>
-                <p className="text-sm font-semibold text-[#1A1A2E]">
+                <p className="text-xs md:text-sm font-semibold text-[#1A1A2E]">
                   {issuedDate}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider mb-1">
                   Sede
                 </p>
-                <p className="text-sm font-semibold text-[#1A1A2E]">
+                <p className="text-xs md:text-sm font-semibold text-[#1A1A2E]">
                   {ownerProfile?.sede === 'sede_1' ? 'Sede Principal' : 'Sede Secundaria'}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider mb-1">
                   ID
                 </p>
-                <p className="text-sm font-mono text-muted-foreground">
+                <p className="text-xs md:text-sm font-mono text-muted-foreground break-all">
                   {certificate.id.slice(0, 8).toUpperCase()}
                 </p>
               </div>
@@ -176,7 +174,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
           </div>
 
           {/* Footer con acciones */}
-          <div className="px-8 py-5 bg-[#F5F5F5] border-t flex gap-3">
+          <div className="px-4 md:px-8 py-4 md:py-5 bg-[#F5F5F5] border-t flex flex-col sm:flex-row gap-3">
             <PrintButton />
 
             {certificate.pdf_url && (

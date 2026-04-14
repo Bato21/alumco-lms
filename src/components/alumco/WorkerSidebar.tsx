@@ -3,9 +3,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, BookOpen, User, Award } from 'lucide-react'
+import { Home, BookOpen, User, Award, X, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
+import { useState } from 'react'
 
 const navItems = [
   { href: '/inicio', label: 'Inicio', icon: Home, exact: false },
@@ -21,11 +22,15 @@ interface WorkerSidebarProps {
   avatarUrl?: string | null
 }
 
-export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebarProps) {
+function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSidebarProps & { onClose?: () => void }) {
   const pathname = usePathname()
 
+  const handleLinkClick = () => {
+    onClose?.()
+  }
+
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r bg-[#1A2F6B] z-40">
+    <>
       {/* Logo */}
       <div className="flex flex-col items-center justify-center py-6 border-b border-white/10 mb-2">
         <Image
@@ -55,6 +60,7 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebar
                 <Link
                   href={item.href}
                   aria-current={isActive ? 'page' : undefined}
+                  onClick={handleLinkClick}
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2.5',
                     'text-base font-medium transition-colors',
@@ -101,6 +107,75 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebar
         </div>
         <LogoutButton />
       </div>
-    </aside>
+    </>
+  )
+}
+
+export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebarProps) {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  return (
+    <>
+      {/* Desktop Sidebar - fijo, solo visible en lg+ */}
+      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 flex flex-col border-r bg-[#1A2F6B] z-40">
+        <SidebarContent fullName={fullName} sede={sede} area={area} avatarUrl={avatarUrl} />
+      </aside>
+
+      {/* Mobile Header - solo visible en mobile/tablet */}
+      <header className="lg:hidden sticky top-0 z-50 bg-[#1A2F6B] border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <Image
+          src="/LogoAlumco.png"
+          alt="Alumco LMS"
+          width={120}
+          height={41}
+          className="object-contain brightness-0 invert"
+          priority
+        />
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+          aria-label="Abrir menú"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+      </header>
+
+      {/* Mobile Drawer Overlay */}
+      {isDrawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-50"
+          onClick={() => setIsDrawerOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Drawer */}
+      <aside
+        className={cn(
+          'lg:hidden fixed top-0 left-0 h-screen w-64 bg-[#1A2F6B] z-50 transform transition-transform duration-300 ease-in-out',
+          isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+        aria-label="Menú de navegación"
+      >
+        {/* Botón de cerrar */}
+        <div className="flex items-center justify-end p-4 border-b border-white/10">
+          <button
+            onClick={() => setIsDrawerOpen(false)}
+            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Cerrar menú"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <SidebarContent
+          fullName={fullName}
+          sede={sede}
+          area={area}
+          avatarUrl={avatarUrl}
+          onClose={() => setIsDrawerOpen(false)}
+        />
+      </aside>
+    </>
   )
 }

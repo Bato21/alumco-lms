@@ -98,16 +98,16 @@ export function BlockCard({
           : 'border-border hover:border-[#2B4FA0]/40'
       } ${isDragging ? 'shadow-lg' : ''}`}
     >
-      <div className="flex items-center gap-3 p-4">
+      <div className="flex items-center gap-2 lg:gap-3 p-3 lg:p-4">
 
-        {/* Handle de arrastre */}
+        {/* Handle de arrastre - 48x48px en mobile */}
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0 p-1"
+          className="cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground transition-colors shrink-0 p-2 lg:p-1 min-h-[48px] min-w-[48px] lg:min-h-0 lg:min-w-0 flex items-center justify-center"
           aria-label="Arrastrar para reordenar"
         >
-          <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <svg className="h-5 w-5 lg:h-5 lg:w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <circle cx="9" cy="6" r="1.5"/>
             <circle cx="15" cy="6" r="1.5"/>
             <circle cx="9" cy="12" r="1.5"/>
@@ -127,7 +127,7 @@ export function BlockCard({
 
         {/* Info del bloque */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${config.bgColor} ${config.textColor}`}>
               {config.label}
             </span>
@@ -148,11 +148,11 @@ export function BlockCard({
         </div>
 
         {/* Acciones */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1 lg:gap-2 shrink-0">
           {/* Botón editar */}
           <button
             onClick={onSelect}
-            className="p-2 rounded-lg hover:bg-[#F5F5F5] text-muted-foreground hover:text-[#2B4FA0] transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+            className="p-2 lg:p-2 rounded-lg hover:bg-[#F5F5F5] text-muted-foreground hover:text-[#2B4FA0] transition-colors min-h-[44px] min-w-[44px] lg:min-h-[36px] lg:min-w-[36px] flex items-center justify-center"
             aria-label={`Editar ${module.title}`}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -164,7 +164,7 @@ export function BlockCard({
           {/* Botón eliminar */}
           <button
             onClick={onDelete}
-            className="p-2 rounded-lg hover:bg-[#FAECE7] text-muted-foreground hover:text-[#E74C3C] transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+            className="p-2 lg:p-2 rounded-lg hover:bg-[#FAECE7] text-muted-foreground hover:text-[#E74C3C] transition-colors min-h-[44px] min-w-[44px] lg:min-h-[36px] lg:min-w-[36px] flex items-center justify-center"
             aria-label={`Eliminar ${module.title}`}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

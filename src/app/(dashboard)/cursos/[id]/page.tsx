@@ -87,7 +87,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .eq('course_id', id)
     .single()
 
-  // Calculate course progress
+  // Calcular course progress
   const completedModuleIds = progress?.completed_modules || []
   const totalModules = modules?.length || 0
   const completedModules = completedModuleIds.length
@@ -99,7 +99,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   const isCourseCompleted = progress?.is_completed || false
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-2 text-sm">
         <Link
@@ -116,7 +116,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
       {/* Course Header */}
       <section className="relative">
-        <div className="h-48 md:h-64 rounded-2xl overflow-hidden relative">
+        <div className="h-40 md:h-64 rounded-2xl overflow-hidden relative">
           {course.thumbnail_url ? (
             <img
               src={course.thumbnail_url}
@@ -134,17 +134,17 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
           {/* Status Badge */}
-          <div className="absolute top-4 right-4">
+          <div className="absolute top-3 right-3 md:top-4 md:right-4">
             {isCourseCompleted ? (
-              <span className="bg-[#27AE60] text-white px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+              <span className="bg-[#27AE60] text-white px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg">
                 Completado
               </span>
             ) : courseProgress > 0 ? (
-              <span className="bg-[#F5A623] text-white px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+              <span className="bg-[#F5A623] text-white px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg">
                 En progreso
               </span>
             ) : (
-              <span className="bg-slate-500 text-white px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+              <span className="bg-slate-500 text-white px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg">
                 No iniciado
               </span>
             )}
@@ -152,14 +152,14 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
         </div>
 
         {/* Course Info */}
-        <div className="mt-6">
-          <h1 className="text-3xl font-bold text-[var(--md-on-surface)] mb-2">{course.title}</h1>
+        <div className="mt-4 md:mt-6">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-[var(--md-on-surface)] mb-2">{course.title}</h1>
           {course.description && (
             <p className="text-[var(--md-on-surface-variant)] max-w-3xl">{course.description}</p>
           )}
 
           {/* Progress Bar */}
-          <div className="mt-6 max-w-xl">
+          <div className="mt-4 md:mt-6 w-full max-w-xl">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-[var(--md-on-surface)]">
                 Progreso del curso
@@ -181,7 +181,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
           {/* Certificate Badge */}
           { isCourseCompleted && certificate && profile && (
-            <div className="mt-6 max-w-xl">
+            <div className="mt-4 md:mt-6">
               <CertificateBadge
                 certificate={certificate}
                 courseName={course.title}
@@ -194,15 +194,15 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
       {/* Modules Section */}
       <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[var(--md-on-surface)]">Contenido del curso</h2>
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h2 className="text-lg md:text-xl font-bold text-[var(--md-on-surface)]">Contenido del curso</h2>
           <span className="text-sm text-[var(--md-on-surface-variant)]">
             {totalModules} módulos
           </span>
         </div>
 
         {modules && modules.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {modules.map((module, index) => (
               <ModuleCard
                 key={module.id}
@@ -210,7 +210,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                 index={index + 1}
                 isCompleted={completedModuleIds.includes(module.id)}
                 isPreviousCompleted={index === 0 || completedModuleIds.includes(modules[index - 1]?.id)}
-                hasQuiz={true} // Will be fetched dynamically
+                hasQuiz={true}
               />
             ))}
           </div>
@@ -269,14 +269,14 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
 
   return (
     <div className={`
-      relative bg-[var(--md-surface-container-lowest)] rounded-xl p-5
+      relative bg-[var(--md-surface-container-lowest)] rounded-xl p-4 md:p-5
       transition-all duration-300
       ${canAccess ? 'shadow-[0_4px_20px_rgba(42,52,57,0.04)] hover:shadow-[0_8px_30px_rgba(42,52,57,0.08)]' : 'opacity-60'}
     `}>
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-3 md:gap-4">
         {/* Module Number / Status */}
         <div className={`
-          w-12 h-12 rounded-xl flex items-center justify-center shrink-0
+          w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0
           ${isCompleted
             ? 'bg-[#27AE60] text-white'
             : canAccess
@@ -285,17 +285,17 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
           }
         `}>
           {isCompleted ? (
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="20,6 9,17 4,12" />
             </svg>
           ) : (
-            <span className="text-lg font-bold">{index}</span>
+            <span className="text-base md:text-lg font-bold">{index}</span>
           )}
         </div>
 
         {/* Module Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-3 md:gap-4">
             <div>
               <h3 className="font-semibold text-[var(--md-on-surface)] mb-1">{module.title}</h3>
               {module.description && (
@@ -303,7 +303,7 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
               )}
 
               {/* Meta Info */}
-              <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-2 md:gap-4 mt-2 flex-wrap">
                 <span className={`
                   inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium
                   ${config.bgColor} text-[var(--md-on-surface)]
@@ -337,11 +337,11 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
 
             {/* Action Button */}
             {canAccess ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 shrink-0">
                 <Link
                   href={`/cursos/${module.course_id}/modulos/${module.id}`}
                   className={`
-                    px-4 py-2 rounded-lg font-semibold text-sm transition-all
+                    px-3 md:px-4 py-2 rounded-lg font-semibold text-sm transition-all min-h-[40px] md:min-h-auto
                     ${isCompleted
                       ? 'bg-[var(--md-surface-container-high)] text-[var(--md-primary)] hover:bg-[var(--md-surface-container-highest)]'
                       : 'bg-[#2B4FA0] text-white hover:bg-[#2B4FA0]/90 shadow-md shadow-[#2B4FA0]/20'
@@ -352,12 +352,12 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
                 </Link>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-[var(--md-outline)]">
+              <div className="flex items-center gap-2 text-[var(--md-outline)] shrink-0">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-                <span className="text-sm">Bloqueado</span>
+                <span className="text-sm hidden md:inline">Bloqueado</span>
               </div>
             )}
           </div>
@@ -365,7 +365,7 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
       </div>
 
       {/* Progress Line Connector */}
-      <div className="absolute left-[2.25rem] top-full w-0.5 h-4 bg-[var(--md-surface-container)] -z-10" />
+      <div className="absolute left-[2rem] md:left-[2.25rem] top-full w-0.5 h-4 bg-[var(--md-surface-container)] -z-10 hidden md:block" />
     </div>
   )
 }

@@ -48,17 +48,17 @@ export function PdfViewer({
   return (
     <div className="space-y-4">
       {/* PDF Viewer */}
-      <div className="bg-[var(--md-surface-container-low)] rounded-lg overflow-hidden min-h-[600px]">
+      <div className="bg-[var(--md-surface-container-low)] rounded-lg overflow-hidden">
         {pdfUrl ? (
           <iframe
             src={`${pdfUrl}#view=FitH`}
             title={moduleTitle}
-            className="w-full min-h-[600px]"
+            className="w-full h-[60vh] md:h-[75vh]"
             style={{ border: 'none' }}
           />
         ) : (
-          <div className="w-full min-h-[400px] flex items-center justify-center">
-            <div className="text-center">
+          <div className="w-full h-[60vh] md:h-[75vh] flex items-center justify-center">
+            <div className="text-center px-4">
               <svg
                 className="w-20 h-20 text-[var(--md-primary)] mx-auto mb-4"
                 viewBox="0 0 24 24"
@@ -82,16 +82,17 @@ export function PdfViewer({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {pdfUrl && (
           <button
             onClick={handleDownload}
             className="
-              inline-flex items-center gap-2 px-5 py-2.5
+              inline-flex items-center justify-center gap-2 px-5 py-2.5
               bg-[var(--md-surface-container-high)] text-[var(--md-primary)]
               font-semibold rounded-lg
               hover:bg-[var(--md-surface-container-highest)]
               transition-colors
+              min-h-[48px]
             "
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -110,11 +111,12 @@ export function PdfViewer({
             onClick={handleMarkComplete}
             disabled={isCompletePending}
             className="
-              inline-flex items-center gap-2 px-6 py-2.5
+              inline-flex items-center justify-center gap-2 px-6 py-2.5
               bg-[#27AE60] text-white font-semibold
               rounded-lg hover:bg-[#27AE60]/90
               transition-colors disabled:opacity-50 disabled:cursor-not-allowed
               shadow-md shadow-[#27AE60]/20
+              min-h-[48px]
             "
           >
             {isCompletePending ? (
