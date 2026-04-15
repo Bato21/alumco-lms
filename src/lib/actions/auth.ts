@@ -100,7 +100,7 @@ export async function loginAction(
   }
 
   revalidatePath('/', 'layout')
-  redirect('/cursos')
+  redirect('/inicio')
 }
 
 // ── Logout ─────────────────────────────────────────────────

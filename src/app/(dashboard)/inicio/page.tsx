@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { BookOpen, Clock, CheckCircle, AlertTriangle, Calendar } from 'lucide-react'
+import { DeadlineCalendar } from '@/components/alumco/DeadlineCalendar'
 
 export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
 
@@ -77,11 +78,6 @@ export default async function InicioPage() {
   const sedeName = profile?.sede === 'sede_1' ? 'Sede Principal' : 'Sede 2'
   const areaName = profile?.area_trabajo ?? ''
 
-  // Cursos con deadline ordenados por fecha
-  const coursesWithDeadline = coursesWithStatus
-    .filter(c => c.deadline && c.status !== 'completed')
-    .sort((a, b) => new Date(a.deadline!).getTime() - new Date(b.deadline!).getTime())
-
   return (
     <div className="space-y-6 lg:space-y-8">
 
@@ -142,13 +138,13 @@ export default async function InicioPage() {
         </div>
       </div>
 
-      {/* Calendario de plazos */}
+      {/* Calendario */}
       <section className="space-y-3 lg:space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5 text-[#2B4FA0]" aria-hidden="true"/>
             <h2 className="text-lg lg:text-xl font-bold text-[#1A1A2E]">
-              Plazos de cursos
+              Calendario de plazos
             </h2>
           </div>
           <Link
@@ -163,98 +159,7 @@ export default async function InicioPage() {
           </Link>
         </div>
 
-        {coursesWithDeadline.length === 0 ? (
-          <div className="bg-white rounded-2xl border p-8 lg:p-10 text-center space-y-3">
-            <div className="h-14 w-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
-              <Calendar className="h-7 w-7 text-slate-400" aria-hidden="true"/>
-            </div>
-            <p className="font-medium text-[#1A1A2E]">
-              No hay plazos pendientes
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Tus cursos no tienen fecha límite asignada o ya están completados.
-            </p>
-          </div>
-        ) : (
-          <ul className="space-y-3" role="list">
-            {coursesWithDeadline.map((course) => {
-              const deadline = new Date(course.deadline!)
-              const today = new Date()
-              today.setHours(0, 0, 0, 0)
-              deadline.setHours(0, 0, 0, 0)
-              const daysLeft = Math.ceil(
-                (deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-              )
-
-              const deadlineLabel =
-                daysLeft < 0 ? `Venció hace ${Math.abs(daysLeft)} día${Math.abs(daysLeft) !== 1 ? 's' : ''}` :
-                daysLeft === 0 ? 'Vence hoy' :
-                daysLeft === 1 ? 'Vence mañana' :
-                `Vence en ${daysLeft} días`
-
-              const borderColor =
-                course.deadlineStatus === 'overdue' ? 'border-l-[#E74C3C]' :
-                course.deadlineStatus === 'soon' ? 'border-l-[#F5A623]' :
-                'border-l-[#27AE60]'
-
-              const badgeColor =
-                course.deadlineStatus === 'overdue'
-                  ? 'bg-[#FAECE7] text-[#E74C3C]'
-                  : course.deadlineStatus === 'soon'
-                  ? 'bg-[#FFF8E7] text-[#854F0B]'
-                  : 'bg-[#EAF3DE] text-[#27500A]'
-
-              return (
-                <li key={course.id}>
-                  <Link
-                    href={`/cursos/${course.id}`}
-                    className={`block bg-white rounded-xl border border-l-4 ${borderColor} p-4 lg:p-5 hover:shadow-sm transition-shadow`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-semibold text-[#1A1A2E] truncate">
-                          {course.title}
-                        </h3>
-                        {course.deadline_description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                            {course.deadline_description}
-                          </p>
-                        )}
-                        {/* Barra de progreso */}
-                        <div className="mt-3 flex items-center gap-3">
-                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${
-                                course.status === 'completed' ? 'bg-[#27AE60]' : 'bg-[#2B4FA0]'
-                              }`}
-                              style={{ width: `${course.progressPct}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-medium text-muted-foreground shrink-0">
-                            {course.progressPct}%
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${badgeColor} whitespace-nowrap`}>
-                          {deadlineLabel}
-                        </span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {new Intl.DateTimeFormat('es-CL', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          }).format(new Date(course.deadline!))}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-        )}
+        <DeadlineCalendar courses={coursesWithStatus} />
       </section>
     </div>
   )
