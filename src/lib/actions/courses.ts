@@ -31,8 +31,8 @@ const PdfModuleSchema = z.object({
 
 const QuizModuleSchema = z.object({
   title: z.string().min(2, 'El título debe tener al menos 2 caracteres'),
-  passing_score: z.coerce.number().min(0).max(100).default(70),
-  max_attempts: z.coerce.number().min(1).max(5).default(3),
+  passing_score: z.preprocess((val) => (val ? Number(val) : 70), z.number().min(0).max(100)),
+  max_attempts: z.preprocess((val) => (val ? Number(val) : 3), z.number().min(1).max(5)),
 })
 
 // ── Tipos de respuesta ─────────────────────────────────────
@@ -41,6 +41,7 @@ export interface ActionResult {
   error?: string
   success?: boolean
   id?: string
+  quizId?: string
 }
 
 // ── Crear curso ────────────────────────────────────────────
@@ -282,7 +283,7 @@ export async function createModuleAction(
     if (moduleError) return { error: 'Error al crear el módulo de evaluación.' }
 
     // Crear quiz ligado al módulo
-    const { error: quizError } = await adminClient
+    const { data: quiz, error: quizError } = await adminClient
       .from('quizzes')
       .insert({
         module_id: module.id,
@@ -290,11 +291,14 @@ export async function createModuleAction(
         passing_score: parsed.data.passing_score,
         max_attempts: parsed.data.max_attempts,
       })
+      .select('id')
+      .single()
 
     if (quizError) return { error: 'Error al crear la evaluación.' }
 
+    await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
-    return { success: true, id: module.id }
+    return { success: true, id: module.id, quizId: quiz.id }
   }
 
   return { error: 'Tipo de módulo no válido.' }

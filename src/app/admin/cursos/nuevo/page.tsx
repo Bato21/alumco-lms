@@ -1,21 +1,32 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { createCourseAction } from '@/lib/actions/courses'
+"use client"; 
 
-export const metadata: Metadata = { title: 'Nuevo curso | Alumco LMS' }
+import Link from 'next/link';
+import { createCourseAction } from '@/lib/actions/courses';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react'; // Para manejar el estado de carga
 
 export default function NuevoCursoPage() {
-  async function handleCreate(formData: FormData) {
-    'use server'
-    const result = await createCourseAction(formData)
+  const router = useRouter();
+  const [isPending, setIsPending] = useState(false);
+
+  // 3. Modificamos la función para que use el router correctamente
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const result = await createCourseAction(formData);
+    
     if (result.success && result.id) {
-      redirect(`/admin/cursos/${result.id}/editar`)
+      router.push(`/admin/cursos/${result.id}/editar`);
+    } else {
+      setIsPending(false);
+      alert(result.error || "Ocurrió un error al crear el curso");
     }
   }
 
   return (
     <div className="max-w-2xl mx-auto p-4 lg:p-8 space-y-6 lg:space-y-8">
-
       {/* Header */}
       <div>
         <h1 className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">
@@ -26,16 +37,12 @@ export default function NuevoCursoPage() {
         </p>
       </div>
 
-      {/* Formulario */}
-      <form action={handleCreate} className="space-y-4 lg:space-y-6">
+      {/* 4. Cambiamos action={} por onSubmit={} para mejor control en el cliente */}
+      <form onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
         <div className="bg-white rounded-xl border p-4 lg:p-6 space-y-4 lg:space-y-5">
-
           {/* Título */}
           <div className="space-y-1.5">
-            <label
-              htmlFor="title"
-              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-            >
+            <label htmlFor="title" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Título del curso *
             </label>
             <input
@@ -50,10 +57,7 @@ export default function NuevoCursoPage() {
 
           {/* Descripción */}
           <div className="space-y-1.5">
-            <label
-              htmlFor="description"
-              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-            >
+            <label htmlFor="description" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Descripción
             </label>
             <textarea
@@ -65,15 +69,11 @@ export default function NuevoCursoPage() {
             />
           </div>
 
-          {/* Divider */}
           <div className="h-px bg-border"/>
 
           {/* Fecha límite */}
           <div className="space-y-1.5">
-            <label
-              htmlFor="deadline"
-              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-            >
+            <label htmlFor="deadline" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Fecha límite de cumplimiento
             </label>
             <input
@@ -82,17 +82,11 @@ export default function NuevoCursoPage() {
               type="date"
               className="w-full h-12 px-4 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
             />
-            <p className="text-xs text-muted-foreground">
-              Opcional. Si se define, los trabajadores recibirán alertas al acercarse al vencimiento.
-            </p>
           </div>
 
           {/* Descripción del plazo */}
           <div className="space-y-1.5">
-            <label
-              htmlFor="deadline_description"
-              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
-            >
+            <label htmlFor="deadline_description" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Descripción del plazo
             </label>
             <input
@@ -115,12 +109,13 @@ export default function NuevoCursoPage() {
           </Link>
           <button
             type="submit"
-            className="flex-1 h-12 rounded-lg bg-[#2B4FA0] text-white text-base font-bold hover:bg-[#2B4FA0]/90 transition-colors min-h-[48px]"
+            disabled={isPending}
+            className="flex-1 h-12 rounded-lg bg-[#2B4FA0] text-white text-base font-bold hover:bg-[#2B4FA0]/90 transition-colors min-h-[48px] disabled:opacity-50"
           >
-            Crear y agregar módulos →
+            {isPending ? "Creando..." : "Crear y agregar módulos →"}
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }

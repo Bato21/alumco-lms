@@ -99,7 +99,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
         is_required: formData.get('is_required') !== 'false',
         quiz: selectedType === 'quiz'
           ? {
-              id: '',
+              id: result.quizId ?? '',
               passing_score: Number(formData.get('passing_score')) || 70,
               max_attempts: Number(formData.get('max_attempts')) || 3,
             }

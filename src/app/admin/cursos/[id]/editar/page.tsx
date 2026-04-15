@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
 import { CourseBuilder } from '@/components/alumco/CourseBuilder/CourseBuilder'
 import { type ModuleBlock } from '@/components/alumco/CourseBuilder/CourseBuilder'
+import { type Question } from '@/lib/types/database'
 
 export const metadata: Metadata = { title: 'Editar curso | Alumco LMS' }
 
@@ -23,7 +24,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
 
   if (!course) notFound()
 
-  // Cargar módulos ordenados con sus quizzes
+  // Cargar módulos ordenados con sus quizzes y preguntas
   const { data: modules } = await supabase
     .from('modules')
     .select(`
@@ -37,7 +38,16 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       quizzes (
         id,
         passing_score,
-        max_attempts
+        max_attempts,
+        questions (
+          id,
+          quiz_id,
+          question_text,
+          options,
+          correct_option,
+          order_index,
+          created_at
+        )
       )
     `)
     .eq('course_id', id)
@@ -56,6 +66,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
           id: m.quizzes[0].id,
           passing_score: m.quizzes[0].passing_score,
           max_attempts: m.quizzes[0].max_attempts,
+          questions: m.quizzes[0].questions ?? [],
         }
       : undefined,
   }))

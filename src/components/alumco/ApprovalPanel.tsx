@@ -146,8 +146,8 @@ export function ApprovalPanel({
                     disabled={isPending}
                     className="w-full h-11 lg:h-12 px-3 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0] transition-colors"
                   >
-                    <option value="sede_1">Sede Principal</option>
-                    <option value="sede_2">Sede Secundaria</option>
+                    <option value="sede_1">Sede Hualpén</option>
+                    <option value="sede_2">Sede Coyhaique</option>
                   </select>
                 </div>
 
@@ -199,6 +199,19 @@ export function ApprovalPanel({
                       />
                       <span className="text-sm lg:text-base font-medium group-hover:text-[#2B4FA0] transition-colors">
                         Administrador
+                      </span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="radio"
+                        name="role"
+                        value="profesor"
+                        defaultChecked
+                        disabled={isPending}
+                        className="h-5 w-5 text-[#2B4FA0] border-gray-300 focus:ring-[#2B4FA0]"
+                      />
+                      <span className="text-sm lg:text-base font-medium group-hover:text-[#2B4FA0] transition-colors">
+                        Profesor
                       </span>
                     </label>
                   </div>

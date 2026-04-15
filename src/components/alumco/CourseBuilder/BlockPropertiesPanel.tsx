@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { updateModuleAction } from '@/lib/actions/courses'
 import { type ModuleBlock } from './CourseBuilder'
+import QuizQuestionsEditor from './QuizQuestionsEditor'
 
 interface BlockPropertiesPanelProps {
   module: ModuleBlock
@@ -134,22 +135,29 @@ export function BlockPropertiesPanel({
         )}
 
         {module.content_type === 'quiz' && module.quiz && (
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Puntaje mínimo</span>
-              <span className="font-semibold text-[#1A1A2E]">
-                {module.quiz.passing_score}%
-              </span>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Puntaje mínimo</span>
+                <span className="font-semibold text-[#1A1A2E]">
+                  {module.quiz.passing_score}%
+                </span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Intentos máximos</span>
+                <span className="font-semibold text-[#1A1A2E]">
+                  {module.quiz.max_attempts}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Intentos máximos</span>
-              <span className="font-semibold text-[#1A1A2E]">
-                {module.quiz.max_attempts}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground bg-[#F5F5F5] p-3 rounded-lg">
-              Para editar las preguntas del quiz, usa la vista de edición completa.
-            </p>
+
+            {/* Editor de preguntas */}
+            <div className="h-px bg-border"/>
+            <QuizQuestionsEditor
+              quizId={module.quiz.id}
+              courseId={courseId}
+              existingQuestions={module.quiz.questions ?? []}
+            />
           </div>
         )}
 

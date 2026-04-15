@@ -12,6 +12,8 @@ import { type ContentType } from '@/lib/types/database'
 
 // ── Tipos locales ──────────────────────────────────────────
 
+import { type Question } from '@/lib/types/database'
+
 export interface ModuleBlock {
   id: string
   title: string
@@ -24,6 +26,7 @@ export interface ModuleBlock {
     id: string
     passing_score: number
     max_attempts: number
+    questions?: Question[]
   }
 }
 
