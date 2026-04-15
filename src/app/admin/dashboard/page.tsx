@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { 
   Calendar, Filter, User, CheckCircle, Clock, TrendingUp, 
   MoreVertical, Award, Medal 
@@ -36,28 +36,151 @@ export default async function AdminDashboardPage() {
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
 
-  const { data: stats } = await supabase.from('reporte_avance').select('*')
+// Trabajadores activos (solo role=trabajador y status=activo)
+const adminClient = await createAdminClient()
+const { data: activeWorkers } = await adminClient
+  .from('profiles')
+  .select('id')
+  .eq('role', 'trabajador')
+  .eq('status', 'activo')
 
-  const totalWorkers = stats?.length || 0
-  const coursesCompleted = stats?.reduce((acc, s) => acc + (s.cursos_completados || 0), 0) || 0
-  const inProgress = stats?.filter(s => s.cursos_en_progreso > 0).length || 0
-  const approvalRate = totalWorkers > 0
-    ? Math.round((stats!.filter(s => s.tasa_aprobacion > 70).length / totalWorkers) * 100)
-    : 0
+const totalWorkers = activeWorkers?.length ?? 0
 
-  const workerProgress: WorkerProgress[] = [
-    { id: '1', full_name: 'Juan Pablo Silva', sede: 'SEDE 1', area_trabajo: 'Logística', courses_completed: 8, status: 'al_dia', last_activity: 'Hace 2 horas' },
-    { id: '2', full_name: 'María José Castro', sede: 'SEDE 2', area_trabajo: 'Operaciones', courses_completed: 5, status: 'en_progreso', last_activity: 'Ayer' },
-    { id: '3', full_name: 'Andrés Fuenzalida', sede: 'SEDE 1', area_trabajo: 'Bodega', courses_completed: 2, status: 'atrasado', last_activity: 'Hace 5 días' },
-    { id: '4', full_name: 'Carolina Herrera', sede: 'SEDE 2', area_trabajo: 'Administración', courses_completed: 12, status: 'al_dia', last_activity: 'Hoy, 09:15' },
-    { id: '5', full_name: 'Diego Valenzuela', sede: 'SEDE 1', area_trabajo: 'Transporte', courses_completed: 4, status: 'en_progreso', last_activity: 'Ayer' },
-  ]
+// Progreso de cursos
+const { data: progressData } = await supabase
+  .from('course_progress')
+  .select('is_completed, user_id')
 
-  const topCourses: CourseCompletion[] = [
-    { course_name: 'Cuidado Integral', completion_rate: 95 },
-    { course_name: 'Primeros Auxilios', completion_rate: 80 },
-    { course_name: 'Comunicación', completion_rate: 70 },
-  ]
+const completedProgress = progressData?.filter(p => p.is_completed) ?? []
+const coursesCompleted = completedProgress.length
+
+// Trabajadores con al menos un curso en progreso
+const { data: inProgressData } = await supabase
+  .from('course_progress')
+  .select('user_id')
+  .eq('is_completed', false)
+
+const uniqueInProgress = new Set(inProgressData?.map(p => p.user_id) ?? [])
+const inProgress = uniqueInProgress.size
+
+// Tasa de aprobación global de quizzes
+const { data: allAttempts } = await supabase
+  .from('quiz_attempts')
+  .select('status')
+
+const totalAttempts = allAttempts?.length ?? 0
+const approvedAttempts = allAttempts?.filter(a => a.status === 'aprobado').length ?? 0
+const approvalRate = totalAttempts > 0
+  ? Math.round((approvedAttempts / totalAttempts) * 100)
+  : 0
+
+// Obtener trabajadores activos con su progreso real
+const { data: workersData } = await adminClient
+  .from('profiles')
+  .select('id, full_name, sede, area_trabajo')
+  .eq('role', 'trabajador')
+  .eq('status', 'activo')
+  .order('full_name')
+
+const { data: allProgress } = await adminClient
+  .from('course_progress')
+  .select('user_id, is_completed, completed_at, updated_at')
+
+const { data: allCertificates } = await adminClient
+  .from('certificates')
+  .select('user_id, issued_at')
+
+const workerProgress: WorkerProgress[] = (workersData ?? []).map((worker) => {
+  const workerProgressList = allProgress?.filter(p => p.user_id === worker.id) ?? []
+  const completed = workerProgressList.filter(p => p.is_completed).length
+  const inProgressCount = workerProgressList.filter(p => !p.is_completed).length
+
+  let status: 'al_dia' | 'en_progreso' | 'atrasado' = 'al_dia'
+  if (inProgressCount > 0) status = 'en_progreso'
+  if (workerProgressList.length === 0) status = 'atrasado'
+
+  // Última actividad — más reciente entre progress y certificates
+  const lastProgress = workerProgressList
+    .map(p => p.completed_at ?? p.updated_at)
+    .filter(Boolean)
+    .sort()
+    .at(-1)
+
+  const lastCert = allCertificates
+    ?.filter(c => c.user_id === worker.id)
+    .map(c => c.issued_at)
+    .sort()
+    .at(-1)
+
+  const lastActivityRaw = [lastProgress, lastCert]
+    .filter(Boolean)
+    .sort()
+    .at(-1)
+
+  let lastActivity = 'Sin actividad'
+  if (lastActivityRaw) {
+    const diff = Math.floor(
+      (Date.now() - new Date(lastActivityRaw).getTime()) / (1000 * 60 * 60 * 24)
+    )
+    if (diff === 0) lastActivity = 'Hoy'
+    else if (diff === 1) lastActivity = 'Ayer'
+    else if (diff < 7) lastActivity = `Hace ${diff} días`
+    else lastActivity = new Intl.DateTimeFormat('es-CL', {
+      day: '2-digit', month: 'short'
+    }).format(new Date(lastActivityRaw))
+  }
+
+  return {
+    id: worker.id,
+    full_name: worker.full_name,
+    sede: worker.sede === 'sede_1' ? 'SEDE 1' : 'SEDE 2',
+    area_trabajo: worker.area_trabajo,
+    courses_completed: completed,
+    status,
+    last_activity: lastActivity,
+  }
+})
+
+// Cursos más completados
+const { data: allCourses } = await adminClient
+  .from('courses')
+  .select('id, title')
+  .eq('is_published', true)
+
+const { data: allCourseProgress } = await adminClient
+  .from('course_progress')
+  .select('course_id, is_completed, user_id')
+
+const topCourses: CourseCompletion[] = (allCourses ?? [])
+  .map((course) => {
+    const courseProgressList = allCourseProgress?.filter(
+      p => p.course_id === course.id
+    ) ?? []
+    const completedCount = courseProgressList.filter(p => p.is_completed).length
+    const totalWorkerCount = activeWorkers?.length ?? 1
+    const completion_rate = totalWorkerCount > 0
+      ? Math.round((completedCount / totalWorkerCount) * 100)
+      : 0
+
+    return {
+      course_name: course.title,
+      completion_rate,
+    }
+  })
+  .sort((a, b) => b.completion_rate - a.completion_rate)
+  .slice(0, 3)
+
+// Certificados emitidos este mes
+const startOfMonth = new Date()
+startOfMonth.setDate(1)
+startOfMonth.setHours(0, 0, 0, 0)
+
+const { data: monthCertificates } = await adminClient
+  .from('certificates')
+  .select('id')
+  .gte('issued_at', startOfMonth.toISOString())
+
+const certificatesThisMonth = monthCertificates?.length ?? 0
 
   return (
     <>
@@ -204,7 +327,7 @@ export default async function AdminDashboardPage() {
                   <h4 className="text-white/80 font-semibold text-sm tracking-wide">Certificados este mes</h4>
                 </div>
                 <div className="flex items-baseline gap-3 mb-6">
-                  <span className="text-5xl font-black text-white">12</span>
+                  <span className="text-5xl font-black text-white">{certificatesThisMonth}</span>
                   <span className="text-white/60 text-xs font-medium uppercase tracking-widest">Emitidos</span>
                 </div>
                 <button className="w-full py-3 bg-[#F5A623] hover:bg-[#e0961a] text-[#1A2F6B] font-bold rounded-lg text-sm shadow-md transition-all active:scale-[0.98]">
