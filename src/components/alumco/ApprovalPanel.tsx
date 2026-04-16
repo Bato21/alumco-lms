@@ -206,7 +206,6 @@ export function ApprovalPanel({
                         type="radio"
                         name="role"
                         value="profesor"
-                        defaultChecked
                         disabled={isPending}
                         className="h-5 w-5 text-[#2B4FA0] border-gray-300 focus:ring-[#2B4FA0]"
                       />

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { WorkerSidebar } from '@/components/alumco/WorkerSidebar'
+import { UserRole } from '@/lib/types/database'
 
 export default async function DashboardLayout({
   children,
@@ -26,7 +27,7 @@ export default async function DashboardLayout({
     )
   }
 
-  if (profile.role === 'admin') redirect('/admin/dashboard')
+  if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')
 
   return (
     <div className="min-h-screen bg-[var(--md-surface)]">

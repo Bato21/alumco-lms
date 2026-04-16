@@ -64,7 +64,7 @@ const ApproveSchema = z.object({
   profileId: z.string().uuid(),
   sede: z.enum(['sede_1', 'sede_2']),
   area_trabajo: z.string().min(2, 'Ingresa el área de trabajo'),
-  role: z.enum(['admin', 'trabajador']),
+  role: z.enum(['admin', 'trabajador', 'profesor']),
 })
 
 // ── Tipos de respuesta ─────────────────────────────────────

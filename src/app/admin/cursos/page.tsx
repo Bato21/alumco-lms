@@ -22,8 +22,8 @@ export default async function AdminCursosPage() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
-    redirect('/cursos')
+  if (profile?.role !== 'admin' && profile?.role !== 'profesor') {
+  redirect('/inicio')
   }
 
   // Fetch all courses

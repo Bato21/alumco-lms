@@ -33,6 +33,11 @@ export interface ActionResult {
   success?: boolean
 }
 
+interface AuthProfileStatusRole {
+  status: 'pendiente' | 'activo' | 'suspendido' | null
+  role: 'admin' | 'trabajador' | 'profesor' | null
+}
+
 type ActionState = ActionResult | undefined
 
 function resolveFormData(
@@ -51,7 +56,6 @@ function resolveFormData(
 }
 
 // ── Login ──────────────────────────────────────────────────
-
 export async function loginAction(
   stateOrFormData: ActionState | FormData,
   maybeFormData?: FormData
@@ -85,14 +89,16 @@ export async function loginAction(
     .eq('id', data.user.id)
     .single()
 
-  if (profile?.status === 'pendiente') {
+  const profileData = profile as AuthProfileStatusRole | null
+
+  if (profileData?.status === 'pendiente') {
     await supabase.auth.signOut()
     return {
       error: 'Tu cuenta está pendiente de aprobación. Te notificaremos por correo cuando sea activada.',
     }
   }
 
-  if (profile?.status === 'suspendido') {
+  if (profileData?.status === 'suspendido') {
     await supabase.auth.signOut()
     return {
       error: 'Tu cuenta ha sido suspendida. Contacta a tu administrador.',
@@ -100,11 +106,15 @@ export async function loginAction(
   }
 
   revalidatePath('/', 'layout')
+
+  // Redirigir según rol
+  if (profileData?.role === 'admin' || profileData?.role === 'profesor') {
+    redirect('/admin/dashboard')
+  }
   redirect('/inicio')
 }
 
 // ── Logout ─────────────────────────────────────────────────
-
 export async function logoutAction(): Promise<void> {
   const supabase = await createClient()
   await supabase.auth.signOut()

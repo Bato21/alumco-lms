@@ -52,7 +52,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
   const { data: course } = await supabase
     .from('courses')
-    .select('*')
+    .select('*, profiles(full_name)')
     .eq('id', courseId)
     .eq('is_published', true)
     .single() as { data: Course | null }
@@ -295,6 +295,48 @@ export default async function ModulePage({ params }: ModulePageProps) {
                 {completedModuleIds.length} completados
               </div>
             </div>
+          </div>
+          {/* Contactar tutor */}
+          <div className="bg-gradient-to-br from-[#1A2F6B] to-[#2B4FA0] rounded-xl p-5 relative overflow-hidden">
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="h-5 w-5 text-[#F5A623]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <h4 className="text-white font-semibold text-sm">
+                  ¿Necesitas ayuda?
+                </h4>
+              </div>
+              <p className="text-white/70 text-xs leading-relaxed mb-4">
+                Contacta al administrador si tienes dudas sobre el contenido de este módulo.
+              </p>
+              {course.created_by ? (
+                <a
+                  href="mailto:alumco@ongalumco.cl"
+                  className="w-full py-2.5 bg-[#F5A623] hover:bg-[#F5A623]/90 text-[#1A2F6B] font-bold rounded-lg text-sm transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                  Contactar administrador
+                </a>
+              ) : (
+                <a
+                  href="mailto:da.ehualpen@gmail.com"
+                  className="w-full py-2.5 bg-[#F5A623] hover:bg-[#F5A623]/90 text-[#1A2F6B] font-bold rounded-lg text-sm transition-colors flex items-center justify-center gap-2 min-h-[44px]"
+                >
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect width="20" height="16" x="2" y="4" rx="2"/>
+                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                  </svg>
+                  Contactar administrador
+                </a>
+              )}
+            </div>
+            {/* Decoración de fondo */}
+            <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-white/5" aria-hidden="true"/>
+            <div className="absolute -right-2 -top-4 h-16 w-16 rounded-full bg-white/5" aria-hidden="true"/>
           </div>
         </div>
       </div>
