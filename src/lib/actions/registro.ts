@@ -63,7 +63,20 @@ const RegisterSchema = z.object({
 const ApproveSchema = z.object({
   profileId: z.string().uuid(),
   sede: z.enum(['sede_1', 'sede_2']),
-  area_trabajo: z.string().min(2, 'Ingresa el área de trabajo'),
+  // Por esto:
+  area_trabajo: z.enum([
+    'Enfermería',
+    'Auxiliar de enfermería',
+    'Kinesiología',
+    'Terapia ocupacional',
+    'Nutrición',
+    'Trabajo social',
+    'Psicología',
+    'Administración',
+    'Dirección técnica',
+    'Geriatría',
+    'Sin asignar',
+  ]),
   role: z.enum(['admin', 'trabajador', 'profesor']),
 })
 

@@ -159,15 +159,26 @@ export function ApprovalPanel({
                   >
                     Área de trabajo
                   </Label>
-                  <Input
+                  <select
                     id="area_trabajo"
                     name="area_trabajo"
-                    type="text"
                     required
                     disabled={isPending}
-                    placeholder="Ej: Enfermería"
-                    className="h-11 lg:h-12 text-base"
-                  />
+                    className="w-full h-11 lg:h-12 px-3 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0] transition-colors"
+                  >
+                    <option value="">Seleccionar área...</option>
+                    <option value="Enfermería">Enfermería</option>
+                    <option value="Auxiliar de enfermería">Auxiliar de enfermería</option>
+                    <option value="Kinesiología">Kinesiología</option>
+                    <option value="Terapia ocupacional">Terapia ocupacional</option>
+                    <option value="Nutrición">Nutrición</option>
+                    <option value="Trabajo social">Trabajo social</option>
+                    <option value="Psicología">Psicología</option>
+                    <option value="Administración">Administración</option>
+                    <option value="Dirección técnica">Dirección técnica</option>
+                    <option value="Geriatría">Geriatría</option>
+                    <option value="Sin asignar">Sin asignar</option>
+                  </select>
                 </div>
 
                 {/* Rol */}

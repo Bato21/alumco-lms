@@ -25,6 +25,21 @@ export interface Profile {
   created_at: string
   updated_at: string
 }
+
+export type AreaTrabajo =
+  | 'Enfermería'
+  | 'Auxiliar de enfermería'
+  | 'Kinesiología'
+  | 'Terapia ocupacional'
+  | 'Nutrición'
+  | 'Trabajo social'
+  | 'Psicología'
+  | 'Administración'
+  | 'Dirección técnica'
+  | 'Geriatría'
+  | 'Sin asignar'
+
+
 export interface Course {
   id: string
   title: string
