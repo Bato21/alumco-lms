@@ -9,17 +9,20 @@ import {
   BarChart3,
   Users,
   Award,
+  Menu,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
 import { type UserRole } from '@/lib/types/database'
+import { useState } from 'react'
 
 interface AdminSidebarProps {
   fullName: string
   role: UserRole
 }
 
-export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
+function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClose?: () => void }) {
   const pathname = usePathname()
   const isAdmin = role === 'admin'
 
@@ -56,11 +59,14 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
     },
   ]
 
-  return (
-    <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col bg-[#1A2F6B] z-40">
+  const handleLinkClick = () => {
+    onClose?.()
+  }
 
+  return (
+    <>
       {/* Logo */}
-      <div className="flex flex-col items-center justify-center py-6 border-b border-white/10">
+      <div className="flex flex-col items-center justify-center py-6 border-b border-white/10 mb-2">
         <Image
           src="/LogoAlumco.png"
           alt="Alumco LMS"
@@ -98,6 +104,7 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
                   <Link
                     href={item.href}
                     aria-current={isActive ? 'page' : undefined}
+                    onClick={handleLinkClick}
                     className={cn(
                       'flex items-center gap-3 rounded-lg px-3 py-2.5',
                       'text-base font-medium transition-colors',
@@ -133,6 +140,73 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
         </div>
         <LogoutButton />
       </div>
-    </aside>
+    </>
+  )
+}
+
+export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+
+  return (
+    <>
+      {/* Desktop Sidebar - fijo, solo visible en lg+ */}
+      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 flex flex-col bg-[#1A2F6B] z-40">
+        <SidebarContent fullName={fullName} role={role} />
+      </aside>
+
+      {/* Mobile Header - solo visible en mobile/tablet */}
+      <header className="lg:hidden sticky top-0 z-50 bg-[#1A2F6B] border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <Image
+          src="/LogoAlumco.png"
+          alt="Alumco LMS"
+          width={120}
+          height={41}
+          className="object-contain brightness-0 invert"
+          priority
+        />
+        <button
+          onClick={() => setIsDrawerOpen(true)}
+          className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+          aria-label="Abrir menú"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+      </header>
+
+      {/* Mobile Drawer Overlay */}
+      {isDrawerOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-50"
+          onClick={() => setIsDrawerOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Drawer */}
+      <aside
+        className={cn(
+          'lg:hidden fixed top-0 left-0 h-screen w-64 bg-[#1A2F6B] z-50 transform transition-transform duration-300 ease-in-out',
+          isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+        aria-label="Menú de navegación"
+      >
+        {/* Botón de cerrar */}
+        <div className="flex items-center justify-end p-4 border-b border-white/10">
+          <button
+            onClick={() => setIsDrawerOpen(false)}
+            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Cerrar menú"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <SidebarContent
+          fullName={fullName}
+          role={role}
+          onClose={() => setIsDrawerOpen(false)}
+        />
+      </aside>
+    </>
   )
 }

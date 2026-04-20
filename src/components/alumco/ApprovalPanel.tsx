@@ -59,7 +59,7 @@ export function ApprovalPanel({
       {/* Botón disparador */}
       <button
         onClick={() => setIsOpen(true)}
-        className="px-4 py-2 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[44px] min-w-[48px]"
+        className="px-4 py-2 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[48px] min-w-[48px]"
       >
         Revisar
       </button>
@@ -88,7 +88,7 @@ export function ApprovalPanel({
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-2 rounded-full hover:bg-[#F5F5F5] transition-colors min-w-[48px] min-h-[48px] flex items-center justify-center"
                 aria-label="Cerrar panel"
               >
                 <X className="h-5 w-5" aria-hidden="true" />

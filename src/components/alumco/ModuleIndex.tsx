@@ -135,7 +135,7 @@ export function ModuleIndex({
               {/* Module Info */}
               <div className="flex-1 min-w-0">
                 <p className={`
-                  font-medium text-sm line-clamp-2
+                  font-medium text-sm truncate
                   ${status === 'active'
                     ? 'text-[var(--md-on-primary-container)]'
                     : 'text-[var(--md-on-surface)]'

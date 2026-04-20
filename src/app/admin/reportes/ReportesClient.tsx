@@ -113,19 +113,19 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-4 lg:p-8 space-y-6">
 
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-[#1A1A2E]">Reportes de cumplimiento</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">Reportes de cumplimiento</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             Seguimiento de capacitaciones por trabajador, sede y área
           </p>
         </div>
         <button
           onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[48px] shrink-0"
         >
           <Download className="h-4 w-4" aria-hidden="true" />
           Exportar CSV
@@ -231,7 +231,7 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
 
       {/* Tabla */}
       <div className="bg-white rounded-2xl border overflow-hidden">
-        <div className="px-6 py-4 border-b flex items-center justify-between">
+        <div className="px-4 lg:px-6 py-4 border-b flex items-center justify-between">
           <h2 className="font-semibold text-[#1A1A2E]">
             Trabajadores
           </h2>
@@ -254,7 +254,7 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
                 <div key={worker.user_id}>
                   {/* Fila principal */}
                   <div
-                    className="px-6 py-4 hover:bg-[#F5F5F5]/50 transition-colors cursor-pointer"
+                    className="px-4 lg:px-6 py-4 hover:bg-[#F5F5F5]/50 transition-colors cursor-pointer"
                     onClick={() => setExpandedWorker(isExpanded ? null : worker.user_id)}
                   >
                     <div className="flex items-center gap-4">
@@ -321,7 +321,7 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
 
                   {/* Cursos pendientes expandidos */}
                   {isExpanded && worker.pendingCourses.length > 0 && (
-                    <div className="px-6 pb-4 bg-[#F5F5F5]/50">
+                    <div className="px-4 lg:px-6 pb-4 bg-[#F5F5F5]/50">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                         Cursos pendientes
                       </p>

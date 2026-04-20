@@ -87,7 +87,7 @@ export default async function AdminCertificadosPage() {
                   <th className="px-4 lg:px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Trabajador
                   </th>
-                  <th className="px-4 lg:px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <th className="px-4 lg:px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">
                     Curso
                   </th>
                   <th className="px-4 lg:px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
@@ -137,16 +137,13 @@ export default async function AdminCertificadosPage() {
                             <p className="font-medium text-[#1A1A2E] text-sm truncate">
                               {profile?.full_name ?? '—'}
                             </p>
-                            <p className="text-xs text-muted-foreground truncate lg:hidden">
-                              {course?.title ?? '—'}
-                            </p>
                           </div>
                         </div>
                       </td>
 
                       {/* Curso */}
-                      <td className="px-4 lg:px-6 py-4 hidden lg:table-cell">
-                        <p className="text-sm font-medium text-[#1A1A2E] max-w-[200px] truncate">
+                      <td className="px-4 lg:px-6 py-4 hidden sm:table-cell">
+                        <p className="text-sm font-medium text-[#1A1A2E] max-w-[160px] lg:max-w-[200px] truncate">
                           {course?.title ?? '—'}
                         </p>
                       </td>

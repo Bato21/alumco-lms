@@ -82,7 +82,7 @@ export function VideoPlayer({
   return (
     <div className="space-y-4">
       {/* Video Container - 16:9 aspect ratio */}
-      <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+      <div className="relative w-full aspect-video">
         {embedUrl ? (
           <iframe
             src={embedUrl}

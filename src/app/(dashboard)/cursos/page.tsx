@@ -75,7 +75,7 @@ export default async function CursosPage() {
       </div>
 
       {coursesWithProgress.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {coursesWithProgress.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
@@ -129,25 +129,25 @@ function CourseCard({ course }: { course: Course }) {
   const config = statusConfig[course.status]
 
   return (
-    <div className="bg-white rounded-2xl border overflow-hidden hover:shadow-md transition-shadow">
-      <div className="h-28 sm:h-36 relative">
+    <div className="bg-white rounded-2xl border overflow-hidden hover:shadow-md transition-shadow min-w-0">
+      <div className="h-32 sm:h-40 relative">
         {course.thumbnail_url ? (
           <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover"/>
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-[#2B4FA0] to-[#1A2F6B] flex items-center justify-center">
-            <svg className="w-10 h-10 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg className="w-12 h-12 sm:w-16 sm:h-16 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
               <path d="M6 12v5c3 3 9 3 12 0v-5"/>
             </svg>
           </div>
         )}
-        <div className={`absolute top-2 sm:top-3 right-2 sm:right-3 ${config.bgColor} ${config.textColor} px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
+        <div className={`absolute top-2 right-2 ${config.bgColor} ${config.textColor} px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
           {config.label}
         </div>
       </div>
 
-      <div className="p-4 sm:p-5">
-        <h3 className="font-bold text-[#2B4FA0] text-lg mb-3 line-clamp-1">
+      <div className="p-4">
+        <h3 className="font-bold text-[#2B4FA0] text-base sm:text-lg mb-3 line-clamp-1">
           {course.title}
         </h3>
 

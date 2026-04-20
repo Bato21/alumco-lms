@@ -144,11 +144,11 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-4 md:space-y-6">
+        <div className="md:col-span-2 space-y-4 md:space-y-6">
           {/* Breadcrumb */}
-          <nav className="flex items-center gap-2 text-sm overflow-x-auto">
+          <nav className="flex items-center gap-2 text-sm overflow-x-auto whitespace-nowrap">
             <Link
               href="/cursos"
               className="text-[var(--md-on-surface-variant)] hover:text-[var(--md-primary)] transition-colors shrink-0"
@@ -160,14 +160,14 @@ export default async function ModulePage({ params }: ModulePageProps) {
             </svg>
             <Link
               href={`/cursos/${courseId}`}
-              className="text-[var(--md-on-surface-variant)] hover:text-[var(--md-primary)] transition-colors truncate max-w-[150px]"
+              className="text-[var(--md-on-surface-variant)] hover:text-[var(--md-primary)] transition-colors shrink-0"
             >
               {course.title}
             </Link>
             <svg className="w-4 h-4 text-[var(--md-outline)] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="m9 18 6-6-6-6" />
             </svg>
-            <span className="text-[var(--md-on-surface)] font-medium truncate shrink-0">{module.title}</span>
+            <span className="text-[var(--md-on-surface)] font-medium shrink-0">{module.title}</span>
           </nav>
 
           {/* Module Header */}
@@ -270,7 +270,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
         </div>
 
         {/* Sidebar - oculto en mobile, visible en desktop */}
-        <div className="hidden lg:block space-y-4 md:space-y-6">
+        <div className="hidden md:block space-y-4 md:space-y-6">
           <ModuleIndex
             modules={modules || []}
             currentModuleId={moduleId}

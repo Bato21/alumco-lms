@@ -92,7 +92,7 @@ export default async function InicioPage() {
       </section>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 min-w-0">
         <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
           <div className="h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center shrink-0">
             <BookOpen className="h-5 w-5 text-[#185FA5]" aria-hidden="true"/>

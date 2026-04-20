@@ -81,7 +81,7 @@ export function CourseBuilder({
     <div className="min-h-screen bg-[#F5F5F5]">
 
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white border-b px-4 lg:px-8 py-4 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-30 bg-white border-b px-4 lg:px-8 py-3 lg:py-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-3 lg:gap-4 min-w-0 flex-1">
           <button
             onClick={() => router.push('/admin/cursos')}
@@ -125,7 +125,7 @@ export function CourseBuilder({
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="px-3 lg:px-4 py-2 rounded-lg border border-[#E74C3C] text-[#E74C3C] text-xs lg:text-sm font-semibold hover:bg-[#E74C3C]/5 transition-colors min-h-[40px] min-w-[44px] hidden sm:inline-flex items-center justify-center"
+            className="px-3 lg:px-4 py-2 rounded-lg border border-[#E74C3C] text-[#E74C3C] text-xs lg:text-sm font-semibold hover:bg-[#E74C3C]/5 transition-colors min-h-[44px] min-w-[44px] hidden sm:inline-flex items-center justify-center"
           >
             Eliminar
           </button>
@@ -134,7 +134,7 @@ export function CourseBuilder({
           <button
             onClick={handlePublish}
             disabled={isPending}
-            className={`px-4 lg:px-5 py-2 rounded-lg text-xs lg:text-sm font-bold transition-colors min-h-[40px] min-w-[44px] disabled:opacity-50 whitespace-nowrap ${
+            className={`px-4 lg:px-5 py-2 rounded-lg text-xs lg:text-sm font-bold transition-colors min-h-[44px] min-w-[44px] disabled:opacity-50 whitespace-nowrap ${
               isPublished
                 ? 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                 : 'bg-[#2B4FA0] text-white hover:bg-[#2B4FA0]/90'

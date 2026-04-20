@@ -150,14 +150,14 @@ const handleContinue = async () => {
     // A) Quiz bloqueado
     if (quizStatus.isBlocked) {
       return (
-        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-8 text-center">
-          <div className="w-20 h-20 rounded-full bg-[#E74C3C]/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-[#E74C3C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-8 text-center">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#E74C3C]/10 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#E74C3C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-[var(--md-on-surface)] mb-3">Evaluación bloqueada</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)] mb-3">Evaluación bloqueada</h2>
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Has agotado todos tus intentos. Debes volver a revisar el contenido del módulo antes de continuar.
           </p>
@@ -165,7 +165,7 @@ const handleContinue = async () => {
             <button
               onClick={handleResetProgress}
               disabled={isPending}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50 min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
@@ -175,7 +175,7 @@ const handleContinue = async () => {
             </button>
             <Link
               href={`/cursos/${courseId}/modulos/${moduleId}`}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -190,20 +190,20 @@ const handleContinue = async () => {
     // B) Ya aprobó antes
     if (quizStatus.hasPassedBefore) {
       return (
-        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-8 text-center">
-          <div className="w-20 h-20 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-10 h-10 text-[#27AE60]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-8 text-center">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#27AE60]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="20,6 9,17 4,12" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-[var(--md-on-surface)] mb-3">Ya aprobaste esta evaluación</h2>
+          <h2 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)] mb-3">Ya aprobaste esta evaluación</h2>
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Obtuviste <span className="font-bold text-[#27AE60]">{quizStatus.lastScore}%</span> en tu intento anterior.
           </p>
           <button
             onClick={handleContinue}
             disabled={isPending || isUpdating}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50 min-h-[48px] sm:min-h-auto"
           >
             {isUpdating ? (
               <>
@@ -228,20 +228,20 @@ const handleContinue = async () => {
 
     // C) Puede intentar - mostrar pantalla inicial del quiz
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-6">
+        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-[var(--md-tertiary-container)] flex items-center justify-center">
-              <svg className="w-6 h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--md-tertiary-container)] flex items-center justify-center">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[var(--md-on-surface)]">Evaluación del módulo</h1>
-              <p className="text-sm text-[var(--md-on-surface-variant)]">Responde todas las preguntas para continuar</p>
+              <h1 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)]">Evaluación del módulo</h1>
+              <p className="text-xs sm:text-sm text-[var(--md-on-surface-variant)]">Responde todas las preguntas para continuar</p>
             </div>
           </div>
 
@@ -285,7 +285,7 @@ const handleContinue = async () => {
         {/* Botón comenzar */}
         <button
           onClick={() => setQuizState('taking-quiz')}
-          className="w-full py-4 bg-[#2B4FA0] text-white font-semibold rounded-xl hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg"
+          className="w-full py-4 bg-[#2B4FA0] text-white font-semibold rounded-xl hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
         >
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polygon points="5,3 19,12 5,21" />
@@ -299,20 +299,20 @@ const handleContinue = async () => {
   // ESTADO 2: Taking quiz
   if (quizState === 'taking-quiz') {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-6">
+        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-[var(--md-tertiary-container)] flex items-center justify-center">
-              <svg className="w-6 h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--md-tertiary-container)] flex items-center justify-center">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[var(--md-on-surface)]">Evaluación del módulo</h1>
-              <p className="text-sm text-[var(--md-on-surface-variant)]">Responde todas las preguntas para continuar</p>
+              <h1 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)]">Evaluación del módulo</h1>
+              <p className="text-xs sm:text-sm text-[var(--md-on-surface-variant)]">Responde todas las preguntas para continuar</p>
             </div>
           </div>
 
@@ -348,11 +348,11 @@ const handleContinue = async () => {
         </div>
 
         {/* Submit Button */}
-        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-6">
+        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-6">
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || Object.keys(answers).length < questions.length}
-            className="w-full py-3 bg-[#2B4FA0] text-white font-semibold rounded-lg hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-[#2B4FA0] text-white font-semibold rounded-lg hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
           >
             {isSubmitting ? (
               <>
@@ -385,16 +385,16 @@ const handleContinue = async () => {
   if (quizState === 'result' && quizResult) {
     const passed = quizResult.passed
     const attemptsRemaining = quizResult.attemptsRemaining
-    
+
     // Leemos la nueva variable que nos envía el backend
     const isCourseCompleted = quizResult.courseCompleted
 
     if (passed) {
       // A) Aprobó
       return (
-        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-8 text-center">
-          <div className="w-24 h-24 rounded-full bg-[#27AE60] flex items-center justify-center mx-auto mb-6">
-            <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#27AE60] flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 sm:w-12 sm:h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M6 9V2h12v7" />
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
               <path d="M6 14h12v8H6z" />
@@ -402,7 +402,7 @@ const handleContinue = async () => {
           </div>
 
           {/* TÍTULO DINÁMICO */}
-          <h2 className="text-2xl font-bold text-[var(--md-on-surface)] mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
             {isCourseCompleted ? '¡Felicitaciones, completaste el curso!' : '¡Felicitaciones, aprobaste!'}
           </h2>
 
@@ -412,7 +412,7 @@ const handleContinue = async () => {
 
           <div className="mb-8">
             <p className="text-sm text-[var(--md-on-surface-variant)] mb-1">Tu puntaje</p>
-            <p className="text-5xl font-black text-[#27AE60]">
+            <p className="text-4xl sm:text-5xl font-black text-[#27AE60]">
               {quizResult.score}%
             </p>
           </div>
@@ -421,11 +421,11 @@ const handleContinue = async () => {
           <button
             onClick={handleContinue}
             disabled={isPending}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50 min-h-[48px] sm:min-h-auto"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               {isCourseCompleted ? (
-                <path d="M12 15l-2 5l9-5l-9-5l2 5z" /> 
+                <path d="M12 15l-2 5l9-5l-9-5l2 5z" />
               ) : (
                 <path d="M5 12h14M12 5l7 7-7 7" />
               )}
@@ -440,16 +440,16 @@ const handleContinue = async () => {
     if (!passed && attemptsRemaining > 0) {
       // B) Reprobó pero le quedan intentos
       return (
-        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-8 text-center">
-          <div className="w-24 h-24 rounded-full bg-[#F5A623]/20 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-12 h-12 text-[#F5A623]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#F5A623]/20 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[#F5A623]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </div>
 
-          <h2 className="text-2xl font-bold text-[var(--md-on-surface)] mb-2">
+          <h2 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
             No alcanzaste el puntaje mínimo
           </h2>
 
@@ -459,7 +459,7 @@ const handleContinue = async () => {
 
           <div className="mb-8">
             <p className="text-sm text-[var(--md-on-surface-variant)] mb-1">Tu puntaje</p>
-            <p className="text-5xl font-black text-[#E74C3C]">
+            <p className="text-4xl sm:text-5xl font-black text-[#E74C3C]">
               {quizResult.score}%
             </p>
           </div>
@@ -467,7 +467,7 @@ const handleContinue = async () => {
           <div className="flex flex-col gap-3">
             <button
               onClick={handleRetry}
-              className="w-full py-4 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg"
+              className="w-full py-4 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
@@ -477,7 +477,7 @@ const handleContinue = async () => {
             </button>
             <Link
               href={`/cursos/${courseId}/modulos/${moduleId}`}
-              className="w-full py-4 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors flex items-center justify-center gap-2"
+              className="w-full py-4 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors flex items-center justify-center gap-2 min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
@@ -492,15 +492,15 @@ const handleContinue = async () => {
 
     // C) Reprobó y agotó intentos
     return (
-      <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-8 text-center">
-        <div className="w-24 h-24 rounded-full bg-[#E74C3C]/10 flex items-center justify-center mx-auto mb-6">
-          <svg className="w-12 h-12 text-[#E74C3C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
+        <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#E74C3C]/10 flex items-center justify-center mx-auto mb-6">
+          <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[#E74C3C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </div>
 
-        <h2 className="text-2xl font-bold text-[var(--md-on-surface)] mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
           Has agotado todos tus intentos
         </h2>
 
@@ -510,7 +510,7 @@ const handleContinue = async () => {
 
         <div className="mb-8">
           <p className="text-sm text-[var(--md-on-surface-variant)] mb-1">Tu puntaje</p>
-          <p className="text-5xl font-black text-[#E74C3C]">
+          <p className="text-4xl sm:text-5xl font-black text-[#E74C3C]">
             {quizResult.score}%
           </p>
         </div>
@@ -519,7 +519,7 @@ const handleContinue = async () => {
           <button
             onClick={handleResetProgress}
             disabled={isPending}
-            className="w-full py-4 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg disabled:opacity-50"
+            className="w-full py-4 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg disabled:opacity-50 min-h-[48px]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M1 4v6h6" />
@@ -529,7 +529,7 @@ const handleContinue = async () => {
           </button>
           <Link
             href={`/cursos/${courseId}/modulos/${moduleId}`}
-            className="w-full py-4 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors flex items-center justify-center gap-2"
+            className="w-full py-4 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors flex items-center justify-center gap-2 min-h-[48px]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -571,7 +571,7 @@ function QuestionCard({
               <label
                 key={option.id}
                 className={`
-                  flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all
+                  flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all min-h-[48px]
                   ${selectedAnswer === option.id
                     ? 'bg-[var(--md-primary-container)] border-2 border-[var(--md-primary)]'
                     : 'bg-[var(--md-surface-container-low)] border-2 border-transparent hover:bg-[var(--md-surface-container)]'

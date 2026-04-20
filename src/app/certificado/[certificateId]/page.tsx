@@ -182,7 +182,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
                 href={certificate.pdf_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 h-11 rounded-lg bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#F5A623]/90 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 h-11 sm:h-[44px] rounded-lg bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#F5A623]/90 transition-colors flex items-center justify-center gap-2"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>

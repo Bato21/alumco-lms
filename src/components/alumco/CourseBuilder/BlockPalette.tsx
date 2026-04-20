@@ -200,7 +200,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                   selectedType === 'pdf' ? 'Ej: Protocolo de higiene' :
                   'Ej: Evaluación módulo 1'
                 }
-                className="w-full h-11 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
               />
             </div>
 
@@ -221,7 +221,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                     required
                     disabled={isPending}
                     placeholder="https://youtube.com/watch?v=..."
-                    className="w-full h-11 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                    className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -238,7 +238,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                     min="1"
                     disabled={isPending}
                     placeholder="Ej: 12"
-                    className="w-full h-11 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                    className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
                   />
                 </div>
               </>
@@ -259,7 +259,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                   required
                   disabled={isPending}
                   placeholder="https://..."
-                  className="w-full h-11 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                  className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
                 />
               </div>
             )}
@@ -281,7 +281,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                     max="100"
                     defaultValue="70"
                     disabled={isPending}
-                    className="w-full h-11 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                    className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -299,7 +299,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                     max="5"
                     defaultValue="3"
                     disabled={isPending}
-                    className="w-full h-11 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                    className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
                   />
                 </div>
               </>
@@ -326,19 +326,19 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
             )}
 
             {/* Botones */}
-            <div className="flex gap-2 pt-2">
+            <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setSelectedType(null)}
                 disabled={isPending}
-                className="flex-1 h-11 rounded-lg border text-sm font-medium text-muted-foreground hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
+                className="flex-1 h-12 lg:h-11 rounded-lg border text-sm font-medium text-muted-foreground hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isPending}
-                className="flex-1 h-11 rounded-lg bg-[#2B4FA0] text-white text-sm font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50"
+                className="flex-1 h-12 lg:h-11 rounded-lg bg-[#2B4FA0] text-white text-sm font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50"
               >
                 {isPending ? 'Creando...' : 'Agregar'}
               </button>

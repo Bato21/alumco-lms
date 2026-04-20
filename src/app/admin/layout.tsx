@@ -34,7 +34,7 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-[#f7f9fb] font-sans text-[#2a3439]">
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
 
-    <div className="lg:pl-64">
+    <div className="lg:pl-64 min-h-screen flex flex-col">
       {/* Header desktop */}
       <header className="hidden lg:flex sticky top-0 items-center justify-end px-8 py-4 w-full z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 gap-6">
         {/* Search */}
@@ -73,7 +73,7 @@ export default async function AdminLayout({
       </header>
 
       {/* Contenido */}
-      <main className="p-4 lg:p-8">
+      <main className="flex-1 w-full p-4 lg:p-8">
         {children}
       </main>
       </div>

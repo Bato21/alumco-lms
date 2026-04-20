@@ -116,7 +116,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
       {/* Course Header */}
       <section className="relative">
-        <div className="h-40 md:h-64 rounded-2xl overflow-hidden relative">
+        <div className="h-40 sm:h-56 md:h-64 rounded-2xl overflow-hidden relative">
           {course.thumbnail_url ? (
             <img
               src={course.thumbnail_url}
@@ -125,7 +125,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-[#2B4FA0] to-[#1A2F6B] flex items-center justify-center">
-              <svg className="w-20 h-20 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg className="w-16 h-16 sm:w-20 sm:h-20 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
                 <path d="M6 12v5c3 3 9 3 12 0v-5" />
               </svg>
@@ -134,17 +134,17 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
           {/* Status Badge */}
-          <div className="absolute top-3 right-3 md:top-4 md:right-4">
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
             {isCourseCompleted ? (
-              <span className="bg-[#27AE60] text-white px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg">
+              <span className="bg-[#27AE60] text-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
                 Completado
               </span>
             ) : courseProgress > 0 ? (
-              <span className="bg-[#F5A623] text-white px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg">
+              <span className="bg-[#F5A623] text-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
                 En progreso
               </span>
             ) : (
-              <span className="bg-slate-500 text-white px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-wider shadow-lg">
+              <span className="bg-slate-500 text-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
                 No iniciado
               </span>
             )}
@@ -159,7 +159,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
           )}
 
           {/* Progress Bar */}
-          <div className="mt-4 md:mt-6 w-full max-w-xl">
+          <div className="mt-4 md:mt-6 w-full">
             <div className="flex justify-between items-center mb-2">
               <span className="text-sm font-medium text-[var(--md-on-surface)]">
                 Progreso del curso
@@ -269,14 +269,14 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
 
   return (
     <div className={`
-      relative bg-[var(--md-surface-container-lowest)] rounded-xl p-4 md:p-5
+      relative bg-[var(--md-surface-container-lowest)] rounded-xl p-4
       transition-all duration-300
       ${canAccess ? 'shadow-[0_4px_20px_rgba(42,52,57,0.04)] hover:shadow-[0_8px_30px_rgba(42,52,57,0.08)]' : 'opacity-60'}
     `}>
-      <div className="flex items-start gap-3 md:gap-4">
+      <div className="flex items-start gap-3">
         {/* Module Number / Status */}
         <div className={`
-          w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0
+          w-10 h-10 rounded-xl flex items-center justify-center shrink-0
           ${isCompleted
             ? 'bg-[#27AE60] text-white'
             : canAccess
@@ -285,17 +285,17 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
           }
         `}>
           {isCompleted ? (
-            <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="20,6 9,17 4,12" />
             </svg>
           ) : (
-            <span className="text-base md:text-lg font-bold">{index}</span>
+            <span className="text-base font-bold">{index}</span>
           )}
         </div>
 
         {/* Module Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3 md:gap-4">
+          <div className="flex items-start justify-between gap-3">
             <div>
               <h3 className="font-semibold text-[var(--md-on-surface)] mb-1">{module.title}</h3>
               {module.description && (
@@ -303,9 +303,9 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
               )}
 
               {/* Meta Info */}
-              <div className="flex items-center gap-2 md:gap-4 mt-2 flex-wrap">
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <span className={`
-                  inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium
+                  inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium
                   ${config.bgColor} text-[var(--md-on-surface)]
                 `}>
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -341,7 +341,7 @@ function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }
                 <Link
                   href={`/cursos/${module.course_id}/modulos/${module.id}`}
                   className={`
-                    px-3 md:px-4 py-2 rounded-lg font-semibold text-sm transition-all min-h-[40px] md:min-h-auto
+                    px-3 py-2.5 rounded-lg font-semibold text-sm transition-all min-h-[44px]
                     ${isCompleted
                       ? 'bg-[var(--md-surface-container-high)] text-[var(--md-primary)] hover:bg-[var(--md-surface-container-highest)]'
                       : 'bg-[#2B4FA0] text-white hover:bg-[#2B4FA0]/90 shadow-md shadow-[#2B4FA0]/20'

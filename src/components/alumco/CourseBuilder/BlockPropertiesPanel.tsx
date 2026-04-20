@@ -69,7 +69,7 @@ export function BlockPropertiesPanel({
         </div>
         <button
           onClick={onClose}
-          className="p-1 rounded hover:bg-[#F5F5F5] text-muted-foreground transition-colors"
+          className="p-2 rounded hover:bg-[#F5F5F5] text-muted-foreground transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
           aria-label="Cerrar panel de propiedades"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -107,7 +107,7 @@ export function BlockPropertiesPanel({
             onChange={(e) => setTitle(e.target.value)}
             required
             disabled={isPending}
-            className="w-full h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+            className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
           />
         </div>
 
@@ -171,19 +171,19 @@ export function BlockPropertiesPanel({
         )}
 
         {/* Botones */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex flex-col sm:flex-row gap-2 pt-2">
           <button
             type="button"
             onClick={onClose}
             disabled={isPending}
-            className="flex-1 h-10 rounded-lg border text-sm font-medium text-muted-foreground hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
+            className="flex-1 h-12 lg:h-10 rounded-lg border text-sm font-medium text-muted-foreground hover:bg-[#F5F5F5] transition-colors disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={isPending || title === module.title}
-            className="flex-1 h-10 rounded-lg bg-[#2B4FA0] text-white text-sm font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50"
+            className="flex-1 h-12 lg:h-10 rounded-lg bg-[#2B4FA0] text-white text-sm font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : 'Guardar'}
           </button>

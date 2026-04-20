@@ -106,7 +106,7 @@ export default async function MisCertificadosPage() {
                     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto shrink-0">
                       <Link
                         href={`/certificado/${cert.id}`}
-                        className="flex-1 sm:flex-none px-4 py-2 bg-[#F5A623] text-white text-sm font-semibold rounded-lg hover:bg-[#F5A623]/90 transition-colors text-center min-h-[40px]"
+                        className="flex-1 sm:flex-none px-4 py-2.5 bg-[#F5A623] text-white text-sm font-semibold rounded-lg hover:bg-[#F5A623]/90 transition-colors text-center min-h-[44px]"
                       >
                         Ver
                       </Link>
@@ -115,7 +115,7 @@ export default async function MisCertificadosPage() {
                           href={cert.pdf_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex-1 sm:flex-none px-4 py-2 border border-[#F5A623] text-[#F5A623] text-sm font-semibold rounded-lg hover:bg-[#F5A623]/5 transition-colors text-center min-h-[36px] sm:min-h-[40px]"
+                          className="flex-1 sm:flex-none px-4 py-2.5 border border-[#F5A623] text-[#F5A623] text-sm font-semibold rounded-lg hover:bg-[#F5A623]/5 transition-colors text-center min-h-[44px]"
                         >
                           PDF
                         </a>
