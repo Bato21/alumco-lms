@@ -22,11 +22,11 @@ export function CertificateBadge({
   }).format(new Date(certificate.issued_at))
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-[#F5A623] p-6 space-y-4">
+    <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border-l-4 border-[#F5A623] p-6 space-y-4">
 
       {/* Encabezado */}
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-full bg-[#F5A623]/10 flex items-center justify-center shrink-0">
+        <div className="h-12 w-12 rounded-xl bg-[#FFF8EC] flex items-center justify-center shrink-0">
           <svg
             className="h-6 w-6 text-[#F5A623]"
             viewBox="0 0 24 24"
@@ -42,7 +42,7 @@ export function CertificateBadge({
           </svg>
         </div>
         <div>
-          <p className="text-xs font-semibold text-[#F5A623] uppercase tracking-wider">
+          <p className="text-[10px] font-bold text-[#F5A623] uppercase tracking-widest mb-0.5">
             Certificado obtenido
           </p>
           <h3 className="font-bold text-[#1A1A2E] text-lg leading-tight">
@@ -52,31 +52,31 @@ export function CertificateBadge({
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-[#F5A623]/20"/>
+      <div className="h-px bg-[#F5A623]/15"/>
 
       {/* Detalles */}
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Trabajador</span>
-          <span className="font-medium text-[#1A1A2E]">{workerName}</span>
+          <span className="text-[#6B7280]">Trabajador</span>
+          <span className="font-semibold text-[#1A1A2E]">{workerName}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">Fecha de emisión</span>
-          <span className="font-medium text-[#1A1A2E]">{issuedDate}</span>
+          <span className="text-[#6B7280]">Fecha de emisión</span>
+          <span className="font-semibold text-[#1A1A2E]">{issuedDate}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-muted-foreground">ID del certificado</span>
-          <span className="font-mono text-xs text-muted-foreground">
+          <span className="text-[#6B7280]">ID del certificado</span>
+          <span className="font-mono text-xs text-[#6B7280]">
             {certificate.id.slice(0, 8).toUpperCase()}
           </span>
         </div>
       </div>
 
       {/* Acciones */}
-      <div className="flex gap-3 pt-2">
+      <div className="flex gap-3 pt-1">
         <a
           href={`/certificado/${certificate.id}`}
-          className="flex-1 h-10 rounded-lg bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#F5A623]/90 transition-colors flex items-center justify-center gap-2"
+          className="flex-1 h-11 rounded-xl bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#e0961a] transition-colors flex items-center justify-center gap-2"
         >
           <svg
             className="h-4 w-4"
@@ -99,7 +99,7 @@ export function CertificateBadge({
             href={certificate.pdf_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 h-10 rounded-lg border border-[#F5A623] text-[#F5A623] text-sm font-semibold hover:bg-[#F5A623]/5 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 h-11 rounded-xl border border-[#F5A623] text-[#F5A623] text-sm font-semibold hover:bg-[#F5A623]/5 transition-colors flex items-center justify-center gap-2"
           >
             <svg
               className="h-4 w-4"
@@ -115,7 +115,7 @@ export function CertificateBadge({
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            Descargar PDF
+            PDF
           </a>
         )}
       </div>

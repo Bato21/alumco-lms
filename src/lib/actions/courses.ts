@@ -14,6 +14,19 @@ const CourseSchema = z.object({
   description: z.string().optional(),
   deadline: z.string().optional(),
   deadline_description: z.string().optional(),
+  target_areas: z.array(z.enum([
+    'Enfermería',
+    'Auxiliar de enfermería',
+    'Kinesiología',
+    'Terapia ocupacional',
+    'Nutrición',
+    'Trabajo social',
+    'Psicología',
+    'Administración',
+    'Dirección técnica',
+    'Geriatría',
+    'Sin asignar',
+  ])).default([]),
 })
 
 const VideoModuleSchema = z.object({
@@ -58,6 +71,7 @@ export async function createCourseAction(
     description: formData.get('description'),
     deadline: formData.get('deadline') || undefined,
     deadline_description: formData.get('deadline_description') || undefined,
+    target_areas: formData.getAll('target_areas'),
   }
 
   const parsed = CourseSchema.safeParse(raw)
@@ -83,6 +97,7 @@ export async function createCourseAction(
       description: parsed.data.description ?? null,
       deadline: parsed.data.deadline ?? null,
       deadline_description: parsed.data.deadline_description ?? null,
+      target_areas: parsed.data.target_areas,
       is_published: false,
       order_index: nextIndex,
       created_by: user.id,
@@ -109,6 +124,7 @@ export async function updateCourseAction(
     description: formData.get('description'),
     deadline: formData.get('deadline') || undefined,
     deadline_description: formData.get('deadline_description') || undefined,
+    target_areas: formData.getAll('target_areas'),
   }
 
   const parsed = CourseSchema.safeParse(raw)
@@ -124,6 +140,7 @@ export async function updateCourseAction(
       description: parsed.data.description ?? null,
       deadline: parsed.data.deadline ?? null,
       deadline_description: parsed.data.deadline_description ?? null,
+      target_areas: parsed.data.target_areas,
     })
     .eq('id', courseId)
 

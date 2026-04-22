@@ -75,8 +75,9 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
           className="object-contain brightness-0 invert"
           priority
         />
+        <span className="mt-2 text-white/40 text-xs tracking-widest uppercase">KimuKo</span>
         {role === 'profesor' && (
-          <span className="mt-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F5A623]/20 text-[#F5A623]">
+          <span className="mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F5A623]/20 text-[#F5A623]">
             Profesor
           </span>
         )}
@@ -106,12 +107,12 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
                     aria-current={isActive ? 'page' : undefined}
                     onClick={handleLinkClick}
                     className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-2.5',
+                      'flex items-center gap-3 rounded-xl px-3 py-2.5',
                       'text-base font-medium transition-colors',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20',
                       isActive
                         ? 'bg-white/10 text-white'
-                        : 'text-white/70 hover:text-white hover:bg-white/5'
+                        : 'text-white/60 hover:text-white hover:bg-white/5'
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -126,16 +127,16 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
       {/* Footer */}
       <div className="border-t border-white/10 p-4 space-y-3">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-            <span className="text-white font-semibold text-sm">
+          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+            <span className="text-white font-bold text-sm">
               {fullName.charAt(0).toUpperCase()}
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-white font-medium text-sm truncate">
+            <p className="text-white font-bold text-sm truncate">
               {fullName.split(' ')[0]}
             </p>
-            <p className="text-white/50 text-xs capitalize">{role}</p>
+            <p className="text-white/50 text-[10px] capitalize">{role}</p>
           </div>
         </div>
         <LogoutButton />

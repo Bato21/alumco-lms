@@ -18,7 +18,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
   // Cargar curso
   const { data: course } = await supabase
     .from('courses')
-    .select('id, title, description, deadline, deadline_description, is_published')
+    .select('id, title, description, deadline, deadline_description, is_published, target_areas')
     .eq('id', id)
     .single()
 
@@ -71,10 +71,14 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       : undefined,
   }))
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const courseAny = course as any
+
   return (
     <CourseBuilder
-      course={course}
+      course={courseAny}
       initialModules={initialModules}
+      initialTargetAreas={(courseAny.target_areas as string[]) ?? []}
     />
   )
 }

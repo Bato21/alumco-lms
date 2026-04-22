@@ -30,7 +30,7 @@ export default async function DashboardLayout({
   if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')
 
   return (
-    <div className="min-h-screen bg-[var(--md-surface)]">
+    <div className="min-h-screen bg-[#F8F9FA]">
       {/* Sidebar Navigation */}
       <WorkerSidebar
         fullName={profile.full_name ?? 'Usuario'}
@@ -42,7 +42,7 @@ export default async function DashboardLayout({
       {/* Main Content Area */}
       <div className="lg:ml-64 min-h-screen flex flex-col">
         {/* Top Header - solo desktop */}
-        <header className="hidden lg:flex sticky top-0 right-0 items-center justify-between px-8 py-4 w-full z-30 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <header className="hidden lg:flex sticky top-0 right-0 items-center justify-between px-8 py-4 w-full z-30 bg-white/90 backdrop-blur border-b border-slate-100">
           <div className="flex-1">{/* Empty for layout alignment */}</div>
           <div className="flex items-center gap-6">
             {/* Search */}

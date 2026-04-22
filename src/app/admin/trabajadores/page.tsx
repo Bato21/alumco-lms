@@ -15,11 +15,8 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
   const searchParams = await props.searchParams
   const activeTab = searchParams.tab === 'solicitudes' ? 'solicitudes' : 'activos'
 
-  // USAMOS ADMIN CLIENT PARA TODO: Así nos saltamos el bloqueo de seguridad (RLS)
-  // y permitimos que el administrador vea los perfiles de los demás.
   const adminClient = await createAdminClient()
 
-  // 1. Obtener trabajadores activos (Con adminClient)
   const { data: activosRaw } = await adminClient
     .from('profiles')
     .select('id, full_name, rut, sede, area_trabajo, role, status')
@@ -28,7 +25,6 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const activos = (activosRaw as any[]) || []
 
-  // 2. Obtener solicitudes pendientes (Con adminClient)
   const { data: pendientesRaw } = await adminClient
     .from('profiles')
     .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
@@ -37,7 +33,6 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const pendingCount = pendientesRaw?.length || 0
 
-  // 3. Enriquecer las solicitudes con el email real de auth.users
   const solicitudes = await Promise.all(
     (pendientesRaw || []).map(async (s) => {
       const { data } = await adminClient.auth.admin.getUserById(s.id)
@@ -48,81 +43,116 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     })
   )
 
+  const tabs = [
+    { key: 'activos', label: 'Trabajadores activos', count: activos.length },
+    { key: 'solicitudes', label: 'Solicitudes pendientes', count: pendingCount },
+  ]
+
   return (
-    <>
-      <header className="w-full bg-[#f7f9fb] px-4 lg:px-8 pt-6 sticky top-0 z-40 border-b border-[#e8eff3]/50">
-        <div className="mb-6">
-          <h2 className="text-xl lg:text-2xl font-bold text-[#2B4FA0] tracking-tight">Trabajadores y Solicitudes</h2>
-          <p className="text-slate-500 text-sm mt-0.5">Gestión centralizada de personal y accesos a la plataforma</p>
+    <div className="min-h-screen p-4 lg:p-8 space-y-6">
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-[#1A1A2E]">Trabajadores y Solicitudes</h1>
+          <p className="text-[#6B7280] text-sm mt-0.5">Gestión centralizada de personal y accesos a la plataforma</p>
         </div>
+        <span className="bg-[#2B4FA0]/10 text-[#2B4FA0] text-sm font-semibold px-4 py-2 rounded-full whitespace-nowrap">
+          {activos.length} colaboradores activos
+        </span>
+      </div>
 
-        <div className="flex gap-4 lg:gap-8 overflow-x-auto pb-2">
+      {/* Tabs — pill style */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {tabs.map(t => (
           <Link
-            href="?tab=activos"
-            className={`pb-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap ${
-              activeTab === 'activos'
-                ? 'border-[#2B4FA0] text-[#2B4FA0]'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+            key={t.key}
+            href={`?tab=${t.key}`}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              activeTab === t.key
+                ? 'bg-[#2B4FA0] text-white'
+                : 'text-[#6B7280] hover:text-[#1A1A2E]'
             }`}
           >
-            Trabajadores Activos
-          </Link>
-
-          <Link
-            href="?tab=solicitudes"
-            className={`pb-3 text-sm font-bold border-b-2 transition-all flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'solicitudes'
-                ? 'border-[#2B4FA0] text-[#2B4FA0]'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            Solicitudes Pendientes
-            {(pendingCount ?? 0) > 0 && (
-              <span className="bg-[#F5A623] text-white text-[10px] px-2 py-0.5 rounded-full">
-                {pendingCount}
+            {t.label}
+            {t.count > 0 && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                activeTab === t.key
+                  ? 'bg-white/20 text-white'
+                  : t.key === 'solicitudes'
+                    ? 'bg-[#F5A623] text-white'
+                    : 'bg-slate-100 text-[#6B7280]'
+              }`}>
+                {t.count}
               </span>
             )}
           </Link>
-        </div>
-      </header>
+        ))}
+      </div>
 
-      <div className="p-4 lg:p-8">
-        {activeTab === 'solicitudes' ? (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 bg-white rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-[#e8eff3]/50 text-[11px] uppercase tracking-widest text-[#566166] font-bold">
+      {/* Content */}
+      {activeTab === 'solicitudes' ? (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
+                <tr>
+                  <th className="px-5 lg:px-6 py-3">Trabajador</th>
+                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
+                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Correo electrónico</th>
+                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Sede declarada</th>
+                  <th className="px-5 lg:px-6 py-3 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm divide-y divide-gray-100">
+                {solicitudes.length === 0 ? (
                   <tr>
-                    <th className="px-4 lg:px-6 py-4">Trabajador</th>
-                    <th className="px-4 lg:px-6 py-4 hidden lg:table-cell">RUT</th>
-                    <th className="px-4 lg:px-6 py-4 hidden lg:table-cell">Correo</th>
-                    <th className="px-4 lg:px-6 py-4 text-center hidden lg:table-cell">Sede</th>
-                    <th className="px-4 lg:px-6 py-4 text-right">Acciones</th>
+                    <td colSpan={5} className="px-5 lg:px-6 py-16 text-center text-[#6B7280]">
+                      No hay solicitudes pendientes por revisar.
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="text-sm divide-y divide-[#e8eff3]">
-                  {solicitudes.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 lg:px-6 py-8 text-center text-[#566166]">
-                        No hay solicitudes pendientes por revisar.
-                      </td>
-                    </tr>
-                  ) : (
-                    solicitudes.map((solicitud) => (
-                      <tr key={solicitud.id} className="hover:bg-[#f0f4f7] transition-colors">
-                        <td className="px-4 lg:px-6 py-4">
-                          <div className="font-semibold text-[#2a3439] truncate max-w-[200px]">{solicitud.full_name}</div>
-                          <div className="text-xs text-[#566166] lg:hidden">{solicitud.email}</div>
+                ) : (
+                  solicitudes.map((solicitud) => {
+                    const initials = solicitud.full_name
+                      .split(' ')
+                      .map((n: string) => n[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase()
+
+                    return (
+                      <tr key={solicitud.id} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="px-5 lg:px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-sm shrink-0">
+                              {initials}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#1A1A2E] truncate max-w-[160px]">{solicitud.full_name}</p>
+                              <p className="text-xs text-[#6B7280] lg:hidden truncate">{solicitud.email}</p>
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-4 lg:px-6 py-4 text-[#566166] hidden lg:table-cell">{solicitud.rut || 'N/A'}</td>
-                        <td className="px-4 lg:px-6 py-4 text-[#566166] hidden lg:table-cell">{solicitud.email}</td>
-                        <td className="px-4 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${solicitud.sede === 'sede_1' ? 'bg-blue-100 text-[#4059aa]' : 'bg-[#1A2F6B]/10 text-[#1A2F6B]'}`}>
-                            {solicitud.sede === 'sede_1' ? 'SEDE 1' : solicitud.sede === 'sede_2' ? 'SEDE 2' : String(solicitud.sede).toUpperCase()}
-                          </span>
+                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] hidden lg:table-cell font-mono text-xs">
+                          {solicitud.rut || '—'}
                         </td>
-                        <td className="px-4 lg:px-6 py-4 flex justify-end">
-                          {/* CORRECCIÓN DE PROPS: Pasamos los datos exactamente como los pide el panel */}
+                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] hidden lg:table-cell">
+                          {solicitud.email}
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
+                          {solicitud.sede ? (
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                              solicitud.sede === 'sede_1'
+                                ? 'bg-[#E6F1FB] text-[#2B4FA0]'
+                                : 'bg-[#EAF3DE] text-[#27500A]'
+                            }`}>
+                              {solicitud.sede === 'sede_1' ? 'Hualpén' : solicitud.sede === 'sede_2' ? 'Coyhaique' : String(solicitud.sede)}
+                            </span>
+                          ) : (
+                            <span className="text-[#6B7280] text-xs">Sin asignar</span>
+                          )}
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 text-right">
                           <ApprovalPanel
                             profileId={solicitud.id}
                             fullName={solicitud.full_name}
@@ -130,60 +160,91 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
                           />
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
-        ) : (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 bg-white rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-[#e8eff3]/50 text-[11px] uppercase tracking-widest text-[#566166] font-bold">
+        </div>
+      ) : (
+        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
+                <tr>
+                  <th className="px-5 lg:px-6 py-3">Trabajador</th>
+                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
+                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Sede</th>
+                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Área</th>
+                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Rol</th>
+                  <th className="px-5 lg:px-6 py-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm divide-y divide-gray-100">
+                {activos.length === 0 ? (
                   <tr>
-                    <th className="px-4 lg:px-6 py-4">Trabajador</th>
-                    <th className="px-4 lg:px-6 py-4 hidden lg:table-cell">RUT</th>
-                    <th className="px-4 lg:px-6 py-4 text-center hidden lg:table-cell">Sede</th>
-                    <th className="px-4 lg:px-6 py-4 hidden lg:table-cell">Área</th>
-                    <th className="px-4 lg:px-6 py-4 text-center hidden lg:table-cell">Rol</th>
+                    <td colSpan={6} className="px-5 lg:px-6 py-16 text-center text-[#6B7280]">
+                      No hay trabajadores activos registrados en la plataforma.
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="text-sm divide-y divide-[#e8eff3]">
-                  {activos.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-4 lg:px-6 py-8 text-center text-[#566166]">
-                        No hay trabajadores activos registrados en la plataforma.
-                      </td>
-                    </tr>
-                  ) : (
-                    activos.map((worker) => (
-                      <tr key={worker.id} className="hover:bg-[#f0f4f7] transition-colors">
-                        <td className="px-4 lg:px-6 py-4">
-                          <div className="font-semibold text-[#2a3439] truncate max-w-[200px]">{worker.full_name}</div>
-                          <div className="text-xs text-[#566166] lg:hidden">{worker.area_trabajo}</div>
+                ) : (
+                  activos.map((worker) => {
+                    const initials = worker.full_name
+                      .split(' ')
+                      .map((n: string) => n[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase()
+
+                    return (
+                      <tr key={worker.id} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="px-5 lg:px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-sm shrink-0">
+                              {initials}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#1A1A2E] truncate max-w-[160px]">{worker.full_name}</p>
+                              <p className="text-xs text-[#6B7280] lg:hidden">{worker.area_trabajo}</p>
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-4 lg:px-6 py-4 text-[#566166] hidden lg:table-cell">{worker.rut || 'N/A'}</td>
-                        <td className="px-4 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${worker.sede === 'sede_1' ? 'bg-blue-100 text-[#4059aa]' : 'bg-[#1A2F6B]/10 text-[#1A2F6B]'}`}>
-                            {worker.sede === 'sede_1' ? 'SEDE 1' : worker.sede === 'sede_2' ? 'SEDE 2' : String(worker.sede).toUpperCase()}
+                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] font-mono text-xs hidden lg:table-cell">
+                          {worker.rut || '—'}
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            worker.sede === 'sede_1'
+                              ? 'bg-[#E6F1FB] text-[#2B4FA0]'
+                              : 'bg-[#EAF3DE] text-[#27500A]'
+                          }`}>
+                            {worker.sede === 'sede_1' ? 'Hualpén' : worker.sede === 'sede_2' ? 'Coyhaique' : String(worker.sede)}
                           </span>
                         </td>
-                        <td className="px-4 lg:px-6 py-4 text-[#566166] hidden lg:table-cell">{worker.area_trabajo}</td>
-                        <td className="px-4 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          <span className="capitalize bg-emerald-50 text-emerald-600 px-2 py-1 rounded text-xs font-bold">
+                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] hidden lg:table-cell">
+                          {worker.area_trabajo}
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
+                          <span className="capitalize bg-[#E6F1FB] text-[#2B4FA0] px-2.5 py-1 rounded-full text-[10px] font-bold">
                             {worker.role}
                           </span>
                         </td>
+                        <td className="px-5 lg:px-6 py-4">
+                          <span className="flex items-center gap-1.5 font-semibold text-xs text-[#27AE60]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" />
+                            Activo
+                          </span>
+                        </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
-      </div>
-    </>
+        </div>
+      )}
+    </div>
   )
 }

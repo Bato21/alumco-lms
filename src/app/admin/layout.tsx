@@ -31,12 +31,12 @@ export default async function AdminLayout({
   if (!profile || (profile.role !== 'admin' && profile.role !== 'profesor')) redirect('/inicio')
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] font-sans text-[#2a3439]">
+    <div className="min-h-screen bg-[#F8F9FA]">
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
 
     <div className="lg:pl-64 min-h-screen flex flex-col">
       {/* Header desktop */}
-      <header className="hidden lg:flex sticky top-0 items-center justify-end px-8 py-4 w-full z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 gap-6">
+      <header className="hidden lg:flex sticky top-0 items-center justify-end px-8 py-4 w-full z-30 bg-white/90 backdrop-blur border-b border-slate-100 gap-6">
         {/* Search */}
         <div className="relative">
           <svg

@@ -34,7 +34,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   if (!user) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-[var(--md-on-surface-variant)]">Debes iniciar sesión para ver este curso.</p>
+        <p className="text-[#6B7280]">Debes iniciar sesión para ver este curso.</p>
       </div>
     )
   }
@@ -95,134 +95,127 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     ? Math.round((completedModules / totalModules) * 100)
     : 0
 
-  // Check if course is completed
   const isCourseCompleted = progress?.is_completed || false
+
+  const statusLabel = isCourseCompleted
+    ? 'Completado'
+    : courseProgress > 0 ? 'En progreso' : 'No iniciado'
+
+  const statusBadgeClass = isCourseCompleted
+    ? 'bg-[#27AE60]/20 text-[#EDFAF3] border border-[#27AE60]/30'
+    : courseProgress > 0
+      ? 'bg-[#F5A623]/20 text-[#FFF8EC] border border-[#F5A623]/30'
+      : 'bg-white/10 text-white/80 border border-white/20'
 
   return (
     <div className="space-y-6 lg:space-y-8">
+
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm">
         <Link
           href="/cursos"
-          className="text-[var(--md-on-surface-variant)] hover:text-[var(--md-primary)] transition-colors"
+          className="text-[#6B7280] hover:text-[#2B4FA0] transition-colors"
         >
           Mis cursos
         </Link>
-        <svg className="w-4 h-4 text-[var(--md-outline)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-        <span className="text-[var(--md-on-surface)] font-medium truncate">{course.title}</span>
+        <span className="text-[#6B7280]">›</span>
+        <span className="text-[#1A1A2E] font-medium truncate">{course.title}</span>
       </nav>
 
-      {/* Course Header */}
-      <section className="relative">
-        <div className="h-40 sm:h-56 md:h-64 rounded-2xl overflow-hidden relative">
-          {course.thumbnail_url ? (
-            <img
-              src={course.thumbnail_url}
-              alt={course.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#2B4FA0] to-[#1A2F6B] flex items-center justify-center">
-              <svg className="w-16 h-16 sm:w-20 sm:h-20 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                <path d="M6 12v5c3 3 9 3 12 0v-5" />
-              </svg>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-          {/* Status Badge */}
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
-            {isCourseCompleted ? (
-              <span className="bg-[#27AE60] text-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
-                Completado
-              </span>
-            ) : courseProgress > 0 ? (
-              <span className="bg-[#F5A623] text-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
-                En progreso
-              </span>
-            ) : (
-              <span className="bg-slate-500 text-white px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-lg">
-                No iniciado
-              </span>
-            )}
-          </div>
+      {/* Hero del curso */}
+      <div className="relative rounded-2xl overflow-hidden h-48 bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] flex items-end p-6">
+        {/* Decorative icon */}
+        <div className="absolute top-4 left-6 opacity-10 pointer-events-none" aria-hidden="true">
+          <svg className="w-24 h-24 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 3 9 3 12 0v-5" />
+          </svg>
         </div>
 
-        {/* Course Info */}
-        <div className="mt-4 md:mt-6">
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-[var(--md-on-surface)] mb-2">{course.title}</h1>
+        {/* Status badge */}
+        <span className={`absolute top-4 right-4 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusBadgeClass}`}>
+          {statusLabel}
+        </span>
+
+        {/* Title + description */}
+        <div className="relative z-10 max-w-2xl">
+          <h1 className="text-2xl font-extrabold text-white leading-tight">
+            {course.title}
+          </h1>
           {course.description && (
-            <p className="text-[var(--md-on-surface-variant)] max-w-3xl">{course.description}</p>
-          )}
-
-          {/* Progress Bar */}
-          <div className="mt-4 md:mt-6 w-full">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-[var(--md-on-surface)]">
-                Progreso del curso
-              </span>
-              <span className={`text-sm font-bold ${isCourseCompleted ? 'text-[#27AE60]' : 'text-[#2B4FA0]'}`}>
-                {courseProgress}%
-              </span>
-            </div>
-            <div className="w-full h-3 bg-[var(--md-surface-container)] rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${isCourseCompleted ? 'bg-[#27AE60]' : 'bg-[#2B4FA0]'}`}
-                style={{ width: `${courseProgress}%` }}
-              />
-            </div>
-            <p className="text-xs text-[var(--md-on-surface-variant)] mt-2">
-              {completedModules} de {totalModules} módulos completados
-            </p>
-          </div>
-
-          {/* Certificate Badge */}
-          { isCourseCompleted && certificate && profile && (
-            <div className="mt-4 md:mt-6">
-              <CertificateBadge
-                certificate={certificate}
-                courseName={course.title}
-                workerName={profile.full_name}
-              />
-            </div>
+            <p className="text-white/70 text-sm mt-1 line-clamp-2">{course.description}</p>
           )}
         </div>
-      </section>
+      </div>
 
-      {/* Modules Section */}
+      {/* Barra de progreso */}
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-semibold text-[#1A1A2E]">Progreso del curso</span>
+          <span className={`text-sm font-bold ${isCourseCompleted ? 'text-[#1A6B3A]' : 'text-[#2B4FA0]'}`}>
+            {courseProgress}%
+          </span>
+        </div>
+        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${courseProgress}%`,
+              backgroundColor: isCourseCompleted ? '#27AE60' : '#2B4FA0',
+            }}
+          />
+        </div>
+        <p className="text-xs text-[#6B7280] mt-2">
+          {completedModules} de {totalModules} módulos completados
+        </p>
+
+        {isCourseCompleted && certificate && profile && (
+          <div className="mt-5 pt-5 border-t border-slate-100">
+            <CertificateBadge
+              certificate={certificate}
+              courseName={course.title}
+              workerName={profile.full_name}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Lista de módulos */}
       <section>
-        <div className="flex items-center justify-between mb-4 md:mb-6">
-          <h2 className="text-lg md:text-xl font-bold text-[var(--md-on-surface)]">Contenido del curso</h2>
-          <span className="text-sm text-[var(--md-on-surface-variant)]">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-lg font-bold text-[#1A1A2E]">Contenido del curso</h2>
+          <span className="text-xs font-semibold text-[#6B7280] bg-slate-100 px-2.5 py-1 rounded-full">
             {totalModules} módulos
           </span>
         </div>
 
         {modules && modules.length > 0 ? (
-          <div className="space-y-3 md:space-y-4">
+          <div>
             {modules.map((module, index) => (
-              <ModuleCard
-                key={module.id}
-                module={module}
-                index={index + 1}
-                isCompleted={completedModuleIds.includes(module.id)}
-                isPreviousCompleted={index === 0 || completedModuleIds.includes(modules[index - 1]?.id)}
-                hasQuiz={true}
-              />
+              <div key={module.id}>
+                <ModuleCard
+                  module={module}
+                  index={index + 1}
+                  isCompleted={completedModuleIds.includes(module.id)}
+                  isPreviousCompleted={index === 0 || completedModuleIds.includes(modules[index - 1]?.id)}
+                  hasQuiz={true}
+                />
+                {/* Connector line */}
+                {index < modules.length - 1 && (
+                  <div className="ml-[1.125rem] h-4 border-l-2 border-dashed border-slate-200" />
+                )}
+              </div>
             ))}
           </div>
         ) : (
-          <div className="bg-[var(--md-surface-container-low)] rounded-xl p-8 text-center">
-            <svg className="w-12 h-12 text-[var(--md-outline)] mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14,2 14,8 20,8" />
-            </svg>
-            <p className="text-[var(--md-on-surface-variant)]">
-              Este curso aún no tiene contenido disponible.
-            </p>
+          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-12 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14,2 14,8 20,8" />
+              </svg>
+            </div>
+            <p className="text-[#6B7280]">Este curso aún no tiene contenido disponible.</p>
           </div>
         )}
       </section>
@@ -230,7 +223,8 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   )
 }
 
-// Module Card Component
+// ─── Module Card ────────────────────────────────────────────────────────────
+
 interface ModuleCardProps {
   module: Module
   index: number
@@ -239,133 +233,94 @@ interface ModuleCardProps {
   hasQuiz: boolean
 }
 
-function ModuleCard({ module, index, isCompleted, isPreviousCompleted, hasQuiz }: ModuleCardProps) {
+const contentTypeConfig: Record<ContentType, { label: string; badgeClass: string }> = {
+  video:  { label: 'Video',       badgeClass: 'bg-red-50 text-red-700' },
+  pdf:    { label: 'PDF',         badgeClass: 'bg-[#E6F1FB] text-[#2B4FA0]' },
+  slides: { label: 'Presentación',badgeClass: 'bg-purple-50 text-purple-700' },
+  quiz:   { label: 'Evaluación',  badgeClass: 'bg-[#FFF8EC] text-[#92600A]' },
+}
+
+function ModuleCard({ module, index, isCompleted, isPreviousCompleted }: ModuleCardProps) {
   const canAccess = isPreviousCompleted || isCompleted
-
-  const contentTypeConfig: Record<ContentType, { icon: string; label: string; bgColor: string }> = {
-    video: {
-      icon: 'play_circle',
-      label: 'Video',
-      bgColor: 'bg-red-50',
-    },
-    pdf: {
-      icon: 'description',
-      label: 'PDF',
-      bgColor: 'bg-blue-50',
-    },
-    slides: {
-      icon: 'slideshow',
-      label: 'Presentación',
-      bgColor: 'bg-purple-50',
-    },
-    quiz: {
-      icon: 'quiz',
-      label: 'Evaluación',
-      bgColor: 'bg-[#FFF8E7]',
-    },
-  }
-
   const config = contentTypeConfig[module.content_type]
 
   return (
-    <div className={`
-      relative bg-[var(--md-surface-container-lowest)] rounded-xl p-4
-      transition-all duration-300
-      ${canAccess ? 'shadow-[0_4px_20px_rgba(42,52,57,0.04)] hover:shadow-[0_8px_30px_rgba(42,52,57,0.08)]' : 'opacity-60'}
-    `}>
-      <div className="flex items-start gap-3">
-        {/* Module Number / Status */}
-        <div className={`
-          w-10 h-10 rounded-xl flex items-center justify-center shrink-0
-          ${isCompleted
+    <div className="flex gap-4">
+      {/* Left indicator */}
+      <div className="flex flex-col items-center shrink-0 pt-3">
+        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+          isCompleted
             ? 'bg-[#27AE60] text-white'
             : canAccess
-              ? 'bg-[var(--md-primary-container)] text-[var(--md-on-primary-container)]'
-              : 'bg-[var(--md-surface-container)] text-[var(--md-outline)]'
-          }
-        `}>
+              ? 'bg-[#2B4FA0] text-white'
+              : 'bg-slate-100 text-slate-400'
+        }`}>
           {isCompleted ? (
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="20,6 9,17 4,12" />
             </svg>
           ) : (
-            <span className="text-base font-bold">{index}</span>
+            <span>{index}</span>
           )}
         </div>
+      </div>
 
-        {/* Module Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="font-semibold text-[var(--md-on-surface)] mb-1">{module.title}</h3>
-              {module.description && (
-                <p className="text-sm text-[var(--md-on-surface-variant)] line-clamp-2">{module.description}</p>
-              )}
-
-              {/* Meta Info */}
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className={`
-                  inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium
-                  ${config.bgColor} text-[var(--md-on-surface)]
-                `}>
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    {module.content_type === 'video' && <><path d="M5 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" /><path d="m9 9 6 3-6 3V9z" /></>}
-                    {module.content_type === 'pdf' && <><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14,2 14,8 20,8" /></>}
-                    {module.content_type === 'slides' && <><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /></>}
-                    {module.content_type === 'quiz' && <><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></>}
-                  </svg>
-                  {config.label}
+      {/* Card */}
+      <div className={`flex-1 min-w-0 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4 lg:p-5 mb-0 ${
+        !canAccess ? 'opacity-60' : ''
+      }`}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${config.badgeClass}`}>
+                {config.label}
+              </span>
+              {module.is_required && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700">
+                  Obligatorio
                 </span>
-
-                {module.duration_mins && (
-                  <span className="text-xs text-[var(--md-on-surface-variant)] flex items-center gap-1">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12,6 12,12 16,14" />
-                    </svg>
-                    {module.duration_mins} min
-                  </span>
-                )}
-
-                {module.is_required && (
-                  <span className="text-xs font-medium text-[#9e3f4e]">
-                    Obligatorio
-                  </span>
-                )}
-              </div>
+              )}
+              {module.duration_mins && (
+                <span className="flex items-center gap-1 text-xs text-[#6B7280]">
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12,6 12,12 16,14" />
+                  </svg>
+                  {module.duration_mins} min
+                </span>
+              )}
             </div>
+            <h3 className="font-semibold text-[#1A1A2E] leading-snug">{module.title}</h3>
+            {module.description && (
+              <p className="text-sm text-[#6B7280] mt-1 line-clamp-2">{module.description}</p>
+            )}
+          </div>
 
-            {/* Action Button */}
+          {/* Action */}
+          <div className="shrink-0">
             {canAccess ? (
-              <div className="flex items-center gap-2 shrink-0">
-                <Link
-                  href={`/cursos/${module.course_id}/modulos/${module.id}`}
-                  className={`
-                    px-3 py-2.5 rounded-lg font-semibold text-sm transition-all min-h-[44px]
-                    ${isCompleted
-                      ? 'bg-[var(--md-surface-container-high)] text-[var(--md-primary)] hover:bg-[var(--md-surface-container-highest)]'
-                      : 'bg-[#2B4FA0] text-white hover:bg-[#2B4FA0]/90 shadow-md shadow-[#2B4FA0]/20'
-                    }
-                  `}
-                >
-                  {isCompleted ? 'Repasar' : 'Iniciar'}
-                </Link>
-              </div>
+              <Link
+                href={`/cursos/${module.course_id}/modulos/${module.id}`}
+                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-colors min-h-[40px] flex items-center ${
+                  isCompleted
+                    ? 'bg-slate-100 text-[#2B4FA0] hover:bg-slate-200'
+                    : 'bg-[#2B4FA0] text-white hover:bg-[#1A2F6B]'
+                }`}
+              >
+                {isCompleted ? 'Repasar' : 'Iniciar'}
+              </Link>
             ) : (
-              <div className="flex items-center gap-2 text-[var(--md-outline)] shrink-0">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <div className="flex items-center gap-1.5 text-slate-400 px-2">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                   <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-                <span className="text-sm hidden md:inline">Bloqueado</span>
+                <span className="text-xs font-semibold hidden sm:inline">Bloqueado</span>
               </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Progress Line Connector */}
-      <div className="absolute left-[2rem] md:left-[2.25rem] top-full w-0.5 h-4 bg-[var(--md-surface-container)] -z-10 hidden md:block" />
     </div>
   )
 }

@@ -18,7 +18,6 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
 
   const adminClient = await createAdminClient()
 
-  // Cargar certificado con datos del curso y del usuario
   const { data: certificate } = await adminClient
     .from('certificates')
     .select(`
@@ -37,7 +36,6 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
 
   if (!certificate) notFound()
 
-  // Solo el dueño del certificado puede verlo (o un admin)
   const { data: profile } = await adminClient
     .from('profiles')
     .select('full_name, role, sede, area_trabajo')
@@ -51,7 +49,6 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
     notFound()
   }
 
-  // Si es el dueño, obtener su nombre. Si es admin viendo el de otro, obtener el nombre del dueño
   const { data: ownerProfile } = await adminClient
     .from('profiles')
     .select('full_name, sede, area_trabajo')
@@ -69,29 +66,29 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
   }).format(new Date(certificate.issued_at))
 
   return (
-    <div className="min-h-screen bg-[#F5F5F5] py-8 md:py-12 px-4">
-      <div className="max-w-lg mx-auto space-y-4 md:space-y-6">
+    <div className="min-h-screen bg-[#F8F9FA] py-8 md:py-12 px-4">
+      <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Navegación */}
         <Link
-          href={profile?.role === 'admin' ? '/admin/certificados' : '/cursos'}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#1A1A2E] transition-colors min-h-[44px]"
+          href={profile?.role === 'admin' ? '/admin/certificados' : '/mis-certificados'}
+          className="inline-flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#1A1A2E] transition-colors min-h-[44px]"
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M19 12H5M12 19l-7-7 7-7"/>
           </svg>
-          Volver a mis cursos
+          {profile?.role === 'admin' ? 'Volver a certificados' : 'Volver a mis certificados'}
         </Link>
 
         {/* Certificado */}
-        <div className="bg-white rounded-2xl border-2 border-[#F5A623] overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.08)] overflow-hidden border border-[#F5A623]/20">
 
           {/* Header dorado */}
-          <div className="bg-[#F5A623] px-4 md:px-8 py-4 md:py-6 text-center">
-            <div className="flex justify-center mb-3">
-              <div className="h-14 w-14 md:h-16 md:w-16 rounded-full bg-white/20 flex items-center justify-center">
+          <div className="bg-gradient-to-r from-[#F5A623] to-[#e0961a] px-6 md:px-10 py-8 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center">
                 <svg
-                  className="h-7 w-7 md:h-8 md:w-8 text-white"
+                  className="h-8 w-8 text-white"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -105,76 +102,77 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
                 </svg>
               </div>
             </div>
-            <p className="text-white/80 text-xs md:text-sm font-medium uppercase tracking-widest mb-1">
+            <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-1">
               Certificado de aprobación
             </p>
-            <h1 className="text-white text-xl md:text-2xl font-extrabold">
+            <h1 className="text-white text-2xl md:text-3xl font-extrabold tracking-tight">
               Alumco LMS
             </h1>
+            <p className="text-white/70 text-xs mt-1 tracking-wide">KimuKo · ELEAM Chile</p>
           </div>
 
           {/* Contenido */}
-          <div className="px-4 md:px-8 py-6 md:py-8 space-y-4 md:space-y-6 text-center">
+          <div className="px-6 md:px-10 py-8 space-y-6 text-center">
             <div>
-              <p className="text-muted-foreground text-xs md:text-sm mb-1">
+              <p className="text-[#6B7280] text-sm mb-2">
                 Este certificado acredita que
               </p>
-              <p className="text-2xl md:text-3xl font-extrabold text-[#1A1A2E] break-words">
+              <p className="text-3xl md:text-4xl font-extrabold text-[#1A1A2E] break-words leading-tight">
                 {ownerProfile?.full_name}
               </p>
             </div>
 
             <div>
-              <p className="text-muted-foreground text-xs md:text-sm mb-1">
+              <p className="text-[#6B7280] text-sm mb-2">
                 ha completado satisfactoriamente el curso
               </p>
-              <p className="text-lg md:text-xl font-bold text-[#2B4FA0] break-words">
+              <p className="text-xl md:text-2xl font-bold text-[#2B4FA0] break-words">
                 {course?.title}
               </p>
             </div>
 
             {/* Detalles */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4 py-4 border-y border-[#F5A623]/20">
+            <div className="grid grid-cols-3 gap-4 py-5 border-y border-[#F5A623]/20">
               <div>
-                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                <p className="text-[10px] text-[#6B7280] uppercase tracking-wider mb-1.5 font-semibold">
                   Fecha
                 </p>
-                <p className="text-xs md:text-sm font-semibold text-[#1A1A2E]">
+                <p className="text-sm font-semibold text-[#1A1A2E] leading-snug">
                   {issuedDate}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                <p className="text-[10px] text-[#6B7280] uppercase tracking-wider mb-1.5 font-semibold">
                   Sede
                 </p>
-                <p className="text-xs md:text-sm font-semibold text-[#1A1A2E]">
-                  {ownerProfile?.sede === 'sede_1' ? 'Sede Principal' : 'Sede Secundaria'}
+                <p className="text-sm font-semibold text-[#1A1A2E]">
+                  {ownerProfile?.sede === 'sede_1' ? 'Hualpén' : 'Coyhaique'}
                 </p>
               </div>
               <div>
-                <p className="text-[10px] md:text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                <p className="text-[10px] text-[#6B7280] uppercase tracking-wider mb-1.5 font-semibold">
                   ID
                 </p>
-                <p className="text-xs md:text-sm font-mono text-muted-foreground break-all">
+                <p className="text-sm font-mono text-[#6B7280]">
                   {certificate.id.slice(0, 8).toUpperCase()}
                 </p>
               </div>
             </div>
 
             {/* Logo Alumco */}
-            <div className="flex justify-center">
+            <div className="flex justify-center pt-2">
               <img
                 src="https://ongalumco.cl/wp-content/uploads/2023/11/logo-alumco-completoccc-300x102.png"
                 alt="ONG Alumco"
-                width={150}
-                height={51}
-                className="object-contain opacity-80"
+                width={140}
+                height={48}
+                className="object-contain opacity-70"
               />
             </div>
           </div>
 
           {/* Footer con acciones */}
-          <div className="px-4 md:px-8 py-4 md:py-5 bg-[#F5F5F5] border-t flex flex-col sm:flex-row gap-3">
+          <div className="px-6 md:px-10 py-5 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end">
             <PrintButton />
 
             {certificate.pdf_url && (
@@ -182,7 +180,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
                 href={certificate.pdf_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 h-11 sm:h-[44px] rounded-lg bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#F5A623]/90 transition-colors flex items-center justify-center gap-2"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#e0961a] transition-colors min-h-[44px]"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>

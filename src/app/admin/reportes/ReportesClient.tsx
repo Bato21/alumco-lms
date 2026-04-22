@@ -69,7 +69,6 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
     }).sort((a, b) => a.progressPct - b.progressPct)
   }, [workers, sede, area, estado, search])
 
-  // Stats filtradas
   const filteredStats = useMemo(() => {
     const total = filtered.length
     const compliant = filtered.filter(w => w.progressPct === 100).length
@@ -107,107 +106,97 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
   }
 
   function statusColor(pct: number, pending: number) {
-    if (pct === 100) return { bg: 'bg-[#EAF3DE]', text: 'text-[#27500A]', label: 'Completado', bar: 'bg-[#27AE60]' }
+    if (pct === 100) return { bg: 'bg-[#EDFAF3]', text: 'text-[#1A6B3A]', label: 'Completado', bar: 'bg-[#27AE60]' }
     if (pct < 50 && pending > 0) return { bg: 'bg-[#FAECE7]', text: 'text-[#E74C3C]', label: 'En riesgo', bar: 'bg-[#E74C3C]' }
-    return { bg: 'bg-[#FFF8E7]', text: 'text-[#854F0B]', label: 'En progreso', bar: 'bg-[#F5A623]' }
+    return { bg: 'bg-[#FFF8EC]', text: 'text-[#92600A]', label: 'En progreso', bar: 'bg-[#F5A623]' }
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="min-h-screen p-4 lg:p-8 space-y-6">
 
       {/* Header */}
-      <div className="flex items-start sm:items-center justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">Reportes de cumplimiento</h1>
-          <p className="text-muted-foreground mt-1 text-sm">
+          <h1 className="text-2xl font-bold text-[#1A1A2E]">Reportes de cumplimiento</h1>
+          <p className="text-[#6B7280] text-sm mt-0.5">
             Seguimiento de capacitaciones por trabajador, sede y área
           </p>
         </div>
         <button
           onClick={handleExport}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[48px] shrink-0"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-xl font-semibold text-sm hover:bg-[#1A2F6B] transition-colors min-h-[48px] shrink-0"
         >
           <Download className="h-4 w-4" aria-hidden="true" />
           Exportar CSV
         </button>
       </div>
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#2B4FA0] rounded-2xl p-5 text-white">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-9 w-9 rounded-xl bg-white/10 flex items-center justify-center">
-              <Users className="h-5 w-5" aria-hidden="true" />
-            </div>
-            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Trabajadores</p>
+      {/* Stats cards — mismo patrón que dashboard */}
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
+
+        <div className="bg-[#2B4FA0] text-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4">
+            <Users className="w-5 h-5 text-white" aria-hidden="true" />
           </div>
+          <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Trabajadores</p>
           <p className="text-3xl font-extrabold">{filteredStats.total}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-9 w-9 rounded-xl bg-[#EAF3DE] flex items-center justify-center">
-              <CheckCircle className="h-5 w-5 text-[#27AE60]" aria-hidden="true" />
-            </div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Al día</p>
+        <div className="bg-[#EDFAF3] text-[#1A6B3A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+          <div className="w-10 h-10 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4">
+            <CheckCircle className="w-5 h-5 text-[#27AE60]" aria-hidden="true" />
           </div>
-          <p className="text-3xl font-extrabold text-[#1A1A2E]">{filteredStats.compliant}</p>
+          <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Al día</p>
+          <p className="text-3xl font-extrabold">{filteredStats.compliant}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-9 w-9 rounded-xl bg-[#FAECE7] flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-[#E74C3C]" aria-hidden="true" />
-            </div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">En riesgo</p>
+        <div className="bg-[#FAECE7] text-[#E74C3C] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+          <div className="w-10 h-10 rounded-full bg-[#E74C3C]/10 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-5 h-5 text-[#E74C3C]" aria-hidden="true" />
           </div>
-          <p className="text-3xl font-extrabold text-[#E74C3C]">{filteredStats.risk}</p>
+          <p className="text-[#E74C3C]/70 text-xs font-semibold uppercase tracking-wider mb-1">En riesgo</p>
+          <p className="text-3xl font-extrabold">{filteredStats.risk}</p>
         </div>
 
-        <div className="bg-white rounded-2xl border p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-9 w-9 rounded-xl bg-[#FFF8E7] flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-[#F5A623]" aria-hidden="true" />
-            </div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Cumplimiento</p>
+        <div className="bg-[#FFF8EC] text-[#92600A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+          <div className="w-10 h-10 rounded-full bg-[#F5A623]/20 flex items-center justify-center mb-4">
+            <TrendingUp className="w-5 h-5 text-[#F5A623]" aria-hidden="true" />
           </div>
-          <p className="text-3xl font-extrabold text-[#1A1A2E]">{filteredStats.avg}%</p>
+          <p className="text-[#92600A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Cumplimiento</p>
+          <p className="text-3xl font-extrabold">{filteredStats.avg}%</p>
         </div>
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-2xl border p-5">
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <Filter className="h-4 w-4 text-[#6B7280]" aria-hidden="true" />
           <h2 className="text-sm font-semibold text-[#1A1A2E]">Filtros</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
 
-          {/* Búsqueda */}
           <input
             type="text"
             placeholder="Buscar por nombre..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="h-10 px-3 rounded-lg border border-input text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+            className="h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
           />
 
-          {/* Sede */}
           <select
             value={sede}
             onChange={e => setSede(e.target.value as typeof sede)}
-            className="h-10 px-3 rounded-lg border border-input text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors bg-background"
+            className="h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors bg-white"
           >
             <option value="todas">Todas las sedes</option>
             <option value="sede_1">Sede Hualpén</option>
             <option value="sede_2">Sede Coyhaique</option>
           </select>
 
-          {/* Área */}
           <select
             value={area}
             onChange={e => setArea(e.target.value)}
-            className="h-10 px-3 rounded-lg border border-input text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors bg-background"
+            className="h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors bg-white"
           >
             <option value="todas">Todas las áreas</option>
             {AREAS.map(a => (
@@ -215,11 +204,10 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
             ))}
           </select>
 
-          {/* Estado */}
           <select
             value={estado}
             onChange={e => setEstado(e.target.value as typeof estado)}
-            className="h-10 px-3 rounded-lg border border-input text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors bg-background"
+            className="h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors bg-white"
           >
             <option value="todos">Todos los estados</option>
             <option value="compliant">Al día (100%)</option>
@@ -229,39 +217,37 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
         </div>
       </div>
 
-      {/* Tabla */}
-      <div className="bg-white rounded-2xl border overflow-hidden">
-        <div className="px-4 lg:px-6 py-4 border-b flex items-center justify-between">
-          <h2 className="font-semibold text-[#1A1A2E]">
-            Trabajadores
-          </h2>
-          <span className="text-sm text-muted-foreground">
+      {/* Tabla de trabajadores */}
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+        <div className="px-5 lg:px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="font-bold text-[#1A1A2E]">Trabajadores</h2>
+          <span className="text-sm text-[#6B7280]">
             {filtered.length} resultado{filtered.length !== 1 ? 's' : ''}
           </span>
         </div>
 
         {filtered.length === 0 ? (
           <div className="py-16 text-center">
-            <p className="text-muted-foreground">No hay trabajadores con los filtros seleccionados.</p>
+            <p className="text-[#6B7280]">No hay trabajadores con los filtros seleccionados.</p>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y divide-gray-100">
             {filtered.map(worker => {
               const color = statusColor(worker.progressPct, worker.pendingCourses.length)
               const isExpanded = expandedWorker === worker.user_id
+              const initials = worker.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
 
               return (
                 <div key={worker.user_id}>
-                  {/* Fila principal */}
                   <div
-                    className="px-4 lg:px-6 py-4 hover:bg-[#F5F5F5]/50 transition-colors cursor-pointer"
+                    className="px-5 lg:px-6 py-4 hover:bg-gray-50/70 transition-colors cursor-pointer"
                     onClick={() => setExpandedWorker(isExpanded ? null : worker.user_id)}
                   >
                     <div className="flex items-center gap-4">
 
                       {/* Avatar */}
                       <div className="h-10 w-10 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-sm shrink-0">
-                        {worker.full_name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
+                        {initials}
                       </div>
 
                       {/* Info */}
@@ -270,12 +256,18 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
                           <p className="font-semibold text-[#1A1A2E] text-sm truncate">
                             {worker.full_name}
                           </p>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${color.bg} ${color.text}`}>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${color.bg} ${color.text}`}>
                             {color.label}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                          <span>{sedeLabel(worker.sede)}</span>
+                        <div className="flex items-center gap-2 text-xs text-[#6B7280] flex-wrap">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            worker.sede === 'sede_1'
+                              ? 'bg-[#E6F1FB] text-[#2B4FA0]'
+                              : 'bg-[#EAF3DE] text-[#27500A]'
+                          }`}>
+                            {sedeLabel(worker.sede)}
+                          </span>
                           <span>·</span>
                           <span>{worker.area_trabajo}</span>
                           <span>·</span>
@@ -283,31 +275,30 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
                         </div>
                       </div>
 
-                      {/* Progreso */}
+                      {/* Barra de progreso */}
                       <div className="hidden sm:flex items-center gap-3 shrink-0">
                         <div className="w-32">
                           <div className="flex justify-between text-xs mb-1">
-                            <span className="text-muted-foreground">Progreso</span>
-                            <span className="font-semibold">{worker.progressPct}%</span>
+                            <span className="text-[#6B7280]">Progreso</span>
+                            <span className="font-semibold text-[#1A1A2E]">{worker.progressPct}%</span>
                           </div>
-                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${color.bar}`}
+                              className={`h-full rounded-full transition-all duration-500 ${color.bar}`}
                               style={{ width: `${worker.progressPct}%` }}
                             />
                           </div>
                         </div>
                         {worker.pendingCourses.length > 0 && (
-                          <span className="text-xs font-semibold text-[#E74C3C] bg-[#FAECE7] px-2 py-0.5 rounded-full">
+                          <span className="text-[10px] font-bold text-[#E74C3C] bg-[#FAECE7] px-2 py-0.5 rounded-full">
                             {worker.pendingCourses.length} pendiente{worker.pendingCourses.length !== 1 ? 's' : ''}
                           </span>
                         )}
                       </div>
 
-                      {/* Expandir */}
                       {worker.pendingCourses.length > 0 && (
                         <button
-                          className="p-1 rounded text-muted-foreground hover:text-[#2B4FA0] transition-colors shrink-0"
+                          className="p-1 rounded text-[#6B7280] hover:text-[#2B4FA0] transition-colors shrink-0"
                           aria-label={isExpanded ? 'Colapsar' : 'Ver cursos pendientes'}
                         >
                           {isExpanded
@@ -319,17 +310,16 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
                     </div>
                   </div>
 
-                  {/* Cursos pendientes expandidos */}
                   {isExpanded && worker.pendingCourses.length > 0 && (
-                    <div className="px-4 lg:px-6 pb-4 bg-[#F5F5F5]/50">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                    <div className="px-5 lg:px-6 pb-4 bg-gray-50/50">
+                      <p className="text-[11px] font-bold text-[#6B7280] uppercase tracking-widest mb-2">
                         Cursos pendientes
                       </p>
                       <div className="space-y-2">
                         {worker.pendingCourses.map(course => (
                           <div
                             key={course.course_id}
-                            className="flex items-center gap-3 bg-white rounded-lg px-4 py-2.5 border"
+                            className="flex items-center gap-3 bg-white rounded-lg px-4 py-2.5 border border-gray-100"
                           >
                             <div className="h-2 w-2 rounded-full bg-[#E74C3C] shrink-0" aria-hidden="true" />
                             <p className="text-sm text-[#1A1A2E]">{course.course_title}</p>

@@ -1,21 +1,52 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { BookOpen } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Mis Cursos | Alumco LMS' }
 
-interface Course {
+interface CourseWithProgress {
   id: string
   title: string
   description: string | null
   thumbnail_url: string | null
-  total_modules?: number
-  completed_modules?: number
+  total_modules: number
+  completed_modules: number
   status: 'completed' | 'in_progress' | 'not_started'
   progress: number
 }
 
-export default async function CursosPage() {
+const statusConfig = {
+  completed: {
+    label: 'Completado',
+    badgeClass: 'bg-[#27AE60]/20 text-[#EDFAF3] border-[#27AE60]/30',
+    progressColor: '#27AE60',
+    buttonText: 'Repasar',
+    buttonClass: 'bg-white border border-slate-200 text-[#2B4FA0] hover:bg-slate-50',
+  },
+  in_progress: {
+    label: 'En progreso',
+    badgeClass: 'bg-[#F5A623]/20 text-[#FFF8EC] border-[#F5A623]/30',
+    progressColor: '#2B4FA0',
+    buttonText: 'Continuar',
+    buttonClass: 'bg-[#2B4FA0] text-white hover:bg-[#1A2F6B]',
+  },
+  not_started: {
+    label: 'Sin iniciar',
+    badgeClass: 'bg-white/10 text-white/80 border-white/20',
+    progressColor: '#CBD5E1',
+    buttonText: 'Iniciar',
+    buttonClass: 'bg-[#2B4FA0] text-white hover:bg-[#1A2F6B]',
+  },
+}
+
+export default async function CursosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>
+}) {
+  const { filter = 'todos' } = await searchParams
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -45,7 +76,7 @@ export default async function CursosPage() {
     )
   })
 
-  const coursesWithProgress: Course[] = (courses || []).map(course => {
+  const coursesWithProgress: CourseWithProgress[] = (courses || []).map(course => {
     const progress = progressData?.find(p => p.course_id === course.id)
     const completedModules = progress?.completed_modules || []
     const completed = Array.isArray(completedModules) ? completedModules.length : 0
@@ -65,114 +96,135 @@ export default async function CursosPage() {
     }
   })
 
+  const inProgressCount  = coursesWithProgress.filter(c => c.status === 'in_progress').length
+  const completedCount   = coursesWithProgress.filter(c => c.status === 'completed').length
+  const notStartedCount  = coursesWithProgress.filter(c => c.status === 'not_started').length
+
+  const filteredCourses =
+    filter === 'progreso'    ? coursesWithProgress.filter(c => c.status === 'in_progress')
+    : filter === 'completados' ? coursesWithProgress.filter(c => c.status === 'completed')
+    : filter === 'sin_iniciar' ? coursesWithProgress.filter(c => c.status === 'not_started')
+    : coursesWithProgress
+
+  const tabs = [
+    { key: 'todos',      label: 'Todos',        count: coursesWithProgress.length },
+    { key: 'progreso',   label: 'En progreso',  count: inProgressCount },
+    { key: 'completados',label: 'Completados',  count: completedCount },
+    { key: 'sin_iniciar',label: 'Sin iniciar',  count: notStartedCount },
+  ]
+
   return (
     <div className="space-y-6">
+
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-[#1A1A2E]">Mis cursos</h1>
-        <p className="text-muted-foreground mt-1">
-          Todos tus cursos de capacitación disponibles
+        <p className="text-[#6B7280] text-sm mt-0.5">
+          {coursesWithProgress.length} curso{coursesWithProgress.length !== 1 ? 's' : ''} disponible{coursesWithProgress.length !== 1 ? 's' : ''}
         </p>
       </div>
 
-      {coursesWithProgress.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {coursesWithProgress.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
+      {/* Tabs */}
+      <div className="flex gap-1.5 flex-wrap">
+        {tabs.map(t => (
+          <Link
+            key={t.key}
+            href={`/cursos?filter=${t.key}`}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-semibold transition-colors ${
+              filter === t.key
+                ? 'bg-[#2B4FA0] text-white'
+                : 'text-[#6B7280] hover:text-[#1A1A2E]'
+            }`}
+          >
+            {t.label}
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+              filter === t.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-[#6B7280]'
+            }`}>
+              {t.count}
+            </span>
+          </Link>
+        ))}
+      </div>
+
+      {/* Empty state */}
+      {filteredCourses.length === 0 ? (
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] flex flex-col items-center justify-center py-20 gap-4 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-[#E6F1FB] flex items-center justify-center">
+            <BookOpen className="w-8 h-8 text-[#2B4FA0]" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="font-semibold text-[#1A1A2E]">No hay cursos en esta categoría</p>
+            <p className="text-sm text-[#6B7280] mt-1">Explora los demás filtros</p>
+          </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-3 bg-white rounded-2xl border">
-          <div className="h-16 w-16 rounded-2xl bg-muted flex items-center justify-center">
-            <svg className="h-8 w-8 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
-          </div>
-          <p className="font-medium text-[#1A1A2E]">No hay cursos disponibles aún</p>
-          <p className="text-sm text-muted-foreground">
-            Tu administrador publicará cursos próximamente.
-          </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {filteredCourses.map(course => {
+            const config = statusConfig[course.status]
+
+            return (
+              <div
+                key={course.id}
+                className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col"
+              >
+                {/* Gradient header */}
+                <div className="h-40 relative bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] flex items-end p-5">
+                  {/* Status badge */}
+                  <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${config.badgeClass}`}>
+                    {config.label}
+                  </span>
+
+                  {/* Decorative icon */}
+                  <div className="absolute top-3 left-3 opacity-20 pointer-events-none" aria-hidden="true">
+                    <BookOpen className="w-12 h-12 text-white" />
+                  </div>
+
+                  {/* Course title */}
+                  <h3 className="text-white font-bold text-lg leading-tight line-clamp-2 relative z-10">
+                    {course.title}
+                  </h3>
+                </div>
+
+                {/* Card body */}
+                <div className="p-5 flex flex-col flex-1 gap-4">
+                  {course.description && (
+                    <p className="text-[#6B7280] text-sm line-clamp-2">{course.description}</p>
+                  )}
+
+                  {/* Progress bar */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs text-[#6B7280]">
+                        {course.completed_modules} de {course.total_modules} módulos
+                      </span>
+                      <span className="text-xs font-bold" style={{ color: config.progressColor }}>
+                        {course.progress}%
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${course.progress}%`,
+                          backgroundColor: config.progressColor,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action button */}
+                  <Link
+                    href={`/cursos/${course.id}`}
+                    className={`w-full py-2.5 rounded-xl font-semibold text-sm text-center transition-colors min-h-[48px] flex items-center justify-center mt-auto ${config.buttonClass}`}
+                  >
+                    {config.buttonText}
+                  </Link>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
-    </div>
-  )
-}
-
-function CourseCard({ course }: { course: Course }) {
-  const statusConfig = {
-    completed: {
-      label: 'Completado',
-      bgColor: 'bg-[#27AE60]',
-      textColor: 'text-white',
-      buttonText: 'Repasar material',
-      buttonClass: 'bg-slate-100 text-[#2B4FA0] hover:bg-slate-200',
-      progressColor: 'bg-[#27AE60]',
-    },
-    in_progress: {
-      label: 'En progreso',
-      bgColor: 'bg-[#F5A623]',
-      textColor: 'text-white',
-      buttonText: 'Continuar',
-      buttonClass: 'bg-[#2B4FA0] text-white hover:bg-[#2B4FA0]/90',
-      progressColor: 'bg-[#2B4FA0]',
-    },
-    not_started: {
-      label: 'No iniciado',
-      bgColor: 'bg-slate-400',
-      textColor: 'text-white',
-      buttonText: 'Iniciar',
-      buttonClass: 'border border-[#2B4FA0] text-[#2B4FA0] hover:bg-[#2B4FA0] hover:text-white',
-      progressColor: 'bg-slate-300',
-    },
-  }
-
-  const config = statusConfig[course.status]
-
-  return (
-    <div className="bg-white rounded-2xl border overflow-hidden hover:shadow-md transition-shadow min-w-0">
-      <div className="h-32 sm:h-40 relative">
-        {course.thumbnail_url ? (
-          <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover"/>
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#2B4FA0] to-[#1A2F6B] flex items-center justify-center">
-            <svg className="w-12 h-12 sm:w-16 sm:h-16 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-            </svg>
-          </div>
-        )}
-        <div className={`absolute top-2 right-2 ${config.bgColor} ${config.textColor} px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider`}>
-          {config.label}
-        </div>
-      </div>
-
-      <div className="p-4">
-        <h3 className="font-bold text-[#2B4FA0] text-base sm:text-lg mb-3 line-clamp-1">
-          {course.title}
-        </h3>
-
-        <div className="mb-4">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-xs text-muted-foreground">Progreso</span>
-            <span className={`text-xs font-bold ${
-              course.status === 'completed' ? 'text-[#27AE60]' :
-              course.status === 'not_started' ? 'text-slate-400' : 'text-[#2B4FA0]'
-            }`}>
-              {course.progress}%
-            </span>
-          </div>
-          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div className={`h-full ${config.progressColor} transition-all`} style={{ width: `${course.progress}%` }}/>
-          </div>
-        </div>
-
-        <Link
-          href={`/cursos/${course.id}`}
-          className={`w-full py-2.5 font-semibold rounded-lg transition-colors flex items-center justify-center text-sm min-h-[48px] ${config.buttonClass}`}
-        >
-          {config.buttonText}
-        </Link>
-      </div>
     </div>
   )
 }

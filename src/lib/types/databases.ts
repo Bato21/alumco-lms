@@ -39,6 +39,19 @@ export type AreaTrabajo =
   | 'Geriatría'
   | 'Sin asignar'
 
+export const AREAS_TRABAJO: AreaTrabajo[] = [
+  'Enfermería',
+  'Auxiliar de enfermería',
+  'Kinesiología',
+  'Terapia ocupacional',
+  'Nutrición',
+  'Trabajo social',
+  'Psicología',
+  'Administración',
+  'Dirección técnica',
+  'Geriatría',
+]
+
 
 export interface Course {
   id: string

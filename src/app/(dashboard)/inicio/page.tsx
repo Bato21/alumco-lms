@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { BookOpen, Clock, CheckCircle, AlertTriangle, Calendar } from 'lucide-react'
+import { BookOpen, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
 import { DeadlineCalendar } from '@/components/alumco/DeadlineCalendar'
 
 export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
@@ -73,80 +73,104 @@ export default async function InicioPage() {
   const inProgress = coursesWithStatus.filter(c => c.status === 'in_progress').length
   const completedCount = coursesWithStatus.filter(c => c.status === 'completed').length
   const overdue = coursesWithStatus.filter(c => c.deadlineStatus === 'overdue').length
+  const soonCount = coursesWithStatus.filter(c => c.deadlineStatus === 'soon').length
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
   const sedeName = profile?.sede === 'sede_1' ? 'Sede Principal' : 'Sede 2'
   const areaName = profile?.area_trabajo ?? ''
 
+  let heroBannerTitle: string
+  if (overdue > 0) {
+    heroBannerTitle = `Tienes ${overdue} curso${overdue > 1 ? 's' : ''} vencido${overdue > 1 ? 's' : ''}, ${firstName}.`
+  } else if (soonCount > 0) {
+    heroBannerTitle = `Atención: ${soonCount} curso${soonCount > 1 ? 's' : ''} vence${soonCount > 1 ? 'n' : ''} pronto.`
+  } else if (completedCount === totalCourses && totalCourses > 0) {
+    heroBannerTitle = `¡Vas muy bien, ${firstName}! Sigue así.`
+  } else {
+    heroBannerTitle = `Capacítate a tu ritmo, ${firstName}.`
+  }
+
   return (
-    <div className="space-y-6 lg:space-y-8">
+    <div className="space-y-8">
 
       {/* Saludo */}
       <section>
-        <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-[#1A1A2E]">
+        <h1 className="text-3xl font-extrabold text-[#1A1A2E]">
           Hola, {firstName}
         </h1>
-        <p className="text-muted-foreground font-medium mt-1">
+        <p className="text-[#6B7280] font-medium mt-1">
           {sedeName}{areaName && ` · ${areaName}`}
         </p>
       </section>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 min-w-0">
-        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
-          <div className="h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#E6F1FB] flex items-center justify-center shrink-0">
-            <BookOpen className="h-5 w-5 text-[#185FA5]" aria-hidden="true"/>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Total</p>
-            <p className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">{totalCourses}</p>
-          </div>
+      {/* Hero Banner — negative margins to break out of layout padding */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] h-48 lg:h-52 flex items-center px-6 lg:px-10 -mx-4 lg:-mx-8">
+        {/* Decorative circles */}
+        <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
+          <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
+          <div className="absolute right-[60px] top-[20px] w-44 h-44 rounded-full bg-[#2B4FA0] opacity-20 border-2 border-white/10" />
+          <div className="absolute right-[20px] bottom-[-40px] w-48 h-48 rounded-full bg-[#E74C3C] opacity-10" />
         </div>
-
-        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
-          <div className="h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#FFF8E7] flex items-center justify-center shrink-0">
-            <Clock className="h-5 w-5 text-[#F5A623]" aria-hidden="true"/>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">En progreso</p>
-            <p className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">{inProgress}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
-          <div className="h-10 w-10 lg:h-11 lg:w-11 rounded-xl bg-[#EAF3DE] flex items-center justify-center shrink-0">
-            <CheckCircle className="h-5 w-5 text-[#27AE60]" aria-hidden="true"/>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Completados</p>
-            <p className="text-xl lg:text-2xl font-bold text-[#1A1A2E]">{completedCount}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border p-4 lg:p-5 flex items-center gap-3 lg:gap-4">
-          <div className={`h-10 w-10 lg:h-11 lg:w-11 rounded-xl flex items-center justify-center shrink-0 ${
-            overdue > 0 ? 'bg-[#FAECE7]' : 'bg-slate-100'
-          }`}>
-            <AlertTriangle className={`h-5 w-5 ${overdue > 0 ? 'text-[#E74C3C]' : 'text-slate-400'}`} aria-hidden="true"/>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Vencidos</p>
-            <p className={`text-xl lg:text-2xl font-bold ${overdue > 0 ? 'text-[#E74C3C]' : 'text-[#1A1A2E]'}`}>
-              {overdue}
-            </p>
-          </div>
+        <div className="relative z-10 max-w-2xl">
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight mb-2">
+            {heroBannerTitle}
+          </h2>
+          <p className="text-white/75 text-sm mb-5">
+            Llevas {completedCount} cursos completados de {totalCourses}.
+          </p>
+          <Link
+            href="/cursos"
+            className="px-5 py-2.5 bg-[#F5A623] text-[#1A2F6B] font-bold rounded-lg text-sm hover:bg-[#e0961a] transition-colors inline-block"
+          >
+            Ver mis cursos →
+          </Link>
         </div>
       </div>
 
-      {/* Calendario */}
-      <section className="space-y-3 lg:space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-[#2B4FA0]" aria-hidden="true"/>
-            <h2 className="text-lg lg:text-xl font-bold text-[#1A1A2E]">
-              Calendario de plazos
-            </h2>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+
+        {/* Card 1 — Blue */}
+        <div className="bg-[#2B4FA0] text-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4">
+            <BookOpen className="w-5 h-5 text-white" aria-hidden="true" />
           </div>
+          <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Total de cursos</p>
+          <p className="text-3xl font-extrabold">{totalCourses}</p>
+        </div>
+
+        {/* Card 2 — White */}
+        <div className="bg-white border border-slate-200 text-[#1A1A2E] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+          <div className="w-10 h-10 rounded-full bg-[#E6F1FB] flex items-center justify-center mb-4">
+            <Clock className="w-5 h-5 text-[#2B4FA0]" aria-hidden="true" />
+          </div>
+          <p className="text-[#1A1A2E]/70 text-xs font-semibold uppercase tracking-wider mb-1">En progreso</p>
+          <p className="text-3xl font-extrabold">{inProgress}</p>
+        </div>
+
+        {/* Card 3 — Soft green */}
+        <div className="bg-[#EDFAF3] text-[#1A6B3A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+          <div className="w-10 h-10 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4">
+            <CheckCircle className="w-5 h-5 text-[#27AE60]" aria-hidden="true" />
+          </div>
+          <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Completados</p>
+          <p className="text-3xl font-extrabold text-[#1A6B3A]">{completedCount}</p>
+        </div>
+
+        {/* Card 4 — Amber tint if overdue, slate if none */}
+        <div className={`${overdue > 0 ? 'bg-[#FFF8EC] text-[#92600A]' : 'bg-slate-50 text-slate-500'} rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6`}>
+          <div className={`w-10 h-10 rounded-full ${overdue > 0 ? 'bg-[#F5A623]/20' : 'bg-slate-200'} flex items-center justify-center mb-4`}>
+            <AlertTriangle className={`w-5 h-5 ${overdue > 0 ? 'text-[#F5A623]' : 'text-slate-400'}`} aria-hidden="true" />
+          </div>
+          <p className={`${overdue > 0 ? 'text-[#92600A]/70' : 'text-slate-400'} text-xs font-semibold uppercase tracking-wider mb-1`}>Vencidos</p>
+          <p className="text-3xl font-extrabold">{overdue}</p>
+        </div>
+      </div>
+
+      {/* Calendario de plazos */}
+      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-base font-bold text-[#1A1A2E]">Plazos de cursos</h2>
           <Link
             href="/cursos"
             className="text-sm text-[#2B4FA0] font-semibold hover:underline flex items-center gap-1 shrink-0"
@@ -158,9 +182,9 @@ export default async function InicioPage() {
             </svg>
           </Link>
         </div>
-
         <DeadlineCalendar courses={coursesWithStatus} />
-      </section>
+      </div>
+
     </div>
   )
 }

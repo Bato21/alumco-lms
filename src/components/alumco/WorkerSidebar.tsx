@@ -41,6 +41,7 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
           className="object-contain brightness-0 invert"
           priority
         />
+        <span className="mt-2 text-white/40 text-xs tracking-widest uppercase">KimuKo</span>
       </div>
 
       {/* Navegación */}
@@ -62,12 +63,12 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
                   aria-current={isActive ? 'page' : undefined}
                   onClick={handleLinkClick}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5',
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5',
                     'text-base font-medium transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20',
                     isActive
                       ? 'bg-white/10 text-white'
-                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                      : 'text-white/60 hover:text-white hover:bg-white/5'
                   )}
                 >
                   <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
@@ -79,8 +80,8 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
         </ul>
       </nav>
 
-      {/* Footer con nombre y logout */}
-      <div className="border-t border-white/10 p-4 space-y-4">
+      {/* Footer */}
+      <div className="border-t border-white/10 p-4 space-y-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-white/10 overflow-hidden shrink-0 flex items-center justify-center">
             {avatarUrl ? (
@@ -90,7 +91,7 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-white font-semibold">
+              <span className="text-white font-bold text-sm">
                 {fullName.charAt(0).toUpperCase()}
               </span>
             )}
@@ -99,8 +100,8 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
             <span className="font-bold text-white text-sm truncate">
               {fullName.split(' ')[0]}
             </span>
-            <span className="text-[10px] text-white/60 truncate">
-              {sede === 'sede_1' ? 'Sede Principal' : 'Sede 2'}
+            <span className="text-[10px] text-white/50 truncate">
+              {sede === 'sede_1' ? 'Sede Hualpén' : 'Sede Coyhaique'}
               {area && ` · ${area}`}
             </span>
           </div>
