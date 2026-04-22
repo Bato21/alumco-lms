@@ -1,0 +1,53 @@
+feat: áreas objetivo por curso + reportes + paleta visual + arquitectura
+
+## Base de datos
+- CREATE TYPE area_trabajo_tipo AS ENUM (11 valores)
+- ALTER TABLE profiles ALTER COLUMN area_trabajo TYPE area_trabajo_tipo
+- ALTER TABLE courses ADD COLUMN target_areas area_trabajo_tipo[] DEFAULT '{}'
+- Limpieza de datos sucios previo a migración de area_trabajo
+- DROP y recreación de vista reporte_avance para permitir ALTER TYPE
+
+## Áreas objetivo por curso
+- Columna target_areas en courses permite asignar cursos a áreas específicas
+- Array vacío = visible para todos los colaboradores
+- Selector rediseñado: modo 'Todas las áreas' / 'Seleccionar áreas'
+- Dropdown multi-select con checkboxes visuales y contador de selección
+- Disponible al crear curso (nuevo/page.tsx) y al editar (CourseBuilder)
+- Panel en sidebar del editor con botón 'Guardar áreas' y confirmación
+- Server Actions createCourseAction y updateCourseAction actualizados
+- CourseSchema actualizado con z.array del enum de áreas
+- AREAS_TRABAJO y AreaTrabajo exportados desde types/database.ts
+
+## Dropdown área de trabajo en ApprovalPanel
+- Reemplazado Input texto libre por select controlado con 11 opciones
+- ApproveSchema actualizado con z.enum de áreas
+- Habilita filtrado consistente en reportes y dashboard
+
+## Vista de reportes /admin/reportes
+- ReportesPage Server Component agrega datos de reporte_avance
+- ReportesClient con filtros por nombre, sede, área y estado
+- Stats cards reactivas según filtros aplicados
+- Tabla expandible con cursos pendientes por trabajador
+- Exportar a CSV con datos filtrados
+- Ordenamiento por progreso ascendente
+
+## Rediseño visual dashboards
+- Fondo de página #F8F9FA en admin y trabajador
+- Hero banner #1A2F6B con mensaje dinámico según contexto:
+  Admin: cursos por vencer / trabajadores sin iniciar / default
+  Trabajador: cursos vencidos / próximos a vencer / al día / default
+- Stats cards con paleta corregida:
+  Card 1: #2B4FA0 azul primario
+  Card 2: blanco con borde slate
+  Card 3: #F0F4FF azul muy suave
+  Card 4: #FFF8EC amarillo muy suave
+- Tabs de sede (Todas / Hualpén / Coyhaique) en dashboard admin
+- Comparativa por sede, actividad reciente y cursos más completados
+- Tabla progreso por trabajador con badges de sede por color
+
+## Informe de arquitectura (Word)
+- Documento .docx generado con docx-js
+- Secciones: introducción, arquitectura en capas, modelos conceptual
+  lógico y físico, seguridad RLS, triggers, conclusiones
+- Anexos A y B con espacios reservados para diagramas Barker y Chen
+- Diagramas Mermaid erDiagram y graph TD incluidos en el informe
