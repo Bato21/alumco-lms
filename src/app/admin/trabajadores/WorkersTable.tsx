@@ -1,0 +1,196 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { AREAS_TRABAJO } from '@/lib/types/database'
+import { WorkerEditPanel } from '@/components/alumco/WorkerEditPanel'
+
+interface Worker {
+  id: string
+  full_name: string
+  rut: string | null
+  sede: string
+  area_trabajo: string[]
+  role: string
+  status: string
+}
+
+function AreaBadges({ areas }: { areas: string[] }) {
+  const visible = areas.slice(0, 2)
+  const extra = areas.length - 2
+  return (
+    <div className="flex flex-wrap gap-1">
+      {visible.map(a => (
+        <span key={a} className="text-[10px] bg-[#E6F1FB] text-[#2B4FA0] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
+          {a}
+        </span>
+      ))}
+      {extra > 0 && (
+        <span className="text-[10px] bg-gray-100 text-[#6B7280] px-2 py-0.5 rounded-full font-semibold">
+          +{extra} más
+        </span>
+      )}
+    </div>
+  )
+}
+
+export function WorkersTable({ workers }: { workers: Worker[] }) {
+  const [search, setSearch] = useState('')
+  const [sede, setSede] = useState<'todas' | 'sede_1' | 'sede_2'>('todas')
+  const [area, setArea] = useState('todas')
+  const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null)
+
+  const filtered = workers.filter(w => {
+    if (sede !== 'todas' && w.sede !== sede) return false
+    if (area !== 'todas' && !w.area_trabajo.includes(area)) return false
+    if (search && !w.full_name.toLowerCase().includes(search.toLowerCase())) return false
+    return true
+  })
+
+  return (
+    <>
+      {selectedWorker && (
+        <WorkerEditPanel
+          profileId={selectedWorker.id}
+          fullName={selectedWorker.full_name}
+          rut={selectedWorker.rut}
+          sede={selectedWorker.sede}
+          areas={selectedWorker.area_trabajo}
+          onClose={() => setSelectedWorker(null)}
+        />
+      )}
+
+      <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4">
+        {/* Filtros */}
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar por nombre..."
+            className="h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0]"
+          />
+          <select
+            value={sede}
+            onChange={e => setSede(e.target.value as 'todas' | 'sede_1' | 'sede_2')}
+            className="h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0]"
+          >
+            <option value="todas">Todas las sedes</option>
+            <option value="sede_1">Sede Hualpén</option>
+            <option value="sede_2">Sede Coyhaique</option>
+          </select>
+          <select
+            value={area}
+            onChange={e => setArea(e.target.value)}
+            className="h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0]"
+          >
+            <option value="todas">Todas las áreas</option>
+            {AREAS_TRABAJO.map(a => (
+              <option key={a} value={a}>{a}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Tabla */}
+        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
+                <tr>
+                  <th className="px-5 lg:px-6 py-3">Trabajador</th>
+                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
+                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Sede</th>
+                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Áreas</th>
+                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Rol</th>
+                  <th className="px-5 lg:px-6 py-3">Estado</th>
+                  <th className="px-5 lg:px-6 py-3 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm divide-y divide-gray-100">
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 lg:px-6 py-16 text-center text-[#6B7280]">
+                      No se encontraron trabajadores con los filtros aplicados.
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map(worker => {
+                    const initials = worker.full_name
+                      .split(' ')
+                      .map(n => n[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase()
+
+                    return (
+                      <tr key={worker.id} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="px-5 lg:px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-sm shrink-0">
+                              {initials}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[#1A1A2E] truncate max-w-[160px]">
+                                {worker.full_name}
+                              </p>
+                              <p className="text-xs text-[#6B7280] lg:hidden truncate">
+                                {worker.area_trabajo[0] ?? '—'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] font-mono text-xs hidden lg:table-cell">
+                          {worker.rut ?? '—'}
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            worker.sede === 'sede_1'
+                              ? 'bg-[#E6F1FB] text-[#2B4FA0]'
+                              : 'bg-[#EAF3DE] text-[#27500A]'
+                          }`}>
+                            {worker.sede === 'sede_1' ? 'Hualpén' : 'Coyhaique'}
+                          </span>
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 hidden lg:table-cell">
+                          <AreaBadges areas={worker.area_trabajo} />
+                        </td>
+                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
+                          <span className="capitalize bg-[#E6F1FB] text-[#2B4FA0] px-2.5 py-1 rounded-full text-[10px] font-bold">
+                            {worker.role}
+                          </span>
+                        </td>
+                        <td className="px-5 lg:px-6 py-4">
+                          <span className="flex items-center gap-1.5 font-semibold text-xs text-[#27AE60]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" aria-hidden="true" />
+                            Activo
+                          </span>
+                        </td>
+                        <td className="px-5 lg:px-6 py-4">
+                          <div className="flex items-center justify-end gap-3">
+                            <Link
+                              href={`/admin/trabajadores/${worker.id}`}
+                              className="text-[#2B4FA0] text-sm font-semibold hover:underline whitespace-nowrap"
+                            >
+                              Ver detalle
+                            </Link>
+                            <button
+                              onClick={() => setSelectedWorker(worker)}
+                              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[36px]"
+                              aria-label={`Editar ${worker.full_name}`}
+                            >
+                              Editar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}

@@ -63,8 +63,7 @@ const RegisterSchema = z.object({
 const ApproveSchema = z.object({
   profileId: z.string().uuid(),
   sede: z.enum(['sede_1', 'sede_2']),
-  // Por esto:
-  area_trabajo: z.enum([
+  area_trabajo: z.array(z.enum([
     'Enfermería',
     'Auxiliar de enfermería',
     'Kinesiología',
@@ -76,7 +75,7 @@ const ApproveSchema = z.object({
     'Dirección técnica',
     'Geriatría',
     'Sin asignar',
-  ]),
+  ])).min(1, 'Selecciona al menos un área'),
   role: z.enum(['admin', 'trabajador', 'profesor']),
 })
 
@@ -157,7 +156,7 @@ export async function approveWorkerAction(
   const raw = {
     profileId: formData.get('profileId'),
     sede: formData.get('sede'),
-    area_trabajo: formData.get('area_trabajo'),
+    area_trabajo: formData.getAll('area_trabajo'),
     role: formData.get('role'),
   }
 

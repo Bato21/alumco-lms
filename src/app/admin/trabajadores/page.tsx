@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/server'
 import { ApprovalPanel } from '@/components/alumco/ApprovalPanel'
+import { WorkersTable } from './WorkersTable'
+import { SuspendedTable } from './SuspendedTable'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -13,7 +15,10 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
 export default async function TrabajadoresPage(props: { searchParams: SearchParams }) {
   const searchParams = await props.searchParams
-  const activeTab = searchParams.tab === 'solicitudes' ? 'solicitudes' : 'activos'
+  const activeTab =
+    searchParams.tab === 'solicitudes' ? 'solicitudes'
+    : searchParams.tab === 'suspendidos' ? 'suspendidos'
+    : 'activos'
 
   const adminClient = await createAdminClient()
 
@@ -24,6 +29,14 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     .order('created_at', { ascending: false })
 
   const activos = (activosRaw as any[]) || []
+
+  const { data: suspendidosRaw } = await adminClient
+    .from('profiles')
+    .select('id, full_name, rut, sede, area_trabajo, role, status, updated_at')
+    .eq('status', 'suspendido')
+    .order('full_name')
+
+  const suspendidos = suspendidosRaw ?? []
 
   const { data: pendientesRaw } = await adminClient
     .from('profiles')
@@ -45,6 +58,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const tabs = [
     { key: 'activos', label: 'Trabajadores activos', count: activos.length },
+    { key: 'suspendidos', label: 'Suspendidos', count: suspendidos.length },
     { key: 'solicitudes', label: 'Solicitudes pendientes', count: pendingCount },
   ]
 
@@ -167,83 +181,10 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
             </table>
           </div>
         </div>
+      ) : activeTab === 'suspendidos' ? (
+        <SuspendedTable workers={suspendidos} />
       ) : (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
-                <tr>
-                  <th className="px-5 lg:px-6 py-3">Trabajador</th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
-                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Sede</th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Área</th>
-                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Rol</th>
-                  <th className="px-5 lg:px-6 py-3">Estado</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-gray-100">
-                {activos.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 lg:px-6 py-16 text-center text-[#6B7280]">
-                      No hay trabajadores activos registrados en la plataforma.
-                    </td>
-                  </tr>
-                ) : (
-                  activos.map((worker) => {
-                    const initials = worker.full_name
-                      .split(' ')
-                      .map((n: string) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-
-                    return (
-                      <tr key={worker.id} className="hover:bg-gray-50/70 transition-colors">
-                        <td className="px-5 lg:px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-sm shrink-0">
-                              {initials}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-[#1A1A2E] truncate max-w-[160px]">{worker.full_name}</p>
-                              <p className="text-xs text-[#6B7280] lg:hidden">{worker.area_trabajo}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] font-mono text-xs hidden lg:table-cell">
-                          {worker.rut || '—'}
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            worker.sede === 'sede_1'
-                              ? 'bg-[#E6F1FB] text-[#2B4FA0]'
-                              : 'bg-[#EAF3DE] text-[#27500A]'
-                          }`}>
-                            {worker.sede === 'sede_1' ? 'Hualpén' : worker.sede === 'sede_2' ? 'Coyhaique' : String(worker.sede)}
-                          </span>
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] hidden lg:table-cell">
-                          {worker.area_trabajo}
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          <span className="capitalize bg-[#E6F1FB] text-[#2B4FA0] px-2.5 py-1 rounded-full text-[10px] font-bold">
-                            {worker.role}
-                          </span>
-                        </td>
-                        <td className="px-5 lg:px-6 py-4">
-                          <span className="flex items-center gap-1.5 font-semibold text-xs text-[#27AE60]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" />
-                            Activo
-                          </span>
-                        </td>
-                      </tr>
-                    )
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <WorkersTable workers={activos} />
       )}
     </div>
   )

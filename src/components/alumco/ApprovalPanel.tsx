@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useRef, useEffect } from 'react'
 import { approveWorkerAction, rejectWorkerAction } from '@/lib/actions/registro'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, AlertCircle, X, CheckCircle2 } from 'lucide-react'
+import { Loader2, AlertCircle, X, CheckCircle2, ChevronDown } from 'lucide-react'
+import { AREAS_TRABAJO } from '@/lib/types/database'
 
 interface ApprovalPanelProps {
   profileId: string
@@ -23,6 +24,37 @@ export function ApprovalPanel({
   const [isPending, startTransition] = useTransition()
   const [isRejecting, startRejectTransition] = useTransition()
 
+  // Selector de área
+  const [areaMode, setAreaMode] = useState<'single' | 'multi'>('single')
+  const [selectedAreas, setSelectedAreas] = useState<string[]>([])
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
+
+  function toggleArea(area: string) {
+    setSelectedAreas(prev =>
+      prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
+    )
+  }
+
+  const triggerText =
+    selectedAreas.length === 0
+      ? 'Selecciona las áreas...'
+      : selectedAreas.length === 1
+      ? selectedAreas[0]
+      : `${selectedAreas.length} áreas seleccionadas`
+
   function handleReject() {
     setError(null)
     startRejectTransition(async () => {
@@ -39,6 +71,11 @@ export function ApprovalPanel({
   }
 
   function handleSubmit(formData: FormData) {
+    if (areaMode === 'multi' && selectedAreas.length === 0) {
+      setError('Selecciona al menos un área')
+      return
+    }
+
     formData.append('profileId', profileId)
     setError(null)
 
@@ -150,29 +187,128 @@ export function ApprovalPanel({
 
                 {/* Área de trabajo */}
                 <div className="space-y-2">
-                  <Label htmlFor="area_trabajo" className="text-sm font-semibold text-[#1A1A2E]">
+                  <Label className="text-sm font-semibold text-[#1A1A2E]">
                     Área de trabajo
                   </Label>
-                  <select
-                    id="area_trabajo"
-                    name="area_trabajo"
-                    required
-                    disabled={isPending}
-                    className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
-                  >
-                    <option value="">Seleccionar área...</option>
-                    <option value="Enfermería">Enfermería</option>
-                    <option value="Auxiliar de enfermería">Auxiliar de enfermería</option>
-                    <option value="Kinesiología">Kinesiología</option>
-                    <option value="Terapia ocupacional">Terapia ocupacional</option>
-                    <option value="Nutrición">Nutrición</option>
-                    <option value="Trabajo social">Trabajo social</option>
-                    <option value="Psicología">Psicología</option>
-                    <option value="Administración">Administración</option>
-                    <option value="Dirección técnica">Dirección técnica</option>
-                    <option value="Geriatría">Geriatría</option>
-                    <option value="Sin asignar">Sin asignar</option>
-                  </select>
+
+                  {/* Toggle modo */}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setAreaMode('single')}
+                      className={`flex-1 text-center rounded-xl border px-3 py-2.5 font-medium text-xs cursor-pointer transition-colors ${
+                        areaMode === 'single'
+                          ? 'bg-[#2B4FA0] text-white border-[#2B4FA0]'
+                          : 'bg-white text-[#1A1A2E] border-slate-200 hover:border-[#2B4FA0]/40'
+                      }`}
+                    >
+                      Una área
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAreaMode('multi')}
+                      className={`flex-1 text-center rounded-xl border px-3 py-2.5 font-medium text-xs cursor-pointer transition-colors ${
+                        areaMode === 'multi'
+                          ? 'bg-[#2B4FA0] text-white border-[#2B4FA0]'
+                          : 'bg-white text-[#1A1A2E] border-slate-200 hover:border-[#2B4FA0]/40'
+                      }`}
+                    >
+                      Varias áreas
+                    </button>
+                  </div>
+
+                  {/* Modo single — select nativo */}
+                  {areaMode === 'single' ? (
+                    <select
+                      id="area_trabajo"
+                      name="area_trabajo"
+                      required
+                      disabled={isPending}
+                      className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
+                    >
+                      <option value="">Seleccionar área...</option>
+                      {AREAS_TRABAJO.map(area => (
+                        <option key={area} value={area}>{area}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    /* Modo multi — dropdown con checkboxes */
+                    <>
+                      {selectedAreas.map(area => (
+                        <input key={area} type="hidden" name="area_trabajo" value={area} />
+                      ))}
+
+                      <div className="relative" ref={dropdownRef}>
+                        <button
+                          type="button"
+                          onClick={() => setDropdownOpen(v => !v)}
+                          disabled={isPending}
+                          className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm flex items-center justify-between hover:border-[#2B4FA0] transition-colors disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20"
+                          aria-expanded={dropdownOpen}
+                          aria-haspopup="listbox"
+                        >
+                          <span className={`truncate ${selectedAreas.length === 0 ? 'text-[#6B7280]' : 'text-[#1A1A2E]'}`}>
+                            {triggerText}
+                          </span>
+                          <ChevronDown
+                            className={`h-4 w-4 text-[#6B7280] shrink-0 ml-2 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`}
+                            aria-hidden="true"
+                          />
+                        </button>
+
+                        {dropdownOpen && (
+                          <div
+                            className="absolute z-50 w-full bg-white rounded-xl border border-gray-200 shadow-lg mt-1"
+                            role="listbox"
+                            aria-multiselectable="true"
+                          >
+                            <div className="max-h-48 overflow-y-auto py-1">
+                              {AREAS_TRABAJO.map(area => {
+                                const isSelected = selectedAreas.includes(area)
+                                return (
+                                  <button
+                                    key={area}
+                                    type="button"
+                                    onClick={() => toggleArea(area)}
+                                    role="option"
+                                    aria-selected={isSelected}
+                                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#F0F4FF] cursor-pointer text-sm w-full text-left"
+                                  >
+                                    <div
+                                      className={`h-4 w-4 rounded shrink-0 flex items-center justify-center transition-colors ${
+                                        isSelected ? 'bg-[#2B4FA0]' : 'border-2 border-slate-300'
+                                      }`}
+                                      aria-hidden="true"
+                                    >
+                                      {isSelected && (
+                                        <svg className="h-2.5 w-2.5 text-white" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+                                          <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                      )}
+                                    </div>
+                                    <span className="text-[#1A1A2E] leading-snug">{area}</span>
+                                  </button>
+                                )
+                              })}
+                            </div>
+                            <div className="flex items-center justify-between px-4 py-2 border-t border-gray-100">
+                              <span className="text-[10px] text-[#6B7280]">
+                                {selectedAreas.length}{' '}
+                                {selectedAreas.length === 1 ? 'área seleccionada' : 'áreas seleccionadas'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setDropdownOpen(false)}
+                                className="text-[#2B4FA0] font-semibold text-xs hover:underline"
+                              >
+                                Listo
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Rol */}

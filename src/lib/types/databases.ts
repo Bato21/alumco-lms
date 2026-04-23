@@ -13,7 +13,7 @@ export interface Profile {
   full_name: string
   role: UserRole
   sede: Sede
-  area_trabajo: string
+  area_trabajo: AreaTrabajo[]
   fecha_nacimiento: string | null
   avatar_url: string | null
   is_active: boolean
@@ -165,7 +165,7 @@ export interface ReporteAvance {
   user_id: string
   full_name: string
   sede: Sede
-  area_trabajo: string
+  area_trabajo: AreaTrabajo[]
   edad: number | null
   course_id: string
   course_title: string
