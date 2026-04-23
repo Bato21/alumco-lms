@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { AREAS_TRABAJO } from '@/lib/types/database'
 
 void AREAS_TRABAJO // imported for type reference
@@ -170,5 +170,36 @@ export async function getWorkerDetailAction(profileId: string): Promise<
     return { worker, progress, certificates }
   } catch {
     return { error: 'Error inesperado al obtener los datos del trabajador' }
+  }
+}
+
+export async function updateProfileAction(
+  userId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || user.id !== userId) {
+      return { error: 'No autorizado' }
+    }
+
+    const fechaNacimiento = formData.get('fecha_nacimiento') as string | null
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        fecha_nacimiento: fechaNacimiento || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', userId)
+
+    if (error) throw error
+
+    revalidatePath('/perfil')
+    return { success: true }
+  } catch (err) {
+    console.error('Error actualizando perfil:', err)
+    return { error: 'Error al actualizar el perfil' }
   }
 }

@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { AdminSidebar } from '@/components/alumco/AdminSidebar'
+import { NotificationBell } from '@/components/alumco/NotificationBell'
+import { getAdminAlerts } from '@/lib/actions/alerts'
 import { type UserRole } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -30,6 +32,8 @@ export default async function AdminLayout({
 
   if (!profile || (profile.role !== 'admin' && profile.role !== 'profesor')) redirect('/inicio')
 
+  const adminAlerts = await getAdminAlerts()
+
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
@@ -57,12 +61,10 @@ export default async function AdminLayout({
 
         {/* Botones */}
         <div className="flex items-center gap-2">
-          <button className="p-2 text-slate-500 hover:text-[#2B4FA0] transition-colors">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-          </button>
+          <NotificationBell
+            initialAlerts={adminAlerts}
+            role={profile.role as 'admin' | 'profesor'}
+          />
           <button className="p-2 text-slate-500 hover:text-[#2B4FA0] transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>

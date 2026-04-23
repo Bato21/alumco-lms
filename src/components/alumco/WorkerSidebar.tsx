@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { Home, BookOpen, User, Award, X, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
+import { NotificationBell } from './NotificationBell'
 import { useState } from 'react'
 
 const navItems = [
@@ -15,11 +16,23 @@ const navItems = [
   { href: '/perfil', label: 'Mi Perfil', icon: User, exact: false },
 ] as const
 
+interface WorkerAlertItem {
+  courseId: string
+  courseTitle: string
+  deadline: string
+  daysLeft: number
+  urgency: 'overdue' | 'critical' | 'warning'
+}
+
 interface WorkerSidebarProps {
   fullName: string
   sede: string
   area?: string
   avatarUrl?: string | null
+  alerts: {
+    count: number
+    alerts: WorkerAlertItem[]
+  }
 }
 
 function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSidebarProps & { onClose?: () => void }) {
@@ -112,7 +125,7 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
   )
 }
 
-export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebarProps) {
+export function WorkerSidebar({ fullName, sede, area, avatarUrl, alerts }: WorkerSidebarProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   return (
@@ -132,13 +145,18 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl }: WorkerSidebar
           className="object-contain brightness-0 invert"
           priority
         />
-        <button
-          onClick={() => setIsDrawerOpen(true)}
-          className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
-          aria-label="Abrir menú"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
+        <div className="flex items-center gap-1">
+          <div className="[&_button]:text-white [&_button:hover]:bg-white/10 [&_button:hover]:text-white [&_button:hover]:rounded-lg">
+            <NotificationBell initialAlerts={alerts} role="trabajador" />
+          </div>
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+            aria-label="Abrir menú"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
       </header>
 
       {/* Mobile Drawer Overlay */}

@@ -1,115 +1,63 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { ProfileClient } from './ProfileClient'
 
-export const metadata: Metadata = {
-  title: 'Mi Perfil | Alumco LMS',
-}
+export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
 export default async function PerfilPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
-
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, role, sede, area_trabajo, fecha_nacimiento, avatar_url, created_at')
-    .eq('id', user.id)
+    .select('id, full_name, rut, sede, area_trabajo, role, status, fecha_nacimiento, avatar_url, created_at, approved_at')
+    .eq('id', user!.id)
     .single()
 
-  if (!profile) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-[var(--md-on-surface-variant)]">Cargando perfil...</p>
-      </div>
-    )
-  }
+  const { data: progress } = await supabase
+    .from('course_progress')
+    .select('is_completed, completed_modules')
+    .eq('user_id', user!.id)
+
+  const { data: certs } = await supabase
+    .from('certificates')
+    .select('id')
+    .eq('user_id', user!.id)
+
+  const completedCount = (progress ?? []).filter(p => p.is_completed).length
+  const inProgressCount = (progress ?? []).filter(
+    p => !p.is_completed && Array.isArray(p.completed_modules) && p.completed_modules.length > 0
+  ).length
+  const notStartedCount = (progress ?? []).filter(
+    p => !p.is_completed && (!Array.isArray(p.completed_modules) || p.completed_modules.length === 0)
+  ).length
+  const certsCount = (certs ?? []).length
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center gap-2 text-sm mb-6">
-        <Link
-          href="/cursos"
-          className="text-[var(--md-on-surface-variant)] hover:text-[var(--md-primary)] transition-colors"
-        >
-          Mis cursos
-        </Link>
-        <svg className="w-4 h-4 text-[var(--md-outline)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="m9 18 6-6-6-6" />
-        </svg>
-        <span className="text-[var(--md-on-surface)] font-medium">Mi perfil</span>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <div>
+        <h1 className="text-2xl font-bold text-[#1A1A2E]">Mi perfil</h1>
+        <p className="text-[#6B7280] text-sm mt-0.5">Gestiona tu información personal</p>
       </div>
 
-      {/* Profile Card */}
-      <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-8">
-        <div className="flex items-start gap-6">
-          {/* Avatar */}
-          <div className="w-24 h-24 rounded-full bg-[var(--md-primary)] flex items-center justify-center text-white text-3xl font-bold shrink-0">
-            {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.full_name}
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              profile.full_name.charAt(0).toUpperCase()
-            )}
-          </div>
-
-          {/* Info */}
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-[var(--md-on-surface)] mb-1">
-              {profile.full_name}
-            </h1>
-            <p className="text-[var(--md-on-surface-variant)] mb-4 capitalize">
-              {profile.role === 'admin' ? 'Administrador' : 'Trabajador'}
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-              <div className="bg-[var(--md-surface-container-low)] rounded-lg p-4">
-                <p className="text-xs text-[var(--md-on-surface-variant)] uppercase tracking-wide mb-1">Sede</p>
-                <p className="font-medium text-[var(--md-on-surface)]">
-                  {profile.sede === 'sede_1' ? 'Sede Principal' : 'Sede 2'}
-                </p>
-              </div>
-
-              <div className="bg-[var(--md-surface-container-low)] rounded-lg p-4">
-                <p className="text-xs text-[var(--md-on-surface-variant)] uppercase tracking-wide mb-1">Área de trabajo</p>
-                <p className="font-medium text-[var(--md-on-surface)]">{profile.area_trabajo}</p>
-              </div>
-
-              {profile.fecha_nacimiento && (
-                <div className="bg-[var(--md-surface-container-low)] rounded-lg p-4">
-                  <p className="text-xs text-[var(--md-on-surface-variant)] uppercase tracking-wide mb-1">Fecha de nacimiento</p>
-                  <p className="font-medium text-[var(--md-on-surface)]">
-                    {new Date(profile.fecha_nacimiento).toLocaleDateString('es-CL')}
-                  </p>
-                </div>
-              )}
-
-              <div className="bg-[var(--md-surface-container-low)] rounded-lg p-4">
-                <p className="text-xs text-[var(--md-on-surface-variant)] uppercase tracking-wide mb-1">Miembro desde</p>
-                <p className="font-medium text-[var(--md-on-surface)]">
-                  {new Date(profile.created_at).toLocaleDateString('es-CL')}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Account Settings */}
-      <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-8">
-        <h2 className="text-lg font-bold text-[var(--md-on-surface)] mb-4">Configuración de cuenta</h2>
-        <p className="text-[var(--md-on-surface-variant)] text-sm">
-          Para cambiar tu contraseña o actualizar tus datos, contacta al administrador de tu sede.
-        </p>
-      </div>
+      <ProfileClient
+        userId={profile?.id ?? user!.id}
+        fullName={profile?.full_name ?? ''}
+        rut={profile?.rut ?? null}
+        email={user!.email ?? ''}
+        sede={profile?.sede ?? ''}
+        areas={Array.isArray(profile?.area_trabajo) ? profile.area_trabajo : []}
+        role={profile?.role ?? 'trabajador'}
+        status={profile?.status ?? 'activo'}
+        fechaNacimiento={profile?.fecha_nacimiento ?? null}
+        avatarUrl={profile?.avatar_url ?? null}
+        createdAt={profile?.created_at ?? ''}
+        approvedAt={profile?.approved_at ?? null}
+        completedCount={completedCount}
+        inProgressCount={inProgressCount}
+        notStartedCount={notStartedCount}
+        certsCount={certsCount}
+      />
     </div>
   )
 }

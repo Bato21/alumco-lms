@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { BookOpen } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Mis Cursos | Alumco LMS' }
@@ -50,18 +51,28 @@ export default async function CursosPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  const { data: workerProfile } = await supabase
+    .from('profiles')
+    .select('area_trabajo')
+    .eq('id', user!.id)
+    .single()
+
+  const workerAreas = workerProfile?.area_trabajo ?? []
+
   const { data: courses } = await supabase
     .from('courses')
     .select('id, title, description, thumbnail_url')
     .eq('is_published', true)
     .order('order_index')
 
+  const coursesByArea = filterCoursesByWorkerAreas(courses ?? [], workerAreas)
+
   const { data: progressData } = await supabase
     .from('course_progress')
     .select('course_id, completed_modules, is_completed')
     .eq('user_id', user!.id)
 
-  const courseIds = courses?.map(c => c.id) ?? []
+  const courseIds = coursesByArea.map(c => c.id)
 
   const { data: allModules } = await supabase
     .from('modules')
@@ -76,7 +87,7 @@ export default async function CursosPage({
     )
   })
 
-  const coursesWithProgress: CourseWithProgress[] = (courses || []).map(course => {
+  const coursesWithProgress: CourseWithProgress[] = coursesByArea.map(course => {
     const progress = progressData?.find(p => p.course_id === course.id)
     const completedModules = progress?.completed_modules || []
     const completed = Array.isArray(completedModules) ? completedModules.length : 0
@@ -120,7 +131,7 @@ export default async function CursosPage({
       <div>
         <h1 className="text-2xl font-bold text-[#1A1A2E]">Mis cursos</h1>
         <p className="text-[#6B7280] text-sm mt-0.5">
-          {coursesWithProgress.length} curso{coursesWithProgress.length !== 1 ? 's' : ''} disponible{coursesWithProgress.length !== 1 ? 's' : ''}
+          Cursos asignados a tu área de trabajo
         </p>
       </div>
 

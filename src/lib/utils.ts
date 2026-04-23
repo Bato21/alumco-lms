@@ -40,3 +40,16 @@ export function scoreLabel(score: number): string {
 export function sedeLabel(sede: 'sede_1' | 'sede_2'): string {
   return sede === 'sede_1' ? 'Sede Principal' : 'Sede Secundaria'
 }
+
+// Filtra cursos según las áreas del trabajador.
+// Un curso es visible si target_areas está vacío (todos) o comparte al menos un área.
+export function filterCoursesByWorkerAreas<T extends { target_areas: string[] }>(
+  courses: T[],
+  workerAreas: string[]
+): T[] {
+  if (!workerAreas || workerAreas.length === 0) return courses
+  return courses.filter(course => {
+    if (!course.target_areas || course.target_areas.length === 0) return true
+    return course.target_areas.some(area => workerAreas.includes(area))
+  })
+}

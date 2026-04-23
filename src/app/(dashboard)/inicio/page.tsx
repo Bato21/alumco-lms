@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { BookOpen, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
 import { DeadlineCalendar } from '@/components/alumco/DeadlineCalendar'
 
@@ -16,18 +17,22 @@ export default async function InicioPage() {
     .eq('id', user!.id)
     .single()
 
+  const workerAreas = profile?.area_trabajo ?? []
+
   const { data: courses } = await supabase
     .from('courses')
     .select('id, title, deadline, deadline_description, is_published')
     .eq('is_published', true)
     .order('order_index')
 
+  const filteredCourses = filterCoursesByWorkerAreas(courses ?? [], workerAreas)
+
   const { data: progressData } = await supabase
     .from('course_progress')
     .select('course_id, completed_modules, is_completed')
     .eq('user_id', user!.id)
 
-  const courseIds = courses?.map(c => c.id) ?? []
+  const courseIds = filteredCourses.map(c => c.id)
   const { data: allModules } = await supabase
     .from('modules')
     .select('course_id')
@@ -39,7 +44,7 @@ export default async function InicioPage() {
   })
 
   // Calcular stats
-  const coursesWithStatus = (courses || []).map(course => {
+  const coursesWithStatus = filteredCourses.map(course => {
     const progress = progressData?.find(p => p.course_id === course.id)
     const completed = Array.isArray(progress?.completed_modules)
       ? progress.completed_modules.length
