@@ -203,3 +203,80 @@ export async function updateProfileAction(
     return { error: 'Error al actualizar el perfil' }
   }
 }
+
+export async function uploadFirmaAction(
+  userId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; url?: string; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || user.id !== userId) return { error: 'No autorizado' }
+
+    const file = formData.get('firma') as File
+    if (!file || file.size === 0) return { error: 'No se seleccionó archivo' }
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg']
+    if (!allowedTypes.includes(file.type)) {
+      return { error: 'Solo se permiten imágenes PNG o JPG' }
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      return { error: 'La imagen no puede superar 2MB' }
+    }
+
+    const ext = file.type === 'image/png' ? 'png' : 'jpg'
+    const path = `firmas/${userId}.${ext}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('firmas')
+      .upload(path, file, { upsert: true, contentType: file.type })
+
+    if (uploadError) throw uploadError
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('firmas')
+      .getPublicUrl(path)
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ firma_url: publicUrl })
+      .eq('id', userId)
+
+    if (updateError) throw updateError
+
+    revalidatePath('/perfil')
+    return { success: true, url: publicUrl }
+  } catch (err) {
+    console.error('Error subiendo firma:', err)
+    return { error: 'Error al subir la firma' }
+  }
+}
+
+export async function deleteFirmaAction(
+  userId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || user.id !== userId) return { error: 'No autorizado' }
+
+    await supabase.storage.from('firmas').remove([
+      `firmas/${userId}.png`,
+      `firmas/${userId}.jpg`,
+    ])
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ firma_url: null })
+      .eq('id', userId)
+
+    if (error) throw error
+
+    revalidatePath('/perfil')
+    return { success: true }
+  } catch (err) {
+    console.error('Error eliminando firma:', err)
+    return { error: 'Error al eliminar la firma' }
+  }
+}

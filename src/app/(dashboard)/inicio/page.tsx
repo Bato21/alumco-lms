@@ -80,9 +80,18 @@ export default async function InicioPage() {
   const overdue = coursesWithStatus.filter(c => c.deadlineStatus === 'overdue').length
   const soonCount = coursesWithStatus.filter(c => c.deadlineStatus === 'soon').length
 
+  const cumulativeProgress = coursesWithStatus.length > 0
+    ? Math.round(
+        coursesWithStatus.reduce((acc, c) => acc + c.progressPct, 0) /
+        coursesWithStatus.length
+      )
+    : 0
+
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
   const sedeName = profile?.sede === 'sede_1' ? 'Sede Principal' : 'Sede 2'
-  const areaName = profile?.area_trabajo ?? ''
+  const areaName = Array.isArray(profile?.area_trabajo)
+    ? profile.area_trabajo.join(', ')
+    : (profile?.area_trabajo ?? '')
 
   let heroBannerTitle: string
   if (overdue > 0) {
@@ -158,8 +167,8 @@ export default async function InicioPage() {
           <div className="w-10 h-10 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4">
             <CheckCircle className="w-5 h-5 text-[#27AE60]" aria-hidden="true" />
           </div>
-          <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Completados</p>
-          <p className="text-3xl font-extrabold text-[#1A6B3A]">{completedCount}</p>
+          <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Cumplimiento</p>
+          <p className="text-3xl font-extrabold text-[#1A6B3A]">{cumulativeProgress}%</p>
         </div>
 
         {/* Card 4 — Amber tint if overdue, slate if none */}
@@ -169,6 +178,7 @@ export default async function InicioPage() {
           </div>
           <p className={`${overdue > 0 ? 'text-[#92600A]/70' : 'text-slate-400'} text-xs font-semibold uppercase tracking-wider mb-1`}>Vencidos</p>
           <p className="text-3xl font-extrabold">{overdue}</p>
+          <p className="text-xs mt-1 opacity-60">{completedCount} completado{completedCount !== 1 ? 's' : ''}</p>
         </div>
       </div>
 

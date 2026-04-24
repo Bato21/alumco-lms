@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { submitQuizAction, getQuizStatusAction } from '@/lib/actions/quiz'
+import { submitQuizAction, getQuizStatusAction, getQuizAttemptsHistoryAction } from '@/lib/actions/quiz'
 import { resetModuleProgressAction } from '@/lib/actions/progress'
 import type { Question, QuestionOption, UserAnswers, QuizSubmitResult } from '@/lib/types/database'
 import { markModuleCompleteAction } from '@/lib/actions/progress'
@@ -46,11 +46,21 @@ export default function QuizClient({
   } | null>(null)
   const [quizResult, setQuizResult] = useState<QuizSubmitResult | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [attempts, setAttempts] = useState<{
+    id: string
+    score: number
+    status: 'aprobado' | 'reprobado' | 'en_progreso'
+    attempt_number: number
+    completed_at: string
+  }[]>([])
 
   // Fetch quiz status on mount - using useEffect to avoid calling during render
   useEffect(() => {
     async function loadStatus() {
-      const status = await getQuizStatusAction(quizId, courseId)
+      const [status, history] = await Promise.all([
+        getQuizStatusAction(quizId, courseId),
+        getQuizAttemptsHistoryAction(quizId),
+      ])
       setQuizStatus({
         attemptsUsed: status.attemptsUsed,
         attemptsRemaining: status.attemptsRemaining,
@@ -58,6 +68,7 @@ export default function QuizClient({
         lastScore: status.lastScore,
         isBlocked: status.isBlocked,
       })
+      setAttempts(history.attempts)
       setIsLoading(false)
     }
     loadStatus()
@@ -200,6 +211,39 @@ const handleContinue = async () => {
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Obtuviste <span className="font-bold text-[#27AE60]">{quizStatus.lastScore}%</span> en tu intento anterior.
           </p>
+
+          {attempts.length > 0 && (
+            <div className="bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden mb-6 text-left">
+              <div className="px-5 py-3 border-b border-slate-100">
+                <h3 className="text-sm font-bold text-[#1A1A2E]">Historial de intentos</h3>
+              </div>
+              <div className="divide-y divide-slate-50">
+                {attempts.map(attempt => {
+                  const isPassed = attempt.status === 'aprobado'
+                  const date = new Intl.DateTimeFormat('es-CL', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                  }).format(new Date(attempt.completed_at))
+                  return (
+                    <div key={attempt.id} className="flex items-center gap-4 px-5 py-3">
+                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-[#6B7280]">{attempt.attempt_number}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-[#6B7280]">{date}</p>
+                      </div>
+                      <span className={`text-sm font-extrabold ${isPassed ? 'text-[#27AE60]' : 'text-[#E74C3C]'}`}>
+                        {attempt.score}%
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${isPassed ? 'bg-[#EAF3DE] text-[#27500A]' : 'bg-[#FAECE7] text-[#E74C3C]'}`}>
+                        {isPassed ? 'Aprobado' : 'Reprobado'}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           <button
             onClick={handleContinue}
             disabled={isPending || isUpdating}
@@ -281,6 +325,39 @@ const handleContinue = async () => {
             ~{questions.length * 2} minutos
           </span>
         </div>
+
+        {/* Historial de intentos */}
+        {attempts.length > 0 && (
+          <div className="bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100">
+              <h3 className="text-sm font-bold text-[#1A1A2E]">Historial de intentos</h3>
+            </div>
+            <div className="divide-y divide-slate-50">
+              {attempts.map(attempt => {
+                const isPassed = attempt.status === 'aprobado'
+                const date = new Intl.DateTimeFormat('es-CL', {
+                  day: '2-digit', month: 'short', year: 'numeric',
+                }).format(new Date(attempt.completed_at))
+                return (
+                  <div key={attempt.id} className="flex items-center gap-4 px-5 py-3">
+                    <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-[#6B7280]">{attempt.attempt_number}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-[#6B7280]">{date}</p>
+                    </div>
+                    <span className={`text-sm font-extrabold ${isPassed ? 'text-[#27AE60]' : 'text-[#E74C3C]'}`}>
+                      {attempt.score}%
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${isPassed ? 'bg-[#EAF3DE] text-[#27500A]' : 'bg-[#FAECE7] text-[#E74C3C]'}`}>
+                      {isPassed ? 'Aprobado' : 'Reprobado'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Botón comenzar */}
         <button

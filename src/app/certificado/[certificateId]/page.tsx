@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { PrintButton } from '@/components/alumco/PrintButton'
+import { DownloadCertificateButton } from '@/components/alumco/DownloadCertificateButton'
 
 export const metadata: Metadata = { title: 'Certificado | Alumco LMS' }
 
@@ -44,7 +44,8 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
 
   if (
     certificate.user_id !== user.id &&
-    profile?.role !== 'admin'
+    profile?.role !== 'admin' &&
+    profile?.role !== 'profesor'
   ) {
     notFound()
   }
@@ -173,23 +174,11 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
 
           {/* Footer con acciones */}
           <div className="px-6 md:px-10 py-5 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end">
-            <PrintButton />
-
-            {certificate.pdf_url && (
-              <a
-                href={certificate.pdf_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#e0961a] transition-colors min-h-[44px]"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Descargar PDF
-              </a>
-            )}
+            <DownloadCertificateButton
+              certificateId={certificate.id}
+              workerName={ownerProfile?.full_name ?? ''}
+              courseTitle={course?.title ?? ''}
+            />
           </div>
         </div>
       </div>

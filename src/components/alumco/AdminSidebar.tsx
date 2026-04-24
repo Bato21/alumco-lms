@@ -11,6 +11,7 @@ import {
   Award,
   Menu,
   X,
+  UserCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
@@ -55,6 +56,12 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
       href: '/admin/certificados',
       label: 'Certificados',
       icon: Award,
+      show: true,
+    },
+    {
+      href: '/admin/perfil',
+      label: 'Mi perfil',
+      icon: UserCircle,
       show: true,
     },
   ]

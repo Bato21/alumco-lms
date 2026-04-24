@@ -135,10 +135,15 @@ export async function registerRequestAction(
   })
 
   if (error) {
+    console.error('[registerRequestAction] Supabase signUp error:', {
+      code: error.code,
+      message: error.message,
+      status: error.status,
+    })
     if (error.code === 'user_already_exists') {
       return { error: 'Ya existe una cuenta con ese correo electrónico' }
     }
-    return { error: 'Error al enviar la solicitud. Intenta nuevamente.' }
+    return { error: `Error al enviar la solicitud: ${error.message}` }
   }
 
   // Cerrar sesión inmediatamente — el usuario no debe tener acceso

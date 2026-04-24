@@ -1,52 +1,92 @@
-feat: CRUD completo de trabajadores + áreas múltiples por perfil (Fase 10)
+feat: firmas digitales, certificados PDF, estadísticas de instructor, historial de quizzes, páginas de error y correcciones críticas
 
 ## Base de datos
-- ALTER TABLE profiles ALTER COLUMN area_trabajo TYPE area_trabajo_tipo[]
-  USING ARRAY[area_trabajo]::area_trabajo_tipo[]
-- Migración de valor único a array manteniendo datos existentes
-- ALTER COLUMN area_trabajo SET DEFAULT '{}'
-- DROP y recreación de reporte_avance para soportar array:
-  usa area_trabajo[1] como valor representativo en la vista
+- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS firma_url TEXT
+  para almacenar la URL pública de la firma digital del instructor
+- Corrección crítica del trigger on_auth_user_created: al migrar
+  area_trabajo de text a area_trabajo_tipo[], el trigger insertaba
+  'Sin asignar' como string en vez de ARRAY['Sin asignar']::public.area_trabajo_tipo[]
+  causando "Database error saving new user" en registro. Fix aplicado
+  directamente en Supabase con prefijo public. explícito en todos los enums
 
-## Server Actions — src/lib/actions/trabajadores.ts
-- updateWorkerAction: edita full_name, rut, sede y area_trabajo[]
-  con validación Zod, createAdminClient(), revalidatePath doble
-- suspendWorkerAction: cambia status a 'suspendido'
-- reactivateWorkerAction: cambia status a 'activo'
-- getWorkerDetailAction: retorna perfil + progreso de cursos
-  + certificados para la vista de detalle
+## Firmas digitales — Server Actions (src/lib/actions/trabajadores.ts)
+- uploadFirmaAction(userId, formData): valida PNG/JPG ≤ 2 MB, sube al
+  bucket 'firmas' con upsert:true, guarda URL pública en profiles.firma_url,
+  revalida /perfil
+- deleteFirmaAction(userId): elimina variante .png y .jpg del storage,
+  pone profiles.firma_url = null, revalida /perfil
 
-## Componentes creados
-- src/components/alumco/WorkerEditPanel.tsx — panel lateral para
-  editar datos del trabajador con dropdown multi-select de áreas,
-  campos de nombre/RUT/sede y botón de suspensión con confirmación
-- src/app/admin/trabajadores/WorkersTable.tsx — tabla de activos
-  con filtros por nombre/sede/área, badges de áreas múltiples
-  (máx 2 visibles + contador), links a detalle y botón editar
-- src/app/admin/trabajadores/SuspendedTable.tsx — tabla de
-  suspendidos con botón reactivar y badge de estado rojo
-- src/app/admin/trabajadores/[id]/page.tsx — vista detalle con
-  card de perfil, 4 stats, tabla de progreso por curso ordenada
-  y sección de certificados con links
-- src/app/admin/trabajadores/[id]/WorkerActions.tsx — Client
-  Component con botones editar/suspender/reactivar
+## Certificados PDF (src/lib/actions/certificates.ts)
+- generateCertificatePDF(certificateId): genera PDF A4 vertical
+  [595.28 × 841.89 pt] con pdf-lib enteramente en el servidor
+  · Borde dorado superior (6 pt) y azul inferior (4 pt)
+  · Banda navy superior con logo Alumco centrado
+  · Nombre del trabajador centrado en azul oscuro con subrayado dorado
+  · Título del curso, grilla 2×2 de detalles (RUT / Sede / Área / Fecha),
+    línea de ID de certificado
+  · Dos bloques de firma: instructor (izq.) y directora (der.)
+    con imagen de firma si existe firma_url, o línea punteada si no
+  · Retorna { success, pdfBase64 }
 
-## Página trabajadores actualizada
-- Nueva tab "Suspendidos" con contador
-  Orden de tabs: Activos | Suspendidos | Solicitudes pendientes
-- Tab activos reemplazada por WorkersTable con filtros reactivos
-- Queries adicionales para trabajadores suspendidos
+## DownloadCertificateButton (src/components/alumco/DownloadCertificateButton.tsx)
+- Client Component que reemplaza al anterior PrintButton
+- Llama a generateCertificatePDF, decodifica base64 via atob(),
+  crea Blob application/pdf y dispara descarga con <a>.click()
+- Estados: spinner durante generación, mensaje de error si falla
 
-## ApprovalPanel actualizado
-- Selector de área con dos modos: Una área / Varias áreas
-- Modo simple: select dropdown igual al anterior
-- Modo múltiple: dropdown con checkboxes visuales, contador
-  de selección y botón Listo
-- Validación: mínimo 1 área seleccionada antes de aprobar
-- formData.getAll('area_trabajo') para enviar múltiples valores
+## Página de certificado individual (src/app/certificado/[certificateId]/page.tsx)
+- Reemplazado PrintButton por DownloadCertificateButton
+- Eliminado bloque condicional de pdf_url obsoleto
+- Ampliada la guardia de acceso: admin y profesor pueden ver
+  cualquier certificado (antes solo admin)
 
-## Tipos TypeScript actualizados
-- AreaTrabajo[] en profiles (era AreaTrabajo)
-- UpdateWorkerSchema con z.array(...).min(1)
-- ApproveSchema con z.array(...).min(1)
-- approveWorkerAction lee formData.getAll('area_trabajo')
+## Perfil de instructor (src/app/(dashboard)/perfil/page.tsx y ProfileClient.tsx)
+- page.tsx detecta role admin/profesor y ejecuta rama de queries
+  de instructor usando createAdminClient():
+  · Cursos creados por el usuario (courses.created_by)
+  · Trabajadores únicos que completaron esos cursos (course_progress)
+  · Certificados emitidos en esos cursos (certificates)
+  · Tasa de aprobación de quizzes en esos cursos (quiz_attempts)
+- ProfileClient recibe 4 props opcionales: totalCreated,
+  capacitatedWorkers, approvalRate, totalCerts
+- Stats cards condicionales: admin/profesor ven tarjetas de instructor
+  (Cursos creados / Trabajadores capacitados / Aprobación % / Certificados
+  emitidos); trabajador ve las 4 tarjetas originales sin cambios
+- Sección de firma digital visible solo para admin/profesor:
+  · Sin firma: zona de carga con input file oculto
+  · Con firma: preview de imagen + botones Cambiar y Eliminar
+
+## Ruta /admin/perfil (src/app/admin/perfil/page.tsx)
+- Nueva página bajo el layout admin para que admin/profesor accedan
+  a su perfil desde el sidebar sin ser redirigidos al dashboard worker
+- Incluye la misma lógica completa de queries condicionales
+  (admin stats vía createAdminClient()) — paridad total con
+  (dashboard)/perfil/page.tsx
+- AdminSidebar actualizado: nuevo ítem "Mi perfil" → /admin/perfil
+
+## Historial de intentos de quiz (src/lib/actions/quiz.ts + QuizClient.tsx)
+- getQuizAttemptsHistoryAction(quizId): nueva Server Action que retorna
+  los intentos del usuario ordenados por attempt_number ASC con tipo
+  AttemptHistoryRow { id, score, status, attempt_number, completed_at }
+- QuizClient carga estado e historial en paralelo con Promise.all
+- UI de historial mostrada en Estado B (aprobado) y Estado C (puede intentar):
+  · Fila por intento con número de intento en círculo, fecha formateada,
+    score en % y badge aprobado/reprobado con color semántico
+  · Sección oculta si no hay intentos previos
+
+## Correcciones de area_trabajo (array en lugar de string)
+- inicio/page.tsx: areaName con Array.isArray + .join(', ')
+- inicio/page.tsx: cumulativeProgress = promedio de todos los cursos,
+  tarjeta "Cumplimiento" reemplaza "Completados", tarjeta vencidos
+  muestra subtexto con cantidad completada
+- admin/certificados/page.tsx: misma corrección Array.isArray + .join(', ')
+- ProfileClient.tsx: renderizado de áreas con Array.isArray + .join(', ')
+
+## Páginas de error de Next.js
+- src/app/not-found.tsx: página 404 como Server Component con logo
+  Alumco, número 404 decorativo en opacidad baja, ícono de signo de
+  interrogación en caja azul redondeada, links a /inicio y /cursos
+- src/app/error.tsx: página 500 como Client Component ('use client'
+  obligatorio para Next.js error boundaries), botón "Intentar nuevamente"
+  llama a reset(), link a /inicio, muestra error.digest si está presente,
+  ícono de advertencia en caja roja redondeada

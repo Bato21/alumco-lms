@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { ProfileClient } from './ProfileClient'
+import { ProfileClient } from '@/app/(dashboard)/perfil/ProfileClient'
 
 export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
-export default async function PerfilPage() {
+export default async function AdminPerfilPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -14,17 +14,15 @@ export default async function PerfilPage() {
     .eq('id', user!.id)
     .single()
 
-  const role = profile?.role ?? 'trabajador'
+  const role = profile?.role ?? 'admin'
   const userId = profile?.id ?? user!.id
   const isAdminOrProfesor = role === 'admin' || role === 'profesor'
 
-  // Stats para trabajador
   let completedCount = 0
   let inProgressCount = 0
   let notStartedCount = 0
   let certsCount = 0
 
-  // Stats para admin / profesor
   let totalCreated: number | undefined
   let capacitatedWorkers: number | undefined
   let approvalRate: number | undefined

@@ -297,3 +297,28 @@ export async function submitQuizAction(
     }
   }
 }
+
+type AttemptHistoryRow = {
+  id: string
+  score: number
+  status: 'aprobado' | 'reprobado' | 'en_progreso'
+  attempt_number: number
+  completed_at: string
+}
+
+export async function getQuizAttemptsHistoryAction(
+  quizId: string
+): Promise<{ attempts: AttemptHistoryRow[] }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { attempts: [] }
+
+  const { data } = await supabase
+    .from('quiz_attempts')
+    .select('id, score, status, attempt_number, completed_at')
+    .eq('quiz_id', quizId)
+    .eq('user_id', user.id)
+    .order('attempt_number', { ascending: true })
+
+  return { attempts: (data ?? []) as AttemptHistoryRow[] }
+}

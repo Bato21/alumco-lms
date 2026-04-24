@@ -123,7 +123,9 @@ export default async function AdminCertificadosPage() {
                               {profile?.full_name ?? '—'}
                             </p>
                             <p className="text-xs text-[#6B7280] truncate">
-                              {profile?.area_trabajo ?? ''}
+                              {Array.isArray(profile?.area_trabajo)
+                                ? profile.area_trabajo.join(', ')
+                                : (profile?.area_trabajo ?? '')}
                             </p>
                           </div>
                         </div>
