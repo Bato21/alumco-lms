@@ -343,3 +343,51 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--md-outline);
 }
+
+/* ── Animaciones de página ──────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.page-transition {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.page-fade {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Aplicar automáticamente a contenido principal */
+main > * {
+  animation: fadeInUp 0.25s ease-out forwards;
+}
+
+/* Stagger para listas de cards */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 200ms; }
+
+/* Reducir animaciones para usuarios que lo prefieren */
+@media (prefers-reduced-motion: reduce) {
+  main > *,
+  .page-transition,
+  .page-fade,
+  .stagger-children > * {
+    animation: none;
+  }
+}

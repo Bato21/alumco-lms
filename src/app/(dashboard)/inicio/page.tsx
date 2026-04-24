@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { BookOpen, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
 import { DeadlineCalendar } from '@/components/alumco/DeadlineCalendar'
+import WelcomeModal from '@/components/alumco/WelcomeModal'
 
 export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
 
@@ -13,7 +14,7 @@ export default async function InicioPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, sede, area_trabajo')
+    .select('full_name, sede, area_trabajo, onboarding_completed')
     .eq('id', user!.id)
     .single()
 
@@ -104,8 +105,18 @@ export default async function InicioPage() {
     heroBannerTitle = `Capacítate a tu ritmo, ${firstName}.`
   }
 
+  const showWelcome = profile?.onboarding_completed === false
+
   return (
     <div className="space-y-8">
+
+      {showWelcome && (
+        <WelcomeModal
+          fullName={profile?.full_name ?? ''}
+          areas={Array.isArray(profile?.area_trabajo) ? profile.area_trabajo : []}
+          sede={profile?.sede ?? 'sede_1'}
+        />
+      )}
 
       {/* Saludo */}
       <section>

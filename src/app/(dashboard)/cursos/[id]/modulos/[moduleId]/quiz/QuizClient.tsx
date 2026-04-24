@@ -302,6 +302,32 @@ const handleContinue = async () => {
               </svg>
               Intento {quizStatus.attemptsUsed + 1} de {maxAttempts}
             </span>
+
+            <div className="relative group">
+              <button
+                type="button"
+                className="p-1 text-slate-400 hover:text-[#2B4FA0] transition-colors rounded-full"
+                aria-label="Información sobre intentos"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 16v-4"/>
+                  <path d="M12 8h.01"/>
+                </svg>
+              </button>
+
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[#1A1A2E] text-white text-xs rounded-xl p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                <p className="font-semibold mb-1">Sistema de intentos</p>
+                <ul className="space-y-1 text-white/80">
+                  <li>• Tienes {maxAttempts} intentos por evaluación</li>
+                  <li>• Al agotar los intentos debes reiniciar el curso</li>
+                  <li>• Tu mejor puntaje queda registrado</li>
+                  <li>• El administrador puede habilitar nuevos intentos</li>
+                </ul>
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1A1A2E]" />
+              </div>
+            </div>
+
             <span className="text-sm text-[var(--md-on-surface-variant)]">
               Puntaje mínimo: <span className="font-semibold text-[var(--md-on-surface)]">{passingScore}%</span>
             </span>

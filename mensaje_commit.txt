@@ -1,92 +1,183 @@
-feat: firmas digitales, certificados PDF, estadísticas de instructor, historial de quizzes, páginas de error y correcciones críticas
+feat: búsqueda global, skeletons, animaciones, modales y QA
 
-## Base de datos
-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS firma_url TEXT
-  para almacenar la URL pública de la firma digital del instructor
-- Corrección crítica del trigger on_auth_user_created: al migrar
-  area_trabajo de text a area_trabajo_tipo[], el trigger insertaba
-  'Sin asignar' como string en vez de ARRAY['Sin asignar']::public.area_trabajo_tipo[]
-  causando "Database error saving new user" en registro. Fix aplicado
-  directamente en Supabase con prefijo public. explícito en todos los enums
+Continuación de la sesión anterior. Nuevas funcionalidades completas
+antes del deploy a producción.
 
-## Firmas digitales — Server Actions (src/lib/actions/trabajadores.ts)
-- uploadFirmaAction(userId, formData): valida PNG/JPG ≤ 2 MB, sube al
-  bucket 'firmas' con upsert:true, guarda URL pública en profiles.firma_url,
-  revalida /perfil
-- deleteFirmaAction(userId): elimina variante .png y .jpg del storage,
-  pone profiles.firma_url = null, revalida /perfil
+═══════════════════════════════════════
+BÚSQUEDA GLOBAL
+═══════════════════════════════════════
 
-## Certificados PDF (src/lib/actions/certificates.ts)
-- generateCertificatePDF(certificateId): genera PDF A4 vertical
-  [595.28 × 841.89 pt] con pdf-lib enteramente en el servidor
-  · Borde dorado superior (6 pt) y azul inferior (4 pt)
-  · Banda navy superior con logo Alumco centrado
-  · Nombre del trabajador centrado en azul oscuro con subrayado dorado
-  · Título del curso, grilla 2×2 de detalles (RUT / Sede / Área / Fecha),
-    línea de ID de certificado
-  · Dos bloques de firma: instructor (izq.) y directora (der.)
-    con imagen de firma si existe firma_url, o línea punteada si no
-  · Retorna { success, pdfBase64 }
+## Server Action (src/lib/actions/search.ts)
+- searchAction(query): busca cursos con ilike case-insensitive
+  · Mínimo 2 caracteres para activar la búsqueda
+  · Trabajadores: solo ve cursos de su área (filtra por target_areas)
+  · Admin/profesor: también busca trabajadores activos por nombre
+  · Límite de 5 resultados por categoría
+  · Retorna { courses, workers, role }
 
-## DownloadCertificateButton (src/components/alumco/DownloadCertificateButton.tsx)
-- Client Component que reemplaza al anterior PrintButton
-- Llama a generateCertificatePDF, decodifica base64 via atob(),
-  crea Blob application/pdf y dispara descarga con <a>.click()
-- Estados: spinner durante generación, mensaje de error si falla
+## SearchBar (src/components/alumco/SearchBar.tsx)
+- Client Component con debounce 300ms via useTransition
+- Dropdown con secciones separadas Cursos / Trabajadores
+- Spinner (Loader2) durante búsqueda, botón X para limpiar
+- Cierre al click fuera con useRef + mousedown listener
+- Navegación: cursos admin → /admin/cursos, trabajador → /cursos/{id}
+- Trabajadores → /admin/trabajadores/{id}
+- Tooltip footer: "Presiona Enter para buscar · Esc para cerrar"
+- Cleanup del timeout en desmontaje del componente
 
-## Página de certificado individual (src/app/certificado/[certificateId]/page.tsx)
-- Reemplazado PrintButton por DownloadCertificateButton
-- Eliminado bloque condicional de pdf_url obsoleto
-- Ampliada la guardia de acceso: admin y profesor pueden ver
-  cualquier certificado (antes solo admin)
+## Integración en layouts
+- src/app/admin/layout.tsx: input estático reemplazado por SearchBar
+- src/app/(dashboard)/layout.tsx: mismo reemplazo
 
-## Perfil de instructor (src/app/(dashboard)/perfil/page.tsx y ProfileClient.tsx)
-- page.tsx detecta role admin/profesor y ejecuta rama de queries
-  de instructor usando createAdminClient():
-  · Cursos creados por el usuario (courses.created_by)
-  · Trabajadores únicos que completaron esos cursos (course_progress)
-  · Certificados emitidos en esos cursos (certificates)
-  · Tasa de aprobación de quizzes en esos cursos (quiz_attempts)
-- ProfileClient recibe 4 props opcionales: totalCreated,
-  capacitatedWorkers, approvalRate, totalCerts
-- Stats cards condicionales: admin/profesor ven tarjetas de instructor
-  (Cursos creados / Trabajadores capacitados / Aprobación % / Certificados
-  emitidos); trabajador ve las 4 tarjetas originales sin cambios
-- Sección de firma digital visible solo para admin/profesor:
-  · Sin firma: zona de carga con input file oculto
-  · Con firma: preview de imagen + botones Cambiar y Eliminar
+═══════════════════════════════════════
+SKELETONS Y LOADING STATES
+═══════════════════════════════════════
 
-## Ruta /admin/perfil (src/app/admin/perfil/page.tsx)
-- Nueva página bajo el layout admin para que admin/profesor accedan
-  a su perfil desde el sidebar sin ser redirigidos al dashboard worker
-- Incluye la misma lógica completa de queries condicionales
-  (admin stats vía createAdminClient()) — paridad total con
-  (dashboard)/perfil/page.tsx
-- AdminSidebar actualizado: nuevo ítem "Mi perfil" → /admin/perfil
+## Componentes skeleton (src/components/alumco/Skeletons.tsx)
+- SkeletonCard: tarjeta genérica con avatar + label + número
+- SkeletonStatsRow: grid 2×4 de 4 SkeletonCards
+- SkeletonTableRow: fila con avatar, dos líneas de texto, dos badges
+- SkeletonTable: header + N filas (default 6)
+- SkeletonHero: banner degradado azul con bloques de texto y botones
+- SkeletonCourseCard: card con imagen + título + barra de progreso + botones
+- SkeletonProfileCard: avatar circular + grid 2×2 de campos
+- Sin 'use client' ni 'use server' — Server Components puros
 
-## Historial de intentos de quiz (src/lib/actions/quiz.ts + QuizClient.tsx)
-- getQuizAttemptsHistoryAction(quizId): nueva Server Action que retorna
-  los intentos del usuario ordenados por attempt_number ASC con tipo
-  AttemptHistoryRow { id, score, status, attempt_number, completed_at }
-- QuizClient carga estado e historial en paralelo con Promise.all
-- UI de historial mostrada en Estado B (aprobado) y Estado C (puede intentar):
-  · Fila por intento con número de intento en círculo, fecha formateada,
-    score en % y badge aprobado/reprobado con color semántico
-  · Sección oculta si no hay intentos previos
+## Archivos loading.tsx creados (10 archivos)
+- src/app/admin/dashboard/loading.tsx
+- src/app/admin/trabajadores/loading.tsx
+- src/app/admin/cursos/loading.tsx
+- src/app/admin/reportes/loading.tsx
+- src/app/admin/certificados/loading.tsx
+- src/app/(dashboard)/inicio/loading.tsx
+- src/app/(dashboard)/cursos/loading.tsx
+- src/app/(dashboard)/mis-certificados/loading.tsx
+- src/app/(dashboard)/perfil/loading.tsx
+- src/app/admin/perfil/loading.tsx
+  Next.js los muestra automáticamente en cada navegación
 
-## Correcciones de area_trabajo (array en lugar de string)
-- inicio/page.tsx: areaName con Array.isArray + .join(', ')
-- inicio/page.tsx: cumulativeProgress = promedio de todos los cursos,
-  tarjeta "Cumplimiento" reemplaza "Completados", tarjeta vencidos
-  muestra subtexto con cantidad completada
-- admin/certificados/page.tsx: misma corrección Array.isArray + .join(', ')
-- ProfileClient.tsx: renderizado de áreas con Array.isArray + .join(', ')
+═══════════════════════════════════════
+ANIMACIONES DE PÁGINA
+═══════════════════════════════════════
 
-## Páginas de error de Next.js
-- src/app/not-found.tsx: página 404 como Server Component con logo
-  Alumco, número 404 decorativo en opacidad baja, ícono de signo de
-  interrogación en caja azul redondeada, links a /inicio y /cursos
-- src/app/error.tsx: página 500 como Client Component ('use client'
-  obligatorio para Next.js error boundaries), botón "Intentar nuevamente"
-  llama a reset(), link a /inicio, muestra error.digest si está presente,
-  ícono de advertencia en caja roja redondeada
+## globals.css — añadidas al final del archivo
+- @keyframes fadeInUp: slide de 12px + fade-in (0.3s ease-out)
+- @keyframes fadeIn: solo fade-in (0.2s ease-out)
+- .page-transition: aplica fadeInUp
+- .page-fade: aplica fadeIn
+- main > *: fadeInUp automático en todos los contenidos principales
+- .stagger-children: delay escalonado 0/40/80/120/160/200ms para grids
+- @media prefers-reduced-motion: desactiva todas las animaciones
+
+═══════════════════════════════════════
+HIDE-ON-SCROLL TOPBAR
+═══════════════════════════════════════
+
+## AdminTopBar (src/app/admin/TopBar.tsx)
+- Client Component con scroll handler via requestAnimationFrame
+- Threshold +5px para ignorar micro-movimientos
+- Siempre visible al llegar al tope (scrollY < 10)
+- header con position: fixed top-0 left-64 right-0
+- transition-transform duration-300 con -translate-y-full al ocultar
+
+## WorkerTopBar (src/app/(dashboard)/TopBar.tsx)
+- Misma lógica de scroll que AdminTopBar
+- Estructura justify-between con flex-1 spacer para alineación
+
+## Integración en layouts
+- admin/layout.tsx: header inline eliminado, imports de NotificationBell
+  y SearchBar removidos, reemplazado por <AdminTopBar>
+  Spacer div hidden lg:block h-[73px] para reservar espacio del header fixed
+- (dashboard)/layout.tsx: mismo patrón con <WorkerTopBar>
+- Ambos contenedores: overflow-x-hidden añadido
+
+═══════════════════════════════════════
+MODAL DE BIENVENIDA (ONBOARDING)
+═══════════════════════════════════════
+
+## Server Action (src/lib/actions/trabajadores.ts)
+- completeOnboardingAction(): marca onboarding_completed = true
+  en el perfil del usuario actual, revalida /inicio
+
+## WelcomeModal (src/components/alumco/WelcomeModal.tsx)
+- Client Component con animación de entrada y salida (300ms)
+- Header dorado degradado #F5A623 → #e0961a con círculos decorativos
+- Muestra sede y áreas del trabajador en tarjeta interna
+- Lista de 3 features con íconos semánticos (azul/verde/dorado)
+- Botón "Comenzar mi capacitación →" con spinner durante isPending
+- Overlay bg-black/60 con backdrop-blur-sm
+- isVisible: false desmonta el componente tras la animación
+
+## Integración en inicio/page.tsx
+- Select ampliado: añadido onboarding_completed y sede
+- showWelcome = profile?.onboarding_completed === false
+- Modal renderizado como primer hijo del div raíz
+
+═══════════════════════════════════════
+TOOLTIP EN PRE-QUIZ
+═══════════════════════════════════════
+
+## QuizClient.tsx — Estado 1 (pre-quiz, sección C)
+- Ícono ⓘ añadido después del badge "Intento X de Y"
+- Tooltip con CSS puro (group-hover) — sin useState
+- Muestra 4 reglas del sistema de intentos con {maxAttempts} dinámico
+- Flecha decorativa en la base del tooltip
+- opacity-0 → opacity-100 con transition-opacity duration-200
+
+═══════════════════════════════════════
+FILTROS EN CERTIFICADOS ADMIN
+═══════════════════════════════════════
+
+## CertificadosClient (src/app/admin/certificados/CertificadosClient.tsx)
+- Nuevo Client Component extraído de la página de certificados
+- Filtros: búsqueda por nombre/curso + rango de fechas (Desde/Hasta)
+- Comparación de fechas como enteros YYYYMMDD (timezone-safe para Chile)
+  evita el desfase UTC-3/UTC-4 de new Date('YYYY-MM-DD')
+- Contador "X de N certificados" + botón "Limpiar filtros" condicional
+- Exportar CSV: descarga solo los resultados filtrados con campos
+  Trabajador/Curso/Sede/Fecha/ID
+- Tabla idéntica al diseño original; fila vacía con colSpan={6}
+  cuando no hay resultados con los filtros activos
+
+## page.tsx actualizado
+- Mantiene las mismas queries del servidor
+- Normaliza courses (array → objeto) al construir enriched
+- Embebe profile en cada certificado antes de pasar al Client Component
+- Empty state original preservado cuando no hay certificados en absoluto
+
+═══════════════════════════════════════
+ORDENAMIENTO EN TABLA DE TRABAJADORES
+═══════════════════════════════════════
+
+## WorkersTable.tsx
+- Tipos SortField y SortDir
+- Estado sortField (default 'full_name') y sortDir (default 'asc')
+- handleSort: alterna dirección si el campo ya activo, reset a 'asc' si cambia
+- sorted = [...filtered].sort() — no muta el array original
+- Ordenamiento por: full_name, sede, area_trabajo[0], role, status
+- Valores null/vacíos en area_trabajo normalizados a '' para evitar crash
+- 5 headers clicables con cursor-pointer + select-none
+- RUT y Acciones permanecen como headers estáticos
+- SortIcon: chevrons arriba/abajo con opacity-40 en reposo,
+  flecha activa resaltada en text-[#2B4FA0] opacity-100
+
+═══════════════════════════════════════
+QA Y REPORTE DE BUGS
+═══════════════════════════════════════
+
+## src/testing/bugs.md — Reporte QA completo
+- Revisión estática de 18 flujos (trabajador, admin, profesor, seguridad)
+- 25 bugs documentados con severidad, pasos para reproducir y fix sugerido
+- 8 alta severidad (seguridad crítica):
+  · BUG-01/02: módulos y quiz accesibles sin verificar área del trabajador
+  · BUG-03: submitQuizAction no valida coherencia quiz→módulo→curso
+  · BUG-05/06/07: 4 Server Actions admin sin verificación de rol (approve,
+    suspend, reactivate, update) — cualquier usuario autenticado puede invocarlas
+  · BUG-17: updateProfileAction permite modificar perfil de otro usuario
+  · BUG-25: proxy.ts puede no ejecutarse si no existe middleware.ts
+- 12 media severidad: incluyen updateLastModuleAction con adminClient,
+  historial de intentos sin filtro por reset, doble redirección login,
+  revalidatePath apuntando a ruta inexistente, alertas de deadline
+  contando trabajadores fuera del área del curso
+- 5 baja severidad: nombres de sede inconsistentes, export CSV sin
+  escape de comas, cumulativeProgress potencialmente NaN con 0 cursos

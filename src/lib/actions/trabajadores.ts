@@ -280,3 +280,27 @@ export async function deleteFirmaAction(
     return { error: 'Error al eliminar la firma' }
   }
 }
+
+export async function completeOnboardingAction(): Promise<{
+  success?: boolean
+  error?: string
+}> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autorizado' }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ onboarding_completed: true })
+      .eq('id', user.id)
+
+    if (error) throw error
+
+    revalidatePath('/inicio')
+    return { success: true }
+  } catch (err) {
+    console.error('Error completando onboarding:', err)
+    return { error: 'Error al completar onboarding' }
+  }
+}

@@ -15,6 +15,9 @@ interface Worker {
   status: string
 }
 
+type SortField = 'full_name' | 'sede' | 'area_trabajo' | 'role' | 'status'
+type SortDir = 'asc' | 'desc'
+
 function AreaBadges({ areas }: { areas: string[] }) {
   const visible = areas.slice(0, 2)
   const extra = areas.length - 2
@@ -39,12 +42,57 @@ export function WorkersTable({ workers }: { workers: Worker[] }) {
   const [sede, setSede] = useState<'todas' | 'sede_1' | 'sede_2'>('todas')
   const [area, setArea] = useState('todas')
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null)
+  const [sortField, setSortField] = useState<SortField>('full_name')
+  const [sortDir, setSortDir] = useState<SortDir>('asc')
+
+  function handleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDir('asc')
+    }
+  }
 
   const filtered = workers.filter(w => {
     if (sede !== 'todas' && w.sede !== sede) return false
     if (area !== 'todas' && !w.area_trabajo.includes(area)) return false
     if (search && !w.full_name.toLowerCase().includes(search.toLowerCase())) return false
     return true
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
+    let valA: string
+    let valB: string
+
+    switch (sortField) {
+      case 'full_name':
+        valA = a.full_name.toLowerCase()
+        valB = b.full_name.toLowerCase()
+        break
+      case 'sede':
+        valA = a.sede
+        valB = b.sede
+        break
+      case 'area_trabajo':
+        valA = a.area_trabajo[0]?.toLowerCase() ?? ''
+        valB = b.area_trabajo[0]?.toLowerCase() ?? ''
+        break
+      case 'role':
+        valA = a.role
+        valB = b.role
+        break
+      case 'status':
+        valA = a.status
+        valB = b.status
+        break
+      default:
+        return 0
+    }
+
+    if (valA < valB) return sortDir === 'asc' ? -1 : 1
+    if (valA > valB) return sortDir === 'asc' ? 1 : -1
+    return 0
   })
 
   return (
@@ -97,24 +145,64 @@ export function WorkersTable({ workers }: { workers: Worker[] }) {
             <table className="w-full text-left">
               <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
                 <tr>
-                  <th className="px-5 lg:px-6 py-3">Trabajador</th>
+                  <th className="px-5 lg:px-6 py-3 cursor-pointer select-none">
+                    <button
+                      onClick={() => handleSort('full_name')}
+                      className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
+                    >
+                      Trabajador
+                      <SortIcon field="full_name" currentField={sortField} direction={sortDir} />
+                    </button>
+                  </th>
                   <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
-                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Sede</th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Áreas</th>
-                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Rol</th>
-                  <th className="px-5 lg:px-6 py-3">Estado</th>
+                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell cursor-pointer select-none">
+                    <button
+                      onClick={() => handleSort('sede')}
+                      className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
+                    >
+                      Sede
+                      <SortIcon field="sede" currentField={sortField} direction={sortDir} />
+                    </button>
+                  </th>
+                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell cursor-pointer select-none">
+                    <button
+                      onClick={() => handleSort('area_trabajo')}
+                      className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
+                    >
+                      Áreas
+                      <SortIcon field="area_trabajo" currentField={sortField} direction={sortDir} />
+                    </button>
+                  </th>
+                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell cursor-pointer select-none">
+                    <button
+                      onClick={() => handleSort('role')}
+                      className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
+                    >
+                      Rol
+                      <SortIcon field="role" currentField={sortField} direction={sortDir} />
+                    </button>
+                  </th>
+                  <th className="px-5 lg:px-6 py-3 cursor-pointer select-none">
+                    <button
+                      onClick={() => handleSort('status')}
+                      className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
+                    >
+                      Estado
+                      <SortIcon field="status" currentField={sortField} direction={sortDir} />
+                    </button>
+                  </th>
                   <th className="px-5 lg:px-6 py-3 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-gray-100">
-                {filtered.length === 0 ? (
+                {sorted.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-5 lg:px-6 py-16 text-center text-[#6B7280]">
                       No se encontraron trabajadores con los filtros aplicados.
                     </td>
                   </tr>
                 ) : (
-                  filtered.map(worker => {
+                  sorted.map(worker => {
                     const initials = worker.full_name
                       .split(' ')
                       .map(n => n[0])
@@ -192,5 +280,33 @@ export function WorkersTable({ workers }: { workers: Worker[] }) {
         </div>
       </div>
     </>
+  )
+}
+
+function SortIcon({
+  field,
+  currentField,
+  direction,
+}: {
+  field: SortField
+  currentField: SortField
+  direction: SortDir
+}) {
+  const isActive = field === currentField
+  return (
+    <span className="inline-flex flex-col ml-1 opacity-40 group-hover:opacity-100 transition-opacity">
+      <svg
+        className={`h-3 w-3 -mb-1 ${isActive && direction === 'asc' ? 'text-[#2B4FA0] opacity-100' : ''}`}
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+      >
+        <path d="M18 15l-6-6-6 6"/>
+      </svg>
+      <svg
+        className={`h-3 w-3 ${isActive && direction === 'desc' ? 'text-[#2B4FA0] opacity-100' : ''}`}
+        viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
+      >
+        <path d="M6 9l6 6 6-6"/>
+      </svg>
+    </span>
   )
 }
