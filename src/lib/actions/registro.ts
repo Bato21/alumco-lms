@@ -123,6 +123,18 @@ export async function registerRequestAction(
 
   const supabase = await createClient()
 
+  // Verificar RUT duplicado antes de crear la cuenta
+  const adminClient = await createAdminClient()
+  const { data: rutExists } = await adminClient
+    .from('profiles')
+    .select('id')
+    .eq('rut', parsed.data.rut)
+    .maybeSingle()
+
+  if (rutExists) {
+    return { error: 'Ya existe una cuenta registrada con ese RUT' }
+  }
+
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
@@ -174,6 +186,9 @@ export async function approveWorkerAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
 
+  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
+
   const adminClient = await createAdminClient()
 
   // Actualizar perfil usando update con match por id
@@ -201,10 +216,16 @@ export async function approveWorkerAction(
 // ── Rechazar solicitud de acceso ───────────────────────────
 
 export async function rejectWorkerAction(formData: FormData) {
-  // 1. Usamos el cliente con privilegios de administrador para saltar el RLS
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'No autenticado' }
+
+  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
+
+  // Usamos el cliente con privilegios de administrador para saltar el RLS
   const adminClient = await createAdminClient()
 
-  // 2. Extraemos el ID exactamente como lo enviamos desde el panel
   const profileId = formData.get('profileId') as string
   if (!profileId) return { error: 'ID de perfil no proporcionado' }
 

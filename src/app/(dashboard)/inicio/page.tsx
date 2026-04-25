@@ -89,7 +89,7 @@ export default async function InicioPage() {
     : 0
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
-  const sedeName = profile?.sede === 'sede_1' ? 'Sede Principal' : 'Sede 2'
+  const sedeName = profile?.sede === 'sede_1' ? 'Sede Hualpén' : 'Sede Coyhaique'
   const areaName = Array.isArray(profile?.area_trabajo)
     ? profile.area_trabajo.join(', ')
     : (profile?.area_trabajo ?? '')

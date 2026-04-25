@@ -1,183 +1,202 @@
-feat: búsqueda global, skeletons, animaciones, modales y QA
+fix: corrección completa de bugs QA (alta, media y baja severidad)
 
-Continuación de la sesión anterior. Nuevas funcionalidades completas
-antes del deploy a producción.
-
-═══════════════════════════════════════
-BÚSQUEDA GLOBAL
-═══════════════════════════════════════
-
-## Server Action (src/lib/actions/search.ts)
-- searchAction(query): busca cursos con ilike case-insensitive
-  · Mínimo 2 caracteres para activar la búsqueda
-  · Trabajadores: solo ve cursos de su área (filtra por target_areas)
-  · Admin/profesor: también busca trabajadores activos por nombre
-  · Límite de 5 resultados por categoría
-  · Retorna { courses, workers, role }
-
-## SearchBar (src/components/alumco/SearchBar.tsx)
-- Client Component con debounce 300ms via useTransition
-- Dropdown con secciones separadas Cursos / Trabajadores
-- Spinner (Loader2) durante búsqueda, botón X para limpiar
-- Cierre al click fuera con useRef + mousedown listener
-- Navegación: cursos admin → /admin/cursos, trabajador → /cursos/{id}
-- Trabajadores → /admin/trabajadores/{id}
-- Tooltip footer: "Presiona Enter para buscar · Esc para cerrar"
-- Cleanup del timeout en desmontaje del componente
-
-## Integración en layouts
-- src/app/admin/layout.tsx: input estático reemplazado por SearchBar
-- src/app/(dashboard)/layout.tsx: mismo reemplazo
+Resolución de todos los bugs identificados en src/testing/bugs.md.
+Se corrigieron 22 bugs en total, cubriendo seguridad, lógica de negocio
+y consistencia de UI. Los 3 restantes (BUG-13, BUG-14, BUG-24) que
+estaban marcados como "requieren decisión de negocio" también fueron
+implementados en esta sesión.
 
 ═══════════════════════════════════════
-SKELETONS Y LOADING STATES
+INFRAESTRUCTURA Y SEGURIDAD CRÍTICA
 ═══════════════════════════════════════
 
-## Componentes skeleton (src/components/alumco/Skeletons.tsx)
-- SkeletonCard: tarjeta genérica con avatar + label + número
-- SkeletonStatsRow: grid 2×4 de 4 SkeletonCards
-- SkeletonTableRow: fila con avatar, dos líneas de texto, dos badges
-- SkeletonTable: header + N filas (default 6)
-- SkeletonHero: banner degradado azul con bloques de texto y botones
-- SkeletonCourseCard: card con imagen + título + barra de progreso + botones
-- SkeletonProfileCard: avatar circular + grid 2×2 de campos
-- Sin 'use client' ni 'use server' — Server Components puros
+BUG-25 — Middleware no se ejecutaba
+· Problema: proxy.ts exportaba la función como `proxy`, no como `middleware`.
+  Next.js solo reconoce el archivo middleware.ts con un export nombrado
+  `middleware`. Todas las rutas estaban desprotegidas.
+· Fix: creado src/middleware.ts que re-exporta proxy y config desde proxy.ts.
 
-## Archivos loading.tsx creados (10 archivos)
-- src/app/admin/dashboard/loading.tsx
-- src/app/admin/trabajadores/loading.tsx
-- src/app/admin/cursos/loading.tsx
-- src/app/admin/reportes/loading.tsx
-- src/app/admin/certificados/loading.tsx
-- src/app/(dashboard)/inicio/loading.tsx
-- src/app/(dashboard)/cursos/loading.tsx
-- src/app/(dashboard)/mis-certificados/loading.tsx
-- src/app/(dashboard)/perfil/loading.tsx
-- src/app/admin/perfil/loading.tsx
-  Next.js los muestra automáticamente en cada navegación
+BUG-01 — Módulo accesible sin verificar área del trabajador
+· Problema: cursos/[id]/modulos/[moduleId]/page.tsx no verificaba si el
+  curso pertenecía al área del trabajador. Cualquier trabajador podía
+  acceder a cualquier módulo conociendo la URL.
+· Fix: fetch del perfil del usuario + filterCoursesByWorkerAreas aplicado
+  antes de renderizar el contenido del módulo.
 
-═══════════════════════════════════════
-ANIMACIONES DE PÁGINA
-═══════════════════════════════════════
+BUG-02 — Quiz accesible sin verificar área del trabajador
+· Mismo problema en quiz/page.tsx.
+· Fix: auth check + fetch del curso publicado + filterCoursesByWorkerAreas
+  aplicados al inicio de QuizPage.
 
-## globals.css — añadidas al final del archivo
-- @keyframes fadeInUp: slide de 12px + fade-in (0.3s ease-out)
-- @keyframes fadeIn: solo fade-in (0.2s ease-out)
-- .page-transition: aplica fadeInUp
-- .page-fade: aplica fadeIn
-- main > *: fadeInUp automático en todos los contenidos principales
-- .stagger-children: delay escalonado 0/40/80/120/160/200ms para grids
-- @media prefers-reduced-motion: desactiva todas las animaciones
+BUG-03 — submitQuizAction sin validación de cadena quiz→módulo→curso
+· Problema: un usuario podía manipular los parámetros para enviar respuestas
+  de un quiz arbitrario con IDs de módulo y curso no relacionados.
+· Fix: dos queries de validación antes de procesar el intento:
+  módulo debe pertenecer al curso, quiz debe pertenecer al módulo.
 
-═══════════════════════════════════════
-HIDE-ON-SCROLL TOPBAR
-═══════════════════════════════════════
+BUG-05 — approveWorkerAction sin verificación de rol admin
+· Problema: cualquier usuario autenticado podía aprobar solicitudes.
+· Fix: verificación de role === 'admin' vía createClient() antes de usar adminClient.
 
-## AdminTopBar (src/app/admin/TopBar.tsx)
-- Client Component con scroll handler via requestAnimationFrame
-- Threshold +5px para ignorar micro-movimientos
-- Siempre visible al llegar al tope (scrollY < 10)
-- header con position: fixed top-0 left-64 right-0
-- transition-transform duration-300 con -translate-y-full al ocultar
+BUG-06 — suspendWorkerAction y reactivateWorkerAction sin verificación
+· Fix: auth check + role === 'admin' añadido en ambas funciones.
 
-## WorkerTopBar (src/app/(dashboard)/TopBar.tsx)
-- Misma lógica de scroll que AdminTopBar
-- Estructura justify-between con flex-1 spacer para alineación
+BUG-07 — updateWorkerAction sin verificación de autenticación ni rol
+· Fix: auth check + role === 'admin' añadido al inicio de la función.
 
-## Integración en layouts
-- admin/layout.tsx: header inline eliminado, imports de NotificationBell
-  y SearchBar removidos, reemplazado por <AdminTopBar>
-  Spacer div hidden lg:block h-[73px] para reservar espacio del header fixed
-- (dashboard)/layout.tsx: mismo patrón con <WorkerTopBar>
-- Ambos contenedores: overflow-x-hidden añadido
+BUG-17 — rejectWorkerAction sin ningún check de seguridad
+· Problema: cualquier persona podía eliminar cuentas arbitrarias sin
+  estar autenticada ni ser admin.
+· Fix: auth check + role === 'admin' añadido al inicio de la función.
 
 ═══════════════════════════════════════
-MODAL DE BIENVENIDA (ONBOARDING)
+LÓGICA DE NEGOCIO — QUIZ Y PROGRESO
 ═══════════════════════════════════════
 
-## Server Action (src/lib/actions/trabajadores.ts)
-- completeOnboardingAction(): marca onboarding_completed = true
-  en el perfil del usuario actual, revalida /inicio
+BUG-04 — updateLastModuleAction usaba adminClient innecesariamente
+· Problema: course_progress se leía y escribía con service_role cuando el
+  usuario tiene permisos propios (RLS: auth.uid() = user_id).
+· Fix: reemplazado adminClient por supabase (user client) en todas las
+  operaciones de course_progress dentro de updateLastModuleAction.
 
-## WelcomeModal (src/components/alumco/WelcomeModal.tsx)
-- Client Component con animación de entrada y salida (300ms)
-- Header dorado degradado #F5A623 → #e0961a con círculos decorativos
-- Muestra sede y áreas del trabajador en tarjeta interna
-- Lista de 3 features con íconos semánticos (azul/verde/dorado)
-- Botón "Comenzar mi capacitación →" con spinner durante isPending
-- Overlay bg-black/60 con backdrop-blur-sm
-- isVisible: false desmonta el componente tras la animación
+BUG-09 — registerRequestAction no verificaba RUT duplicado
+· Problema: se podían crear dos cuentas con el mismo RUT.
+· Fix: query a profiles vía adminClient antes de auth.signUp().
+  Retorna error "Ya existe una cuenta registrada con ese RUT".
 
-## Integración en inicio/page.tsx
-- Select ampliado: añadido onboarding_completed y sede
-- showWelcome = profile?.onboarding_completed === false
-- Modal renderizado como primer hijo del div raíz
+BUG-10 — getQuizAttemptsHistoryAction mostraba intentos anteriores al reset
+· Problema: el historial de intentos en QuizClient incluía intentos de
+  antes del último reseteo del curso, confundiendo al trabajador.
+· Fix: añadido parámetro courseId, fetch de last_quiz_reset_at desde
+  course_progress, filtro .gt('completed_at', resetAt) en la query.
+  Actualizado el caller en QuizClient.tsx.
 
-═══════════════════════════════════════
-TOOLTIP EN PRE-QUIZ
-═══════════════════════════════════════
+BUG-11 — handleContinue usaba setTimeout(300ms) frágil
+· Problema: la navegación tras aprobar el quiz dependía de un timeout
+  arbitrario de 300ms para que revalidatePath "hiciera efecto".
+· Fix: eliminado el timeout. handleContinue ahora usa directamente el
+  resultado de markModuleCompleteAction para determinar courseCompleted
+  y navegar en consecuencia.
 
-## QuizClient.tsx — Estado 1 (pre-quiz, sección C)
-- Ícono ⓘ añadido después del badge "Intento X de Y"
-- Tooltip con CSS puro (group-hover) — sin useState
-- Muestra 4 reglas del sistema de intentos con {maxAttempts} dinámico
-- Flecha decorativa en la base del tooltip
-- opacity-0 → opacity-100 con transition-opacity duration-200
-
-═══════════════════════════════════════
-FILTROS EN CERTIFICADOS ADMIN
-═══════════════════════════════════════
-
-## CertificadosClient (src/app/admin/certificados/CertificadosClient.tsx)
-- Nuevo Client Component extraído de la página de certificados
-- Filtros: búsqueda por nombre/curso + rango de fechas (Desde/Hasta)
-- Comparación de fechas como enteros YYYYMMDD (timezone-safe para Chile)
-  evita el desfase UTC-3/UTC-4 de new Date('YYYY-MM-DD')
-- Contador "X de N certificados" + botón "Limpiar filtros" condicional
-- Exportar CSV: descarga solo los resultados filtrados con campos
-  Trabajador/Curso/Sede/Fecha/ID
-- Tabla idéntica al diseño original; fila vacía con colSpan={6}
-  cuando no hay resultados con los filtros activos
-
-## page.tsx actualizado
-- Mantiene las mismas queries del servidor
-- Normaliza courses (array → objeto) al construir enriched
-- Embebe profile en cada certificado antes de pasar al Client Component
-- Empty state original preservado cuando no hay certificados en absoluto
+Reset logic — resetModuleProgressAction reiniciaba solo 2 módulos
+· Problema: al agotar intentos del quiz y reiniciar el curso, solo se
+  removían el módulo del quiz y el anterior de completed_modules.
+  Los demás módulos quedaban marcados como completados.
+· Fix: completed_modules se resetea a [] (array vacío), junto con
+  last_module_id: null, is_completed: false, completed_at: null y
+  last_quiz_reset_at con timestamp 1s en el pasado.
 
 ═══════════════════════════════════════
-ORDENAMIENTO EN TABLA DE TRABAJADORES
+DASHBOARD Y ALERTAS ADMIN
 ═══════════════════════════════════════
 
-## WorkersTable.tsx
-- Tipos SortField y SortDir
-- Estado sortField (default 'full_name') y sortDir (default 'asc')
-- handleSort: alterna dirección si el campo ya activo, reset a 'asc' si cambia
-- sorted = [...filtered].sort() — no muta el array original
-- Ordenamiento por: full_name, sede, area_trabajo[0], role, status
-- Valores null/vacíos en area_trabajo normalizados a '' para evitar crash
-- 5 headers clicables con cursor-pointer + select-none
-- RUT y Acciones permanecen como headers estáticos
-- SortIcon: chevrons arriba/abajo con opacity-40 en reposo,
-  flecha activa resaltada en text-[#2B4FA0] opacity-100
+BUG-12 — Dashboard mostraba completions históricas como "esta semana"
+· Problema: el contador "cursos completados esta semana" sumaba todos los
+  cursos completados desde siempre, sin filtro de fecha.
+· Fix: query separada con .gte('completed_at', sevenDaysAgo.toISOString())
+  usando adminClient. Retorna solo los completados en los últimos 7 días.
+
+BUG-13 — Estado del trabajador ignoraba deadlines
+· Problema: el estado al_dia / en_progreso / atrasado no consideraba
+  fechas límite. Un trabajador con cursos vencidos aparecía como "Al día".
+· Fix: fetch de courses con deadline + target_areas antes del loop de
+  workers. Para cada trabajador se filtran los cursos relevantes por área
+  y se verifica si alguno con deadline pasado no está completado.
+  Prioridad: atrasado (overdue) > en_progreso > al_dia.
+
+BUG-23 — getAdminAlerts contaba todos los trabajadores por curso
+· Problema: pendingWorkers y totalWorkers usaban el total global de
+  trabajadores, ignorando que cada curso tiene target_areas.
+  Un curso de Enfermería mostraba como pendientes trabajadores de
+  Administración que nunca debían tomarlo.
+· Fix: fetch de area_trabajo en workers + target_areas en courses.
+  Para cada curso se filtran trabajadores relevantes por área antes
+  de calcular pending y completion%.
 
 ═══════════════════════════════════════
-QA Y REPORTE DE BUGS
+REPORTES
 ═══════════════════════════════════════
 
-## src/testing/bugs.md — Reporte QA completo
-- Revisión estática de 18 flujos (trabajador, admin, profesor, seguridad)
-- 25 bugs documentados con severidad, pasos para reproducir y fix sugerido
-- 8 alta severidad (seguridad crítica):
-  · BUG-01/02: módulos y quiz accesibles sin verificar área del trabajador
-  · BUG-03: submitQuizAction no valida coherencia quiz→módulo→curso
-  · BUG-05/06/07: 4 Server Actions admin sin verificación de rol (approve,
-    suspend, reactivate, update) — cualquier usuario autenticado puede invocarlas
-  · BUG-17: updateProfileAction permite modificar perfil de otro usuario
-  · BUG-25: proxy.ts puede no ejecutarse si no existe middleware.ts
-- 12 media severidad: incluyen updateLastModuleAction con adminClient,
-  historial de intentos sin filtro por reset, doble redirección login,
-  revalidatePath apuntando a ruta inexistente, alertas de deadline
-  contando trabajadores fuera del área del curso
-- 5 baja severidad: nombres de sede inconsistentes, export CSV sin
-  escape de comas, cumulativeProgress potencialmente NaN con 0 cursos
+BUG-14 — Filtro de área en reportes solo comparaba string único
+· Problema: la vista SQL reporte_avance retornaba area_trabajo como
+  string de una sola área. Los trabajadores con múltiples áreas no
+  aparecían al filtrar por su segunda o tercera área.
+· Fix: eliminada la dependencia en reporte_avance. reportes/page.tsx
+  ahora consulta directamente profiles + courses + course_progress,
+  respetando target_areas por curso. area_trabajo es string[] en toda
+  la cadena: interfaz Worker, filtro (.includes()), display (.join(', ')),
+  CSV (.join(' | ')), y lista de áreas del sidebar (.flatMap()).
+
+BUG-15 — CSV export sin escape de comas ni comillas
+· Problema: nombres o títulos con comas rompían el formato CSV.
+· Fix: función csvEscape() con lógica RFC 4180: envuelve en comillas
+  dobles si el valor contiene comas, comillas o saltos de línea.
+  Las comillas internas se escapan duplicándolas ("").
+
+═══════════════════════════════════════
+CERTIFICADOS
+═══════════════════════════════════════
+
+BUG-16 — Fetch del logo sin timeout en generateCertificatePDF
+· Problema: la generación del PDF hacía fetch externo a ongalumco.cl
+  sin timeout. En producción (Vercel Edge), un fetch colgado puede
+  bloquear la función serverless indefinidamente.
+· Fix: AbortController con setTimeout de 5000ms. clearTimeout() en
+  caso de éxito. El catch existente maneja el abort y dibuja texto
+  "ALUMCO" como fallback.
+
+BUG-24 — Certificados solo para cursos con quiz
+· Problema: generateCertificateAction solo era llamada desde
+  submitQuizAction, por lo que cursos sin módulo quiz nunca generaban
+  certificado aunque el trabajador completara todo el contenido.
+· Fix: generateCertificateAction ahora acepta quizAttemptId: string | null.
+  Si es null, omite la verificación del intento y crea el certificado
+  directamente. markModuleCompleteAction detecta si el curso completado
+  no tiene ningún módulo de tipo 'quiz' y llama a generateCertificateAction(null).
+  Para cursos con quiz, submitQuizAction sigue manejando la generación
+  con el quizAttemptId real. Idempotencia garantizada por el check
+  de certificado existente en generateCertificateAction.
+
+═══════════════════════════════════════
+AUTENTICACIÓN Y SESIÓN
+═══════════════════════════════════════
+
+BUG-08 — Layout dashboard mostraba "Cargando perfil..." en sesión inválida
+· Problema: si el perfil era null (sesión expirada o RLS), el layout
+  mostraba una pantalla en blanco con texto en lugar de redirigir.
+· Fix: cambiado el bloque de retorno por redirect('/login').
+
+BUG-22 — user!.id sin null-check en perfil/page.tsx
+· Problema: el operador ! forzaba el tipo en lugar de manejar el caso
+  nulo. Un error de runtime si la sesión expiraba en esa página.
+· Fix: añadido if (!user) redirect('/login') con import estático de
+  redirect desde next/navigation al inicio de la función.
+
+═══════════════════════════════════════
+UI Y CONSISTENCIA
+═══════════════════════════════════════
+
+BUG-18 — Botón "Completar curso" aparecía sin haber completado el módulo final
+· Problema: el botón verde aparecía en el último módulo aunque el trabajador
+  aún no hubiera marcado ese módulo como completado.
+· Fix: condición isModuleCompleted añadida. Si el último módulo no está
+  completado muestra "Volver al curso" con estilo neutral. Solo muestra
+  "Completar curso" cuando isModuleCompleted es true.
+
+BUG-19 — Nombres de sede inconsistentes
+· Problema: distintas partes de la UI mostraban "Sede Principal"/"Sede 2",
+  "Sede 1"/"Sede 2", o "SEDE 1"/"SEDE 2" en lugar de los nombres reales.
+· Fix: corregido a "Sede Hualpén" / "Sede Coyhaique" en inicio/page.tsx
+  (sedeName) y en utils.ts (función sedeLabel).
+
+BUG-20 — activos tipado como any[] en admin/trabajadores/page.tsx
+· Problema: el cast as any[] violaba TypeScript estricto y eliminaba
+  todo chequeo de tipos para la lista de trabajadores activos.
+· Fix: definido tipo ActiveWorker con los campos exactos del select.
+  Compatible con la interfaz Worker que espera WorkersTable.
+
+BUG-21 — "Ver curso" en admin apuntaba al editor en lugar de la vista del trabajador
+· Problema: ambos botones ("Editar" y "Ver curso") en la tarjeta de curso
+  del admin apuntaban al mismo href /admin/cursos/[id]/editar.
+· Fix: "Ver curso" ahora apunta a /cursos/[id] (vista del trabajador),
+  permitiendo al admin previsualizar el curso tal como lo ve el trabajador.

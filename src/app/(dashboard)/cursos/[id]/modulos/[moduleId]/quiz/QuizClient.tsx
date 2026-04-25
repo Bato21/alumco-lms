@@ -59,7 +59,7 @@ export default function QuizClient({
     async function loadStatus() {
       const [status, history] = await Promise.all([
         getQuizStatusAction(quizId, courseId),
-        getQuizAttemptsHistoryAction(quizId),
+        getQuizAttemptsHistoryAction(quizId, courseId),
       ])
       setQuizStatus({
         attemptsUsed: status.attemptsUsed,
@@ -93,22 +93,17 @@ export default function QuizClient({
 const handleContinue = async () => {
     setIsUpdating(true)
 
-    // Si el usuario ya aprobó antes (hasPassedBefore) pero no hay quizResult (ej: refresh de página),
-    // necesitamos ejecutar markModuleCompleteAction ahora
+    let courseCompleted = quizResult?.courseCompleted ?? false
+
+    // Si ya aprobó antes pero no hay quizResult (recarga de página), marcar módulo completo
     if (quizStatus?.hasPassedBefore && !quizResult) {
-      try {
-        await markModuleCompleteAction(moduleId, courseId)
-      } catch (error) {
-        console.error("Error marcando módulo como completado:", error)
+      const result = await markModuleCompleteAction(moduleId, courseId)
+      if (result.success) {
+        courseCompleted = result.courseCompleted ?? false
       }
     }
 
-    // Pequeña pausa para asegurar que revalidatePath haya hecho efecto
-    await new Promise(resolve => setTimeout(resolve, 300))
-
-    const isCourseCompleted = quizResult?.courseCompleted
-
-    if (isCourseCompleted || !nextModuleId) {
+    if (courseCompleted || !nextModuleId) {
       router.push(`/cursos/${courseId}`)
     } else {
       router.push(`/cursos/${courseId}/modulos/${nextModuleId}`)

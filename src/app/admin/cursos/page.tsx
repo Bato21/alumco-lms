@@ -193,7 +193,7 @@ export default async function AdminCursosPage({
                       Editar
                     </Link>
                     <Link
-                      href={`/admin/cursos/${course.id}/editar`}
+                      href={`/cursos/${course.id}`}
                       className="flex-1 py-2.5 rounded-xl bg-[#2B4FA0] text-white font-semibold text-sm text-center hover:bg-[#1A2F6B] transition-colors"
                     >
                       Ver curso

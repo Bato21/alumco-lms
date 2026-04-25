@@ -43,12 +43,17 @@ export default async function AdminDashboardPage() {
 
   const totalWorkers = activeWorkers?.length ?? 0
 
-  const { data: progressData } = await supabase
-    .from('course_progress')
-    .select('is_completed, user_id')
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  sevenDaysAgo.setHours(0, 0, 0, 0)
 
-  const completedProgress = progressData?.filter(p => p.is_completed) ?? []
-  const coursesCompleted = completedProgress.length
+  const { data: weekCompletions } = await adminClient
+    .from('course_progress')
+    .select('id')
+    .eq('is_completed', true)
+    .gte('completed_at', sevenDaysAgo.toISOString())
+
+  const coursesCompleted = weekCompletions?.length ?? 0
 
   const { data: inProgressData } = await supabase
     .from('course_progress')
@@ -77,20 +82,44 @@ export default async function AdminDashboardPage() {
 
   const { data: allProgress } = await adminClient
     .from('course_progress')
-    .select('user_id, is_completed, completed_at, updated_at')
+    .select('user_id, course_id, is_completed, completed_at, updated_at')
 
   const { data: allCertificates } = await adminClient
     .from('certificates')
     .select('user_id, issued_at')
+
+  const { data: coursesForStatus } = await adminClient
+    .from('courses')
+    .select('id, deadline, target_areas')
+    .eq('is_published', true)
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
 
   const workerProgress: WorkerProgress[] = (workersData ?? []).map((worker) => {
     const workerProgressList = allProgress?.filter(p => p.user_id === worker.id) ?? []
     const completed = workerProgressList.filter(p => p.is_completed).length
     const inProgressCount = workerProgressList.filter(p => !p.is_completed).length
 
+    const workerAreas = (worker.area_trabajo as string[]) ?? []
+    const completedCourseIds = new Set(workerProgressList.filter(p => p.is_completed).map(p => p.course_id))
+
+    const relevantCourses = (coursesForStatus ?? []).filter(c => {
+      const targetAreas = (c.target_areas as string[] | null) ?? []
+      return targetAreas.length === 0 || targetAreas.some(a => workerAreas.includes(a))
+    })
+
+    const hasOverdue = relevantCourses.some(c => {
+      if (!c.deadline) return false
+      const dl = new Date(c.deadline as string)
+      dl.setHours(0, 0, 0, 0)
+      return dl < today && !completedCourseIds.has(c.id as string)
+    })
+
     let status: 'al_dia' | 'en_progreso' | 'atrasado' = 'al_dia'
-    if (inProgressCount > 0) status = 'en_progreso'
-    if (workerProgressList.length === 0) status = 'atrasado'
+    if (hasOverdue) status = 'atrasado'
+    else if (inProgressCount > 0) status = 'en_progreso'
+    else if (workerProgressList.length === 0 && relevantCourses.length > 0) status = 'atrasado'
 
     const lastProgress = workerProgressList
       .map(p => p.completed_at ?? p.updated_at)

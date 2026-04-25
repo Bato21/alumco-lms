@@ -22,11 +22,7 @@ export default async function DashboardLayout({
     .single()
 
   if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-[var(--md-on-surface-variant)]">Cargando perfil...</p>
-      </div>
-    )
+    redirect('/login')
   }
 
   if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')

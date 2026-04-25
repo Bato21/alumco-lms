@@ -32,18 +32,16 @@ export async function getAdminAlerts(): Promise<{
 
     const { data: courses } = await adminClient
       .from('courses')
-      .select('id, title, deadline')
+      .select('id, title, deadline, target_areas')
       .eq('is_published', true)
       .not('deadline', 'is', null)
       .order('deadline', { ascending: true })
 
     const { data: workers } = await adminClient
       .from('profiles')
-      .select('id')
+      .select('id, area_trabajo')
       .eq('role', 'trabajador')
       .eq('status', 'activo')
-
-    const totalWorkers = workers?.length ?? 0
 
     const { data: allProgress } = await adminClient
       .from('course_progress')
@@ -57,8 +55,19 @@ export async function getAdminAlerts(): Promise<{
           (deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
         )
 
+        // Filtrar trabajadores relevantes para este curso según target_areas
+        const targetAreas = (course.target_areas as string[] | null) ?? []
+        const relevantWorkers = targetAreas.length === 0
+          ? workers ?? []
+          : (workers ?? []).filter(w => {
+              const workerAreas = (w.area_trabajo as string[]) ?? []
+              return targetAreas.some(a => workerAreas.includes(a))
+            })
+        const totalWorkers = relevantWorkers.length
+        const relevantIds = new Set(relevantWorkers.map(w => w.id))
+
         const completed = allProgress?.filter(
-          p => p.course_id === course.id && p.is_completed
+          p => p.course_id === course.id && p.is_completed && relevantIds.has(p.user_id)
         ).length ?? 0
 
         const pendingWorkers = totalWorkers - completed

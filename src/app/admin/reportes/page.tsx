@@ -8,61 +8,57 @@ export const dynamic = 'force-dynamic'
 export default async function ReportesPage() {
   const adminClient = await createAdminClient()
 
-  const { data: rawData } = await adminClient
-    .from('reporte_avance')
-    .select('*')
+  const { data: workersRaw } = await adminClient
+    .from('profiles')
+    .select('id, full_name, sede, area_trabajo')
+    .eq('role', 'trabajador')
+    .eq('status', 'activo')
+    .order('full_name')
 
-  // Obtener lista de cursos publicados
   const { data: courses } = await adminClient
     .from('courses')
-    .select('id, title')
+    .select('id, title, target_areas')
     .eq('is_published', true)
     .order('order_index')
 
-  // Agregar datos por trabajador
-  const workerMap = new Map<string, {
-    user_id: string
-    full_name: string
-    sede: string
-    area_trabajo: string
-    totalCourses: number
-    completedCourses: number
-    pendingCourses: { course_id: string; course_title: string; is_completed: boolean | null }[]
-  }>()
+  const { data: progressRaw } = await adminClient
+    .from('course_progress')
+    .select('user_id, course_id, is_completed')
 
-  for (const row of rawData ?? []) {
-    if (!workerMap.has(row.user_id)) {
-      workerMap.set(row.user_id, {
-        user_id: row.user_id,
-        full_name: row.full_name,
-        sede: row.sede,
-        area_trabajo: row.area_trabajo,
-        totalCourses: 0,
-        completedCourses: 0,
-        pendingCourses: [],
-      })
+  // Construir datos por trabajador, respetando target_areas por curso
+  const workers = (workersRaw ?? []).map(worker => {
+    const workerAreas = (worker.area_trabajo as string[]) ?? []
+
+    const relevantCourses = (courses ?? []).filter(c => {
+      const targetAreas = (c.target_areas as string[] | null) ?? []
+      return targetAreas.length === 0 || targetAreas.some(a => workerAreas.includes(a))
+    })
+
+    const workerProgress = (progressRaw ?? []).filter(p => p.user_id === worker.id)
+    const completedIds = new Set(workerProgress.filter(p => p.is_completed).map(p => p.course_id))
+
+    const totalCourses = relevantCourses.length
+    const completedCourses = relevantCourses.filter(c => completedIds.has(c.id as string)).length
+    const pendingCourses = relevantCourses
+      .filter(c => !completedIds.has(c.id as string))
+      .map(c => ({ course_id: c.id as string, course_title: c.title as string }))
+
+    const progressPct = totalCourses > 0
+      ? Math.round((completedCourses / totalCourses) * 100)
+      : 0
+
+    return {
+      user_id: worker.id as string,
+      full_name: worker.full_name as string,
+      sede: worker.sede as string,
+      area_trabajo: workerAreas,
+      totalCourses,
+      completedCourses,
+      pendingCourses,
+      progressPct,
     }
-    const worker = workerMap.get(row.user_id)!
-    worker.totalCourses++
-    if (row.is_completed) {
-      worker.completedCourses++
-    } else {
-      worker.pendingCourses.push({
-        course_id: row.course_id,
-        course_title: row.course_title,
-        is_completed: row.is_completed,
-      })
-    }
-  }
+  })
 
-  const workers = Array.from(workerMap.values()).map(w => ({
-    ...w,
-    progressPct: w.totalCourses > 0
-      ? Math.round((w.completedCourses / w.totalCourses) * 100)
-      : 0,
-  }))
-
-  // Stats globales
   const totalWorkers = workers.length
   const fullyCompliant = workers.filter(w => w.progressPct === 100).length
   const atRisk = workers.filter(w => w.pendingCourses.length > 0 && w.progressPct < 50).length
@@ -70,13 +66,17 @@ export default async function ReportesPage() {
     ? Math.round(workers.reduce((acc, w) => acc + w.progressPct, 0) / totalWorkers)
     : 0
 
-  // Áreas únicas
-  const areas = [...new Set(workers.map(w => w.area_trabajo))].filter(Boolean).sort()
+  // Áreas únicas (todas las áreas de todos los trabajadores)
+  const areas = [...new Set((workersRaw ?? []).flatMap(w => (w.area_trabajo as string[]) ?? []))]
+    .filter(Boolean)
+    .sort()
+
+  const courseList = (courses ?? []).map(c => ({ id: c.id as string, title: c.title as string }))
 
   return (
     <ReportesClient
       workers={workers}
-      courses={courses ?? []}
+      courses={courseList}
       areas={areas}
       stats={{ totalWorkers, fullyCompliant, atRisk, avgCompliance }}
     />

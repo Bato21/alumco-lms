@@ -130,6 +130,29 @@ export async function submitQuizAction(
       }
     }
 
+    // Validar cadena quiz → módulo → curso para evitar manipulación de parámetros
+    const { data: moduleCheck } = await supabase
+      .from('modules')
+      .select('id')
+      .eq('id', moduleId)
+      .eq('course_id', courseId)
+      .single()
+
+    if (!moduleCheck) {
+      return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Acceso no autorizado' }
+    }
+
+    const { data: quizCheck } = await supabase
+      .from('quizzes')
+      .select('id')
+      .eq('id', quizId)
+      .eq('module_id', moduleId)
+      .single()
+
+    if (!quizCheck) {
+      return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Acceso no autorizado' }
+    }
+
     // Obtener configuración del quiz
     const { data: quiz } = await supabase
       .from('quizzes')
@@ -307,18 +330,35 @@ type AttemptHistoryRow = {
 }
 
 export async function getQuizAttemptsHistoryAction(
-  quizId: string
+  quizId: string,
+  courseId: string
 ): Promise<{ attempts: AttemptHistoryRow[] }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { attempts: [] }
 
-  const { data } = await supabase
+  // Obtener fecha del último reset para filtrar intentos anteriores
+  const { data: progress } = await supabase
+    .from('course_progress')
+    .select('last_quiz_reset_at')
+    .eq('user_id', user.id)
+    .eq('course_id', courseId)
+    .maybeSingle()
+
+  const resetAt = progress?.last_quiz_reset_at ?? null
+
+  let query = supabase
     .from('quiz_attempts')
     .select('id, score, status, attempt_number, completed_at')
     .eq('quiz_id', quizId)
     .eq('user_id', user.id)
     .order('attempt_number', { ascending: true })
+
+  if (resetAt) {
+    query = query.gt('completed_at', resetAt)
+  }
+
+  const { data } = await query
 
   return { attempts: (data ?? []) as AttemptHistoryRow[] }
 }

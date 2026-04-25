@@ -38,7 +38,7 @@ export function scoreLabel(score: number): string {
 
 // Convierte sede enum a nombre legible
 export function sedeLabel(sede: 'sede_1' | 'sede_2'): string {
-  return sede === 'sede_1' ? 'Sede Principal' : 'Sede Secundaria'
+  return sede === 'sede_1' ? 'Sede Hualpén' : 'Sede Coyhaique'
 }
 
 // Filtra cursos según las áreas del trabajador.

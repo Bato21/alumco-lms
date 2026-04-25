@@ -6,6 +6,7 @@ import { VideoPlayer } from '@/components/alumco/VideoPlayer'
 import { PdfViewer } from '@/components/alumco/PdfViewer'
 import { ModuleIndex } from '@/components/alumco/ModuleIndex'
 import type { Module, Course, CourseProgress } from '@/lib/types/database'
+import { filterCoursesByWorkerAreas } from '@/lib/utils'
 
 interface ModulePageProps {
   params: Promise<{
@@ -59,6 +60,44 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
   if (!course) {
     notFound()
+  }
+
+  // Verificar acceso por área (sólo trabajadores)
+  const { data: accessProfile } = await supabase
+    .from('profiles')
+    .select('area_trabajo, role')
+    .eq('id', user.id)
+    .single()
+
+  if (accessProfile?.role === 'trabajador') {
+    const courseForCheck = course as unknown as { target_areas?: string[] }
+    const hasAccess = filterCoursesByWorkerAreas(
+      [{ target_areas: courseForCheck.target_areas ?? [] }],
+      (accessProfile.area_trabajo as string[]) ?? []
+    ).length > 0
+
+    if (!hasAccess) {
+      return (
+        <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
+          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
+            <svg className="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-[#1A1A2E]">Acceso no permitido</h2>
+          <p className="text-[#6B7280]">
+            Este módulo pertenece a un curso que no está asignado a tu área de trabajo.
+            Contacta a tu administrador si crees que es un error.
+          </p>
+          <a
+            href="/cursos"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-lg font-semibold text-sm hover:bg-[#2B4FA0]/90 transition-colors"
+          >
+            ← Volver a mis cursos
+          </a>
+        </div>
+      )
+    }
   }
 
   const { data: module } = await supabase
@@ -241,7 +280,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
                   <path d="m9 18 6-6-6-6" />
                 </svg>
               </Link>
-            ) : (
+            ) : isModuleCompleted ? (
               <Link
                 href={`/cursos/${courseId}`}
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#27AE60] text-white rounded-xl font-semibold text-sm hover:bg-[#1A6B3A] transition-colors min-h-[48px]"
@@ -251,6 +290,16 @@ export default async function ModulePage({ params }: ModulePageProps) {
                   <polyline points="9,12 12,15 16,10" />
                 </svg>
                 Completar curso
+              </Link>
+            ) : (
+              <Link
+                href={`/cursos/${courseId}`}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-[#2B4FA0] font-semibold text-sm hover:bg-slate-50 transition-colors min-h-[48px]"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
+                </svg>
+                Volver al curso
               </Link>
             )}
           </div>

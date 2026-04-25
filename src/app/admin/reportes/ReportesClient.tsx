@@ -10,7 +10,7 @@ interface Worker {
   user_id: string
   full_name: string
   sede: string
-  area_trabajo: string
+  area_trabajo: string[]
   totalCourses: number
   completedCourses: number
   pendingCourses: { course_id: string; course_title: string }[]
@@ -60,7 +60,7 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
   const filtered = useMemo(() => {
     return workers.filter(w => {
       if (sede !== 'todas' && w.sede !== sede) return false
-      if (area !== 'todas' && w.area_trabajo !== area) return false
+      if (area !== 'todas' && !w.area_trabajo.includes(area)) return false
       if (estado === 'compliant' && w.progressPct !== 100) return false
       if (estado === 'pendiente' && w.pendingCourses.length === 0) return false
       if (estado === 'riesgo' && w.progressPct >= 50) return false
@@ -79,19 +79,27 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
     return { total, compliant, risk, avg }
   }, [filtered])
 
+  function csvEscape(value: string | number): string {
+    const str = String(value)
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`
+    }
+    return str
+  }
+
   function handleExport() {
     const headers = ['Nombre', 'Sede', 'Área', 'Cursos totales', 'Completados', 'Pendientes', 'Progreso %', 'Cursos pendientes']
     const rows = filtered.map(w => [
       w.full_name,
       w.sede === 'sede_1' ? 'Sede Hualpén' : 'Sede Coyhaique',
-      w.area_trabajo,
+      w.area_trabajo.join(' | '),
       w.totalCourses,
       w.completedCourses,
       w.pendingCourses.length,
       `${w.progressPct}%`,
       w.pendingCourses.map(p => p.course_title).join(' | '),
     ])
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
+    const csv = [headers, ...rows].map(r => r.map(csvEscape).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -269,7 +277,7 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
                             {sedeLabel(worker.sede)}
                           </span>
                           <span>·</span>
-                          <span>{worker.area_trabajo}</span>
+                          <span>{worker.area_trabajo.join(', ')}</span>
                           <span>·</span>
                           <span>{worker.completedCourses}/{worker.totalCourses} cursos</span>
                         </div>

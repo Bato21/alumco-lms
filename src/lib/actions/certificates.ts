@@ -17,7 +17,7 @@ export interface CertificateResult {
 // ── Generar certificado al aprobar quiz ────────────────────
 
 export async function generateCertificateAction(
-  quizAttemptId: string,
+  quizAttemptId: string | null,
   courseId: string
 ): Promise<CertificateResult> {
   const supabase = await createClient()
@@ -26,16 +26,18 @@ export async function generateCertificateAction(
 
   const adminClient = await createAdminClient()
 
-  // Verificar que el intento existe y fue aprobado
-  const { data: attempt } = await adminClient
-    .from('quiz_attempts')
-    .select('id, status, user_id')
-    .eq('id', quizAttemptId)
-    .single()
+  // Verificar el intento solo si el curso tiene quiz
+  if (quizAttemptId) {
+    const { data: attempt } = await adminClient
+      .from('quiz_attempts')
+      .select('id, status, user_id')
+      .eq('id', quizAttemptId)
+      .single()
 
-  if (!attempt) return { error: 'Intento no encontrado' }
-  if (attempt.status !== 'aprobado') return { error: 'El intento no fue aprobado' }
-  if (attempt.user_id !== user.id) return { error: 'No autorizado' }
+    if (!attempt) return { error: 'Intento no encontrado' }
+    if (attempt.status !== 'aprobado') return { error: 'El intento no fue aprobado' }
+    if (attempt.user_id !== user.id) return { error: 'No autorizado' }
+  }
 
   // Verificar que no exista ya un certificado para este usuario y curso
   const { data: existing } = await adminClient
@@ -50,11 +52,12 @@ export async function generateCertificateAction(
   }
 
   // Crear el certificado
-  const { data: certificate, error } = await adminClient
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: certificate, error } = await (adminClient as any)
     .from('certificates')
     .insert({
       user_id: user.id,
-      quiz_attempt_id: quizAttemptId,
+      quiz_attempt_id: quizAttemptId ?? null,
       course_id: courseId,
       pdf_url: null,
     })
@@ -161,9 +164,13 @@ export async function generateCertificatePDF(
 
     // Logo Alumco en banda superior
     try {
+      const logoController = new AbortController()
+      const logoTimeout = setTimeout(() => logoController.abort(), 5000)
       const logoResponse = await fetch(
-        'https://ongalumco.cl/wp-content/uploads/2023/11/logo-alumco-completoccc-300x102.png'
+        'https://ongalumco.cl/wp-content/uploads/2023/11/logo-alumco-completoccc-300x102.png',
+        { signal: logoController.signal }
       )
+      clearTimeout(logoTimeout)
       const logoBytes = await logoResponse.arrayBuffer()
       const logoImage = await pdfDoc.embedPng(new Uint8Array(logoBytes))
       const logoDims = logoImage.scaleToFit(140, 48)

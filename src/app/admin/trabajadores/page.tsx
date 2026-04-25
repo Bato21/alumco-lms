@@ -28,7 +28,16 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     .eq('status', 'activo')
     .order('created_at', { ascending: false })
 
-  const activos = (activosRaw as any[]) || []
+  type ActiveWorker = {
+    id: string
+    full_name: string
+    rut: string | null
+    sede: string
+    area_trabajo: string[]
+    role: string
+    status: string
+  }
+  const activos: ActiveWorker[] = (activosRaw as ActiveWorker[]) || []
 
   const { data: suspendidosRaw } = await adminClient
     .from('profiles')

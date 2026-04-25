@@ -2,6 +2,7 @@
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { generateCertificateAction } from './certificates'
 
 /**
  * Marks a module as complete for the current user.
@@ -68,7 +69,7 @@ export async function markModuleCompleteAction(
     const adminClient = await createAdminClient()
     const { data: allModules } = await adminClient
       .from('modules')
-      .select('id')
+      .select('id, content_type')
       .eq('course_id', courseId)
 
     let courseCompleted = false
@@ -88,6 +89,16 @@ export async function markModuleCompleteAction(
         })
         .eq('user_id', user.id)
         .eq('course_id', courseId)
+
+      // Generar certificado para cursos sin módulo quiz (los quiz lo hacen desde submitQuizAction)
+      const hasQuizModule = allModules?.some(m => m.content_type === 'quiz') ?? false
+      if (!hasQuizModule) {
+        try {
+          await generateCertificateAction(null, courseId)
+        } catch (certError) {
+          console.error('Error generando certificado sin quiz:', certError)
+        }
+      }
     }
 
     revalidatePath(`/cursos/${courseId}`)
@@ -115,18 +126,16 @@ export async function updateLastModuleAction(
       return { success: false, error: 'Usuario no autenticado' }
     }
 
-    const adminClient = await createAdminClient()
-
-    // Get current progress
-    const { data: progress } = await adminClient
+    // Get current progress — user client is sufficient (RLS allows user to read/write own rows)
+    const { data: progress } = await supabase
       .from('course_progress')
-      .select('*')
+      .select('id')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle()
 
     if (progress) {
-      const { error } = await adminClient
+      const { error } = await supabase
         .from('course_progress')
         .update({
           last_module_id: moduleId,
@@ -136,8 +145,7 @@ export async function updateLastModuleAction(
 
       if (error) throw error
     } else {
-      // Create new progress entry
-      const { error } = await adminClient
+      const { error } = await supabase
         .from('course_progress')
         .insert({
           user_id: user.id,
@@ -296,23 +304,14 @@ export async function resetModuleProgressAction(
 
   if (!progress) return { success: false, error: 'Progreso no encontrado' }
 
-  // Remove quiz module from completed_modules
-  let updatedModules = (progress.completed_modules ?? []).filter(
-    (id: string) => id !== moduleId
-  )
-
-  // Also remove previous content module if provided (for quiz reset)
-  if (previousModuleId) {
-    updatedModules = updatedModules.filter((id: string) => id !== previousModuleId)
-  }
-
+  // Reinicio completo: todos los módulos vuelven a estado pendiente.
+  // last_quiz_reset_at queda 1s en el pasado para que los intentos
+  // anteriores no cuenten, pero el trigger acepte nuevos intentos.
   const { error } = await supabase
     .from('course_progress')
     .update({
-      completed_modules: updatedModules,
-      last_module_id: progress.last_module_id === moduleId
-        ? null
-        : progress.last_module_id,
+      completed_modules: [],
+      last_module_id: null,
       is_completed: false,
       completed_at: null,
       last_quiz_reset_at: new Date(Date.now() - 1000).toISOString(),

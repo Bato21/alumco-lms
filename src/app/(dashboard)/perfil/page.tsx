@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { ProfileClient } from './ProfileClient'
 
@@ -8,14 +9,16 @@ export default async function PerfilPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  if (!user) redirect('/login')
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('id, full_name, rut, sede, area_trabajo, role, status, fecha_nacimiento, avatar_url, firma_url, created_at, approved_at')
-    .eq('id', user!.id)
+    .eq('id', user.id)
     .single()
 
   const role = profile?.role ?? 'trabajador'
-  const userId = profile?.id ?? user!.id
+  const userId = profile?.id ?? user.id
   const isAdminOrProfesor = role === 'admin' || role === 'profesor'
 
   // Stats para trabajador

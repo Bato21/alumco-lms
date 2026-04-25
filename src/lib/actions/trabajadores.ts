@@ -24,6 +24,12 @@ export async function updateWorkerAction(
   formData: FormData,
 ): Promise<{ success?: boolean; error?: string }> {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autenticado' }
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
+
     const raw = {
       full_name: formData.get('full_name'),
       rut: formData.get('rut') || undefined,
@@ -56,6 +62,12 @@ export async function suspendWorkerAction(
   profileId: string,
 ): Promise<{ success?: boolean; error?: string }> {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autenticado' }
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
+
     const adminClient = await createAdminClient()
     const { error } = await adminClient
       .from('profiles')
@@ -75,6 +87,12 @@ export async function reactivateWorkerAction(
   profileId: string,
 ): Promise<{ success?: boolean; error?: string }> {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autenticado' }
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
+
     const adminClient = await createAdminClient()
     const { error } = await adminClient
       .from('profiles')
