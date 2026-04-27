@@ -118,16 +118,14 @@ export default async function QuizPage({ params }: QuizPageProps) {
   // Find previous and next module (the content modules before/after this quiz)
   const moduleIds = modules?.map(m => m.id) || []
   const currentIndex = moduleIds.indexOf(moduleId)
-  
-  const previousModuleId = currentIndex > 0 ? moduleIds[currentIndex - 1] : null
+
   const nextModuleId = currentIndex < moduleIds.length - 1 ? moduleIds[currentIndex + 1] : null
 
   return (
     <QuizClient
       courseId={courseId}
       moduleId={moduleId}
-      previousModuleId={previousModuleId}
-      nextModuleId={nextModuleId} 
+      nextModuleId={nextModuleId}
       quizId={quiz.id}
       passingScore={quiz.passing_score}
       maxAttempts={quiz.max_attempts}

@@ -5,10 +5,14 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { type Sede, type UserRole, type ProfileStatus } from '@/lib/types/database'
 
-// ── Validación de RUT chileno ──────────────────────────────
+// ── Validación y normalización de RUT chileno ──────────────
+
+function normalizarRut(rut: string): string {
+  return rut.replace(/[.\-\s]/g, '').toUpperCase()
+}
 
 function validarRut(rut: string): boolean {
-  const rutLimpio = rut.replace(/[.\-]/g, '').toUpperCase()
+  const rutLimpio = normalizarRut(rut)
   if (rutLimpio.length < 2) return false
 
   const cuerpo = rutLimpio.slice(0, -1)
@@ -123,12 +127,15 @@ export async function registerRequestAction(
 
   const supabase = await createClient()
 
+  // Normalizar RUT antes de comparar y guardar para evitar duplicados con distinto formato
+  const rutNormalizado = normalizarRut(parsed.data.rut)
+
   // Verificar RUT duplicado antes de crear la cuenta
   const adminClient = await createAdminClient()
   const { data: rutExists } = await adminClient
     .from('profiles')
     .select('id')
-    .eq('rut', parsed.data.rut)
+    .eq('rut', rutNormalizado)
     .maybeSingle()
 
   if (rutExists) {
@@ -141,7 +148,7 @@ export async function registerRequestAction(
     options: {
       data: {
         full_name: parsed.data.full_name,
-        rut: parsed.data.rut,
+        rut: rutNormalizado,
       },
     },
   })
@@ -232,12 +239,17 @@ export async function rejectWorkerAction(formData: FormData) {
   // 3. Buscamos el perfil usando el adminClient
   const { data: profile, error: searchError } = await adminClient
     .from('profiles')
-    .select('id')
+    .select('id, status')
     .eq('id', profileId)
     .single()
 
   if (searchError || !profile) {
     return { error: 'Perfil no encontrado' } // Aquí es donde fallaba antes
+  }
+
+  // Solo solicitudes pendientes pueden rechazarse — evitar borrar usuarios activos
+  if ((profile as { status: ProfileStatus }).status !== 'pendiente') {
+    return { error: 'Solo se pueden rechazar solicitudes en estado pendiente' }
   }
 
   // 4. Borramos al usuario directamente desde Auth (elimina el perfil en cascada)

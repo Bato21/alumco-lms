@@ -138,6 +138,12 @@ export async function getWorkerDetailAction(profileId: string): Promise<
   | { error: string }
 > {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'No autenticado' }
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
+
     const adminClient = await createAdminClient()
 
     const { data: worker, error: workerError } = await adminClient

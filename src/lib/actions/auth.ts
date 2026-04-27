@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { z } from 'zod'
 
 // ── Schemas de validación ──────────────────────────────────
@@ -14,7 +15,7 @@ const LoginSchema = z.object({
     .email('Ingresa un correo válido'),
   password: z
     .string()
-    .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    .min(8, 'La contraseña debe tener al menos 8 caracteres'),
 })
 
 const RegisterSchema = z.object({
@@ -128,6 +129,9 @@ export async function registerWorkerAction(
   stateOrFormData: ActionState | FormData,
   maybeFormData?: FormData
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const formData = resolveFormData(stateOrFormData, maybeFormData)
   if (!formData) {
     return { error: 'No se pudo procesar el formulario. Intenta nuevamente.' }
@@ -185,8 +189,9 @@ export async function forgotPasswordAction(
   }
 
   const supabase = await createClient()
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alumco-lms.vercel.app'
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/reset-password`,
+    redirectTo: `${siteUrl}/auth/reset-password`,
   })
 
   // No revelar si el email existe o no

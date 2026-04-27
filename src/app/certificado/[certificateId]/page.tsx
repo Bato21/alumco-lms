@@ -109,7 +109,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
             <h1 className="text-white text-2xl md:text-3xl font-extrabold tracking-tight">
               Alumco LMS
             </h1>
-            <p className="text-white/70 text-xs mt-1 tracking-wide">KimuKo · ELEAM Chile</p>
+            <p className="text-white/70 text-xs mt-1 tracking-wide">KimünKo · ELEAM Chile</p>
           </div>
 
           {/* Contenido */}

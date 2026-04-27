@@ -76,7 +76,7 @@ export default function Error({ error, reset }: ErrorProps) {
 
         {/* Footer */}
         <p className="text-xs text-slate-400">
-          KimuKo · ONG Alumco
+          KimünKo · ONG Alumco
         </p>
       </div>
     </div>

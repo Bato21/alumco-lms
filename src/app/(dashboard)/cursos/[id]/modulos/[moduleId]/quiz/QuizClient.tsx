@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { submitQuizAction, getQuizStatusAction, getQuizAttemptsHistoryAction } from '@/lib/actions/quiz'
-import { resetModuleProgressAction } from '@/lib/actions/progress'
+import { resetCourseProgressAction } from '@/lib/actions/progress'
 import type { Question, QuestionOption, UserAnswers, QuizSubmitResult } from '@/lib/types/database'
 import { markModuleCompleteAction } from '@/lib/actions/progress'
 
@@ -13,7 +13,6 @@ type QuizState = 'pre-quiz' | 'taking-quiz' | 'result'
 interface QuizClientProps {
   courseId: string
   moduleId: string
-  previousModuleId: string | null
   nextModuleId: string | null
   quizId: string
   passingScore: number
@@ -24,7 +23,6 @@ interface QuizClientProps {
 export default function QuizClient({
   courseId,
   moduleId,
-  previousModuleId,
   nextModuleId,
   quizId,
   passingScore,
@@ -118,7 +116,7 @@ const handleContinue = async () => {
 
   const handleResetProgress = () => {
     startTransition(async () => {
-      await resetModuleProgressAction(moduleId, courseId, previousModuleId ?? undefined)
+      await resetCourseProgressAction(courseId)
       router.push(`/cursos/${courseId}`)
     })
   }

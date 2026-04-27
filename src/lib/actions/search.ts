@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { escapeIlike } from '@/lib/utils'
 
 export async function searchAction(query: string): Promise<{
   courses: { id: string; title: string; is_published: boolean }[]
@@ -24,11 +25,12 @@ export async function searchAction(query: string): Promise<{
   const role = profile?.role ?? 'trabajador'
   const workerAreas: string[] = profile?.area_trabajo ?? []
   const q = query.trim().toLowerCase()
+  const qPattern = `%${escapeIlike(q)}%`
 
   const { data: allCourses } = await supabase
     .from('courses')
     .select('id, title, is_published, target_areas')
-    .ilike('title', `%${q}%`)
+    .ilike('title', qPattern)
     .order('title')
     .limit(5)
 
@@ -49,7 +51,7 @@ export async function searchAction(query: string): Promise<{
       .select('id, full_name, area_trabajo, sede')
       .eq('status', 'activo')
       .eq('role', 'trabajador')
-      .ilike('full_name', `%${q}%`)
+      .ilike('full_name', qPattern)
       .order('full_name')
       .limit(5)
 

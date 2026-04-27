@@ -43,13 +43,21 @@ export function sedeLabel(sede: 'sede_1' | 'sede_2'): string {
 
 // Filtra cursos según las áreas del trabajador.
 // Un curso es visible si target_areas está vacío (todos) o comparte al menos un área.
+// Si el trabajador no tiene áreas asignadas, solo ve cursos sin restricción de área.
 export function filterCoursesByWorkerAreas<T extends { target_areas: string[] }>(
   courses: T[],
   workerAreas: string[]
 ): T[] {
-  if (!workerAreas || workerAreas.length === 0) return courses
+  if (!workerAreas || workerAreas.length === 0) {
+    return courses.filter(course => !course.target_areas || course.target_areas.length === 0)
+  }
   return courses.filter(course => {
     if (!course.target_areas || course.target_areas.length === 0) return true
     return course.target_areas.some(area => workerAreas.includes(area))
   })
+}
+
+// Escapa wildcards `%` y `_` en patrones ilike para evitar matches no deseados.
+export function escapeIlike(s: string): string {
+  return s.replace(/[\\%_]/g, c => `\\${c}`)
 }

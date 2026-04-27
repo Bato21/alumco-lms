@@ -59,7 +59,7 @@ export default function NotFound() {
 
         {/* Footer */}
         <p className="text-xs text-slate-400">
-          KimuKo · ONG Alumco
+          KimünKo · ONG Alumco
         </p>
       </div>
     </div>

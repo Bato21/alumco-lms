@@ -61,7 +61,7 @@ export default async function CursosPage({
 
   const { data: courses } = await supabase
     .from('courses')
-    .select('id, title, description, thumbnail_url')
+    .select('id, title, description, thumbnail_url, target_areas')
     .eq('is_published', true)
     .order('order_index')
 

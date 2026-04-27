@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Image from 'next/image'
 import { updateProfileAction, uploadFirmaAction, deleteFirmaAction } from '@/lib/actions/trabajadores'
 import {
   Mail, MapPin, Calendar, CreditCard,
@@ -75,6 +76,7 @@ export function ProfileClient({
 }: ProfileClientProps) {
   const initial = fechaNacimiento ?? ''
   const [fechaNac, setFechaNac] = useState(initial)
+  const today = new Date().toISOString().split('T')[0]
   const [isPending, startTransition] = useTransition()
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -160,10 +162,13 @@ export function ProfileClient({
           {/* Avatar + nombre + badges */}
           <div className="flex flex-col items-center lg:items-start gap-3 lg:w-56 shrink-0">
             {avatarUrl ? (
-              <img
+              <Image
                 src={avatarUrl}
                 alt={fullName}
+                width={96}
+                height={96}
                 className="h-24 w-24 rounded-full object-cover"
+                unoptimized
               />
             ) : (
               <div className="h-24 w-24 rounded-full bg-[#2B4FA0]/10 text-[#2B4FA0] text-3xl font-bold flex items-center justify-center">
@@ -268,6 +273,7 @@ export function ProfileClient({
             type="date"
             value={fechaNac}
             onChange={e => setFechaNac(e.target.value)}
+            max={today}
             className="w-full sm:w-64 h-11 px-3 rounded-lg border border-slate-200 text-sm text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/30 focus:border-[#2B4FA0]"
           />
         </div>
@@ -303,10 +309,13 @@ export function ProfileClient({
           {firmaPreview ? (
             <div className="space-y-3">
               <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 flex items-center justify-center bg-slate-50 min-h-[120px]">
-                <img
+                <Image
                   src={firmaPreview}
                   alt="Tu firma digital"
+                  width={240}
+                  height={96}
                   className="max-h-24 max-w-full object-contain"
+                  unoptimized
                 />
               </div>
               <div className="flex gap-3">

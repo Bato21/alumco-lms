@@ -82,7 +82,7 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
           className="object-contain brightness-0 invert"
           priority
         />
-        <span className="mt-2 text-white/40 text-xs tracking-widest uppercase">KimuKo</span>
+        <span className="mt-2 text-white/40 text-xs tracking-widest uppercase">KimünKo</span>
         {role === 'profesor' && (
           <span className="mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F5A623]/20 text-[#F5A623]">
             Profesor

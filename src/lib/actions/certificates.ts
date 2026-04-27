@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 void degrees // imported for potential use
 
@@ -45,7 +46,7 @@ export async function generateCertificateAction(
     .select('id')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
-    .single()
+    .maybeSingle()
 
   if (existing) {
     return { success: true, certificateId: existing.id }
@@ -91,7 +92,7 @@ export async function getCertificateAction(
     .select('id, issued_at, pdf_url')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
-    .single()
+    .maybeSingle()
 
   return data ?? null
 }
@@ -102,6 +103,10 @@ export async function generateCertificatePDF(
   certificateId: string
 ): Promise<{ success?: boolean; pdfBase64?: string; error?: string }> {
   try {
+    const userClient = await createClient()
+    const { data: { user } } = await userClient.auth.getUser()
+    if (!user) return { error: 'No autenticado' }
+
     const adminClient = await createAdminClient()
 
     const { data: cert } = await adminClient
@@ -111,6 +116,16 @@ export async function generateCertificatePDF(
       .single()
 
     if (!cert) return { error: 'Certificado no encontrado' }
+
+    const { data: callerProfile } = await userClient
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const isOwner = cert.user_id === user.id
+    const isAdmin = callerProfile?.role === 'admin'
+    if (!isOwner && !isAdmin) return { error: 'No autorizado' }
 
     const course = Array.isArray(cert.courses) ? cert.courses[0] : cert.courses
 
@@ -290,7 +305,10 @@ export async function generateCertificatePDF(
     ) {
       if (firmaUrl) {
         try {
-          const res = await fetch(firmaUrl)
+          const firmaController = new AbortController()
+          const firmaTimeout = setTimeout(() => firmaController.abort(), 5000)
+          const res = await fetch(firmaUrl, { signal: firmaController.signal })
+          clearTimeout(firmaTimeout)
           const bytes = await res.arrayBuffer()
           const isJpg = firmaUrl.toLowerCase().includes('.jpg') ||
             firmaUrl.toLowerCase().includes('.jpeg')
@@ -347,18 +365,17 @@ export async function generateCertificatePDF(
 // ── Obtener todos los certificados (admin) ─────────────────
 
 export async function getAllCertificatesAction(): Promise<{
-  id: string
-  issued_at: string
-  pdf_url: string | null
-  course_id: string
-  user_id: string
-}[]> {
-  const adminClient = await createAdminClient()
+  data?: { id: string; issued_at: string; pdf_url: string | null; course_id: string; user_id: string }[]
+  error?: string
+}> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
 
+  const adminClient = await createAdminClient()
   const { data } = await adminClient
     .from('certificates')
     .select('id, issued_at, pdf_url, course_id, user_id')
     .order('issued_at', { ascending: false })
 
-  return data ?? []
+  return { data: data ?? [] }
 }

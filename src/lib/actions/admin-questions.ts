@@ -1,7 +1,9 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { type Question } from '@/lib/types/database'
 
 interface QuestionInput {
@@ -13,38 +15,62 @@ interface QuestionInput {
   correct_option: string
 }
 
+const OptionIdSchema = z.enum(['a', 'b', 'c', 'd'])
+
+const QuestionInputSchema = z.object({
+  id: z.string().uuid().optional(),
+  quiz_id: z.string().uuid(),
+  question_text: z.string().min(2, 'El texto de la pregunta es muy corto'),
+  order_index: z.number().int().nonnegative(),
+  options: z
+    .array(
+      z.object({
+        id: OptionIdSchema,
+        text: z.string().min(1, 'El texto de la opción es requerido'),
+      })
+    )
+    .length(4, 'Debe haber exactamente 4 opciones'),
+  correct_option: OptionIdSchema,
+}).refine(
+  (data) => {
+    const ids = data.options.map((o) => o.id)
+    return new Set(ids).size === 4
+  },
+  { message: 'Las opciones deben tener ids únicos a, b, c, d' }
+)
+
 export async function saveQuestionAction(
   data: QuestionInput,
   courseId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const auth = await requireAdmin()
+    if (!auth.ok) return { success: false, error: auth.error }
 
-    if (!user) return { success: false, error: 'No autorizado' }
+    const parsed = QuestionInputSchema.safeParse(data)
+    if (!parsed.success) {
+      return { success: false, error: parsed.error.issues[0].message }
+    }
 
     const adminClient = await createAdminClient()
 
-    // Preparar el payload
     const payload = {
-      quiz_id: data.quiz_id,
-      question_text: data.question_text,
-      order_index: data.order_index,
-      options: data.options,
-      correct_option: data.correct_option
+      quiz_id: parsed.data.quiz_id,
+      question_text: parsed.data.question_text,
+      order_index: parsed.data.order_index,
+      options: parsed.data.options,
+      correct_option: parsed.data.correct_option,
     }
 
-    let error;
+    let error
 
-    if (data.id) {
-      // Actualizar pregunta existente
+    if (parsed.data.id) {
       const { error: updateError } = await adminClient
         .from('questions')
         .update(payload)
-        .eq('id', data.id)
+        .eq('id', parsed.data.id)
       error = updateError
     } else {
-      // Insertar nueva pregunta
       const { error: insertError } = await adminClient
         .from('questions')
         .insert(payload)
@@ -53,9 +79,8 @@ export async function saveQuestionAction(
 
     if (error) throw error
 
-    // Refrescar caché del administrador
     revalidatePath(`/admin/cursos/${courseId}`)
-    
+
     return { success: true }
   } catch (err) {
     console.error('Error guardando pregunta:', err)
@@ -68,10 +93,8 @@ export async function deleteQuestionAction(
   courseId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return { success: false, error: 'No autorizado' }
+    const auth = await requireAdmin()
+    if (!auth.ok) return { success: false, error: auth.error }
 
     const adminClient = await createAdminClient()
 
@@ -94,6 +117,9 @@ export async function getQuestionsAction(
   quizId: string
 ): Promise<{ success: boolean; questions?: Question[]; error?: string }> {
   try {
+    const auth = await requireAdmin()
+    if (!auth.ok) return { success: false, error: auth.error }
+
     const adminClient = await createAdminClient()
     const { data, error } = await adminClient
       .from('questions')

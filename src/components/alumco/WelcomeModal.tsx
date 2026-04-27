@@ -47,7 +47,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
 
           {/* Saludo */}
           <h1 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight relative z-10">
-            ¡Bienvenido/a a KimuKo,<br />
+            ¡Bienvenido/a a KimünKo,<br />
             <span className="text-white">
               {fullName.split(' ')[0]}
             </span>
@@ -162,7 +162,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
           </button>
 
           <p className="text-center text-xs text-slate-400 mt-3">
-            KimuKo · ONG Alumco Chile
+            KimünKo · ONG Alumco Chile
           </p>
         </div>
       </div>

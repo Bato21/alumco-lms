@@ -3,6 +3,56 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateCertificateAction } from './certificates'
+import { filterCoursesByWorkerAreas } from '@/lib/utils'
+
+/**
+ * Valida que el módulo pertenezca al curso y que el trabajador tenga acceso por área.
+ * Para admins/profesores no se aplica la restricción de área.
+ */
+async function validateModuleAccess(
+  userId: string,
+  moduleId: string,
+  courseId: string
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = await createClient()
+
+  const { data: moduleCheck } = await supabase
+    .from('modules')
+    .select('id')
+    .eq('id', moduleId)
+    .eq('course_id', courseId)
+    .maybeSingle()
+
+  if (!moduleCheck) {
+    return { ok: false, error: 'Módulo no pertenece al curso indicado' }
+  }
+
+  const { data: callerProfile } = await supabase
+    .from('profiles')
+    .select('role, area_trabajo')
+    .eq('id', userId)
+    .single()
+
+  if (callerProfile?.role === 'trabajador') {
+    const { data: course } = await supabase
+      .from('courses')
+      .select('target_areas, is_published')
+      .eq('id', courseId)
+      .eq('is_published', true)
+      .maybeSingle()
+
+    if (!course) return { ok: false, error: 'Curso no disponible' }
+
+    const hasAccess = filterCoursesByWorkerAreas(
+      [{ target_areas: (course.target_areas as string[]) ?? [] }],
+      (callerProfile.area_trabajo as string[]) ?? []
+    ).length > 0
+
+    if (!hasAccess) return { ok: false, error: 'No autorizado' }
+  }
+
+  return { ok: true }
+}
 
 /**
  * Marks a module as complete for the current user.
@@ -16,6 +66,9 @@ export async function markModuleCompleteAction(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Usuario no autenticado' }
+
+    const access = await validateModuleAccess(user.id, moduleId, courseId)
+    if (!access.ok) return { success: false, error: access.error }
 
     // Usar el cliente del usuario — RLS garantiza que solo escribe su propio progreso
     const { data: progress } = await supabase
@@ -125,6 +178,9 @@ export async function updateLastModuleAction(
     if (!user) {
       return { success: false, error: 'Usuario no autenticado' }
     }
+
+    const access = await validateModuleAccess(user.id, moduleId, courseId)
+    if (!access.ok) return { success: false, error: access.error }
 
     // Get current progress — user client is sufficient (RLS allows user to read/write own rows)
     const { data: progress } = await supabase
@@ -285,10 +341,13 @@ export async function getCourseProgressAction(
   }
 }
 
-export async function resetModuleProgressAction(
-  moduleId: string,
-  courseId: string,
-  previousModuleId?: string
+/**
+ * Reinicia por completo el progreso del curso para el usuario actual.
+ * Borra todos los módulos completados y marca un punto de reset para que los
+ * intentos previos del quiz no cuenten contra max_attempts.
+ */
+export async function resetCourseProgressAction(
+  courseId: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -304,9 +363,6 @@ export async function resetModuleProgressAction(
 
   if (!progress) return { success: false, error: 'Progreso no encontrado' }
 
-  // Reinicio completo: todos los módulos vuelven a estado pendiente.
-  // last_quiz_reset_at queda 1s en el pasado para que los intentos
-  // anteriores no cuenten, pero el trigger acepte nuevos intentos.
   const { error } = await supabase
     .from('course_progress')
     .update({

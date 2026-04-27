@@ -1,202 +1,204 @@
-fix: corrección completa de bugs QA (alta, media y baja severidad)
+fix: segunda y tercera pasada QA — 45 bugs resueltos (BUG-26 a BUG-70)
 
-Resolución de todos los bugs identificados en src/testing/bugs.md.
-Se corrigieron 22 bugs en total, cubriendo seguridad, lógica de negocio
-y consistencia de UI. Los 3 restantes (BUG-13, BUG-14, BUG-24) que
-estaban marcados como "requieren decisión de negocio" también fueron
-implementados en esta sesión.
+Cierre completo de las pasadas de QA del 2026-04-25 y 2026-04-26.
+Total de bugs corregidos en este commit: 45 (21 de la pasada 25-abr + 24 de la pasada 26-abr).
+Todos los bugs en src/testing/bugs.md quedan en estado ✅.
 
-═══════════════════════════════════════
-INFRAESTRUCTURA Y SEGURIDAD CRÍTICA
-═══════════════════════════════════════
+══════════════════════════════════════════════
+HELPER NUEVO
+══════════════════════════════════════════════
 
-BUG-25 — Middleware no se ejecutaba
-· Problema: proxy.ts exportaba la función como `proxy`, no como `middleware`.
-  Next.js solo reconoce el archivo middleware.ts con un export nombrado
-  `middleware`. Todas las rutas estaban desprotegidas.
-· Fix: creado src/middleware.ts que re-exporta proxy y config desde proxy.ts.
+src/lib/auth/requireAdmin.ts (nuevo archivo)
+· Centraliza la verificación de autenticación + rol admin.
+· Retorna { ok: true, profile } o { ok: false, error }.
+· Ampliado para aceptar también rol 'profesor' (BUG-63).
+· Usado por 14 Server Actions que antes no tenían ningún check.
 
-BUG-01 — Módulo accesible sin verificar área del trabajador
-· Problema: cursos/[id]/modulos/[moduleId]/page.tsx no verificaba si el
-  curso pertenecía al área del trabajador. Cualquier trabajador podía
-  acceder a cualquier módulo conociendo la URL.
-· Fix: fetch del perfil del usuario + filterCoursesByWorkerAreas aplicado
-  antes de renderizar el contenido del módulo.
+══════════════════════════════════════════════
+SEGURIDAD — SERVER ACTIONS SIN AUTORIZACIÓN
+══════════════════════════════════════════════
 
-BUG-02 — Quiz accesible sin verificar área del trabajador
-· Mismo problema en quiz/page.tsx.
-· Fix: auth check + fetch del curso publicado + filterCoursesByWorkerAreas
-  aplicados al inicio de QuizPage.
+BUG-28 — updateCourseAction sin rol admin
+BUG-29 — togglePublishCourseAction sin autorización
+BUG-30 — deleteCourseAction sin autorización
+BUG-31 — createModuleAction sin autorización
+BUG-32 — updateModuleAction sin autorización
+BUG-33 — deleteModuleAction sin autorización
+BUG-34 — reorderModulesAction sin autorización
+BUG-35 — createCourseAction solo verificaba auth, no rol
+· Todas las mutaciones de cursos y módulos en lib/actions/courses.ts
+  ahora inician con `requireAdmin()` antes de tocar la base de datos.
 
-BUG-03 — submitQuizAction sin validación de cadena quiz→módulo→curso
-· Problema: un usuario podía manipular los parámetros para enviar respuestas
-  de un quiz arbitrario con IDs de módulo y curso no relacionados.
-· Fix: dos queries de validación antes de procesar el intento:
-  módulo debe pertenecer al curso, quiz debe pertenecer al módulo.
+BUG-36 — getWorkerDetailAction sin verificación de admin
+· lib/actions/trabajadores.ts: agregado requireAdmin al inicio.
 
-BUG-05 — approveWorkerAction sin verificación de rol admin
-· Problema: cualquier usuario autenticado podía aprobar solicitudes.
-· Fix: verificación de role === 'admin' vía createClient() antes de usar adminClient.
+BUG-37 — getAllCertificatesAction sin verificación de admin
+BUG-38 — generateCertificatePDF sin auth ni check de ownership
+· lib/actions/certificates.ts: requireAdmin en getAllCertificatesAction;
+  verificación userId === auth.uid() en generateCertificatePDF.
 
-BUG-06 — suspendWorkerAction y reactivateWorkerAction sin verificación
-· Fix: auth check + role === 'admin' añadido en ambas funciones.
+BUG-39 — getAdminAlerts sin verificación de admin
+· lib/actions/alerts.ts: requireAdmin agregado.
 
-BUG-07 — updateWorkerAction sin verificación de autenticación ni rol
-· Fix: auth check + role === 'admin' añadido al inicio de la función.
+BUG-47 — registerWorkerAction sin verificación de admin
+· lib/actions/auth.ts: cualquier visitante anónimo podía crear cuentas.
+  Ahora inicia con requireAdmin().
 
-BUG-17 — rejectWorkerAction sin ningún check de seguridad
-· Problema: cualquier persona podía eliminar cuentas arbitrarias sin
-  estar autenticada ni ser admin.
-· Fix: auth check + role === 'admin' añadido al inicio de la función.
+BUG-48 — getQuestionsAction sin auth + expone correct_option
+· lib/actions/admin-questions.ts: cualquier visitante podía obtener todas
+  las respuestas correctas antes de hacer el quiz.
+  Ahora requiere admin y usa createAdminClient() explícitamente.
 
-═══════════════════════════════════════
+BUG-49 — saveQuestionAction solo validaba auth, no rol
+BUG-50 — deleteQuestionAction solo validaba auth, no rol
+· Ambas funciones en admin-questions.ts: bloque `user` reemplazado
+  por requireAdmin(). Trabajadores autenticados ya no pueden editar/borrar preguntas.
+
+══════════════════════════════════════════════
+SEGURIDAD — VALIDACIÓN DE ACCESO POR ÁREA
+══════════════════════════════════════════════
+
+BUG-51 — markModuleCompleteAction sin validar módulo→curso
+BUG-52 — markModuleCompleteAction sin verificar área del trabajador
+BUG-53 — updateLastModuleAction sin validación módulo→curso ni área
+· lib/actions/progress.ts: helper interno validateModuleAccess().
+  Verifica que modules.course_id === courseId y, para trabajadores,
+  aplica filterCoursesByWorkerAreas. Ambas actions lo usan antes de
+  cualquier write sobre course_progress.
+
+BUG-54 — submitQuizAction sin verificar área del trabajador
+· lib/actions/quiz.ts: fetch del curso + callerProfile antes de
+  procesar el intento. Trabajadores fuera del área reciben error
+  'No autorizado' sin consumir intento.
+
+BUG-56 — filterCoursesByWorkerAreas retornaba TODOS los cursos
+  cuando workerAreas estaba vacío
+· lib/utils.ts: corregido para retornar únicamente cursos sin
+  restricción de área (target_areas vacío) cuando el trabajador
+  no tiene áreas asignadas. Antes retornaba el catálogo completo.
+
+BUG-57 — rejectWorkerAction no verificaba status='pendiente'
+· lib/actions/registro.ts: un admin podía borrar accidentalmente
+  cuentas activas. Ahora el select incluye `status` y se valida
+  `profile.status === 'pendiente'` antes de llamar deleteUser.
+
+══════════════════════════════════════════════
+SEGURIDAD — VALIDACIÓN DE ENTRADAS
+══════════════════════════════════════════════
+
+BUG-55 — submitQuizAction sin validar que respuestas sean 'a'|'b'|'c'|'d'
+· lib/actions/quiz.ts: AnswersSchema Zod (record uuid → enum a/b/c/d)
+  parsea answers al inicio, antes de cualquier query.
+  validatedAnswers reemplaza answers en el resto de la función.
+
+BUG-58 — RUT no normalizado → duplicados con distinto formato
+· lib/actions/registro.ts: helper normalizarRut() elimina puntos,
+  guiones y normaliza a mayúsculas. Aplicado en la búsqueda de
+  duplicados y en options.data.rut del signUp.
+
+BUG-59 — submitQuizAction permitía respuestas vacías y consumía un intento
+· lib/actions/quiz.ts: verificación allCovered (preguntas del quiz
+  vs claves de validatedAnswers) antes del insert en quiz_attempts.
+  Un envío incompleto retorna error sin descontar intento.
+
+BUG-67 — saveQuestionAction sin validación Zod del payload
+BUG-68 — Sin validar correct_option ∈ {a,b,c,d} ni options.length === 4
+· lib/actions/admin-questions.ts: QuestionInputSchema Zod con
+  quiz_id uuid, options array de exactamente 4 elementos con ids
+  únicos {a,b,c,d}, correct_option enum, refine de ids únicos.
+  Cubre ambos bugs con un solo schema.
+
+══════════════════════════════════════════════
 LÓGICA DE NEGOCIO — QUIZ Y PROGRESO
-═══════════════════════════════════════
+══════════════════════════════════════════════
 
-BUG-04 — updateLastModuleAction usaba adminClient innecesariamente
-· Problema: course_progress se leía y escribía con service_role cuando el
-  usuario tiene permisos propios (RLS: auth.uid() = user_id).
-· Fix: reemplazado adminClient por supabase (user client) en todas las
-  operaciones de course_progress dentro de updateLastModuleAction.
+BUG-60 — resetModuleProgressAction con API engañosa
+· lib/actions/progress.ts: renombrada a resetCourseProgressAction(courseId).
+  Firma limpia: solo recibe courseId. Consumidores actualizados:
+  QuizClient.tsx y quiz/page.tsx.
 
-BUG-09 — registerRequestAction no verificaba RUT duplicado
-· Problema: se podían crear dos cuentas con el mismo RUT.
-· Fix: query a profiles vía adminClient antes de auth.signUp().
-  Retorna error "Ya existe una cuenta registrada con ese RUT".
+BUG-66 — submitQuizAction no transaccional
+· lib/actions/quiz.ts: no es posible usar transacción Postgres desde
+  Server Actions sin una RPC. Solución aplicada (Opción C): logging
+  estructurado con { userId, courseId, quizId, attemptId } en todos
+  los puntos de fallo post-insert para auditoría y diagnóstico futuro.
 
-BUG-10 — getQuizAttemptsHistoryAction mostraba intentos anteriores al reset
-· Problema: el historial de intentos en QuizClient incluía intentos de
-  antes del último reseteo del curso, confundiendo al trabajador.
-· Fix: añadido parámetro courseId, fetch de last_quiz_reset_at desde
-  course_progress, filtro .gt('completed_at', resetAt) en la query.
-  Actualizado el caller en QuizClient.tsx.
+══════════════════════════════════════════════
+DATOS Y FILTROS
+══════════════════════════════════════════════
 
-BUG-11 — handleContinue usaba setTimeout(300ms) frágil
-· Problema: la navegación tras aprobar el quiz dependía de un timeout
-  arbitrario de 300ms para que revalidatePath "hiciera efecto".
-· Fix: eliminado el timeout. handleContinue ahora usa directamente el
-  resultado de markModuleCompleteAction para determinar courseCompleted
-  y navegar en consecuencia.
+BUG-26 — inicio/page.tsx no incluía target_areas en select
+· Los cursos de inicio no traían target_areas → filtro de área ignorado.
+  Añadido al select.
 
-Reset logic — resetModuleProgressAction reiniciaba solo 2 módulos
-· Problema: al agotar intentos del quiz y reiniciar el curso, solo se
-  removían el módulo del quiz y el anterior de completed_modules.
-  Los demás módulos quedaban marcados como completados.
-· Fix: completed_modules se resetea a [] (array vacío), junto con
-  last_module_id: null, is_completed: false, completed_at: null y
-  last_quiz_reset_at con timestamp 1s en el pasado.
+BUG-27 — cursos/page.tsx no incluía target_areas en select
+· Mismo problema en el catálogo de cursos del trabajador. Añadido al select.
 
-═══════════════════════════════════════
-DASHBOARD Y ALERTAS ADMIN
-═══════════════════════════════════════
+BUG-41 — WorkerProgress.area_trabajo tipado como string en lugar de string[]
+· admin/dashboard/page.tsx: interfaz WorkerProgress corregida a
+  area_trabajo: string[]. Eliminado cast implícito.
 
-BUG-12 — Dashboard mostraba completions históricas como "esta semana"
-· Problema: el contador "cursos completados esta semana" sumaba todos los
-  cursos completados desde siempre, sin filtro de fecha.
-· Fix: query separada con .gte('completed_at', sevenDaysAgo.toISOString())
-  usando adminClient. Retorna solo los completados en los últimos 7 días.
+BUG-43 — Card "Cumplimiento" mostraba approval rate de quizzes
+· admin/dashboard/page.tsx: recalculado como completion rate real
+  (trabajadores con curso completado / total relevante por área).
 
-BUG-13 — Estado del trabajador ignoraba deadlines
-· Problema: el estado al_dia / en_progreso / atrasado no consideraba
-  fechas límite. Un trabajador con cursos vencidos aparecía como "Al día".
-· Fix: fetch de courses con deadline + target_areas antes del loop de
-  workers. Para cada trabajador se filtran los cursos relevantes por área
-  y se verifica si alguno con deadline pasado no está completado.
-  Prioridad: atrasado (overdue) > en_progreso > al_dia.
+BUG-45 — notStartedCount solo contaba filas en course_progress
+· perfil/page.tsx: totalCourses ahora es el total de cursos publicados
+  en el área del trabajador. notStarted = total − (inProgress + completed).
 
-BUG-23 — getAdminAlerts contaba todos los trabajadores por curso
-· Problema: pendingWorkers y totalWorkers usaban el total global de
-  trabajadores, ignorando que cada curso tiene target_areas.
-  Un curso de Enfermería mostraba como pendientes trabajadores de
-  Administración que nunca debían tomarlo.
-· Fix: fetch de area_trabajo en workers + target_areas en courses.
-  Para cada curso se filtran trabajadores relevantes por área antes
-  de calcular pending y completion%.
+══════════════════════════════════════════════
+AUTENTICACIÓN
+══════════════════════════════════════════════
 
-═══════════════════════════════════════
-REPORTES
-═══════════════════════════════════════
+BUG-62 — forgotPasswordAction sin fallback de NEXT_PUBLIC_SITE_URL
+· lib/actions/auth.ts: siteUrl con fallback 'https://alumco-lms.vercel.app'.
+  Elimina el enlace roto 'undefined/auth/reset-password' en entornos
+  sin la variable de entorno.
 
-BUG-14 — Filtro de área en reportes solo comparaba string único
-· Problema: la vista SQL reporte_avance retornaba area_trabajo como
-  string de una sola área. Los trabajadores con múltiples áreas no
-  aparecían al filtrar por su segunda o tercera área.
-· Fix: eliminada la dependencia en reporte_avance. reportes/page.tsx
-  ahora consulta directamente profiles + courses + course_progress,
-  respetando target_areas por curso. area_trabajo es string[] en toda
-  la cadena: interfaz Worker, filtro (.includes()), display (.join(', ')),
-  CSV (.join(' | ')), y lista de áreas del sidebar (.flatMap()).
+BUG-63 — requireAdmin rechazaba 'profesor' aunque el layout admin lo permite
+· lib/auth/requireAdmin.ts: condición ampliada a
+  role !== 'admin' && role !== 'profesor'. Tipo de retorno actualizado.
 
-BUG-15 — CSV export sin escape de comas ni comillas
-· Problema: nombres o títulos con comas rompían el formato CSV.
-· Fix: función csvEscape() con lógica RFC 4180: envuelve en comillas
-  dobles si el valor contiene comas, comillas o saltos de línea.
-  Las comillas internas se escapan duplicándolas ("").
+BUG-65 — LoginSchema aceptaba ≥6 chars, RegisterSchema exigía ≥8
+· lib/actions/auth.ts: LoginSchema.password actualizado a min(8).
 
-═══════════════════════════════════════
-CERTIFICADOS
-═══════════════════════════════════════
+══════════════════════════════════════════════
+BASE DE DATOS — CONSULTAS
+══════════════════════════════════════════════
 
-BUG-16 — Fetch del logo sin timeout en generateCertificatePDF
-· Problema: la generación del PDF hacía fetch externo a ongalumco.cl
-  sin timeout. En producción (Vercel Edge), un fetch colgado puede
-  bloquear la función serverless indefinidamente.
-· Fix: AbortController con setTimeout de 5000ms. clearTimeout() en
-  caso de éxito. El catch existente maneja el abort y dibuja texto
-  "ALUMCO" como fallback.
+BUG-40 — drawFirma fetch sin timeout → colgaría indefinidamente
+· lib/actions/certificates.ts: AbortController con 5 s, clearTimeout
+  en éxito. Mismo patrón que BUG-16 para el logo.
 
-BUG-24 — Certificados solo para cursos con quiz
-· Problema: generateCertificateAction solo era llamada desde
-  submitQuizAction, por lo que cursos sin módulo quiz nunca generaban
-  certificado aunque el trabajador completara todo el contenido.
-· Fix: generateCertificateAction ahora acepta quizAttemptId: string | null.
-  Si es null, omite la verificación del intento y crea el certificado
-  directamente. markModuleCompleteAction detecta si el curso completado
-  no tiene ningún módulo de tipo 'quiz' y llama a generateCertificateAction(null).
-  Para cursos con quiz, submitQuizAction sigue manejando la generación
-  con el quizAttemptId real. Idempotencia garantizada por el check
-  de certificado existente en generateCertificateAction.
+BUG-61 — searchAction no escapaba % y _ en ilike
+· lib/actions/search.ts + lib/utils.ts: helper escapeIlike() aplica
+  escape a \, % y _ antes de construir el patrón. Aplicado a title
+  y full_name en searchAction.
 
-═══════════════════════════════════════
-AUTENTICACIÓN Y SESIÓN
-═══════════════════════════════════════
+BUG-64 — getCertificateAction y existing usaban .single() cuando la fila puede no existir
+· lib/actions/certificates.ts: ambas queries cambiadas a .maybeSingle().
+  Elimina error PGRST116 en logs para certificados inexistentes.
 
-BUG-08 — Layout dashboard mostraba "Cargando perfil..." en sesión inválida
-· Problema: si el perfil era null (sesión expirada o RLS), el layout
-  mostraba una pantalla en blanco con texto en lugar de redirigir.
-· Fix: cambiado el bloque de retorno por redirect('/login').
-
-BUG-22 — user!.id sin null-check en perfil/page.tsx
-· Problema: el operador ! forzaba el tipo en lugar de manejar el caso
-  nulo. Un error de runtime si la sesión expiraba en esa página.
-· Fix: añadido if (!user) redirect('/login') con import estático de
-  redirect desde next/navigation al inicio de la función.
-
-═══════════════════════════════════════
+══════════════════════════════════════════════
 UI Y CONSISTENCIA
-═══════════════════════════════════════
+══════════════════════════════════════════════
 
-BUG-18 — Botón "Completar curso" aparecía sin haber completado el módulo final
-· Problema: el botón verde aparecía en el último módulo aunque el trabajador
-  aún no hubiera marcado ese módulo como completado.
-· Fix: condición isModuleCompleted añadida. Si el último módulo no está
-  completado muestra "Volver al curso" con estilo neutral. Solo muestra
-  "Completar curso" cuando isModuleCompleted es true.
+BUG-42 — Tabs "Sede Hualpén"/"Sede Coyhaique" eran decorativas sin función
+· admin/dashboard/page.tsx: eliminados los botones de tab por sede.
+  El dashboard ya filtra por área, las sedes no aportan filtrado adicional.
 
-BUG-19 — Nombres de sede inconsistentes
-· Problema: distintas partes de la UI mostraban "Sede Principal"/"Sede 2",
-  "Sede 1"/"Sede 2", o "SEDE 1"/"SEDE 2" en lugar de los nombres reales.
-· Fix: corregido a "Sede Hualpén" / "Sede Coyhaique" en inicio/page.tsx
-  (sedeName) y en utils.ts (función sedeLabel).
+BUG-44 — Input fecha_nacimiento sin atributo max → permitía fechas futuras
+· perfil/ProfileClient.tsx: max={new Date().toISOString().split('T')[0]}
+  añadido al input type="date".
 
-BUG-20 — activos tipado como any[] en admin/trabajadores/page.tsx
-· Problema: el cast as any[] violaba TypeScript estricto y eliminaba
-  todo chequeo de tipos para la lista de trabajadores activos.
-· Fix: definido tipo ActiveWorker con los campos exactos del select.
-  Compatible con la interfaz Worker que espera WorkersTable.
+BUG-46 — recentActivity usaba key={i} (índice) → identidad inestable
+· admin/dashboard/page.tsx: key cambiado a compuesta
+  `${item.userId}-${item.courseId}-${item.updatedAt}`.
 
-BUG-21 — "Ver curso" en admin apuntaba al editor en lugar de la vista del trabajador
-· Problema: ambos botones ("Editar" y "Ver curso") en la tarjeta de curso
-  del admin apuntaban al mismo href /admin/cursos/[id]/editar.
-· Fix: "Ver curso" ahora apunta a /cursos/[id] (vista del trabajador),
-  permitiendo al admin previsualizar el curso tal como lo ve el trabajador.
+BUG-69 — <img> en lugar de next/image para avatarUrl y firmaUrl
+· perfil/ProfileClient.tsx: reemplazados ambos <img> por <Image>
+  de next/image con width/height explícitos y unoptimized para
+  URLs de Supabase Storage.
+
+BUG-70 — useState importado sin usar en RegisterForm.tsx
+· components/alumco/RegisterForm.tsx: eliminado el import de useState.

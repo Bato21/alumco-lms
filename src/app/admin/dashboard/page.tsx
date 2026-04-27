@@ -11,7 +11,7 @@ interface WorkerProgress {
   id: string
   full_name: string
   sede: string
-  area_trabajo: string
+  area_trabajo: string[]
   courses_completed: number
   status: 'al_dia' | 'en_progreso' | 'atrasado'
   last_activity: string
@@ -63,14 +63,38 @@ export default async function AdminDashboardPage() {
   const uniqueInProgress = new Set(inProgressData?.map(p => p.user_id) ?? [])
   const inProgress = uniqueInProgress.size
 
-  const { data: allAttempts } = await supabase
-    .from('quiz_attempts')
-    .select('status')
+  const { data: coursesForCompliance } = await adminClient
+    .from('courses')
+    .select('id, target_areas')
+    .eq('is_published', true)
 
-  const totalAttempts = allAttempts?.length ?? 0
-  const approvedAttempts = allAttempts?.filter(a => a.status === 'aprobado').length ?? 0
-  const approvalRate = totalAttempts > 0
-    ? Math.round((approvedAttempts / totalAttempts) * 100)
+  const { data: workersForCompliance } = await adminClient
+    .from('profiles')
+    .select('id, area_trabajo')
+    .eq('role', 'trabajador')
+    .eq('status', 'activo')
+
+  const { data: completedProgress } = await adminClient
+    .from('course_progress')
+    .select('user_id, course_id')
+    .eq('is_completed', true)
+
+  let assignmentsTotal = 0
+  let assignmentsCompleted = 0
+  for (const w of workersForCompliance ?? []) {
+    const wAreas = (w.area_trabajo as string[]) ?? []
+    for (const c of coursesForCompliance ?? []) {
+      const tAreas = (c.target_areas as string[] | null) ?? []
+      const visible = tAreas.length === 0 || tAreas.some(a => wAreas.includes(a))
+      if (!visible) continue
+      assignmentsTotal++
+      if (completedProgress?.some(p => p.user_id === w.id && p.course_id === c.id)) {
+        assignmentsCompleted++
+      }
+    }
+  }
+  const approvalRate = assignmentsTotal > 0
+    ? Math.round((assignmentsCompleted / assignmentsTotal) * 100)
     : 0
 
   const { data: workersData } = await adminClient
@@ -155,7 +179,7 @@ export default async function AdminDashboardPage() {
       id: worker.id,
       full_name: worker.full_name,
       sede: worker.sede === 'sede_1' ? 'SEDE 1' : 'SEDE 2',
-      area_trabajo: worker.area_trabajo,
+      area_trabajo: (worker.area_trabajo as string[]) ?? [],
       courses_completed: completed,
       status,
       last_activity: lastActivity,
@@ -232,6 +256,9 @@ export default async function AdminDashboardPage() {
       const timeAgo = diff === 0 ? 'Hoy' : diff === 1 ? 'Ayer' : `Hace ${diff} días`
       const name = p.worker!.full_name
       return {
+        userId: p.user_id as string,
+        courseId: p.course_id as string,
+        updatedAt: p.updated_at as string,
         name,
         action: p.is_completed ? 'completó un curso' : 'actualizó su progreso',
         time: timeAgo,
@@ -285,19 +312,7 @@ export default async function AdminDashboardPage() {
 
       <div className="p-4 lg:p-8 space-y-8">
 
-        {/* Tabs de sede */}
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex gap-1.5 items-center">
-            <button className="px-4 py-1.5 bg-[#2B4FA0] text-white rounded-full text-sm font-semibold">
-              Todas las sedes
-            </button>
-            <button className="px-4 py-1.5 text-[#6B7280] hover:text-[#1A1A2E] rounded-full text-sm font-semibold transition-colors">
-              Sede Hualpén
-            </button>
-            <button className="px-4 py-1.5 text-[#6B7280] hover:text-[#1A1A2E] rounded-full text-sm font-semibold transition-colors">
-              Sede Coyhaique
-            </button>
-          </div>
+        <div className="flex items-center justify-end gap-4 flex-wrap">
           <p className="text-[#6B7280] text-xs">Actualizado hace 0 minutos</p>
         </div>
 
@@ -390,8 +405,8 @@ export default async function AdminDashboardPage() {
               <p className="text-sm text-[#6B7280]">Sin actividad reciente.</p>
             ) : (
               <div className="space-y-4">
-                {recentActivity.map((item, i) => (
-                  <div key={i} className="flex items-start gap-3">
+                {recentActivity.map((item) => (
+                  <div key={`${item.userId}-${item.courseId}-${item.updatedAt}`} className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-full bg-[#2B4FA0] flex items-center justify-center shrink-0">
                       <span className="text-white text-[10px] font-bold">{item.initials}</span>
                     </div>
@@ -486,7 +501,9 @@ export default async function AdminDashboardPage() {
                         {worker.sede === 'SEDE 1' ? 'Hualpén' : 'Coyhaique'}
                       </span>
                     </td>
-                    <td className="px-5 lg:px-6 py-4 text-[#6B7280] hidden lg:table-cell">{worker.area_trabajo}</td>
+                    <td className="px-5 lg:px-6 py-4 text-[#6B7280] hidden lg:table-cell">
+                      {worker.area_trabajo.length > 0 ? worker.area_trabajo.join(', ') : 'Sin asignar'}
+                    </td>
                     <td className="px-5 lg:px-6 py-4 text-center font-medium hidden lg:table-cell">{worker.courses_completed}</td>
                     <td className="px-5 lg:px-6 py-4">
                       <StatusBadge status={worker.status} />

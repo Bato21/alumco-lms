@@ -54,7 +54,7 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
           className="object-contain brightness-0 invert"
           priority
         />
-        <span className="mt-2 text-white/40 text-xs tracking-widest uppercase">KimuKo</span>
+        <span className="mt-2 text-white/40 text-xs tracking-widest uppercase">KimünKo</span>
       </div>
 
       {/* Navegación */}

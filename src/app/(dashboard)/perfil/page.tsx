@@ -92,7 +92,7 @@ export default async function PerfilPage() {
   } else {
     const { data: progress } = await supabase
       .from('course_progress')
-      .select('is_completed, completed_modules')
+      .select('course_id, is_completed, completed_modules')
       .eq('user_id', user!.id)
 
     const { data: certs } = await supabase
@@ -100,13 +100,31 @@ export default async function PerfilPage() {
       .select('id')
       .eq('user_id', user!.id)
 
+    const { data: allCourses } = await supabase
+      .from('courses')
+      .select('id, target_areas')
+      .eq('is_published', true)
+
+    const workerAreas = (profile?.area_trabajo as string[]) ?? []
+    const visibleCourseIds = new Set(
+      (allCourses ?? [])
+        .filter(c => {
+          const tAreas = (c.target_areas as string[] | null) ?? []
+          return tAreas.length === 0 || tAreas.some(a => workerAreas.includes(a))
+        })
+        .map(c => c.id as string)
+    )
+
     completedCount = (progress ?? []).filter(p => p.is_completed).length
     inProgressCount = (progress ?? []).filter(
       p => !p.is_completed && Array.isArray(p.completed_modules) && p.completed_modules.length > 0
     ).length
-    notStartedCount = (progress ?? []).filter(
-      p => !p.is_completed && (!Array.isArray(p.completed_modules) || p.completed_modules.length === 0)
-    ).length
+
+    const visibleProgressIds = new Set(
+      (progress ?? []).map(p => p.course_id as string).filter(id => visibleCourseIds.has(id))
+    )
+    notStartedCount = Math.max(0, visibleCourseIds.size - visibleProgressIds.size)
+
     certsCount = (certs ?? []).length
   }
 

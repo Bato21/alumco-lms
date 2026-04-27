@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
-import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { type ContentType } from '@/lib/types/database'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 // ── Schemas de validación ──────────────────────────────────
 
@@ -62,9 +62,9 @@ export interface ActionResult {
 export async function createCourseAction(
   formData: FormData
 ): Promise<ActionResult> {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'No autenticado' }
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+  const userId = auth.userId
 
   const raw = {
     title: formData.get('title'),
@@ -100,7 +100,7 @@ export async function createCourseAction(
       target_areas: parsed.data.target_areas,
       is_published: false,
       order_index: nextIndex,
-      created_by: user.id,
+      created_by: userId,
     })
     .select('id')
     .single()
@@ -119,6 +119,9 @@ export async function updateCourseAction(
   courseId: string,
   formData: FormData
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const raw = {
     title: formData.get('title'),
     description: formData.get('description'),
@@ -159,6 +162,9 @@ export async function togglePublishCourseAction(
   courseId: string,
   isPublished: boolean
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const adminClient = await createAdminClient()
   const { error } = await adminClient
     .from('courses')
@@ -179,6 +185,9 @@ export async function togglePublishCourseAction(
 export async function deleteCourseAction(
   courseId: string
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const adminClient = await createAdminClient()
   const { error } = await adminClient
     .from('courses')
@@ -200,6 +209,9 @@ export async function createModuleAction(
   contentType: ContentType,
   formData: FormData
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const adminClient = await createAdminClient()
 
   // Obtener el mayor order_index actual para este curso
@@ -328,6 +340,9 @@ export async function updateModuleAction(
   courseId: string,
   formData: FormData
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const adminClient = await createAdminClient()
 
   const title = formData.get('title') as string
@@ -352,6 +367,9 @@ export async function deleteModuleAction(
   moduleId: string,
   courseId: string
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const adminClient = await createAdminClient()
   const { error } = await adminClient
     .from('modules')
@@ -371,6 +389,9 @@ export async function reorderModulesAction(
   courseId: string,
   modules: { id: string; order_index: number }[]
 ): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
   const adminClient = await createAdminClient()
 
   const updates = modules.map(({ id, order_index }) =>

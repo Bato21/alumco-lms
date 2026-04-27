@@ -1,9 +1,14 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { markModuleCompleteAction } from './progress'
+import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import type { UserAnswers, QuizSubmitResult, QuizStatus } from '@/lib/types/database'
+
+const AnswerOptionSchema = z.enum(['a', 'b', 'c', 'd'])
+const AnswersSchema = z.record(z.string().uuid(), AnswerOptionSchema)
 
 /**
  * Obtiene el estado actual del quiz para el usuario autenticado.
@@ -130,6 +135,13 @@ export async function submitQuizAction(
       }
     }
 
+    // Validar shape de answers (defensa frente a clientes maliciosos)
+    const parsedAnswers = AnswersSchema.safeParse(answers)
+    if (!parsedAnswers.success) {
+      return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Respuestas inválidas' }
+    }
+    const validatedAnswers = parsedAnswers.data
+
     // Validar cadena quiz → módulo → curso para evitar manipulación de parámetros
     const { data: moduleCheck } = await supabase
       .from('modules')
@@ -151,6 +163,34 @@ export async function submitQuizAction(
 
     if (!quizCheck) {
       return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Acceso no autorizado' }
+    }
+
+    // Verificar acceso al curso por área del trabajador
+    const { data: course } = await supabase
+      .from('courses')
+      .select('target_areas, is_published')
+      .eq('id', courseId)
+      .eq('is_published', true)
+      .maybeSingle()
+
+    if (!course) {
+      return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Curso no disponible' }
+    }
+
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('role, area_trabajo')
+      .eq('id', user.id)
+      .single()
+
+    if (callerProfile?.role === 'trabajador') {
+      const hasAccess = filterCoursesByWorkerAreas(
+        [{ target_areas: (course.target_areas as string[]) ?? [] }],
+        (callerProfile.area_trabajo as string[]) ?? []
+      ).length > 0
+      if (!hasAccess) {
+        return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'No autorizado' }
+      }
     }
 
     // Obtener configuración del quiz
@@ -238,10 +278,25 @@ export async function submitQuizAction(
       }
     }
 
+    // Verificar que el usuario respondió todas las preguntas — sin esto el intento
+    // se grabaría con score=0 y consumiría un intento incluso si fue por error de UI/red
+    const providedIds = new Set(Object.keys(validatedAnswers))
+    const allCovered = questions.every(q => providedIds.has(q.id))
+    if (!allCovered) {
+      return {
+        success: false,
+        score: 0,
+        passed: false,
+        attemptNumber: attemptsUsed,
+        attemptsRemaining: quiz.max_attempts - attemptsUsed,
+        error: 'Debes responder todas las preguntas',
+      }
+    }
+
     // Calcular score en el servidor (NO confiar en el cliente)
     let correctCount = 0
     questions.forEach(q => {
-      if (answers[q.id] === q.correct_option) {
+      if (validatedAnswers[q.id] === q.correct_option) {
         correctCount++
       }
     })
@@ -258,7 +313,7 @@ export async function submitQuizAction(
         user_id: user.id,
         score,
         status,
-        answers,
+        answers: validatedAnswers,
       })
       .select('id, attempt_number')
       .single()
@@ -283,6 +338,18 @@ export async function submitQuizAction(
     // Si aprobó, marcar el módulo como completo y verificar si el curso se completó
     if (passed) {
       const progressResult = await markModuleCompleteAction(moduleId, courseId)
+      if (!progressResult.success) {
+        // El intento aprobado quedó guardado pero no se pudo marcar el módulo
+        // como completo: el cliente reintentará desde QuizClient.handleContinue.
+        console.error('[submitQuizAction] markModuleCompleteAction failed after passing attempt', {
+          userId: user.id,
+          courseId,
+          moduleId,
+          quizId,
+          attemptId: newAttempt?.id,
+          error: progressResult.error,
+        })
+      }
       courseCompleted = progressResult.courseCompleted || false
 
       // Generar certificado SOLO si todo el curso está completo
@@ -291,7 +358,14 @@ export async function submitQuizAction(
           const { generateCertificateAction } = await import('./certificates')
           await generateCertificateAction(newAttempt.id, courseId)
         } catch (certError) {
-          console.error('Error generando certificado:', certError)
+          console.error('[submitQuizAction] generateCertificateAction failed', {
+            userId: user.id,
+            courseId,
+            moduleId,
+            quizId,
+            attemptId: newAttempt?.id,
+            error: certError,
+          })
         }
       }
     }

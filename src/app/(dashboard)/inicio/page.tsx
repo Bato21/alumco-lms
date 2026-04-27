@@ -22,7 +22,7 @@ export default async function InicioPage() {
 
   const { data: courses } = await supabase
     .from('courses')
-    .select('id, title, deadline, deadline_description, is_published')
+    .select('id, title, deadline, deadline_description, is_published, target_areas')
     .eq('is_published', true)
     .order('order_index')
 
@@ -118,18 +118,8 @@ export default async function InicioPage() {
         />
       )}
 
-      {/* Saludo */}
-      <section>
-        <h1 className="text-3xl font-extrabold text-[#1A1A2E]">
-          Hola, {firstName}
-        </h1>
-        <p className="text-[#6B7280] font-medium mt-1">
-          {sedeName}{areaName && ` · ${areaName}`}
-        </p>
-      </section>
-
       {/* Hero Banner — negative margins to break out of layout padding */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] h-48 lg:h-52 flex items-center px-6 lg:px-10 -mx-4 lg:-mx-8">
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] h-52 lg:h-56 flex items-center px-6 lg:px-10 -mx-4 lg:-mx-8">
         {/* Decorative circles */}
         <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
           <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
@@ -137,9 +127,12 @@ export default async function InicioPage() {
           <div className="absolute right-[20px] bottom-[-40px] w-48 h-48 rounded-full bg-[#E74C3C] opacity-10" />
         </div>
         <div className="relative z-10 max-w-2xl">
-          <h2 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight mb-2">
+          <p className="text-white/60 text-sm font-medium mb-1">
+            {sedeName}{areaName && ` · ${areaName}`}
+          </p>
+          <h1 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight mb-2">
             {heroBannerTitle}
-          </h2>
+          </h1>
           <p className="text-white/75 text-sm mb-5">
             Llevas {completedCount} cursos completados de {totalCourses}.
           </p>

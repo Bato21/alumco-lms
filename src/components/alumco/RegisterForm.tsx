@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState } from 'react'
 import { registerRequestAction, type ActionResult } from '@/lib/actions/registro'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'

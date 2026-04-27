@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 interface AdminAlert {
   courseId: string
@@ -26,6 +27,9 @@ export async function getAdminAlerts(): Promise<{
   alerts: AdminAlert[]
 }> {
   try {
+    const auth = await requireAdmin()
+    if (!auth.ok) return { count: 0, alerts: [] }
+
     const adminClient = await createAdminClient()
     const today = new Date()
     today.setHours(0, 0, 0, 0)
