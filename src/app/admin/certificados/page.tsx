@@ -20,13 +20,13 @@ export default async function AdminCertificadosPage() {
         title
       )
     `)
-    .order('issued_at', { ascending: false })
+    .order('issued_at', { ascending: false }) as { data: { id: string; issued_at: string; pdf_url: string | null; user_id: string; course_id: string; courses: { title: string } | { title: string }[] | null }[] | null }
 
   const userIds = [...new Set((certificates ?? []).map((c) => c.user_id))]
   const { data: profiles } = await adminClient
     .from('profiles')
     .select('id, full_name, sede, area_trabajo')
-    .in('id', userIds.length > 0 ? userIds : ['none'])
+    .in('id', userIds.length > 0 ? userIds : ['none']) as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] }[] | null }
 
   const profileMap = Object.fromEntries(
     (profiles ?? []).map((p) => [p.id, p])

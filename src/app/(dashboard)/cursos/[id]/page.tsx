@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
 import { CertificateBadge } from '@/components/alumco/CertificateBadge'
 import Link from 'next/link'
-import type { ContentType, Module, Quiz } from '@/lib/types/database'
+import type { ContentType, Course, Module, Quiz, CourseProgress } from '@/lib/types/database'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: CourseDetailPageProps): Promi
     .from('courses')
     .select('title')
     .eq('id', id)
-    .single()
+    .single() as { data: { title: string } | null }
 
   return {
     title: course?.title ? `${course.title} | Alumco LMS` : 'Curso | Alumco LMS',
@@ -46,7 +46,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .select('*')
     .eq('id', id)
     .eq('is_published', true)
-    .single()
+    .single() as { data: Course | null }
 
   if (!course) {
     notFound()
@@ -57,7 +57,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .from('profiles')
     .select('area_trabajo, role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string; area_trabajo: string[] } | null }
 
   if (accessProfile?.role === 'trabajador') {
     const workerAreas = accessProfile.area_trabajo ?? []
@@ -97,7 +97,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .from('modules')
     .select('*')
     .eq('course_id', id)
-    .order('order_index')
+    .order('order_index') as { data: Module[] | null }
 
   // Fetch user's progress for this course
   const { data: progress } = await supabase
@@ -105,20 +105,20 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .select('*')
     .eq('user_id', user.id)
     .eq('course_id', id)
-    .single()
+    .single() as { data: CourseProgress | null }
 
   // Fetch quiz attempts for this user in this course
   const { data: quizAttempts } = await supabase
     .from('quiz_attempts')
     .select('id, quiz_id, status, score')
-    .eq('user_id', user.id)
+    .eq('user_id', user.id) as { data: { id: string; quiz_id: string; status: string; score: number }[] | null }
 
   // Fetch perfil del usuario para el certificado y control de acceso
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, area_trabajo, role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { full_name: string; area_trabajo: string[]; role: string } | null }
 
   // Fetch certificado si el curso está completado
   const { data: certificate } = await supabase
@@ -126,7 +126,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .select('id, issued_at, pdf_url')
     .eq('user_id', user.id)
     .eq('course_id', id)
-    .single()
+    .single() as { data: { id: string; issued_at: string; pdf_url: string | null } | null }
 
   // Calcular course progress
   const completedModuleIds = progress?.completed_modules || []

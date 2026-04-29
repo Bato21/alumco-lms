@@ -67,13 +67,13 @@ export async function saveQuestionAction(
     if (parsed.data.id) {
       const { error: updateError } = await adminClient
         .from('questions')
-        .update(payload)
+        .update(payload as unknown as never)
         .eq('id', parsed.data.id)
       error = updateError
     } else {
       const { error: insertError } = await adminClient
         .from('questions')
-        .insert(payload)
+        .insert(payload as unknown as never)
       error = insertError
     }
 

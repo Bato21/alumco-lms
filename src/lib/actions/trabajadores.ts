@@ -27,7 +27,7 @@ export async function updateWorkerAction(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const raw = {
@@ -39,13 +39,13 @@ export async function updateWorkerAction(
 
     const parsed = UpdateWorkerSchema.safeParse(raw)
     if (!parsed.success) {
-      return { error: parsed.error.errors[0]?.message ?? 'Datos inválidos' }
+      return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
     }
 
     const adminClient = await createAdminClient()
     const { error } = await adminClient
       .from('profiles')
-      .update(parsed.data)
+      .update(parsed.data as unknown as never)
       .eq('id', profileId)
 
     if (error) return { error: error.message }
@@ -65,13 +65,13 @@ export async function suspendWorkerAction(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
     const { error } = await adminClient
       .from('profiles')
-      .update({ status: 'suspendido' })
+      .update({ status: 'suspendido' } as unknown as never)
       .eq('id', profileId)
 
     if (error) return { error: error.message }
@@ -90,13 +90,13 @@ export async function reactivateWorkerAction(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
     const { error } = await adminClient
       .from('profiles')
-      .update({ status: 'activo' })
+      .update({ status: 'activo' } as unknown as never)
       .eq('id', profileId)
 
     if (error) return { error: error.message }
@@ -141,16 +141,16 @@ export async function getWorkerDetailAction(profileId: string): Promise<
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
 
     const { data: worker, error: workerError } = await adminClient
       .from('profiles')
-      .select('*')
+      .select('id, full_name, rut, sede, area_trabajo, role, status, created_at, approved_at')
       .eq('id', profileId)
-      .single()
+      .single() as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; created_at: string; approved_at: string | null } | null; error: { message: string } | null }
 
     if (workerError || !worker) {
       return { error: workerError?.message ?? 'Trabajador no encontrado' }
@@ -159,14 +159,14 @@ export async function getWorkerDetailAction(profileId: string): Promise<
     const { data: progressRaw, error: progressError } = await adminClient
       .from('course_progress')
       .select('course_id, is_completed, completed_at, completed_modules, courses(id, title)')
-      .eq('user_id', profileId)
+      .eq('user_id', profileId) as { data: { course_id: string; is_completed: boolean; completed_at: string | null; completed_modules: string[] | null; courses: { id: string; title: string } | { id: string; title: string }[] | null }[] | null; error: { message: string } | null }
 
     if (progressError) return { error: progressError.message }
 
     const { data: certsRaw, error: certError } = await adminClient
       .from('certificates')
       .select('id, course_id, issued_at, courses(title)')
-      .eq('user_id', profileId)
+      .eq('user_id', profileId) as { data: { id: string; course_id: string; issued_at: string; courses: { title: string } | { title: string }[] | null }[] | null; error: { message: string } | null }
 
     if (certError) return { error: certError.message }
 
@@ -215,7 +215,7 @@ export async function updateProfileAction(
       .update({
         fecha_nacimiento: fechaNacimiento || null,
         updated_at: new Date().toISOString(),
-      })
+      } as unknown as never)
       .eq('id', userId)
 
     if (error) throw error
@@ -264,7 +264,7 @@ export async function uploadFirmaAction(
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ firma_url: publicUrl })
+      .update({ firma_url: publicUrl } as unknown as never)
       .eq('id', userId)
 
     if (updateError) throw updateError
@@ -292,7 +292,7 @@ export async function deleteFirmaAction(
 
     const { error } = await supabase
       .from('profiles')
-      .update({ firma_url: null })
+      .update({ firma_url: null } as unknown as never)
       .eq('id', userId)
 
     if (error) throw error
@@ -316,7 +316,7 @@ export async function completeOnboardingAction(): Promise<{
 
     const { error } = await supabase
       .from('profiles')
-      .update({ onboarding_completed: true })
+      .update({ onboarding_completed: true } as unknown as never)
       .eq('id', user.id)
 
     if (error) throw error

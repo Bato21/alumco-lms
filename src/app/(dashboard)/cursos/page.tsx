@@ -56,7 +56,7 @@ export default async function CursosPage({
     .from('profiles')
     .select('area_trabajo')
     .eq('id', user!.id)
-    .single()
+    .single() as { data: { area_trabajo: string[] } | null }
 
   const workerAreas = workerProfile?.area_trabajo ?? []
 
@@ -64,21 +64,21 @@ export default async function CursosPage({
     .from('courses')
     .select('id, title, description, thumbnail_url, target_areas')
     .eq('is_published', true)
-    .order('order_index')
+    .order('order_index') as { data: { id: string; title: string; description: string | null; thumbnail_url: string | null; target_areas: string[] }[] | null }
 
   const coursesByArea = filterCoursesByWorkerAreas(courses ?? [], workerAreas)
 
   const { data: progressData } = await supabase
     .from('course_progress')
     .select('course_id, completed_modules, is_completed')
-    .eq('user_id', user!.id)
+    .eq('user_id', user!.id) as { data: { course_id: string; completed_modules: string[]; is_completed: boolean }[] | null }
 
   const courseIds = coursesByArea.map(c => c.id)
 
   const { data: allModules } = await supabase
     .from('modules')
     .select('course_id')
-    .in('course_id', courseIds.length > 0 ? courseIds : ['none'])
+    .in('course_id', courseIds.length > 0 ? courseIds : ['none']) as { data: { course_id: string }[] | null }
 
   const totalModulesByCourse = new Map<string, number>()
   allModules?.forEach(module => {

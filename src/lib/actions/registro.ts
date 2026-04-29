@@ -193,13 +193,11 @@ export async function approveWorkerAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
 
-  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
   if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
   const adminClient = await createAdminClient()
 
-  // Actualizar perfil usando update con match por id
-  // @ts-expect-error: Evitamos el error de tipo 'never' generado por Supabase
   const { error } = await adminClient
     .from('profiles')
     .update({
@@ -209,7 +207,7 @@ export async function approveWorkerAction(
       role: parsed.data.role,
       approved_by: user.id,
       approved_at: new Date().toISOString(),
-    })
+    } as unknown as never)
     .eq('id', parsed.data.profileId)
 
   if (error) {
@@ -227,7 +225,7 @@ export async function rejectWorkerAction(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
 
-  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
   if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
   // Usamos el cliente con privilegios de administrador para saltar el RLS
@@ -241,7 +239,7 @@ export async function rejectWorkerAction(formData: FormData) {
     .from('profiles')
     .select('id, status')
     .eq('id', profileId)
-    .single()
+    .single() as { data: { id: string; status: string } | null; error: { message: string } | null }
 
   if (searchError || !profile) {
     return { error: 'Perfil no encontrado' } // Aquí es donde fallaba antes

@@ -21,7 +21,7 @@ async function validateModuleAccess(
     .select('id')
     .eq('id', moduleId)
     .eq('course_id', courseId)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string } | null }
 
   if (!moduleCheck) {
     return { ok: false, error: 'Módulo no pertenece al curso indicado' }
@@ -31,7 +31,7 @@ async function validateModuleAccess(
     .from('profiles')
     .select('role, area_trabajo')
     .eq('id', userId)
-    .single()
+    .single() as { data: { role: string; area_trabajo: string[] } | null }
 
   if (callerProfile?.role === 'trabajador') {
     const { data: course } = await supabase
@@ -39,7 +39,7 @@ async function validateModuleAccess(
       .select('target_areas, is_published')
       .eq('id', courseId)
       .eq('is_published', true)
-      .maybeSingle()
+      .maybeSingle() as { data: { target_areas: string[]; is_published: boolean } | null }
 
     if (!course) return { ok: false, error: 'Curso no disponible' }
 
@@ -76,7 +76,7 @@ export async function markModuleCompleteAction(
       .select('id, completed_modules, is_completed, completed_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .maybeSingle()
+      .maybeSingle() as { data: { id: string; completed_modules: string[]; is_completed: boolean; completed_at: string | null } | null }
 
     let completedModules: string[]
 
@@ -91,7 +91,7 @@ export async function markModuleCompleteAction(
         .update({
           completed_modules: completedModules,
           last_module_id: moduleId,
-        })
+        } as unknown as never)
         .eq('id', progress.id)
 
       if (error) {
@@ -110,7 +110,7 @@ export async function markModuleCompleteAction(
           last_module_id: moduleId,
           is_completed: false,
           completed_at: null,
-        })
+        } as unknown as never)
 
       if (error) {
         console.error('Error inserting progress:', error)
@@ -123,7 +123,7 @@ export async function markModuleCompleteAction(
     const { data: allModules } = await adminClient
       .from('modules')
       .select('id, content_type')
-      .eq('course_id', courseId)
+      .eq('course_id', courseId) as { data: { id: string; content_type: string }[] | null }
 
     let courseCompleted = false
     if (allModules && allModules.length > 0) {
@@ -139,7 +139,7 @@ export async function markModuleCompleteAction(
         .update({
           is_completed: true,
           completed_at: new Date().toISOString(),
-        })
+        } as unknown as never)
         .eq('user_id', user.id)
         .eq('course_id', courseId)
 
@@ -188,7 +188,7 @@ export async function updateLastModuleAction(
       .select('id')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .maybeSingle()
+      .maybeSingle() as { data: { id: string } | null }
 
     if (progress) {
       const { error } = await supabase
@@ -196,7 +196,7 @@ export async function updateLastModuleAction(
         .update({
           last_module_id: moduleId,
           updated_at: new Date().toISOString(),
-        })
+        } as unknown as never)
         .eq('id', progress.id)
 
       if (error) throw error
@@ -209,7 +209,7 @@ export async function updateLastModuleAction(
           completed_modules: [],
           last_module_id: moduleId,
           is_completed: false,
-        })
+        } as unknown as never)
 
       if (error) throw error
     }
@@ -261,14 +261,14 @@ async function checkAndUpdateCourseCompletion(
     const { data: modules } = await adminClient
       .from('modules')
       .select('id')
-      .eq('course_id', courseId)
+      .eq('course_id', courseId) as { data: { id: string }[] | null }
 
     const { data: progress } = await adminClient
       .from('course_progress')
-      .select('*')
+      .select('id, completed_modules, is_completed, completed_at')
       .eq('user_id', userId)
       .eq('course_id', courseId)
-      .single()
+      .single() as { data: { id: string; completed_modules: string[] | null; is_completed: boolean; completed_at: string | null } | null }
 
     if (!modules || !progress) return { success: true, isComplete: false }
 
@@ -282,7 +282,7 @@ async function checkAndUpdateCourseCompletion(
           is_completed: true,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        })
+        } as unknown as never)
         .eq('id', progress.id)
 
       if (error) throw error
@@ -321,10 +321,10 @@ export async function getCourseProgressAction(
 
     const { data: progress } = await supabase
       .from('course_progress')
-      .select('*')
+      .select('completed_modules, last_module_id, is_completed, completed_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle() as { data: { completed_modules: string[]; last_module_id: string | null; is_completed: boolean; completed_at: string | null } | null }
 
     return {
       success: true,
@@ -359,7 +359,7 @@ export async function resetCourseProgressAction(
     .select('completed_modules, last_module_id')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
-    .single()
+    .maybeSingle() as { data: { completed_modules: string[]; last_module_id: string | null } | null }
 
   if (!progress) return { success: false, error: 'Progreso no encontrado' }
 
@@ -371,7 +371,7 @@ export async function resetCourseProgressAction(
       is_completed: false,
       completed_at: null,
       last_quiz_reset_at: new Date(Date.now() - 1000).toISOString(),
-    })
+    } as unknown as never)
     .eq('user_id', user.id)
     .eq('course_id', courseId)
 

@@ -17,7 +17,7 @@ export async function requireAdmin(): Promise<
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string } | null }
 
   const role = profile?.role
   if (role !== 'admin' && role !== 'profesor') {

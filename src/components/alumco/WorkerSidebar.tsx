@@ -35,7 +35,7 @@ interface WorkerSidebarProps {
   }
 }
 
-function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSidebarProps & { onClose?: () => void }) {
+function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: Omit<WorkerSidebarProps, 'alerts'> & { onClose?: () => void }) {
   const pathname = usePathname()
 
   const handleLinkClick = () => {

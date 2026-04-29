@@ -16,12 +16,14 @@ export interface Profile {
   area_trabajo: AreaTrabajo[]
   fecha_nacimiento: string | null
   avatar_url: string | null
+  firma_url: string | null
   is_active: boolean
   status: ProfileStatus
   rut: string | null
   requested_at: string | null
   approved_by: string | null
   approved_at: string | null
+  onboarding_completed: boolean | null
   created_at: string
   updated_at: string
 }
@@ -61,6 +63,9 @@ export interface Course {
   is_published: boolean
   order_index: number
   created_by: string | null
+  target_areas: AreaTrabajo[] | null
+  deadline: string | null
+  deadline_description: string | null
   created_at: string
   updated_at: string
 }
@@ -75,6 +80,7 @@ export interface Module {
   order_index: number
   duration_mins: number | null
   is_required: boolean
+  is_final_module: boolean
   created_at: string
   updated_at: string
 }
@@ -181,6 +187,7 @@ export interface ReporteAvance {
 
 export interface Database {
   public: {
+    Functions: Record<string, never>
     Tables: {
       profiles: {
         Row: Profile

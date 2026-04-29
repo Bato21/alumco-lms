@@ -7,7 +7,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 interface CourseDeadline {
   id: string
   title: string
-  deadline: string
+  deadline: string | null
   deadlineStatus: 'overdue' | 'soon' | 'ok' | null
   progressPct: number
   status: 'completed' | 'in_progress' | 'not_started'

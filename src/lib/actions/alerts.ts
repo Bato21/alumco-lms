@@ -39,17 +39,17 @@ export async function getAdminAlerts(): Promise<{
       .select('id, title, deadline, target_areas')
       .eq('is_published', true)
       .not('deadline', 'is', null)
-      .order('deadline', { ascending: true })
+      .order('deadline', { ascending: true }) as { data: { id: string; title: string; deadline: string | null; target_areas: string[] | null }[] | null }
 
     const { data: workers } = await adminClient
       .from('profiles')
       .select('id, area_trabajo')
       .eq('role', 'trabajador')
-      .eq('status', 'activo')
+      .eq('status', 'activo') as { data: { id: string; area_trabajo: string[] }[] | null }
 
     const { data: allProgress } = await adminClient
       .from('course_progress')
-      .select('course_id, user_id, is_completed')
+      .select('course_id, user_id, is_completed') as { data: { course_id: string; user_id: string; is_completed: boolean }[] | null }
 
     const alerts: AdminAlert[] = (courses ?? [])
       .flatMap(course => {
@@ -120,7 +120,7 @@ export async function getWorkerAlerts(): Promise<{
       .from('profiles')
       .select('area_trabajo')
       .eq('id', user.id)
-      .single()
+      .single() as { data: { area_trabajo: string[] } | null }
 
     const workerAreas: string[] = profile?.area_trabajo ?? []
 
@@ -128,12 +128,12 @@ export async function getWorkerAlerts(): Promise<{
       .from('courses')
       .select('id, title, deadline, target_areas')
       .eq('is_published', true)
-      .not('deadline', 'is', null)
+      .not('deadline', 'is', null) as { data: { id: string; title: string; deadline: string | null; target_areas: string[] | null }[] | null }
 
     const { data: progress } = await supabase
       .from('course_progress')
       .select('course_id, is_completed')
-      .eq('user_id', user.id)
+      .eq('user_id', user.id) as { data: { course_id: string; is_completed: boolean }[] | null }
 
     const completedIds = new Set(
       progress?.filter(p => p.is_completed).map(p => p.course_id) ?? []

@@ -20,7 +20,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
     .from('courses')
     .select('id, title, description, deadline, deadline_description, is_published, target_areas')
     .eq('id', id)
-    .single()
+    .single() as { data: { id: string; title: string; description: string | null; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null } | null }
 
   if (!course) notFound()
 
@@ -51,7 +51,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       )
     `)
     .eq('course_id', id)
-    .order('order_index')
+    .order('order_index') as { data: { id: string; title: string; content_type: string; content_url: string; order_index: number; duration_mins: number | null; is_required: boolean; quizzes: { id: string; passing_score: number; max_attempts: number; questions: import('@/lib/types/database').Question[] }[] | null }[] | null }
 
   const initialModules: ModuleBlock[] = (modules ?? []).map((m) => ({
     id: m.id,

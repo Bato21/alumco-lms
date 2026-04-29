@@ -24,13 +24,13 @@ export default async function MisCertificadosPage() {
       )
     `)
     .eq('user_id', user.id)
-    .order('issued_at', { ascending: false })
+    .order('issued_at', { ascending: false }) as { data: { id: string; issued_at: string; pdf_url: string | null; course_id: string; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null }[] | null }
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { full_name: string } | null }
 
   const total = certificates?.length ?? 0
 

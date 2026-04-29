@@ -67,7 +67,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
     .from('profiles')
     .select('area_trabajo, role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string; area_trabajo: string[] } | null }
 
   if (accessProfile?.role === 'trabajador') {
     const courseForCheck = course as unknown as { target_areas?: string[] }

@@ -15,7 +15,7 @@ export default async function PerfilPage() {
     .from('profiles')
     .select('id, full_name, rut, sede, area_trabajo, role, status, fecha_nacimiento, avatar_url, firma_url, created_at, approved_at')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; fecha_nacimiento: string | null; avatar_url: string | null; firma_url: string | null; created_at: string; approved_at: string | null } | null }
 
   const role = profile?.role ?? 'trabajador'
   const userId = profile?.id ?? user.id
@@ -39,17 +39,17 @@ export default async function PerfilPage() {
     const { data: createdCourses } = await supabase
       .from('courses')
       .select('id, is_published')
-      .eq('created_by', userId)
+      .eq('created_by', userId) as { data: { id: string; is_published: boolean }[] | null }
 
     const createdCourseIds = (createdCourses ?? []).map(c => c.id)
     totalCreated = createdCourseIds.length
 
-    const { data: progressOnCourses } = createdCourseIds.length > 0
+    const { data: progressOnCourses } = (createdCourseIds.length > 0
       ? await adminClient
           .from('course_progress')
           .select('user_id, is_completed, course_id')
           .in('course_id', createdCourseIds)
-      : { data: [] }
+      : { data: [] }) as { data: { user_id: string; is_completed: boolean; course_id: string }[] }
 
     capacitatedWorkers = new Set(
       (progressOnCourses ?? [])
@@ -57,12 +57,12 @@ export default async function PerfilPage() {
         .map(p => p.user_id)
     ).size
 
-    const { data: certsOnCourses } = createdCourseIds.length > 0
+    const { data: certsOnCourses } = (createdCourseIds.length > 0
       ? await adminClient
           .from('certificates')
           .select('id')
           .in('course_id', createdCourseIds)
-      : { data: [] }
+      : { data: [] }) as { data: { id: string }[] }
 
     totalCerts = certsOnCourses?.length ?? 0
 
@@ -75,12 +75,12 @@ export default async function PerfilPage() {
 
     const quizIds = (quizzesOnCourses as { id: string }[] ?? []).map(q => q.id)
 
-    const { data: attemptsOnCourses } = quizIds.length > 0
+    const { data: attemptsOnCourses } = (quizIds.length > 0
       ? await adminClient
           .from('quiz_attempts')
           .select('status')
           .in('quiz_id', quizIds)
-      : { data: [] }
+      : { data: [] }) as { data: { status: string }[] }
 
     const totalAttempts = attemptsOnCourses?.length ?? 0
     const approvedAttempts = attemptsOnCourses?.filter(
@@ -93,17 +93,17 @@ export default async function PerfilPage() {
     const { data: progress } = await supabase
       .from('course_progress')
       .select('course_id, is_completed, completed_modules')
-      .eq('user_id', user!.id)
+      .eq('user_id', user!.id) as { data: { course_id: string; is_completed: boolean; completed_modules: string[] }[] | null }
 
     const { data: certs } = await supabase
       .from('certificates')
       .select('id')
-      .eq('user_id', user!.id)
+      .eq('user_id', user!.id) as { data: { id: string }[] | null }
 
     const { data: allCourses } = await supabase
       .from('courses')
       .select('id, target_areas')
-      .eq('is_published', true)
+      .eq('is_published', true) as { data: { id: string; target_areas: string[] | null }[] | null }
 
     const workerAreas = (profile?.area_trabajo as string[]) ?? []
     const visibleCourseIds = new Set(

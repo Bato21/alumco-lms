@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
     .from('profiles')
     .select('full_name')
     .eq('id', user!.id)
-    .single()
+    .single() as { data: { full_name: string } | null }
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
 
@@ -39,7 +39,7 @@ export default async function AdminDashboardPage() {
     .from('profiles')
     .select('id')
     .eq('role', 'trabajador')
-    .eq('status', 'activo')
+    .eq('status', 'activo') as { data: { id: string }[] | null }
 
   const totalWorkers = activeWorkers?.length ?? 0
 
@@ -51,14 +51,14 @@ export default async function AdminDashboardPage() {
     .from('course_progress')
     .select('id')
     .eq('is_completed', true)
-    .gte('completed_at', sevenDaysAgo.toISOString())
+    .gte('completed_at', sevenDaysAgo.toISOString()) as { data: { id: string }[] | null }
 
   const coursesCompleted = weekCompletions?.length ?? 0
 
   const { data: inProgressData } = await supabase
     .from('course_progress')
     .select('user_id')
-    .eq('is_completed', false)
+    .eq('is_completed', false) as { data: { user_id: string }[] | null }
 
   const uniqueInProgress = new Set(inProgressData?.map(p => p.user_id) ?? [])
   const inProgress = uniqueInProgress.size
@@ -66,18 +66,18 @@ export default async function AdminDashboardPage() {
   const { data: coursesForCompliance } = await adminClient
     .from('courses')
     .select('id, target_areas')
-    .eq('is_published', true)
+    .eq('is_published', true) as { data: { id: string; target_areas: string[] | null }[] | null }
 
   const { data: workersForCompliance } = await adminClient
     .from('profiles')
     .select('id, area_trabajo')
     .eq('role', 'trabajador')
-    .eq('status', 'activo')
+    .eq('status', 'activo') as { data: { id: string; area_trabajo: string[] }[] | null }
 
   const { data: completedProgress } = await adminClient
     .from('course_progress')
     .select('user_id, course_id')
-    .eq('is_completed', true)
+    .eq('is_completed', true) as { data: { user_id: string; course_id: string }[] | null }
 
   let assignmentsTotal = 0
   let assignmentsCompleted = 0
@@ -102,20 +102,20 @@ export default async function AdminDashboardPage() {
     .select('id, full_name, sede, area_trabajo')
     .eq('role', 'trabajador')
     .eq('status', 'activo')
-    .order('full_name')
+    .order('full_name') as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] }[] | null }
 
   const { data: allProgress } = await adminClient
     .from('course_progress')
-    .select('user_id, course_id, is_completed, completed_at, updated_at')
+    .select('user_id, course_id, is_completed, completed_at, updated_at') as { data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }
 
   const { data: allCertificates } = await adminClient
     .from('certificates')
-    .select('user_id, issued_at')
+    .select('user_id, issued_at') as { data: { user_id: string; issued_at: string }[] | null }
 
   const { data: coursesForStatus } = await adminClient
     .from('courses')
     .select('id, deadline, target_areas')
-    .eq('is_published', true)
+    .eq('is_published', true) as { data: { id: string; deadline: string | null; target_areas: string[] | null }[] | null }
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -189,11 +189,11 @@ export default async function AdminDashboardPage() {
   const { data: allCourses } = await adminClient
     .from('courses')
     .select('id, title')
-    .eq('is_published', true)
+    .eq('is_published', true) as { data: { id: string; title: string }[] | null }
 
   const { data: allCourseProgress } = await adminClient
     .from('course_progress')
-    .select('course_id, is_completed, user_id')
+    .select('course_id, is_completed, user_id') as { data: { course_id: string; is_completed: boolean; user_id: string }[] | null }
 
   const topCourses: CourseCompletion[] = (allCourses ?? [])
     .map((course) => {
@@ -221,7 +221,7 @@ export default async function AdminDashboardPage() {
   const { data: monthCertificates } = await adminClient
     .from('certificates')
     .select('id')
-    .gte('issued_at', startOfMonth.toISOString())
+    .gte('issued_at', startOfMonth.toISOString()) as { data: { id: string }[] | null }
 
   const certificatesThisMonth = monthCertificates?.length ?? 0
 

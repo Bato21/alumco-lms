@@ -22,13 +22,13 @@ export async function generateMetadata({ params }: QuizPageProps): Promise<Metad
     .from('modules')
     .select('title')
     .eq('id', moduleId)
-    .single()
+    .single() as { data: { title: string } | null }
 
   const { data: course } = await supabase
     .from('courses')
     .select('title')
     .eq('id', courseId)
-    .single()
+    .single() as { data: { title: string } | null }
 
   return {
     title: module?.title
@@ -51,7 +51,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .select('target_areas, is_published')
     .eq('id', courseId)
     .eq('is_published', true)
-    .single()
+    .single() as { data: { target_areas: string[]; is_published: boolean } | null }
 
   if (!courseAccess) notFound()
 
@@ -59,7 +59,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .from('profiles')
     .select('area_trabajo, role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string; area_trabajo: string[] } | null }
 
   if (quizProfile?.role === 'trabajador') {
     const hasAccess = filterCoursesByWorkerAreas(
@@ -95,7 +95,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .from('quizzes')
     .select('id, passing_score, max_attempts')
     .eq('module_id', moduleId)
-    .single()
+    .single() as { data: { id: string; passing_score: number; max_attempts: number } | null }
 
   if (!quiz) {
     notFound()
@@ -113,7 +113,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .from('modules')
     .select('id')
     .eq('course_id', courseId)
-    .order('order_index')
+    .order('order_index') as { data: { id: string }[] | null }
 
   // Find previous and next module (the content modules before/after this quiz)
   const moduleIds = modules?.map(m => m.id) || []

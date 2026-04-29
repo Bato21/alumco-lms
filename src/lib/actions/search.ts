@@ -20,7 +20,7 @@ export async function searchAction(query: string): Promise<{
     .from('profiles')
     .select('role, area_trabajo')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string; area_trabajo: string[] } | null }
 
   const role = profile?.role ?? 'trabajador'
   const workerAreas: string[] = profile?.area_trabajo ?? []
@@ -32,7 +32,7 @@ export async function searchAction(query: string): Promise<{
     .select('id, title, is_published, target_areas')
     .ilike('title', qPattern)
     .order('title')
-    .limit(5)
+    .limit(5) as { data: { id: string; title: string; is_published: boolean; target_areas: string[] | null }[] | null }
 
   let courses = (allCourses ?? [])
   if (role === 'trabajador') {
@@ -53,7 +53,7 @@ export async function searchAction(query: string): Promise<{
       .eq('role', 'trabajador')
       .ilike('full_name', qPattern)
       .order('full_name')
-      .limit(5)
+      .limit(5) as { data: { id: string; full_name: string; area_trabajo: string[]; sede: string }[] | null }
 
     workers = (workersData ?? []).map(w => ({
       ...w,

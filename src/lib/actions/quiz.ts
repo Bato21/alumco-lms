@@ -39,7 +39,7 @@ export async function getQuizStatusAction(
       .from('quizzes')
       .select('max_attempts, passing_score')
       .eq('id', quizId)
-      .single()
+      .single() as { data: { max_attempts: number; passing_score: number } | null }
 
     if (!quiz) {
       return {
@@ -60,7 +60,7 @@ export async function getQuizStatusAction(
       .select('last_quiz_reset_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle() as { data: { last_quiz_reset_at: string | null } | null }
 
     const resetAt = progress?.last_quiz_reset_at ?? null
 
@@ -77,7 +77,7 @@ export async function getQuizStatusAction(
       attemptsQuery = attemptsQuery.gt('completed_at', resetAt)
     }
 
-    const { data: attempts } = await attemptsQuery
+    const { data: attempts } = await attemptsQuery as { data: { score: number; status: string; completed_at: string }[] | null }
 
     const attemptsUsed = attempts?.length || 0
     const attemptsRemaining = Math.max(0, maxAttempts - attemptsUsed)
@@ -148,7 +148,7 @@ export async function submitQuizAction(
       .select('id')
       .eq('id', moduleId)
       .eq('course_id', courseId)
-      .single()
+      .single() as { data: { id: string } | null }
 
     if (!moduleCheck) {
       return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Acceso no autorizado' }
@@ -159,7 +159,7 @@ export async function submitQuizAction(
       .select('id')
       .eq('id', quizId)
       .eq('module_id', moduleId)
-      .single()
+      .single() as { data: { id: string } | null }
 
     if (!quizCheck) {
       return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Acceso no autorizado' }
@@ -171,7 +171,7 @@ export async function submitQuizAction(
       .select('target_areas, is_published')
       .eq('id', courseId)
       .eq('is_published', true)
-      .maybeSingle()
+      .maybeSingle() as { data: { target_areas: string[]; is_published: boolean } | null }
 
     if (!course) {
       return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Curso no disponible' }
@@ -181,7 +181,7 @@ export async function submitQuizAction(
       .from('profiles')
       .select('role, area_trabajo')
       .eq('id', user.id)
-      .single()
+      .single() as { data: { role: string; area_trabajo: string[] } | null }
 
     if (callerProfile?.role === 'trabajador') {
       const hasAccess = filterCoursesByWorkerAreas(
@@ -198,7 +198,7 @@ export async function submitQuizAction(
       .from('quizzes')
       .select('max_attempts, passing_score')
       .eq('id', quizId)
-      .single()
+      .single() as { data: { max_attempts: number; passing_score: number } | null }
 
     if (!quiz) {
       return {
@@ -217,7 +217,7 @@ export async function submitQuizAction(
       .select('last_quiz_reset_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle() as { data: { last_quiz_reset_at: string | null } | null }
 
     const resetAt = progress?.last_quiz_reset_at ?? null
 
@@ -232,7 +232,7 @@ export async function submitQuizAction(
       attemptsQuery = attemptsQuery.gt('completed_at', resetAt)
     }
 
-    const { data: attempts } = await attemptsQuery
+    const { data: attempts } = await attemptsQuery as { data: { status: string; completed_at: string }[] | null }
 
     const attemptsUsed = attempts?.length || 0
     const hasPassedBefore = attempts?.some(a => a.status === 'aprobado') || false
@@ -265,7 +265,7 @@ export async function submitQuizAction(
     const { data: questions } = await supabase
       .from('questions')
       .select('id, correct_option')
-      .eq('quiz_id', quizId)
+      .eq('quiz_id', quizId) as { data: { id: string; correct_option: string }[] | null }
 
     if (!questions || questions.length === 0) {
       return {
@@ -315,9 +315,9 @@ export async function submitQuizAction(
         score,
         status,
         answers: validatedAnswers,
-      })
+      } as unknown as never)
       .select('id, attempt_number')
-      .single()
+      .single() as unknown as { data: { id: string; attempt_number: number } | null; error: { message: string } | null }
 
     if (insertError) {
       console.error('Error inserting quiz attempt:', insertError)
@@ -331,7 +331,7 @@ export async function submitQuizAction(
       }
     }
 
-    const attemptNumber = newAttempt?.attempt_number || attemptsUsed + 1
+    const attemptNumber = newAttempt?.attempt_number ?? attemptsUsed + 1
     const attemptsRemaining = quiz.max_attempts - attemptNumber
 
     let courseCompleted = false // Variable para guardar el estado
@@ -357,7 +357,7 @@ export async function submitQuizAction(
       if (courseCompleted) {
         try {
           const { generateCertificateAction } = await import('./certificates')
-          await generateCertificateAction(newAttempt.id, courseId)
+          await generateCertificateAction(newAttempt!.id, courseId)
         } catch (certError) {
           console.error('[submitQuizAction] generateCertificateAction failed', {
             userId: user.id,
@@ -419,7 +419,7 @@ export async function getQuizAttemptsHistoryAction(
     .select('last_quiz_reset_at')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
-    .maybeSingle()
+    .maybeSingle() as { data: { last_quiz_reset_at: string | null } | null }
 
   const resetAt = progress?.last_quiz_reset_at ?? null
 
@@ -434,7 +434,7 @@ export async function getQuizAttemptsHistoryAction(
     query = query.gt('completed_at', resetAt)
   }
 
-  const { data } = await query
+  const { data } = await query as { data: AttemptHistoryRow[] | null }
 
-  return { attempts: (data ?? []) as AttemptHistoryRow[] }
+  return { attempts: data ?? [] }
 }

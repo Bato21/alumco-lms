@@ -86,7 +86,7 @@ export async function createCourseAction(
     .select('order_index')
     .order('order_index', { ascending: false })
     .limit(1)
-    .single()
+    .single() as { data: { order_index: number } | null }
 
   const nextIndex = (lastCourse?.order_index ?? 0) + 1
 
@@ -101,16 +101,16 @@ export async function createCourseAction(
       is_published: false,
       order_index: nextIndex,
       created_by: userId,
-    })
+    } as unknown as never)
     .select('id')
-    .single()
+    .single() as unknown as { data: { id: string } | null; error: { message: string } | null }
 
   if (error) {
     return { error: 'Error al crear el curso. Intenta nuevamente.' }
   }
 
   revalidatePath('/admin/cursos')
-  return { success: true, id: course.id }
+  return { success: true, id: course!.id }
 }
 
 // ── Actualizar curso ───────────────────────────────────────
@@ -144,7 +144,7 @@ export async function updateCourseAction(
       deadline: parsed.data.deadline ?? null,
       deadline_description: parsed.data.deadline_description ?? null,
       target_areas: parsed.data.target_areas,
-    })
+    } as unknown as never)
     .eq('id', courseId)
 
   if (error) {
@@ -168,7 +168,7 @@ export async function togglePublishCourseAction(
   const adminClient = await createAdminClient()
   const { error } = await adminClient
     .from('courses')
-    .update({ is_published: isPublished })
+    .update({ is_published: isPublished } as unknown as never)
     .eq('id', courseId)
 
   if (error) {
@@ -221,7 +221,7 @@ export async function createModuleAction(
     .eq('course_id', courseId)
     .order('order_index', { ascending: false })
     .limit(1)
-    .single()
+    .single() as { data: { order_index: number } | null }
 
   const nextIndex = (lastModule?.order_index ?? 0) + 1
 
@@ -246,14 +246,14 @@ export async function createModuleAction(
         duration_mins: parsed.data.duration_mins ?? null,
         is_required: parsed.data.is_required,
         order_index: nextIndex,
-      })
+      } as unknown as never)
       .select('id')
-      .single()
+      .single() as unknown as { data: { id: string } | null; error: { message: string } | null }
 
     if (error) return { error: 'Error al crear el módulo de video.' }
     await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
-    return { success: true, id: module.id }
+    return { success: true, id: module!.id }
   }
 
   if (contentType === 'pdf') {
@@ -275,14 +275,14 @@ export async function createModuleAction(
         content_url: parsed.data.content_url,
         is_required: parsed.data.is_required,
         order_index: nextIndex,
-      })
+      } as unknown as never)
       .select('id')
-      .single()
+      .single() as unknown as { data: { id: string } | null; error: { message: string } | null }
 
     if (error) return { error: 'Error al crear el módulo PDF.' }
     await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
-    return { success: true, id: module.id }
+    return { success: true, id: module!.id }
   }
 
   if (contentType === 'quiz') {
@@ -305,9 +305,9 @@ export async function createModuleAction(
         content_url: '',
         is_required: true,
         order_index: nextIndex,
-      })
+      } as unknown as never)
       .select('id')
-      .single()
+      .single() as unknown as { data: { id: string } | null; error: { message: string } | null }
 
     if (moduleError) return { error: 'Error al crear el módulo de evaluación.' }
 
@@ -315,19 +315,19 @@ export async function createModuleAction(
     const { data: quiz, error: quizError } = await adminClient
       .from('quizzes')
       .insert({
-        module_id: module.id,
+        module_id: module!.id,
         title: parsed.data.title,
         passing_score: parsed.data.passing_score,
         max_attempts: parsed.data.max_attempts,
-      })
+      } as unknown as never)
       .select('id')
-      .single()
+      .single() as unknown as { data: { id: string } | null; error: { message: string } | null }
 
     if (quizError) return { error: 'Error al crear la evaluación.' }
 
     await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
-    return { success: true, id: module.id, quizId: quiz.id }
+    return { success: true, id: module!.id, quizId: quiz!.id }
   }
 
   return { error: 'Tipo de módulo no válido.' }
@@ -352,7 +352,7 @@ export async function updateModuleAction(
 
   const { error } = await adminClient
     .from('modules')
-    .update({ title })
+    .update({ title } as unknown as never)
     .eq('id', moduleId)
 
   if (error) return { error: 'Error al actualizar el módulo.' }
@@ -397,7 +397,7 @@ export async function reorderModulesAction(
   const updates = modules.map(({ id, order_index }) =>
     adminClient
       .from('modules')
-      .update({ order_index })
+      .update({ order_index } as unknown as never)
       .eq('id', id)
   )
 
@@ -423,7 +423,7 @@ async function syncFinalModule(courseId: string) {
     .from('modules')
     .select('id')
     .eq('course_id', courseId)
-    .order('order_index', { ascending: true })
+    .order('order_index', { ascending: true }) as { data: { id: string }[] | null }
 
   if (!modules || modules.length === 0) return
 
@@ -432,13 +432,13 @@ async function syncFinalModule(courseId: string) {
   // 2. Le quitamos la etiqueta a todos los que NO son el último
   await adminClient
     .from('modules')
-    .update({ is_final_module: false })
+    .update({ is_final_module: false } as unknown as never)
     .eq('course_id', courseId)
     .neq('id', lastModuleId)
 
   // 3. Le ponemos la etiqueta exclusivamente al último
   await adminClient
     .from('modules')
-    .update({ is_final_module: true })
+    .update({ is_final_module: true } as unknown as never)
     .eq('id', lastModuleId)
 }
