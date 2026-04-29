@@ -9,41 +9,42 @@ interface QuizQuestionsEditorProps {
   quizId: string
   courseId: string
   existingQuestions: Question[]
+  onDirty?: () => void
 }
 
 export default function QuizQuestionsEditor({
   quizId,
   courseId,
   existingQuestions,
+  onDirty,
 }: QuizQuestionsEditorProps) {
-  // Estado local para actualización optimista
   const [questions, setQuestions] = useState<Question[]>(existingQuestions)
   const [isPending, startTransition] = useTransition()
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  function handleQuestionSaved() {
-    // Forzar recarga de preguntas desde el servidor
-    // usando una key que cambia para remontar el componente
-    startTransition(async () => {
+  async function handleQuestionSaved() {
+    try {
       const { getQuestionsAction } = await import('@/lib/actions/admin-questions')
       const result = await getQuestionsAction(quizId)
       if (result.success && result.questions) {
         setQuestions(result.questions)
+        onDirty?.()
       }
-    })
+    } catch {
+      // preguntas ya guardadas en DB — la lista se actualizará en próxima apertura
+    }
   }
 
   function handleDelete(questionId: string) {
     if (!confirm('¿Eliminar esta pregunta?')) return
 
-    // Actualización optimista
     setQuestions(prev => prev.filter(q => q.id !== questionId))
     setDeletingId(questionId)
+    onDirty?.()
 
     startTransition(async () => {
       const result = await deleteQuestionAction(questionId, courseId)
       if (!result.success) {
-        // Revertir si falla
         setQuestions(existingQuestions)
       }
       setDeletingId(null)

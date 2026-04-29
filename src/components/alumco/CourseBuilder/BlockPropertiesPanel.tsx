@@ -21,6 +21,7 @@ export function BlockPropertiesPanel({
   const [title, setTitle] = useState(module.title)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [quizDirty, setQuizDirty] = useState(false)
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -157,6 +158,7 @@ export function BlockPropertiesPanel({
               quizId={module.quiz.id}
               courseId={courseId}
               existingQuestions={module.quiz.questions ?? []}
+              onDirty={() => setQuizDirty(true)}
             />
           </div>
         )}
@@ -182,7 +184,7 @@ export function BlockPropertiesPanel({
           </button>
           <button
             type="submit"
-            disabled={isPending || title === module.title}
+            disabled={isPending || (title === module.title && !quizDirty)}
             className="flex-1 h-12 lg:h-10 rounded-lg bg-[#2B4FA0] text-white text-sm font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : 'Guardar'}

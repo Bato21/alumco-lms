@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
 import { BookOpen } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Mis Cursos | Alumco LMS' }
@@ -11,6 +11,7 @@ interface CourseWithProgress {
   title: string
   description: string | null
   thumbnail_url: string | null
+  target_areas: string[]
   total_modules: number
   completed_modules: number
   status: 'completed' | 'in_progress' | 'not_started'
@@ -179,7 +180,10 @@ export default async function CursosPage({
                 className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col"
               >
                 {/* Gradient header */}
-                <div className="h-40 relative bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] flex items-end p-5">
+                <div
+                  className="h-40 relative flex items-end p-5"
+                  style={{ background: getCourseGradient(course.target_areas ?? []) }}
+                >
                   {/* Status badge */}
                   <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${config.badgeClass}`}>
                     {config.label}

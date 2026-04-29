@@ -295,10 +295,11 @@ export async function submitQuizAction(
 
     // Calcular score en el servidor (NO confiar en el cliente)
     let correctCount = 0
+    const questionResults: Record<string, boolean> = {}
     questions.forEach(q => {
-      if (validatedAnswers[q.id] === q.correct_option) {
-        correctCount++
-      }
+      const isCorrect = validatedAnswers[q.id] === q.correct_option
+      questionResults[q.id] = isCorrect
+      if (isCorrect) correctCount++
     })
 
     const score = Math.round((correctCount / questions.length) * 100)
@@ -380,7 +381,8 @@ export async function submitQuizAction(
       passed,
       attemptNumber,
       attemptsRemaining,
-      courseCompleted, // Devolvemos si se completó el curso
+      courseCompleted,
+      questionResults,
     }
   } catch (error) {
     console.error('Error submitting quiz:', error)

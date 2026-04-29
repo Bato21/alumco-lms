@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
 import { CertificateBadge } from '@/components/alumco/CertificateBadge'
 import Link from 'next/link'
 import type { ContentType, Module, Quiz } from '@/lib/types/database'
@@ -152,19 +152,44 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     <div className="space-y-6 lg:space-y-8">
 
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm">
-        <Link
-          href="/cursos"
-          className="text-[#6B7280] hover:text-[#2B4FA0] transition-colors"
-        >
-          Mis cursos
-        </Link>
-        <span className="text-[#6B7280]">›</span>
-        <span className="text-[#1A1A2E] font-medium truncate">{course.title}</span>
+      <nav aria-label="Breadcrumb">
+        <ol className="flex items-center gap-1.5 flex-wrap">
+          <li className="flex items-center">
+            <Link
+              href="/cursos"
+              className="text-sm text-[#6B7280] hover:text-[#2B4FA0] transition-colors leading-none"
+              style={{ minHeight: 0, minWidth: 'auto' }}
+            >
+              Mis cursos
+            </Link>
+          </li>
+          <li className="flex items-center">
+            <svg
+              className="h-3.5 w-3.5 text-slate-400 shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </li>
+          <li className="flex items-center">
+            <span className="text-sm font-semibold text-[#1A1A2E] leading-none line-clamp-1">
+              {course.title}
+            </span>
+          </li>
+        </ol>
       </nav>
 
       {/* Hero del curso */}
-      <div className="relative rounded-2xl overflow-hidden h-48 bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] flex items-end p-6">
+      <div
+        className="relative rounded-2xl overflow-hidden h-48 flex items-end p-6"
+        style={{ background: getCourseGradient(course.target_areas ?? []) }}
+      >
         {/* Decorative icon */}
         <div className="absolute top-4 left-6 opacity-10 pointer-events-none" aria-hidden="true">
           <svg className="w-24 h-24 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">

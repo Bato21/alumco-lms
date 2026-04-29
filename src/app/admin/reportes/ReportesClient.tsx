@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   Users, CheckCircle, AlertTriangle, TrendingUp,
   Download, Filter, ChevronDown, ChevronUp
@@ -51,11 +52,17 @@ const AREAS = [
 ]
 
 export function ReportesClient({ workers, courses, areas, stats }: ReportesClientProps) {
+  const searchParams = useSearchParams()
+  const cursoParam = searchParams.get('curso')
+  const initialSearch = cursoParam
+    ? (courses.find(c => c.id === cursoParam)?.title ?? '')
+    : ''
+
   const [sede, setSede] = useState<'todas' | 'sede_1' | 'sede_2'>('todas')
   const [area, setArea] = useState<string>('todas')
   const [estado, setEstado] = useState<'todos' | 'compliant' | 'pendiente' | 'riesgo'>('todos')
   const [expandedWorker, setExpandedWorker] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
 
   const filtered = useMemo(() => {
     return workers.filter(w => {
@@ -64,7 +71,12 @@ export function ReportesClient({ workers, courses, areas, stats }: ReportesClien
       if (estado === 'compliant' && w.progressPct !== 100) return false
       if (estado === 'pendiente' && w.pendingCourses.length === 0) return false
       if (estado === 'riesgo' && w.progressPct >= 50) return false
-      if (search && !w.full_name.toLowerCase().includes(search.toLowerCase())) return false
+      if (search) {
+        const q = search.toLowerCase()
+        const matchesName = w.full_name.toLowerCase().includes(q)
+        const matchesCourse = w.pendingCourses.some(c => c.course_title.toLowerCase().includes(q))
+        if (!matchesName && !matchesCourse) return false
+      }
       return true
     }).sort((a, b) => a.progressPct - b.progressPct)
   }, [workers, sede, area, estado, search])

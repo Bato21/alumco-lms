@@ -61,3 +61,54 @@ export function filterCoursesByWorkerAreas<T extends { target_areas: string[] }>
 export function escapeIlike(s: string): string {
   return s.replace(/[\\%_]/g, c => `\\${c}`)
 }
+
+// ── Colores por área de trabajo ───────────────────────────
+export const AREA_COLORS: Record<string, string> = {
+  'Enfermería':              '#E05252',
+  'Auxiliar de enfermería':  '#E07B52',
+  'Kinesiología':            '#27AE60',
+  'Terapia ocupacional':     '#2A9D8F',
+  'Nutrición':               '#F5A623',
+  'Trabajo social':          '#7B6CF6',
+  'Psicología':              '#A855B5',
+  'Administración':          '#2B4FA0',
+  'Dirección técnica':       '#1A2F6B',
+  'Geriatría':               '#0891B2',
+}
+
+const DEFAULT_GRADIENT = 'linear-gradient(135deg, #1A2F6B 0%, #2B4FA0 100%)'
+
+export function getCourseGradient(targetAreas: string[]): string {
+  if (!targetAreas || targetAreas.length === 0) {
+    return DEFAULT_GRADIENT
+  }
+
+  const colors = targetAreas
+    .map(area => AREA_COLORS[area])
+    .filter(Boolean)
+
+  if (colors.length === 0) {
+    return DEFAULT_GRADIENT
+  }
+
+  if (colors.length === 1) {
+    const hex = colors[0]
+    const darker = darkenHex(hex, 25)
+    return `linear-gradient(135deg, ${darker} 0%, ${hex} 100%)`
+  }
+
+  const stops = colors.map((color, i) => {
+    const pct = Math.round((i / (colors.length - 1)) * 100)
+    return `${color} ${pct}%`
+  }).join(', ')
+
+  return `linear-gradient(135deg, ${stops})`
+}
+
+function darkenHex(hex: string, percent: number): string {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = Math.max(0, (num >> 16) - Math.round(255 * percent / 100))
+  const g = Math.max(0, ((num >> 8) & 0xff) - Math.round(255 * percent / 100))
+  const b = Math.max(0, (num & 0xff) - Math.round(255 * percent / 100))
+  return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('')
+}

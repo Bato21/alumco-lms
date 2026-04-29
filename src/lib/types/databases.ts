@@ -117,6 +117,7 @@ export interface QuizSubmitResult {
   attemptsRemaining: number
   error?: string
   courseCompleted?: boolean
+  questionResults?: Record<string, boolean>
 }
 
 export interface QuizStatus {

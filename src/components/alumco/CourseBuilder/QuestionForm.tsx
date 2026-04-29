@@ -46,9 +46,15 @@ export default function QuestionForm({
 
   function removeOption(id: string) {
     if (options.length <= 2) return
-    const updated = options.filter(o => o.id !== id)
-    setOptions(updated)
-    if (correctOption === id) setCorrectOption(updated[0].id)
+    const filtered = options.filter(o => o.id !== id)
+    const reassigned = filtered.map((o, i) => ({ ...o, id: OPTION_IDS[i] }))
+    setOptions(reassigned)
+    if (correctOption === id) {
+      setCorrectOption(OPTION_IDS[0])
+    } else {
+      const idx = filtered.findIndex(o => o.id === correctOption)
+      setCorrectOption(OPTION_IDS[idx])
+    }
   }
 
   async function handleSubmit() {

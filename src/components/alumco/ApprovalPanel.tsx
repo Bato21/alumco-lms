@@ -27,6 +27,7 @@ export function ApprovalPanel({
   // Selector de área
   const [areaMode, setAreaMode] = useState<'single' | 'multi'>('single')
   const [selectedAreas, setSelectedAreas] = useState<string[]>([])
+  const [selectedRole, setSelectedRole] = useState('trabajador')
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -71,7 +72,7 @@ export function ApprovalPanel({
   }
 
   function handleSubmit(formData: FormData) {
-    if (areaMode === 'multi' && selectedAreas.length === 0) {
+    if (selectedRole === 'trabajador' && areaMode === 'multi' && selectedAreas.length === 0) {
       setError('Selecciona al menos un área')
       return
     }
@@ -186,6 +187,7 @@ export function ApprovalPanel({
                 </div>
 
                 {/* Área de trabajo */}
+                {selectedRole === 'trabajador' && (
                 <div className="space-y-2">
                   <Label className="text-sm font-semibold text-[#1A1A2E]">
                     Área de trabajo
@@ -310,6 +312,7 @@ export function ApprovalPanel({
                     </>
                   )}
                 </div>
+                )}
 
                 {/* Rol */}
                 <div className="space-y-3">
@@ -328,6 +331,7 @@ export function ApprovalPanel({
                           name="role"
                           value={value}
                           defaultChecked={value === 'trabajador'}
+                          onChange={e => setSelectedRole(e.target.value)}
                           disabled={isPending}
                           className="h-4 w-4 text-[#2B4FA0] border-gray-300 focus:ring-[#2B4FA0]"
                         />

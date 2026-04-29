@@ -8,7 +8,7 @@ import { resetCourseProgressAction } from '@/lib/actions/progress'
 import type { Question, QuestionOption, UserAnswers, QuizSubmitResult } from '@/lib/types/database'
 import { markModuleCompleteAction } from '@/lib/actions/progress'
 
-type QuizState = 'pre-quiz' | 'taking-quiz' | 'result'
+type QuizState = 'pre-quiz' | 'taking-quiz' | 'summary' | 'result'
 
 interface QuizClientProps {
   courseId: string
@@ -84,7 +84,7 @@ export default function QuizClient({
     const result = await submitQuizAction(quizId, moduleId, courseId, answers)
 
     setQuizResult(result)
-    setQuizState('result')
+    setQuizState('summary')
     setIsSubmitting(false)
   }
 
@@ -477,7 +477,138 @@ const handleContinue = async () => {
     )
   }
 
-  // ESTADO 3: Result
+  // ESTADO 3: Summary — revisión de respuestas antes de ver resultado final
+  if (quizState === 'summary' && quizResult) {
+    const passed = quizResult.passed
+    const questionResults = quizResult.questionResults ?? {}
+    const correctCount = Object.values(questionResults).filter(Boolean).length
+    const totalCount = questions.length
+
+    return (
+      <div className="space-y-4 sm:space-y-6">
+
+        {/* Header de resultado */}
+        <div className={`rounded-2xl p-5 sm:p-6 text-center ${
+          passed
+            ? 'bg-[#EAF3DE] border border-[#27AE60]/20'
+            : 'bg-[#FAECE7] border border-[#E74C3C]/20'
+        }`}>
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 ${
+            passed ? 'bg-[#27AE60]' : 'bg-[#E74C3C]'
+          }`}>
+            {passed ? (
+              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="20,6 9,17 4,12"/>
+              </svg>
+            ) : (
+              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            )}
+          </div>
+          <h2 className={`text-xl font-extrabold mb-1 ${passed ? 'text-[#27500A]' : 'text-[#E74C3C]'}`}>
+            {passed ? '¡Aprobaste!' : 'No aprobaste esta vez'}
+          </h2>
+          <p className={`text-sm ${passed ? 'text-[#27500A]/70' : 'text-[#E74C3C]/80'}`}>
+            Obtuviste{' '}
+            <span className="font-extrabold text-lg">{quizResult.score}%</span>
+            {' '}— {correctCount} de {totalCount} respuestas correctas
+          </p>
+        </div>
+
+        {/* Resumen por pregunta */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-[#1A1A2E] px-1">Revisión de respuestas</h3>
+          {questions.map((question, index) => {
+            const isCorrect = questionResults[question.id] ?? false
+            const userAnswer = answers[question.id]
+            const options = question.options as QuestionOption[]
+            const selectedOption = options.find(o => o.id === userAnswer)
+
+            return (
+              <div
+                key={question.id}
+                className={`rounded-xl border-2 p-4 ${
+                  isCorrect
+                    ? 'border-[#27AE60]/30 bg-[#EAF3DE]/50'
+                    : 'border-[#E74C3C]/30 bg-[#FAECE7]/50'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                    isCorrect ? 'bg-[#27AE60]' : 'bg-[#E74C3C]'
+                  }`}>
+                    {isCorrect ? (
+                      <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20,6 9,17 4,12"/>
+                      </svg>
+                    ) : (
+                      <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-[#6B7280] mb-1">Pregunta {index + 1}</p>
+                    <p className="text-sm font-medium text-[#1A1A2E] mb-2">{question.question_text}</p>
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                      isCorrect
+                        ? 'bg-[#27AE60]/10 text-[#27500A]'
+                        : 'bg-[#E74C3C]/10 text-[#E74C3C]'
+                    }`}>
+                      <span className="font-bold uppercase">{userAnswer})</span>
+                      {selectedOption?.text ?? 'Sin respuesta'}
+                    </div>
+                    {!isCorrect && (
+                      <p className="text-xs text-[#6B7280] mt-1.5">
+                        Revisa el contenido del módulo para encontrar la respuesta correcta.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Botones de acción */}
+        <div className="flex flex-col gap-3 pt-2">
+          <button
+            onClick={() => setQuizState('result')}
+            className={`w-full py-3.5 font-bold rounded-xl text-white transition-colors min-h-[48px] flex items-center justify-center gap-2 ${
+              passed
+                ? 'bg-[#27AE60] hover:bg-[#27AE60]/90'
+                : quizResult.attemptsRemaining > 0
+                  ? 'bg-[#2B4FA0] hover:bg-[#2B4FA0]/90'
+                  : 'bg-[#E74C3C] hover:bg-[#E74C3C]/90'
+            }`}
+          >
+            {passed
+              ? 'Continuar →'
+              : quizResult.attemptsRemaining > 0
+                ? `Reintentar (${quizResult.attemptsRemaining} intento${quizResult.attemptsRemaining !== 1 ? 's' : ''} restante${quizResult.attemptsRemaining !== 1 ? 's' : ''})`
+                : 'Ver resultado final'
+            }
+          </button>
+          {!passed && (
+            <Link
+              href={`/cursos/${courseId}/modulos/${moduleId}`}
+              className="w-full py-3.5 font-semibold rounded-xl border-2 border-slate-200 text-[#1A1A2E] hover:border-[#2B4FA0] transition-colors min-h-[48px] flex items-center justify-center gap-2 text-sm"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Revisar contenido del módulo
+            </Link>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // ESTADO 4: Result
   if (quizState === 'result' && quizResult) {
     const passed = quizResult.passed
     const attemptsRemaining = quizResult.attemptsRemaining

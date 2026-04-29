@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Plus, Calendar, BookOpen } from 'lucide-react'
+import { getCourseGradient } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Gestión de Cursos | Alumco LMS',
@@ -129,7 +130,10 @@ export default async function AdminCursosPage({
                 className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col"
               >
                 {/* Gradient header */}
-                <div className="h-40 relative bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] flex items-end p-5">
+                <div
+                  className="h-40 relative flex items-end p-5"
+                  style={{ background: getCourseGradient(course.target_areas ?? []) }}
+                >
                   {/* Status badge */}
                   <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                     course.is_published
@@ -193,10 +197,10 @@ export default async function AdminCursosPage({
                       Editar
                     </Link>
                     <Link
-                      href={`/cursos/${course.id}`}
+                      href={`/admin/reportes?curso=${course.id}`}
                       className="flex-1 py-2.5 rounded-xl bg-[#2B4FA0] text-white font-semibold text-sm text-center hover:bg-[#1A2F6B] transition-colors"
                     >
-                      Ver curso
+                      Ver reporte
                     </Link>
                   </div>
                 </div>
