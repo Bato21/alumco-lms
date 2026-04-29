@@ -1,204 +1,35 @@
-fix: segunda y tercera pasada QA — 45 bugs resueltos (BUG-26 a BUG-70)
+fix: bugs editor quiz + mejoras UX cursos admin
 
-Cierre completo de las pasadas de QA del 2026-04-25 y 2026-04-26.
-Total de bugs corregidos en este commit: 45 (21 de la pasada 25-abr + 24 de la pasada 26-abr).
-Todos los bugs en src/testing/bugs.md quedan en estado ✅.
+## Bugs corregidos
 
-══════════════════════════════════════════════
-HELPER NUEVO
-══════════════════════════════════════════════
+### Editor de preguntas quiz
+- Botón "Guardar" del quiz quedaba inactivo tras agregar preguntas
+  Causa: estado local no se sincronizaba con DB tras operación exitosa
+  Fix: actualización correcta del estado después de cada pregunta guardada
 
-src/lib/auth/requireAdmin.ts (nuevo archivo)
-· Centraliza la verificación de autenticación + rol admin.
-· Retorna { ok: true, profile } o { ok: false, error }.
-· Ampliado para aceptar también rol 'profesor' (BUG-63).
-· Usado por 14 Server Actions que antes no tenían ningún check.
+- IDs de alternativas se duplicaban al eliminar y reagregar opciones
+  Causa: IDs (a,b,c,d) no se recalculaban tras eliminar una alternativa
+  Fix: reasignación secuencial de IDs después de cada eliminación
+  Fix: ID de nueva alternativa calculado desde options.length actual
+  Fix: correct_option se resetea si se elimina la alternativa correcta
 
-══════════════════════════════════════════════
-SEGURIDAD — SERVER ACTIONS SIN AUTORIZACIÓN
-══════════════════════════════════════════════
+- Error de consola "Encountered two children with the same key 'd'"
+  Causa: duplicación de IDs en el map de alternativas
+  Fix: garantizado por recálculo secuencial de IDs
 
-BUG-28 — updateCourseAction sin rol admin
-BUG-29 — togglePublishCourseAction sin autorización
-BUG-30 — deleteCourseAction sin autorización
-BUG-31 — createModuleAction sin autorización
-BUG-32 — updateModuleAction sin autorización
-BUG-33 — deleteModuleAction sin autorización
-BUG-34 — reorderModulesAction sin autorización
-BUG-35 — createCourseAction solo verificaba auth, no rol
-· Todas las mutaciones de cursos y módulos en lib/actions/courses.ts
-  ahora inician con `requireAdmin()` antes de tocar la base de datos.
+- Botón eliminar alternativa deshabilitado cuando quedan solo 2 opciones
+  Previene estructura rota e inconsistencias en el formulario
 
-BUG-36 — getWorkerDetailAction sin verificación de admin
-· lib/actions/trabajadores.ts: agregado requireAdmin al inicio.
+## Mejoras UX
 
-BUG-37 — getAllCertificatesAction sin verificación de admin
-BUG-38 — generateCertificatePDF sin auth ni check de ownership
-· lib/actions/certificates.ts: requireAdmin en getAllCertificatesAction;
-  verificación userId === auth.uid() en generateCertificatePDF.
+### Vista cursos admin
+- Botón "Ver Curso" renombrado a "Ver reporte"
+- Redirige a /admin/reportes?curso=[id] en vez del dashboard
+- Al llegar desde este botón los reportes se filtran automáticamente
+  por el título del curso seleccionado
 
-BUG-39 — getAdminAlerts sin verificación de admin
-· lib/actions/alerts.ts: requireAdmin agregado.
-
-BUG-47 — registerWorkerAction sin verificación de admin
-· lib/actions/auth.ts: cualquier visitante anónimo podía crear cuentas.
-  Ahora inicia con requireAdmin().
-
-BUG-48 — getQuestionsAction sin auth + expone correct_option
-· lib/actions/admin-questions.ts: cualquier visitante podía obtener todas
-  las respuestas correctas antes de hacer el quiz.
-  Ahora requiere admin y usa createAdminClient() explícitamente.
-
-BUG-49 — saveQuestionAction solo validaba auth, no rol
-BUG-50 — deleteQuestionAction solo validaba auth, no rol
-· Ambas funciones en admin-questions.ts: bloque `user` reemplazado
-  por requireAdmin(). Trabajadores autenticados ya no pueden editar/borrar preguntas.
-
-══════════════════════════════════════════════
-SEGURIDAD — VALIDACIÓN DE ACCESO POR ÁREA
-══════════════════════════════════════════════
-
-BUG-51 — markModuleCompleteAction sin validar módulo→curso
-BUG-52 — markModuleCompleteAction sin verificar área del trabajador
-BUG-53 — updateLastModuleAction sin validación módulo→curso ni área
-· lib/actions/progress.ts: helper interno validateModuleAccess().
-  Verifica que modules.course_id === courseId y, para trabajadores,
-  aplica filterCoursesByWorkerAreas. Ambas actions lo usan antes de
-  cualquier write sobre course_progress.
-
-BUG-54 — submitQuizAction sin verificar área del trabajador
-· lib/actions/quiz.ts: fetch del curso + callerProfile antes de
-  procesar el intento. Trabajadores fuera del área reciben error
-  'No autorizado' sin consumir intento.
-
-BUG-56 — filterCoursesByWorkerAreas retornaba TODOS los cursos
-  cuando workerAreas estaba vacío
-· lib/utils.ts: corregido para retornar únicamente cursos sin
-  restricción de área (target_areas vacío) cuando el trabajador
-  no tiene áreas asignadas. Antes retornaba el catálogo completo.
-
-BUG-57 — rejectWorkerAction no verificaba status='pendiente'
-· lib/actions/registro.ts: un admin podía borrar accidentalmente
-  cuentas activas. Ahora el select incluye `status` y se valida
-  `profile.status === 'pendiente'` antes de llamar deleteUser.
-
-══════════════════════════════════════════════
-SEGURIDAD — VALIDACIÓN DE ENTRADAS
-══════════════════════════════════════════════
-
-BUG-55 — submitQuizAction sin validar que respuestas sean 'a'|'b'|'c'|'d'
-· lib/actions/quiz.ts: AnswersSchema Zod (record uuid → enum a/b/c/d)
-  parsea answers al inicio, antes de cualquier query.
-  validatedAnswers reemplaza answers en el resto de la función.
-
-BUG-58 — RUT no normalizado → duplicados con distinto formato
-· lib/actions/registro.ts: helper normalizarRut() elimina puntos,
-  guiones y normaliza a mayúsculas. Aplicado en la búsqueda de
-  duplicados y en options.data.rut del signUp.
-
-BUG-59 — submitQuizAction permitía respuestas vacías y consumía un intento
-· lib/actions/quiz.ts: verificación allCovered (preguntas del quiz
-  vs claves de validatedAnswers) antes del insert en quiz_attempts.
-  Un envío incompleto retorna error sin descontar intento.
-
-BUG-67 — saveQuestionAction sin validación Zod del payload
-BUG-68 — Sin validar correct_option ∈ {a,b,c,d} ni options.length === 4
-· lib/actions/admin-questions.ts: QuestionInputSchema Zod con
-  quiz_id uuid, options array de exactamente 4 elementos con ids
-  únicos {a,b,c,d}, correct_option enum, refine de ids únicos.
-  Cubre ambos bugs con un solo schema.
-
-══════════════════════════════════════════════
-LÓGICA DE NEGOCIO — QUIZ Y PROGRESO
-══════════════════════════════════════════════
-
-BUG-60 — resetModuleProgressAction con API engañosa
-· lib/actions/progress.ts: renombrada a resetCourseProgressAction(courseId).
-  Firma limpia: solo recibe courseId. Consumidores actualizados:
-  QuizClient.tsx y quiz/page.tsx.
-
-BUG-66 — submitQuizAction no transaccional
-· lib/actions/quiz.ts: no es posible usar transacción Postgres desde
-  Server Actions sin una RPC. Solución aplicada (Opción C): logging
-  estructurado con { userId, courseId, quizId, attemptId } en todos
-  los puntos de fallo post-insert para auditoría y diagnóstico futuro.
-
-══════════════════════════════════════════════
-DATOS Y FILTROS
-══════════════════════════════════════════════
-
-BUG-26 — inicio/page.tsx no incluía target_areas en select
-· Los cursos de inicio no traían target_areas → filtro de área ignorado.
-  Añadido al select.
-
-BUG-27 — cursos/page.tsx no incluía target_areas en select
-· Mismo problema en el catálogo de cursos del trabajador. Añadido al select.
-
-BUG-41 — WorkerProgress.area_trabajo tipado como string en lugar de string[]
-· admin/dashboard/page.tsx: interfaz WorkerProgress corregida a
-  area_trabajo: string[]. Eliminado cast implícito.
-
-BUG-43 — Card "Cumplimiento" mostraba approval rate de quizzes
-· admin/dashboard/page.tsx: recalculado como completion rate real
-  (trabajadores con curso completado / total relevante por área).
-
-BUG-45 — notStartedCount solo contaba filas en course_progress
-· perfil/page.tsx: totalCourses ahora es el total de cursos publicados
-  en el área del trabajador. notStarted = total − (inProgress + completed).
-
-══════════════════════════════════════════════
-AUTENTICACIÓN
-══════════════════════════════════════════════
-
-BUG-62 — forgotPasswordAction sin fallback de NEXT_PUBLIC_SITE_URL
-· lib/actions/auth.ts: siteUrl con fallback 'https://alumco-lms.vercel.app'.
-  Elimina el enlace roto 'undefined/auth/reset-password' en entornos
-  sin la variable de entorno.
-
-BUG-63 — requireAdmin rechazaba 'profesor' aunque el layout admin lo permite
-· lib/auth/requireAdmin.ts: condición ampliada a
-  role !== 'admin' && role !== 'profesor'. Tipo de retorno actualizado.
-
-BUG-65 — LoginSchema aceptaba ≥6 chars, RegisterSchema exigía ≥8
-· lib/actions/auth.ts: LoginSchema.password actualizado a min(8).
-
-══════════════════════════════════════════════
-BASE DE DATOS — CONSULTAS
-══════════════════════════════════════════════
-
-BUG-40 — drawFirma fetch sin timeout → colgaría indefinidamente
-· lib/actions/certificates.ts: AbortController con 5 s, clearTimeout
-  en éxito. Mismo patrón que BUG-16 para el logo.
-
-BUG-61 — searchAction no escapaba % y _ en ilike
-· lib/actions/search.ts + lib/utils.ts: helper escapeIlike() aplica
-  escape a \, % y _ antes de construir el patrón. Aplicado a title
-  y full_name en searchAction.
-
-BUG-64 — getCertificateAction y existing usaban .single() cuando la fila puede no existir
-· lib/actions/certificates.ts: ambas queries cambiadas a .maybeSingle().
-  Elimina error PGRST116 en logs para certificados inexistentes.
-
-══════════════════════════════════════════════
-UI Y CONSISTENCIA
-══════════════════════════════════════════════
-
-BUG-42 — Tabs "Sede Hualpén"/"Sede Coyhaique" eran decorativas sin función
-· admin/dashboard/page.tsx: eliminados los botones de tab por sede.
-  El dashboard ya filtra por área, las sedes no aportan filtrado adicional.
-
-BUG-44 — Input fecha_nacimiento sin atributo max → permitía fechas futuras
-· perfil/ProfileClient.tsx: max={new Date().toISOString().split('T')[0]}
-  añadido al input type="date".
-
-BUG-46 — recentActivity usaba key={i} (índice) → identidad inestable
-· admin/dashboard/page.tsx: key cambiado a compuesta
-  `${item.userId}-${item.courseId}-${item.updatedAt}`.
-
-BUG-69 — <img> en lugar de next/image para avatarUrl y firmaUrl
-· perfil/ProfileClient.tsx: reemplazados ambos <img> por <Image>
-  de next/image con width/height explícitos y unoptimized para
-  URLs de Supabase Storage.
-
-BUG-70 — useState importado sin usar en RegisterForm.tsx
-· components/alumco/RegisterForm.tsx: eliminado el import de useState.
+### Reportes
+- ReportesClient lee parámetro ?curso= de la URL al montar
+- Inicializa el filtro de búsqueda con el título del curso
+  cuando viene desde la vista de cursos admin
+- Prop courses añadida a ReportesClient para resolver el título
