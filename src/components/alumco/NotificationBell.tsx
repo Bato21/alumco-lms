@@ -76,8 +76,8 @@ export function NotificationBell({ initialAlerts, role }: NotificationBellProps)
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-2xl
-          shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-100 z-50
+        <div className="fixed right-4 top-[66px] sm:absolute sm:right-0 sm:top-full sm:mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-sm min-w-[280px] sm:min-w-[320px] bg-white rounded-2xl
+          shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-100 z-[60]
           overflow-hidden">
 
           {/* Header */}

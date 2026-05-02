@@ -1,6 +1,5 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, BookOpen, User, Award, X, Menu } from 'lucide-react'
@@ -46,15 +45,48 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: WorkerSide
     <>
       {/* Logo */}
       <div className="flex flex-col items-center justify-center py-6 border-b border-white/10 mb-2">
-        <Image
-          src="/LogoAlumco.png"
-          alt="Alumco LMS"
-          width={160}
-          height={54}
-          className="object-contain brightness-0 invert"
-          priority
-        />
-        <span className="mt-2 text-white/40 text-xs tracking-widest uppercase">KimünKo</span>
+        <svg
+          viewBox="0 0 200 64"
+          width="160"
+          height="54"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-label="KimünKo"
+          role="img"
+        >
+          <path
+            d="M22 2 C22 2 4 19 4 30 C4 41 12 49 22 49 C32 49 40 41 40 30 C40 19 22 2 22 2Z"
+            fill="#F5A623"
+          />
+          <ellipse
+            cx="16"
+            cy="26"
+            rx="4"
+            ry="7"
+            fill="white"
+            opacity="0.25"
+            transform="rotate(-20 16 26)"
+          />
+          <text
+            x="48"
+            y="36"
+            fontFamily="system-ui, -apple-system, sans-serif"
+            fontSize="24"
+            fontWeight="800"
+            letterSpacing="-0.5"
+          >
+            <tspan fill="white">Kimün</tspan><tspan fill="#F5A623">Ko</tspan>
+          </text>
+          <text
+            x="48"
+            y="52"
+            fontFamily="system-ui, -apple-system, sans-serif"
+            fontSize="8"
+            fill="rgba(255,255,255,0.4)"
+            letterSpacing="2"
+          >
+            sabiduría del agua
+          </text>
+        </svg>
       </div>
 
       {/* Navegación */}
@@ -137,14 +169,30 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl, alerts }: Worke
 
       {/* Mobile Header - solo visible en mobile/tablet */}
       <header className="lg:hidden sticky top-0 z-50 bg-[#1A2F6B] border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <Image
-          src="/LogoAlumco.png"
-          alt="Alumco LMS"
-          width={120}
-          height={41}
-          className="object-contain brightness-0 invert"
-          priority
-        />
+        <svg
+          viewBox="0 0 200 64"
+          width="120"
+          height="41"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-label="KimünKo"
+          role="img"
+        >
+          <path
+            d="M22 2 C22 2 4 19 4 30 C4 41 12 49 22 49 C32 49 40 41 40 30 C40 19 22 2 22 2Z"
+            fill="#F5A623"
+          />
+          <ellipse
+            cx="16"
+            cy="26"
+            rx="4"
+            ry="7"
+            fill="white"
+            opacity="0.25"
+            transform="rotate(-20 16 26)"
+          />
+          <text x="48" y="36" fontFamily="system-ui, -apple-system, sans-serif" fontSize="24" fontWeight="800" letterSpacing="-0.5"><tspan fill="white">Kimün</tspan><tspan fill="#F5A623">Ko</tspan></text>
+          <text x="48" y="52" fontFamily="system-ui, -apple-system, sans-serif" fontSize="8" fill="rgba(255,255,255,0.4)" letterSpacing="2">sabiduría del agua</text>
+        </svg>
         <div className="flex items-center gap-1">
           <div className="[&_button]:text-white [&_button:hover]:bg-white/10 [&_button:hover]:text-white [&_button:hover]:rounded-lg">
             <NotificationBell initialAlerts={alerts} role="trabajador" />

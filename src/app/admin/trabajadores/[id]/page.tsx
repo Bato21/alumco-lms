@@ -155,7 +155,7 @@ export default async function WorkerDetailPage(
       </div>
 
       {/* Stats rápidas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4">
         {[
           {
             icon: CheckCircle2,
@@ -186,13 +186,13 @@ export default async function WorkerDetailPage(
             bg: 'bg-[#E6F1FB]',
           },
         ].map(stat => (
-          <div key={stat.label} className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 flex items-center gap-4">
-            <div className={`${stat.bg} rounded-xl p-3 shrink-0`}>
-              <stat.icon className={`h-5 w-5 ${stat.color}`} aria-hidden="true" />
+          <div key={stat.label} className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4 sm:p-5 lg:p-6 flex items-center gap-4">
+            <div className={`${stat.bg} w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0`}>
+              <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-2xl font-bold text-[#1A1A2E]">{stat.value}</p>
-              <p className="text-xs text-[#6B7280] leading-tight mt-0.5">{stat.label}</p>
+              <p className="text-2xl sm:text-3xl font-extrabold text-[#1A1A2E]">{stat.value}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280] mb-1 leading-tight mt-0.5">{stat.label}</p>
             </div>
           </div>
         ))}

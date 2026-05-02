@@ -278,22 +278,22 @@ export default async function AdminDashboardPage() {
     <div className="bg-[#F8F9FA] min-h-screen">
 
       {/* Hero Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] h-48 lg:h-56 flex items-center px-6 lg:px-10">
+      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] min-h-[12rem] lg:h-56 flex items-center px-4 sm:px-6 lg:px-10 py-8 lg:py-0">
         {/* Decorative circles */}
         <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
           <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
           <div className="absolute right-[60px] top-[20px] w-44 h-44 rounded-full bg-[#2B4FA0] opacity-20 border-2 border-white/10" />
           <div className="absolute right-[20px] bottom-[-40px] w-48 h-48 rounded-full bg-[#E74C3C] opacity-10" />
         </div>
-        <div className="relative z-10 max-w-2xl">
+        <div className="relative z-10 max-w-2xl w-full">
           <p className="text-white/60 text-[10px] uppercase tracking-widest font-semibold mb-2">Progreso semanal</p>
-          <h1 className="text-2xl lg:text-4xl font-extrabold text-white leading-tight mb-2">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight mb-2">
             {heroBannerTitle}
           </h1>
-          <p className="text-white/75 text-sm mb-5">
+          <p className="text-white/75 text-xs sm:text-sm mb-5">
             {totalWorkers} colaboradores activos · {coursesCompleted} cursos completados esta semana.
           </p>
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
             <Link
               href="/admin/cursos/nuevo"
               className="px-5 py-2.5 bg-[#F5A623] text-[#1A2F6B] font-bold rounded-lg text-sm hover:bg-[#e0961a] transition-colors"

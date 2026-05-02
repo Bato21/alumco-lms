@@ -1,204 +1,70 @@
-fix: segunda y tercera pasada QA — 45 bugs resueltos (BUG-26 a BUG-70)
-
-Cierre completo de las pasadas de QA del 2026-04-25 y 2026-04-26.
-Total de bugs corregidos en este commit: 45 (21 de la pasada 25-abr + 24 de la pasada 26-abr).
-Todos los bugs en src/testing/bugs.md quedan en estado ✅.
+fix: responsividad mobile, nuevo logo KimünKo y branding login
 
 ══════════════════════════════════════════════
-HELPER NUEVO
+RESPONSIVIDAD MOBILE — 4 COMPONENTES
 ══════════════════════════════════════════════
 
-src/lib/auth/requireAdmin.ts (nuevo archivo)
-· Centraliza la verificación de autenticación + rol admin.
-· Retorna { ok: true, profile } o { ok: false, error }.
-· Ampliado para aceptar también rol 'profesor' (BUG-63).
-· Usado por 14 Server Actions que antes no tenían ningún check.
+src/app/admin/dashboard/page.tsx — FIX 1: Hero banner
+· Altura fija h-48 → min-h-[12rem] con py-8 lg:py-0 para que el
+  contenido no quede cortado en pantallas pequeñas.
+· Padding: px-4 sm:px-6 lg:px-10.
+· Título: text-2xl sm:text-3xl lg:text-4xl.
+· Subtítulo: text-xs sm:text-sm.
+· Botones de acción: flex-col sm:flex-row para apilarse en mobile.
+· Div interno con w-full para ocupar el ancho disponible.
+
+src/app/admin/trabajadores/[id]/page.tsx — FIX 2: Stats cards
+· Grid: grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 (2 columnas en mobile).
+· Padding de cada card: p-4 sm:p-5 lg:p-6.
+· Ícono contenedor: w-8 h-8 sm:w-10 sm:h-10 rounded-full.
+· Número: text-2xl sm:text-3xl font-extrabold.
+· Label: uppercase tracking-wider para consistencia visual.
+
+src/components/alumco/CourseBuilder/QuestionForm.tsx — FIX 3: Editor preguntas
+· Fila de alternativa: flex items-start gap-2 flex-wrap sm:flex-nowrap
+  para que no se desborde en mobile.
+· Radio: mt-2 shrink-0 para alinearse con el texto.
+· Input texto: min-w-0 para respetar el modelo de caja flex.
+· Botón eliminar: shrink-0 mt-1 para no comprimirse.
+· Textarea: min-h-[80px] como mínimo visual.
+· Botón guardar: w-full sm:w-auto con layout flex-col sm:flex-row.
+
+src/components/alumco/NotificationBell.tsx — FIX 4: Dropdown notificaciones
+· Problema raíz: el botón campana tiene el hamburger a su derecha,
+  por lo que right-0 anclaba al borde del botón (~60px del viewport),
+  haciendo que el dropdown se desbordara por la izquierda.
+· Solución: fixed right-4 top-[66px] en mobile para anclar al viewport.
+· Desktop: sm:absolute sm:right-0 sm:top-full sm:mt-2 (comportamiento original).
+· Ancho: w-[calc(100vw-2rem)] sm:w-80 max-w-sm min-w-[280px] sm:min-w-[320px].
+· z-[60] para quedar sobre el header sticky z-50.
 
 ══════════════════════════════════════════════
-SEGURIDAD — SERVER ACTIONS SIN AUTORIZACIÓN
+NUEVO LOGO — KimünKo (SVG inline)
 ══════════════════════════════════════════════
 
-BUG-28 — updateCourseAction sin rol admin
-BUG-29 — togglePublishCourseAction sin autorización
-BUG-30 — deleteCourseAction sin autorización
-BUG-31 — createModuleAction sin autorización
-BUG-32 — updateModuleAction sin autorización
-BUG-33 — deleteModuleAction sin autorización
-BUG-34 — reorderModulesAction sin autorización
-BUG-35 — createCourseAction solo verificaba auth, no rol
-· Todas las mutaciones de cursos y módulos en lib/actions/courses.ts
-  ahora inician con `requireAdmin()` antes de tocar la base de datos.
-
-BUG-36 — getWorkerDetailAction sin verificación de admin
-· lib/actions/trabajadores.ts: agregado requireAdmin al inicio.
-
-BUG-37 — getAllCertificatesAction sin verificación de admin
-BUG-38 — generateCertificatePDF sin auth ni check de ownership
-· lib/actions/certificates.ts: requireAdmin en getAllCertificatesAction;
-  verificación userId === auth.uid() en generateCertificatePDF.
-
-BUG-39 — getAdminAlerts sin verificación de admin
-· lib/actions/alerts.ts: requireAdmin agregado.
-
-BUG-47 — registerWorkerAction sin verificación de admin
-· lib/actions/auth.ts: cualquier visitante anónimo podía crear cuentas.
-  Ahora inicia con requireAdmin().
-
-BUG-48 — getQuestionsAction sin auth + expone correct_option
-· lib/actions/admin-questions.ts: cualquier visitante podía obtener todas
-  las respuestas correctas antes de hacer el quiz.
-  Ahora requiere admin y usa createAdminClient() explícitamente.
-
-BUG-49 — saveQuestionAction solo validaba auth, no rol
-BUG-50 — deleteQuestionAction solo validaba auth, no rol
-· Ambas funciones en admin-questions.ts: bloque `user` reemplazado
-  por requireAdmin(). Trabajadores autenticados ya no pueden editar/borrar preguntas.
+src/components/alumco/AdminSidebar.tsx
+src/components/alumco/WorkerSidebar.tsx
+· LogoAlumco.png reemplazado por SVG inline en las 4 instancias
+  (desktop SidebarContent + mobile header de cada sidebar).
+· SVG compuesto por: gota dorada (#F5A623), brillo interno con
+  opacidad 0.25, texto "KimünKo" con tspan para "Kimün" (blanco)
+  y "Ko" (dorado) en un solo elemento <text> (elimina el espacio
+  que aparecía al usar dos <text> con coordenadas manuales),
+  subtítulo "sabiduría del agua" integrado en el SVG.
+· Eliminado el <span>KimünKo</span> que existía debajo del logo
+  antiguo (ahora el subtítulo vive dentro del SVG).
+· import Image from 'next/image' eliminado de ambos archivos
+  (ya no se referencia en ningún lugar).
 
 ══════════════════════════════════════════════
-SEGURIDAD — VALIDACIÓN DE ACCESO POR ÁREA
+BRANDING LOGIN
 ══════════════════════════════════════════════
 
-BUG-51 — markModuleCompleteAction sin validar módulo→curso
-BUG-52 — markModuleCompleteAction sin verificar área del trabajador
-BUG-53 — updateLastModuleAction sin validación módulo→curso ni área
-· lib/actions/progress.ts: helper interno validateModuleAccess().
-  Verifica que modules.course_id === courseId y, para trabajadores,
-  aplica filterCoursesByWorkerAreas. Ambas actions lo usan antes de
-  cualquier write sobre course_progress.
-
-BUG-54 — submitQuizAction sin verificar área del trabajador
-· lib/actions/quiz.ts: fetch del curso + callerProfile antes de
-  procesar el intento. Trabajadores fuera del área reciben error
-  'No autorizado' sin consumir intento.
-
-BUG-56 — filterCoursesByWorkerAreas retornaba TODOS los cursos
-  cuando workerAreas estaba vacío
-· lib/utils.ts: corregido para retornar únicamente cursos sin
-  restricción de área (target_areas vacío) cuando el trabajador
-  no tiene áreas asignadas. Antes retornaba el catálogo completo.
-
-BUG-57 — rejectWorkerAction no verificaba status='pendiente'
-· lib/actions/registro.ts: un admin podía borrar accidentalmente
-  cuentas activas. Ahora el select incluye `status` y se valida
-  `profile.status === 'pendiente'` antes de llamar deleteUser.
-
-══════════════════════════════════════════════
-SEGURIDAD — VALIDACIÓN DE ENTRADAS
-══════════════════════════════════════════════
-
-BUG-55 — submitQuizAction sin validar que respuestas sean 'a'|'b'|'c'|'d'
-· lib/actions/quiz.ts: AnswersSchema Zod (record uuid → enum a/b/c/d)
-  parsea answers al inicio, antes de cualquier query.
-  validatedAnswers reemplaza answers en el resto de la función.
-
-BUG-58 — RUT no normalizado → duplicados con distinto formato
-· lib/actions/registro.ts: helper normalizarRut() elimina puntos,
-  guiones y normaliza a mayúsculas. Aplicado en la búsqueda de
-  duplicados y en options.data.rut del signUp.
-
-BUG-59 — submitQuizAction permitía respuestas vacías y consumía un intento
-· lib/actions/quiz.ts: verificación allCovered (preguntas del quiz
-  vs claves de validatedAnswers) antes del insert en quiz_attempts.
-  Un envío incompleto retorna error sin descontar intento.
-
-BUG-67 — saveQuestionAction sin validación Zod del payload
-BUG-68 — Sin validar correct_option ∈ {a,b,c,d} ni options.length === 4
-· lib/actions/admin-questions.ts: QuestionInputSchema Zod con
-  quiz_id uuid, options array de exactamente 4 elementos con ids
-  únicos {a,b,c,d}, correct_option enum, refine de ids únicos.
-  Cubre ambos bugs con un solo schema.
-
-══════════════════════════════════════════════
-LÓGICA DE NEGOCIO — QUIZ Y PROGRESO
-══════════════════════════════════════════════
-
-BUG-60 — resetModuleProgressAction con API engañosa
-· lib/actions/progress.ts: renombrada a resetCourseProgressAction(courseId).
-  Firma limpia: solo recibe courseId. Consumidores actualizados:
-  QuizClient.tsx y quiz/page.tsx.
-
-BUG-66 — submitQuizAction no transaccional
-· lib/actions/quiz.ts: no es posible usar transacción Postgres desde
-  Server Actions sin una RPC. Solución aplicada (Opción C): logging
-  estructurado con { userId, courseId, quizId, attemptId } en todos
-  los puntos de fallo post-insert para auditoría y diagnóstico futuro.
-
-══════════════════════════════════════════════
-DATOS Y FILTROS
-══════════════════════════════════════════════
-
-BUG-26 — inicio/page.tsx no incluía target_areas en select
-· Los cursos de inicio no traían target_areas → filtro de área ignorado.
-  Añadido al select.
-
-BUG-27 — cursos/page.tsx no incluía target_areas en select
-· Mismo problema en el catálogo de cursos del trabajador. Añadido al select.
-
-BUG-41 — WorkerProgress.area_trabajo tipado como string en lugar de string[]
-· admin/dashboard/page.tsx: interfaz WorkerProgress corregida a
-  area_trabajo: string[]. Eliminado cast implícito.
-
-BUG-43 — Card "Cumplimiento" mostraba approval rate de quizzes
-· admin/dashboard/page.tsx: recalculado como completion rate real
-  (trabajadores con curso completado / total relevante por área).
-
-BUG-45 — notStartedCount solo contaba filas en course_progress
-· perfil/page.tsx: totalCourses ahora es el total de cursos publicados
-  en el área del trabajador. notStarted = total − (inProgress + completed).
-
-══════════════════════════════════════════════
-AUTENTICACIÓN
-══════════════════════════════════════════════
-
-BUG-62 — forgotPasswordAction sin fallback de NEXT_PUBLIC_SITE_URL
-· lib/actions/auth.ts: siteUrl con fallback 'https://alumco-lms.vercel.app'.
-  Elimina el enlace roto 'undefined/auth/reset-password' en entornos
-  sin la variable de entorno.
-
-BUG-63 — requireAdmin rechazaba 'profesor' aunque el layout admin lo permite
-· lib/auth/requireAdmin.ts: condición ampliada a
-  role !== 'admin' && role !== 'profesor'. Tipo de retorno actualizado.
-
-BUG-65 — LoginSchema aceptaba ≥6 chars, RegisterSchema exigía ≥8
-· lib/actions/auth.ts: LoginSchema.password actualizado a min(8).
-
-══════════════════════════════════════════════
-BASE DE DATOS — CONSULTAS
-══════════════════════════════════════════════
-
-BUG-40 — drawFirma fetch sin timeout → colgaría indefinidamente
-· lib/actions/certificates.ts: AbortController con 5 s, clearTimeout
-  en éxito. Mismo patrón que BUG-16 para el logo.
-
-BUG-61 — searchAction no escapaba % y _ en ilike
-· lib/actions/search.ts + lib/utils.ts: helper escapeIlike() aplica
-  escape a \, % y _ antes de construir el patrón. Aplicado a title
-  y full_name en searchAction.
-
-BUG-64 — getCertificateAction y existing usaban .single() cuando la fila puede no existir
-· lib/actions/certificates.ts: ambas queries cambiadas a .maybeSingle().
-  Elimina error PGRST116 en logs para certificados inexistentes.
-
-══════════════════════════════════════════════
-UI Y CONSISTENCIA
-══════════════════════════════════════════════
-
-BUG-42 — Tabs "Sede Hualpén"/"Sede Coyhaique" eran decorativas sin función
-· admin/dashboard/page.tsx: eliminados los botones de tab por sede.
-  El dashboard ya filtra por área, las sedes no aportan filtrado adicional.
-
-BUG-44 — Input fecha_nacimiento sin atributo max → permitía fechas futuras
-· perfil/ProfileClient.tsx: max={new Date().toISOString().split('T')[0]}
-  añadido al input type="date".
-
-BUG-46 — recentActivity usaba key={i} (índice) → identidad inestable
-· admin/dashboard/page.tsx: key cambiado a compuesta
-  `${item.userId}-${item.courseId}-${item.updatedAt}`.
-
-BUG-69 — <img> en lugar de next/image para avatarUrl y firmaUrl
-· perfil/ProfileClient.tsx: reemplazados ambos <img> por <Image>
-  de next/image con width/height explícitos y unoptimized para
-  URLs de Supabase Storage.
-
-BUG-70 — useState importado sin usar en RegisterForm.tsx
-· components/alumco/RegisterForm.tsx: eliminado el import de useState.
+src/app/(auth)/login/page.tsx
+· Agregado LogoAlumco.png (con sus colores originales, sin filtro
+  brightness-0 invert) centrado encima del recuadro de credenciales
+  en la columna derecha (width=160, height=54).
+· La columna izquierda (branding azul) mantiene el SVG KimünKo
+  con colores invertidos para fondo oscuro.
+· Visible tanto en desktop como en mobile (donde la columna
+  izquierda está oculta con hidden md:flex).

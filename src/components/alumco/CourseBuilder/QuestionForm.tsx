@@ -114,7 +114,7 @@ export default function QuestionForm({
           onChange={e => setQuestionText(e.target.value)}
           disabled={isSubmitting}
           placeholder="¿Cuáles son los momentos críticos para el lavado de manos?"
-          className="w-full px-3 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors resize-none"
+          className="w-full min-h-[80px] px-3 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors resize-none"
         />
       </div>
 
@@ -131,7 +131,7 @@ export default function QuestionForm({
 
         <div className="space-y-2">
           {options.map((option) => (
-            <div key={option.id} className="flex items-center gap-2">
+            <div key={option.id} className="flex items-start gap-2 flex-wrap sm:flex-nowrap w-full">
               {/* Radio correcta */}
               <input
                 type="radio"
@@ -140,12 +140,12 @@ export default function QuestionForm({
                 checked={correctOption === option.id}
                 onChange={e => setCorrectOption(e.target.value)}
                 disabled={isSubmitting}
-                className="h-5 w-5 text-[#27AE60] focus:ring-[#27AE60] cursor-pointer shrink-0"
+                className="h-5 w-5 text-[#27AE60] focus:ring-[#27AE60] cursor-pointer shrink-0 mt-2"
                 title={`Marcar ${option.id.toUpperCase()} como correcta`}
               />
 
               {/* Label */}
-              <span className="font-bold text-muted-foreground w-5 shrink-0 text-sm">
+              <span className="font-bold text-muted-foreground w-5 shrink-0 text-sm mt-2">
                 {option.id.toUpperCase()}.
               </span>
 
@@ -156,7 +156,7 @@ export default function QuestionForm({
                 onChange={e => handleOptionChange(option.id, e.target.value)}
                 disabled={isSubmitting}
                 placeholder={`Alternativa ${option.id.toUpperCase()}`}
-                className={`flex-1 h-9 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors ${
+                className={`flex-1 min-w-0 h-9 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors ${
                   correctOption === option.id
                     ? 'border-[#27AE60] bg-[#EAF3DE]/40'
                     : 'border-input bg-background'
@@ -169,7 +169,7 @@ export default function QuestionForm({
                   type="button"
                   onClick={() => removeOption(option.id)}
                   disabled={isSubmitting}
-                  className="p-1.5 rounded-md hover:bg-[#FAECE7] text-muted-foreground hover:text-[#E74C3C] transition-colors shrink-0"
+                  className="p-1.5 rounded-md hover:bg-[#FAECE7] text-muted-foreground hover:text-[#E74C3C] transition-colors shrink-0 mt-1"
                   aria-label={`Eliminar alternativa ${option.id.toUpperCase()}`}
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -207,12 +207,12 @@ export default function QuestionForm({
       )}
 
       {/* Guardar */}
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:justify-end">
         <button
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="px-5 h-10 bg-[#27AE60] text-white text-sm font-semibold rounded-lg hover:bg-[#27AE60]/90 transition-colors disabled:opacity-50"
+          className="w-full sm:w-auto px-5 h-10 bg-[#27AE60] text-white text-sm font-semibold rounded-lg hover:bg-[#27AE60]/90 transition-colors disabled:opacity-50"
         >
           {isSubmitting ? 'Guardando...' : 'Guardar pregunta'}
         </button>
