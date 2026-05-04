@@ -13,7 +13,7 @@ export default async function ReportesPage() {
     .select('id, full_name, sede, area_trabajo')
     .eq('role', 'trabajador')
     .eq('status', 'activo')
-    .order('full_name') as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] }[] | null }
+    .order('full_name') as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }
 
   const { data: courses } = await adminClient
     .from('courses')

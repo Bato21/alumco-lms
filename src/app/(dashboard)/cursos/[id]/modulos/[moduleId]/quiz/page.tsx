@@ -51,7 +51,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .select('target_areas, is_published')
     .eq('id', courseId)
     .eq('is_published', true)
-    .single() as { data: { target_areas: string[]; is_published: boolean } | null }
+    .single() as { data: { target_areas: string[] | null; is_published: boolean } | null }
 
   if (!courseAccess) notFound()
 
@@ -59,7 +59,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .from('profiles')
     .select('area_trabajo, role')
     .eq('id', user.id)
-    .single() as { data: { role: string; area_trabajo: string[] } | null }
+    .single() as { data: { area_trabajo: string[] | null; role: string } | null }
 
   if (quizProfile?.role === 'trabajador') {
     const hasAccess = filterCoursesByWorkerAreas(

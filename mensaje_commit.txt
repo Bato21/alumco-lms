@@ -1,35 +1,70 @@
-fix: bugs editor quiz + mejoras UX cursos admin
+fix: responsividad mobile, nuevo logo KimünKo y branding login
 
-## Bugs corregidos
+══════════════════════════════════════════════
+RESPONSIVIDAD MOBILE — 4 COMPONENTES
+══════════════════════════════════════════════
 
-### Editor de preguntas quiz
-- Botón "Guardar" del quiz quedaba inactivo tras agregar preguntas
-  Causa: estado local no se sincronizaba con DB tras operación exitosa
-  Fix: actualización correcta del estado después de cada pregunta guardada
+src/app/admin/dashboard/page.tsx — FIX 1: Hero banner
+· Altura fija h-48 → min-h-[12rem] con py-8 lg:py-0 para que el
+  contenido no quede cortado en pantallas pequeñas.
+· Padding: px-4 sm:px-6 lg:px-10.
+· Título: text-2xl sm:text-3xl lg:text-4xl.
+· Subtítulo: text-xs sm:text-sm.
+· Botones de acción: flex-col sm:flex-row para apilarse en mobile.
+· Div interno con w-full para ocupar el ancho disponible.
 
-- IDs de alternativas se duplicaban al eliminar y reagregar opciones
-  Causa: IDs (a,b,c,d) no se recalculaban tras eliminar una alternativa
-  Fix: reasignación secuencial de IDs después de cada eliminación
-  Fix: ID de nueva alternativa calculado desde options.length actual
-  Fix: correct_option se resetea si se elimina la alternativa correcta
+src/app/admin/trabajadores/[id]/page.tsx — FIX 2: Stats cards
+· Grid: grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 (2 columnas en mobile).
+· Padding de cada card: p-4 sm:p-5 lg:p-6.
+· Ícono contenedor: w-8 h-8 sm:w-10 sm:h-10 rounded-full.
+· Número: text-2xl sm:text-3xl font-extrabold.
+· Label: uppercase tracking-wider para consistencia visual.
 
-- Error de consola "Encountered two children with the same key 'd'"
-  Causa: duplicación de IDs en el map de alternativas
-  Fix: garantizado por recálculo secuencial de IDs
+src/components/alumco/CourseBuilder/QuestionForm.tsx — FIX 3: Editor preguntas
+· Fila de alternativa: flex items-start gap-2 flex-wrap sm:flex-nowrap
+  para que no se desborde en mobile.
+· Radio: mt-2 shrink-0 para alinearse con el texto.
+· Input texto: min-w-0 para respetar el modelo de caja flex.
+· Botón eliminar: shrink-0 mt-1 para no comprimirse.
+· Textarea: min-h-[80px] como mínimo visual.
+· Botón guardar: w-full sm:w-auto con layout flex-col sm:flex-row.
 
-- Botón eliminar alternativa deshabilitado cuando quedan solo 2 opciones
-  Previene estructura rota e inconsistencias en el formulario
+src/components/alumco/NotificationBell.tsx — FIX 4: Dropdown notificaciones
+· Problema raíz: el botón campana tiene el hamburger a su derecha,
+  por lo que right-0 anclaba al borde del botón (~60px del viewport),
+  haciendo que el dropdown se desbordara por la izquierda.
+· Solución: fixed right-4 top-[66px] en mobile para anclar al viewport.
+· Desktop: sm:absolute sm:right-0 sm:top-full sm:mt-2 (comportamiento original).
+· Ancho: w-[calc(100vw-2rem)] sm:w-80 max-w-sm min-w-[280px] sm:min-w-[320px].
+· z-[60] para quedar sobre el header sticky z-50.
 
-## Mejoras UX
+══════════════════════════════════════════════
+NUEVO LOGO — KimünKo (SVG inline)
+══════════════════════════════════════════════
 
-### Vista cursos admin
-- Botón "Ver Curso" renombrado a "Ver reporte"
-- Redirige a /admin/reportes?curso=[id] en vez del dashboard
-- Al llegar desde este botón los reportes se filtran automáticamente
-  por el título del curso seleccionado
+src/components/alumco/AdminSidebar.tsx
+src/components/alumco/WorkerSidebar.tsx
+· LogoAlumco.png reemplazado por SVG inline en las 4 instancias
+  (desktop SidebarContent + mobile header de cada sidebar).
+· SVG compuesto por: gota dorada (#F5A623), brillo interno con
+  opacidad 0.25, texto "KimünKo" con tspan para "Kimün" (blanco)
+  y "Ko" (dorado) en un solo elemento <text> (elimina el espacio
+  que aparecía al usar dos <text> con coordenadas manuales),
+  subtítulo "sabiduría del agua" integrado en el SVG.
+· Eliminado el <span>KimünKo</span> que existía debajo del logo
+  antiguo (ahora el subtítulo vive dentro del SVG).
+· import Image from 'next/image' eliminado de ambos archivos
+  (ya no se referencia en ningún lugar).
 
-### Reportes
-- ReportesClient lee parámetro ?curso= de la URL al montar
-- Inicializa el filtro de búsqueda con el título del curso
-  cuando viene desde la vista de cursos admin
-- Prop courses añadida a ReportesClient para resolver el título
+══════════════════════════════════════════════
+BRANDING LOGIN
+══════════════════════════════════════════════
+
+src/app/(auth)/login/page.tsx
+· Agregado LogoAlumco.png (con sus colores originales, sin filtro
+  brightness-0 invert) centrado encima del recuadro de credenciales
+  en la columna derecha (width=160, height=54).
+· La columna izquierda (branding azul) mantiene el SVG KimünKo
+  con colores invertidos para fondo oscuro.
+· Visible tanto en desktop como en mobile (donde la columna
+  izquierda está oculta con hidden md:flex).

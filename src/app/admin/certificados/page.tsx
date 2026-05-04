@@ -26,19 +26,25 @@ export default async function AdminCertificadosPage() {
   const { data: profiles } = await adminClient
     .from('profiles')
     .select('id, full_name, sede, area_trabajo')
-    .in('id', userIds.length > 0 ? userIds : ['none']) as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] }[] | null }
+    .in('id', userIds.length > 0 ? userIds : ['none']) as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }
 
   const profileMap = Object.fromEntries(
     (profiles ?? []).map((p) => [p.id, p])
   )
 
-  const enriched = (certificates ?? []).map(cert => ({
-    ...cert,
-    courses: Array.isArray(cert.courses)
-      ? (cert.courses[0] ?? null)
-      : cert.courses,
-    profile: profileMap[cert.user_id] ?? null,
-  }))
+  const enriched = (certificates ?? []).map(cert => {
+    const rawProfile = profileMap[cert.user_id] ?? null
+    return {
+      ...cert,
+      courses: Array.isArray(cert.courses)
+        ? (cert.courses[0] ?? null)
+        : cert.courses,
+      profile: rawProfile ? {
+        ...rawProfile,
+        area_trabajo: rawProfile.area_trabajo ?? [],
+      } : null,
+    }
+  })
 
   return (
     <div className="min-h-screen p-4 lg:p-8 space-y-6">

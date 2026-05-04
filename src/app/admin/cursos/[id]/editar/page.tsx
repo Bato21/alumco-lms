@@ -51,13 +51,13 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       )
     `)
     .eq('course_id', id)
-    .order('order_index') as { data: { id: string; title: string; content_type: string; content_url: string; order_index: number; duration_mins: number | null; is_required: boolean; quizzes: { id: string; passing_score: number; max_attempts: number; questions: import('@/lib/types/database').Question[] }[] | null }[] | null }
+    .order('order_index') as { data: { id: string; title: string; content_type: string; content_url: string | null; order_index: number; duration_mins: number | null; is_required: boolean; quizzes: { id: string; passing_score: number; max_attempts: number; questions: import('@/lib/types/database').Question[] }[] }[] | null }
 
   const initialModules: ModuleBlock[] = (modules ?? []).map((m) => ({
     id: m.id,
     title: m.title,
     content_type: m.content_type as ModuleBlock['content_type'],
-    content_url: m.content_url,
+    content_url: m.content_url ?? '',
     order_index: m.order_index,
     duration_mins: m.duration_mins,
     is_required: m.is_required,
@@ -71,14 +71,16 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       : undefined,
   }))
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const courseAny = course as any
+  const courseForBuilder = {
+    ...course,
+    target_areas: course.target_areas ?? [],
+  }
 
   return (
     <CourseBuilder
-      course={courseAny}
+      course={courseForBuilder}
       initialModules={initialModules}
-      initialTargetAreas={(courseAny.target_areas as string[]) ?? []}
+      initialTargetAreas={courseForBuilder.target_areas}
     />
   )
 }

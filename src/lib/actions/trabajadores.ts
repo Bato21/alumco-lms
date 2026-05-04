@@ -43,10 +43,12 @@ export async function updateWorkerAction(
     }
 
     const adminClient = await createAdminClient()
-    const { error } = await adminClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac
       .from('profiles')
-      .update(parsed.data as unknown as never)
-      .eq('id', profileId)
+      .update(parsed.data)
+      .eq('id', profileId) as { error: { message: string } | null }
 
     if (error) return { error: error.message }
 
@@ -69,10 +71,12 @@ export async function suspendWorkerAction(
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
-    const { error } = await adminClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac
       .from('profiles')
-      .update({ status: 'suspendido' } as unknown as never)
-      .eq('id', profileId)
+      .update({ status: 'suspendido' })
+      .eq('id', profileId) as { error: { message: string } | null }
 
     if (error) return { error: error.message }
 
@@ -94,10 +98,12 @@ export async function reactivateWorkerAction(
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
-    const { error } = await adminClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac
       .from('profiles')
-      .update({ status: 'activo' } as unknown as never)
-      .eq('id', profileId)
+      .update({ status: 'activo' })
+      .eq('id', profileId) as { error: { message: string } | null }
 
     if (error) return { error: error.message }
 
@@ -145,38 +151,60 @@ export async function getWorkerDetailAction(profileId: string): Promise<
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
 
-    const { data: worker, error: workerError } = await adminClient
+    const { data: worker, error: workerError } = await ac
       .from('profiles')
       .select('id, full_name, rut, sede, area_trabajo, role, status, created_at, approved_at')
       .eq('id', profileId)
-      .single() as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; created_at: string; approved_at: string | null } | null; error: { message: string } | null }
+      .single() as {
+        data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; created_at: string; approved_at: string | null } | null
+        error: { message: string } | null
+      }
 
     if (workerError || !worker) {
       return { error: workerError?.message ?? 'Trabajador no encontrado' }
     }
 
-    const { data: progressRaw, error: progressError } = await adminClient
+    const { data: progressRaw, error: progressError } = await ac
       .from('course_progress')
       .select('course_id, is_completed, completed_at, completed_modules, courses(id, title)')
-      .eq('user_id', profileId) as { data: { course_id: string; is_completed: boolean; completed_at: string | null; completed_modules: string[] | null; courses: { id: string; title: string } | { id: string; title: string }[] | null }[] | null; error: { message: string } | null }
+      .eq('user_id', profileId) as {
+        data: Array<{
+          course_id: string
+          is_completed: boolean
+          completed_at: string | null
+          completed_modules: string[] | null
+          courses: { title: string } | { title: string }[] | null
+        }> | null
+        error: { message: string } | null
+      }
 
     if (progressError) return { error: progressError.message }
 
-    const { data: certsRaw, error: certError } = await adminClient
+    const { data: certsRaw, error: certError } = await ac
       .from('certificates')
       .select('id, course_id, issued_at, courses(title)')
-      .eq('user_id', profileId) as { data: { id: string; course_id: string; issued_at: string; courses: { title: string } | { title: string }[] | null }[] | null; error: { message: string } | null }
+      .eq('user_id', profileId) as {
+        data: Array<{
+          id: string
+          course_id: string
+          issued_at: string
+          courses: { title: string } | { title: string }[] | null
+        }> | null
+        error: { message: string } | null
+      }
 
     if (certError) return { error: certError.message }
 
     const progress = (progressRaw ?? []).map(p => {
       const course = Array.isArray(p.courses) ? p.courses[0] : p.courses
       return {
-        course_id: p.course_id as string,
+        course_id: p.course_id,
         course_title: (course as { title: string } | null)?.title ?? 'Curso',
-        is_completed: p.is_completed as boolean,
-        completed_at: p.completed_at as string | null,
+        is_completed: p.is_completed,
+        completed_at: p.completed_at,
         completed_modules: (p.completed_modules ?? []) as string[],
       }
     })
@@ -184,10 +212,10 @@ export async function getWorkerDetailAction(profileId: string): Promise<
     const certificates = (certsRaw ?? []).map(c => {
       const course = Array.isArray(c.courses) ? c.courses[0] : c.courses
       return {
-        id: c.id as string,
-        course_id: c.course_id as string,
+        id: c.id,
+        course_id: c.course_id,
         course_title: (course as { title: string } | null)?.title ?? 'Curso',
-        issued_at: c.issued_at as string,
+        issued_at: c.issued_at,
       }
     })
 
@@ -203,6 +231,8 @@ export async function updateProfileAction(
 ): Promise<{ success?: boolean; error?: string }> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || user.id !== userId) {
       return { error: 'No autorizado' }
@@ -210,13 +240,13 @@ export async function updateProfileAction(
 
     const fechaNacimiento = formData.get('fecha_nacimiento') as string | null
 
-    const { error } = await supabase
+    const { error } = await sp
       .from('profiles')
       .update({
         fecha_nacimiento: fechaNacimiento || null,
         updated_at: new Date().toISOString(),
-      } as unknown as never)
-      .eq('id', userId)
+      })
+      .eq('id', userId) as { error: unknown }
 
     if (error) throw error
 
@@ -234,6 +264,8 @@ export async function uploadFirmaAction(
 ): Promise<{ success?: boolean; url?: string; error?: string }> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || user.id !== userId) return { error: 'No autorizado' }
 
@@ -262,10 +294,10 @@ export async function uploadFirmaAction(
       .from('firmas')
       .getPublicUrl(path)
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await sp
       .from('profiles')
-      .update({ firma_url: publicUrl } as unknown as never)
-      .eq('id', userId)
+      .update({ firma_url: publicUrl })
+      .eq('id', userId) as { error: unknown }
 
     if (updateError) throw updateError
 
@@ -282,6 +314,8 @@ export async function deleteFirmaAction(
 ): Promise<{ success?: boolean; error?: string }> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || user.id !== userId) return { error: 'No autorizado' }
 
@@ -290,10 +324,10 @@ export async function deleteFirmaAction(
       `firmas/${userId}.jpg`,
     ])
 
-    const { error } = await supabase
+    const { error } = await sp
       .from('profiles')
-      .update({ firma_url: null } as unknown as never)
-      .eq('id', userId)
+      .update({ firma_url: null })
+      .eq('id', userId) as { error: unknown }
 
     if (error) throw error
 
@@ -311,13 +345,15 @@ export async function completeOnboardingAction(): Promise<{
 }> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autorizado' }
 
-    const { error } = await supabase
+    const { error } = await sp
       .from('profiles')
-      .update({ onboarding_completed: true } as unknown as never)
-      .eq('id', user.id)
+      .update({ onboarding_completed: true })
+      .eq('id', user.id) as { error: unknown }
 
     if (error) throw error
 

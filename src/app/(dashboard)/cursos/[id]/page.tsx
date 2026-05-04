@@ -46,7 +46,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .select('*')
     .eq('id', id)
     .eq('is_published', true)
-    .single() as { data: Course | null }
+    .single() as { data: { id: string; title: string; description: string | null; thumbnail_url: string | null; is_published: boolean; order_index: number; created_by: string | null; created_at: string; updated_at: string; target_areas: string[] | null; deadline: string | null; deadline_description: string | null } | null }
 
   if (!course) {
     notFound()
@@ -57,7 +57,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .from('profiles')
     .select('area_trabajo, role')
     .eq('id', user.id)
-    .single() as { data: { role: string; area_trabajo: string[] } | null }
+    .single() as { data: { area_trabajo: string[] | null; role: string } | null }
 
   if (accessProfile?.role === 'trabajador') {
     const workerAreas = accessProfile.area_trabajo ?? []
@@ -97,7 +97,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .from('modules')
     .select('*')
     .eq('course_id', id)
-    .order('order_index') as { data: Module[] | null }
+    .order('order_index') as { data: import('@/lib/types/database').Module[] | null }
 
   // Fetch user's progress for this course
   const { data: progress } = await supabase
@@ -105,7 +105,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .select('*')
     .eq('user_id', user.id)
     .eq('course_id', id)
-    .single() as { data: CourseProgress | null }
+    .single() as { data: { completed_modules: string[]; is_completed: boolean } | null }
 
   // Fetch quiz attempts for this user in this course
   const { data: quizAttempts } = await supabase
@@ -118,7 +118,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     .from('profiles')
     .select('full_name, area_trabajo, role')
     .eq('id', user.id)
-    .single() as { data: { full_name: string; area_trabajo: string[]; role: string } | null }
+    .single() as { data: { full_name: string; area_trabajo: string[] | null; role: string } | null }
 
   // Fetch certificado si el curso está completado
   const { data: certificate } = await supabase

@@ -113,7 +113,7 @@ export async function generateCertificatePDF(
       .from('certificates')
       .select('id, issued_at, user_id, course_id, courses(title, created_by)')
       .eq('id', certificateId)
-      .single() as { data: { id: string; issued_at: string; user_id: string; course_id: string; courses: { title: string; created_by: string } | { title: string; created_by: string }[] | null } | null }
+      .single() as { data: { id: string; issued_at: string; user_id: string; course_id: string; courses: { title: string; created_by: string | null } | { title: string; created_by: string | null }[] | null } | null }
 
     if (!cert) return { error: 'Certificado no encontrado' }
 
@@ -133,7 +133,7 @@ export async function generateCertificatePDF(
       .from('profiles')
       .select('full_name, rut, sede, area_trabajo')
       .eq('id', cert.user_id)
-      .single() as { data: { full_name: string; rut: string | null; sede: string; area_trabajo: string[] } | null }
+      .single() as { data: { full_name: string; rut: string | null; sede: string; area_trabajo: string[] | null } | null }
 
     const { data: creator } = await adminClient
       .from('profiles')

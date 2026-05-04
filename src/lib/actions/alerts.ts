@@ -45,7 +45,7 @@ export async function getAdminAlerts(): Promise<{
       .from('profiles')
       .select('id, area_trabajo')
       .eq('role', 'trabajador')
-      .eq('status', 'activo') as { data: { id: string; area_trabajo: string[] }[] | null }
+      .eq('status', 'activo') as { data: { id: string; area_trabajo: string[] | null }[] | null }
 
     const { data: allProgress } = await adminClient
       .from('course_progress')
@@ -120,7 +120,7 @@ export async function getWorkerAlerts(): Promise<{
       .from('profiles')
       .select('area_trabajo')
       .eq('id', user.id)
-      .single() as { data: { area_trabajo: string[] } | null }
+      .single() as { data: { area_trabajo: string[] | null } | null }
 
     const workerAreas: string[] = profile?.area_trabajo ?? []
 

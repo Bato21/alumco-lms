@@ -21,6 +21,8 @@ export async function getQuizStatusAction(
 ): Promise<QuizStatus> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -35,7 +37,7 @@ export async function getQuizStatusAction(
     }
 
     // Obtener configuración del quiz
-    const { data: quiz } = await supabase
+    const { data: quiz } = await sp
       .from('quizzes')
       .select('max_attempts, passing_score')
       .eq('id', quizId)
@@ -55,17 +57,17 @@ export async function getQuizStatusAction(
     const maxAttempts = quiz.max_attempts
 
     // Obtener fecha del último reset para este curso
-    const { data: progress } = await supabase
+    const { data: progress } = await sp
       .from('course_progress')
       .select('last_quiz_reset_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .maybeSingle() as { data: { last_quiz_reset_at: string | null } | null }
+      .single() as { data: { last_quiz_reset_at: string | null } | null }
 
     const resetAt = progress?.last_quiz_reset_at ?? null
 
     // Construir query de intentos - filtrar por fecha si hubo reset
-    let attemptsQuery = supabase
+    let attemptsQuery = sp
       .from('quiz_attempts')
       .select('score, status, completed_at')
       .eq('quiz_id', quizId)
@@ -122,6 +124,8 @@ export async function submitQuizAction(
 ): Promise<QuizSubmitResult> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -143,7 +147,7 @@ export async function submitQuizAction(
     const validatedAnswers = parsedAnswers.data
 
     // Validar cadena quiz → módulo → curso para evitar manipulación de parámetros
-    const { data: moduleCheck } = await supabase
+    const { data: moduleCheck } = await sp
       .from('modules')
       .select('id')
       .eq('id', moduleId)
@@ -154,7 +158,7 @@ export async function submitQuizAction(
       return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Acceso no autorizado' }
     }
 
-    const { data: quizCheck } = await supabase
+    const { data: quizCheck } = await sp
       .from('quizzes')
       .select('id')
       .eq('id', quizId)
@@ -166,22 +170,22 @@ export async function submitQuizAction(
     }
 
     // Verificar acceso al curso por área del trabajador
-    const { data: course } = await supabase
+    const { data: course } = await sp
       .from('courses')
       .select('target_areas, is_published')
       .eq('id', courseId)
       .eq('is_published', true)
-      .maybeSingle() as { data: { target_areas: string[]; is_published: boolean } | null }
+      .maybeSingle() as { data: { target_areas: string[] | null; is_published: boolean } | null }
 
     if (!course) {
       return { success: false, score: 0, passed: false, attemptNumber: 0, attemptsRemaining: 0, error: 'Curso no disponible' }
     }
 
-    const { data: callerProfile } = await supabase
+    const { data: callerProfile } = await sp
       .from('profiles')
       .select('role, area_trabajo')
       .eq('id', user.id)
-      .single() as { data: { role: string; area_trabajo: string[] } | null }
+      .single() as { data: { role: string; area_trabajo: string[] | null } | null }
 
     if (callerProfile?.role === 'trabajador') {
       const hasAccess = filterCoursesByWorkerAreas(
@@ -194,7 +198,7 @@ export async function submitQuizAction(
     }
 
     // Obtener configuración del quiz
-    const { data: quiz } = await supabase
+    const { data: quiz } = await sp
       .from('quizzes')
       .select('max_attempts, passing_score')
       .eq('id', quizId)
@@ -212,17 +216,17 @@ export async function submitQuizAction(
     }
 
     // Obtener fecha del último reset para este curso
-    const { data: progress } = await supabase
+    const { data: progress } = await sp
       .from('course_progress')
       .select('last_quiz_reset_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .maybeSingle() as { data: { last_quiz_reset_at: string | null } | null }
+      .single() as { data: { last_quiz_reset_at: string | null } | null }
 
     const resetAt = progress?.last_quiz_reset_at ?? null
 
     // Verificar intentos previos (solo después del último reset)
-    let attemptsQuery = supabase
+    let attemptsQuery = sp
       .from('quiz_attempts')
       .select('status, completed_at')
       .eq('quiz_id', quizId)
@@ -262,7 +266,7 @@ export async function submitQuizAction(
     }
 
     // Obtener las respuestas correctas desde el servidor
-    const { data: questions } = await supabase
+    const { data: questions } = await sp
       .from('questions')
       .select('id, correct_option')
       .eq('quiz_id', quizId) as { data: { id: string; correct_option: string }[] | null }
@@ -307,7 +311,7 @@ export async function submitQuizAction(
     const status: 'aprobado' | 'reprobado' = passed ? 'aprobado' : 'reprobado'
 
     // Insertar intento en la DB
-    const { data: newAttempt, error: insertError } = await supabase
+    const { data: newAttempt, error: insertError } = await sp
       .from('quiz_attempts')
       .insert({
         quiz_id: quizId,
@@ -317,7 +321,7 @@ export async function submitQuizAction(
         answers: validatedAnswers,
       } as unknown as never)
       .select('id, attempt_number')
-      .single() as unknown as { data: { id: string; attempt_number: number } | null; error: { message: string } | null }
+      .single() as { data: { id: string; attempt_number: number } | null; error: unknown }
 
     if (insertError) {
       console.error('Error inserting quiz attempt:', insertError)
@@ -357,7 +361,7 @@ export async function submitQuizAction(
       if (courseCompleted) {
         try {
           const { generateCertificateAction } = await import('./certificates')
-          await generateCertificateAction(newAttempt!.id, courseId)
+          await generateCertificateAction(newAttempt?.id ?? null, courseId)
         } catch (certError) {
           console.error('[submitQuizAction] generateCertificateAction failed', {
             userId: user.id,
@@ -410,11 +414,13 @@ export async function getQuizAttemptsHistoryAction(
   courseId: string
 ): Promise<{ attempts: AttemptHistoryRow[] }> {
   const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sp = supabase as any
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { attempts: [] }
 
   // Obtener fecha del último reset para filtrar intentos anteriores
-  const { data: progress } = await supabase
+  const { data: progress } = await sp
     .from('course_progress')
     .select('last_quiz_reset_at')
     .eq('user_id', user.id)
@@ -423,7 +429,7 @@ export async function getQuizAttemptsHistoryAction(
 
   const resetAt = progress?.last_quiz_reset_at ?? null
 
-  let query = supabase
+  let query = sp
     .from('quiz_attempts')
     .select('id, score, status, attempt_number, completed_at')
     .eq('quiz_id', quizId)
@@ -436,5 +442,5 @@ export async function getQuizAttemptsHistoryAction(
 
   const { data } = await query as { data: AttemptHistoryRow[] | null }
 
-  return { attempts: data ?? [] }
+  return { attempts: (data ?? []) as AttemptHistoryRow[] }
 }

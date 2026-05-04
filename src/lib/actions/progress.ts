@@ -31,7 +31,7 @@ async function validateModuleAccess(
     .from('profiles')
     .select('role, area_trabajo')
     .eq('id', userId)
-    .single() as { data: { role: string; area_trabajo: string[] } | null }
+    .single() as { data: { role: string; area_trabajo: string[] | null } | null }
 
   if (callerProfile?.role === 'trabajador') {
     const { data: course } = await supabase
@@ -39,7 +39,7 @@ async function validateModuleAccess(
       .select('target_areas, is_published')
       .eq('id', courseId)
       .eq('is_published', true)
-      .maybeSingle() as { data: { target_areas: string[]; is_published: boolean } | null }
+      .maybeSingle() as { data: { target_areas: string[] | null; is_published: boolean } | null }
 
     if (!course) return { ok: false, error: 'Curso no disponible' }
 
@@ -64,6 +64,8 @@ export async function markModuleCompleteAction(
 ): Promise<{ success: boolean; error?: string; courseCompleted?: boolean; completedModules?: string[] }> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Usuario no autenticado' }
 
@@ -71,12 +73,12 @@ export async function markModuleCompleteAction(
     if (!access.ok) return { success: false, error: access.error }
 
     // Usar el cliente del usuario — RLS garantiza que solo escribe su propio progreso
-    const { data: progress } = await supabase
+    const { data: progress } = await sp
       .from('course_progress')
       .select('id, completed_modules, is_completed, completed_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .maybeSingle() as { data: { id: string; completed_modules: string[]; is_completed: boolean; completed_at: string | null } | null }
+      .maybeSingle() as { data: { id: string; completed_modules: string[] | null; is_completed: boolean; completed_at: string | null } | null }
 
     let completedModules: string[]
 
@@ -86,13 +88,13 @@ export async function markModuleCompleteAction(
         : []
       completedModules = Array.from(new Set([...current, moduleId]))
 
-      const { error } = await supabase
+      const { error } = await sp
         .from('course_progress')
         .update({
           completed_modules: completedModules,
           last_module_id: moduleId,
-        } as unknown as never)
-        .eq('id', progress.id)
+        })
+        .eq('id', progress.id) as { error: { message: string } | null }
 
       if (error) {
         console.error('Error updating progress:', error)
@@ -101,7 +103,7 @@ export async function markModuleCompleteAction(
     } else {
       completedModules = [moduleId]
 
-      const { error } = await supabase
+      const { error } = await sp
         .from('course_progress')
         .insert({
           user_id: user.id,
@@ -110,7 +112,7 @@ export async function markModuleCompleteAction(
           last_module_id: moduleId,
           is_completed: false,
           completed_at: null,
-        } as unknown as never)
+        }) as { error: { message: string } | null }
 
       if (error) {
         console.error('Error inserting progress:', error)
@@ -120,21 +122,23 @@ export async function markModuleCompleteAction(
 
     // Verificar si todos los módulos del curso están completos
     const adminClient = await createAdminClient()
-    const { data: allModules } = await adminClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: allModules } = await ac
       .from('modules')
       .select('id, content_type')
       .eq('course_id', courseId) as { data: { id: string; content_type: string }[] | null }
 
     let courseCompleted = false
     if (allModules && allModules.length > 0) {
-      courseCompleted = allModules.every((m) =>
+      courseCompleted = allModules.every((m: { id: string }) =>
         completedModules.includes(m.id)
       )
     }
 
     // Si el curso está completo, actualizarlo
     if (courseCompleted) {
-      await supabase
+      await sp
         .from('course_progress')
         .update({
           is_completed: true,
@@ -144,7 +148,7 @@ export async function markModuleCompleteAction(
         .eq('course_id', courseId)
 
       // Generar certificado para cursos sin módulo quiz (los quiz lo hacen desde submitQuizAction)
-      const hasQuizModule = allModules?.some(m => m.content_type === 'quiz') ?? false
+      const hasQuizModule = allModules?.some((m: { content_type: string }) => m.content_type === 'quiz') ?? false
       if (!hasQuizModule) {
         try {
           await generateCertificateAction(null, courseId)
@@ -173,6 +177,8 @@ export async function updateLastModuleAction(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = supabase as any
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -183,7 +189,7 @@ export async function updateLastModuleAction(
     if (!access.ok) return { success: false, error: access.error }
 
     // Get current progress — user client is sufficient (RLS allows user to read/write own rows)
-    const { data: progress } = await supabase
+    const { data: progress } = await sp
       .from('course_progress')
       .select('id')
       .eq('user_id', user.id)
@@ -191,17 +197,17 @@ export async function updateLastModuleAction(
       .maybeSingle() as { data: { id: string } | null }
 
     if (progress) {
-      const { error } = await supabase
+      const { error } = await sp
         .from('course_progress')
         .update({
           last_module_id: moduleId,
           updated_at: new Date().toISOString(),
-        } as unknown as never)
-        .eq('id', progress.id)
+        })
+        .eq('id', progress.id) as { error: unknown }
 
       if (error) throw error
     } else {
-      const { error } = await supabase
+      const { error } = await sp
         .from('course_progress')
         .insert({
           user_id: user.id,
@@ -209,7 +215,7 @@ export async function updateLastModuleAction(
           completed_modules: [],
           last_module_id: moduleId,
           is_completed: false,
-        } as unknown as never)
+        }) as { error: unknown }
 
       if (error) throw error
     }
@@ -257,33 +263,35 @@ async function checkAndUpdateCourseCompletion(
 ): Promise<{ success: boolean; error?: string; isComplete?: boolean }> {
   try {
     const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
 
-    const { data: modules } = await adminClient
+    const { data: modules } = await ac
       .from('modules')
       .select('id')
       .eq('course_id', courseId) as { data: { id: string }[] | null }
 
-    const { data: progress } = await adminClient
+    const { data: progress } = await ac
       .from('course_progress')
       .select('id, completed_modules, is_completed, completed_at')
       .eq('user_id', userId)
       .eq('course_id', courseId)
-      .single() as { data: { id: string; completed_modules: string[] | null; is_completed: boolean; completed_at: string | null } | null }
+      .single() as { data: { id: string; completed_modules: string[] | null; is_completed: boolean; completed_at: string | null; updated_at: string | null } | null }
 
     if (!modules || !progress) return { success: true, isComplete: false }
 
     const totalModules = modules.length
-    const allCompleted = modules.every(m => progress.completed_modules?.includes(m.id))
+    const allCompleted = modules.every((m: { id: string }) => progress.completed_modules?.includes(m.id))
 
     if (allCompleted && totalModules > 0 && !progress.is_completed) {
-      const { error } = await adminClient
+      const { error } = await ac
         .from('course_progress')
         .update({
           is_completed: true,
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        } as unknown as never)
-        .eq('id', progress.id)
+        })
+        .eq('id', progress.id) as { error: unknown }
 
       if (error) throw error
       return { success: true, isComplete: true }
@@ -324,7 +332,7 @@ export async function getCourseProgressAction(
       .select('completed_modules, last_module_id, is_completed, completed_at')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .maybeSingle() as { data: { completed_modules: string[]; last_module_id: string | null; is_completed: boolean; completed_at: string | null } | null }
+      .single() as { data: { completed_modules: string[] | null; last_module_id: string | null; is_completed: boolean; completed_at: string | null } | null }
 
     return {
       success: true,
@@ -350,20 +358,22 @@ export async function resetCourseProgressAction(
   courseId: string
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sp = supabase as any
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return { success: false, error: 'No autenticado' }
 
-  const { data: progress } = await supabase
+  const { data: progress } = await sp
     .from('course_progress')
     .select('completed_modules, last_module_id')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
-    .maybeSingle() as { data: { completed_modules: string[]; last_module_id: string | null } | null }
+    .single() as { data: { completed_modules: string[] | null; last_module_id: string | null } | null }
 
   if (!progress) return { success: false, error: 'Progreso no encontrado' }
 
-  const { error } = await supabase
+  const { error } = await sp
     .from('course_progress')
     .update({
       completed_modules: [],
@@ -373,7 +383,7 @@ export async function resetCourseProgressAction(
       last_quiz_reset_at: new Date(Date.now() - 1000).toISOString(),
     } as unknown as never)
     .eq('user_id', user.id)
-    .eq('course_id', courseId)
+    .eq('course_id', courseId) as { error: { message: string } | null }
 
   if (error) return { success: false, error: error.message }
 

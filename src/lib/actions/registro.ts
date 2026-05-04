@@ -197,8 +197,11 @@ export async function approveWorkerAction(
   if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
   const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
 
-  const { error } = await adminClient
+  // Actualizar perfil usando update con match por id
+  const { error } = await ac
     .from('profiles')
     .update({
       status: 'activo',
@@ -207,8 +210,8 @@ export async function approveWorkerAction(
       role: parsed.data.role,
       approved_by: user.id,
       approved_at: new Date().toISOString(),
-    } as unknown as never)
-    .eq('id', parsed.data.profileId)
+    })
+    .eq('id', parsed.data.profileId) as { error: unknown }
 
   if (error) {
     return { error: 'Error al aprobar la solicitud. Intenta nuevamente.' }
@@ -230,23 +233,25 @@ export async function rejectWorkerAction(formData: FormData) {
 
   // Usamos el cliente con privilegios de administrador para saltar el RLS
   const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
 
   const profileId = formData.get('profileId') as string
   if (!profileId) return { error: 'ID de perfil no proporcionado' }
 
   // 3. Buscamos el perfil usando el adminClient
-  const { data: profile, error: searchError } = await adminClient
+  const { data: profile, error: searchError } = await ac
     .from('profiles')
     .select('id, status')
     .eq('id', profileId)
-    .single() as { data: { id: string; status: string } | null; error: { message: string } | null }
+    .single() as { data: { id: string; status: ProfileStatus } | null; error: unknown }
 
   if (searchError || !profile) {
     return { error: 'Perfil no encontrado' } // Aquí es donde fallaba antes
   }
 
   // Solo solicitudes pendientes pueden rechazarse — evitar borrar usuarios activos
-  if ((profile as { status: ProfileStatus }).status !== 'pendiente') {
+  if (profile.status !== 'pendiente') {
     return { error: 'Solo se pueden rechazar solicitudes en estado pendiente' }
   }
 
