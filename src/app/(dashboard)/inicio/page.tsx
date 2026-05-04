@@ -16,7 +16,7 @@ export default async function InicioPage() {
     .from('profiles')
     .select('full_name, sede, area_trabajo, onboarding_completed')
     .eq('id', user!.id)
-    .single()
+    .single() as { data: { full_name: string; sede: string; area_trabajo: string[] | null; onboarding_completed: boolean | null } | null }
 
   const workerAreas = profile?.area_trabajo ?? []
 
@@ -24,20 +24,23 @@ export default async function InicioPage() {
     .from('courses')
     .select('id, title, deadline, deadline_description, is_published, target_areas')
     .eq('is_published', true)
-    .order('order_index')
+    .order('order_index') as { data: { id: string; title: string; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null }[] | null }
 
-  const filteredCourses = filterCoursesByWorkerAreas(courses ?? [], workerAreas)
+  const filteredCourses = filterCoursesByWorkerAreas(
+    (courses ?? []).map(c => ({ ...c, target_areas: c.target_areas ?? [] })),
+    workerAreas
+  )
 
   const { data: progressData } = await supabase
     .from('course_progress')
     .select('course_id, completed_modules, is_completed')
-    .eq('user_id', user!.id)
+    .eq('user_id', user!.id) as { data: { course_id: string; completed_modules: string[] | null; is_completed: boolean }[] | null }
 
   const courseIds = filteredCourses.map(c => c.id)
   const { data: allModules } = await supabase
     .from('modules')
     .select('course_id')
-    .in('course_id', courseIds.length > 0 ? courseIds : ['none'])
+    .in('course_id', courseIds.length > 0 ? courseIds : ['none']) as { data: { course_id: string }[] | null }
 
   const totalModulesByCourse = new Map<string, number>()
   allModules?.forEach(m => {
@@ -201,7 +204,7 @@ export default async function InicioPage() {
             </svg>
           </Link>
         </div>
-        <DeadlineCalendar courses={coursesWithStatus} />
+        <DeadlineCalendar courses={coursesWithStatus.filter((c): c is typeof c & { deadline: string } => c.deadline !== null)} />
       </div>
 
     </div>

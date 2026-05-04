@@ -13,15 +13,17 @@ export async function requireAdmin(): Promise<
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false, error: 'No autenticado' }
 
-  const { data: profile } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sp = supabase as any
+  const { data: profile } = await sp
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string } | null }
 
   const role = profile?.role
   if (role !== 'admin' && role !== 'profesor') {
     return { ok: false, error: 'No autorizado' }
   }
-  return { ok: true, userId: user.id, role }
+  return { ok: true, userId: user.id, role: role as 'admin' | 'profesor' }
 }

@@ -81,16 +81,18 @@ export async function createCourseAction(
 
   // Obtener el mayor order_index actual
   const adminClient = await createAdminClient()
-  const { data: lastCourse } = await adminClient
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+  const { data: lastCourse } = await ac
     .from('courses')
     .select('order_index')
     .order('order_index', { ascending: false })
     .limit(1)
-    .single()
+    .single() as { data: { order_index: number } | null }
 
   const nextIndex = (lastCourse?.order_index ?? 0) + 1
 
-  const { data: course, error } = await adminClient
+  const { data: course, error } = await ac
     .from('courses')
     .insert({
       title: parsed.data.title,
@@ -110,7 +112,7 @@ export async function createCourseAction(
   }
 
   revalidatePath('/admin/cursos')
-  return { success: true, id: course.id }
+  return { success: true, id: (course as { id: string }).id }
 }
 
 // ── Actualizar curso ───────────────────────────────────────
@@ -136,7 +138,8 @@ export async function updateCourseAction(
   }
 
   const adminClient = await createAdminClient()
-  const { error } = await adminClient
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (adminClient as any)
     .from('courses')
     .update({
       title: parsed.data.title,
@@ -166,7 +169,8 @@ export async function togglePublishCourseAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
-  const { error } = await adminClient
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (adminClient as any)
     .from('courses')
     .update({ is_published: isPublished })
     .eq('id', courseId)
@@ -213,15 +217,17 @@ export async function createModuleAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
 
   // Obtener el mayor order_index actual para este curso
-  const { data: lastModule } = await adminClient
+  const { data: lastModule } = await ac
     .from('modules')
     .select('order_index')
     .eq('course_id', courseId)
     .order('order_index', { ascending: false })
     .limit(1)
-    .single()
+    .single() as { data: { order_index: number } | null }
 
   const nextIndex = (lastModule?.order_index ?? 0) + 1
 
@@ -236,7 +242,7 @@ export async function createModuleAction(
       return { error: parsed.error.issues[0].message }
     }
 
-    const { data: module, error } = await adminClient
+    const { data: module, error } = await ac
       .from('modules')
       .insert({
         course_id: courseId,
@@ -248,12 +254,12 @@ export async function createModuleAction(
         order_index: nextIndex,
       })
       .select('id')
-      .single()
+      .single() as { data: { id: string } | null; error: unknown }
 
     if (error) return { error: 'Error al crear el módulo de video.' }
     await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
-    return { success: true, id: module.id }
+    return { success: true, id: (module as { id: string }).id }
   }
 
   if (contentType === 'pdf') {
@@ -266,7 +272,7 @@ export async function createModuleAction(
       return { error: parsed.error.issues[0].message }
     }
 
-    const { data: module, error } = await adminClient
+    const { data: module, error } = await ac
       .from('modules')
       .insert({
         course_id: courseId,
@@ -277,12 +283,12 @@ export async function createModuleAction(
         order_index: nextIndex,
       })
       .select('id')
-      .single()
+      .single() as { data: { id: string } | null; error: unknown }
 
     if (error) return { error: 'Error al crear el módulo PDF.' }
     await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
-    return { success: true, id: module.id }
+    return { success: true, id: (module as { id: string }).id }
   }
 
   if (contentType === 'quiz') {
@@ -296,7 +302,7 @@ export async function createModuleAction(
     }
 
     // Crear módulo primero
-    const { data: module, error: moduleError } = await adminClient
+    const { data: module, error: moduleError } = await ac
       .from('modules')
       .insert({
         course_id: courseId,
@@ -307,27 +313,27 @@ export async function createModuleAction(
         order_index: nextIndex,
       })
       .select('id')
-      .single()
+      .single() as { data: { id: string } | null; error: unknown }
 
     if (moduleError) return { error: 'Error al crear el módulo de evaluación.' }
 
     // Crear quiz ligado al módulo
-    const { data: quiz, error: quizError } = await adminClient
+    const { data: quiz, error: quizError } = await ac
       .from('quizzes')
       .insert({
-        module_id: module.id,
+        module_id: (module as { id: string }).id,
         title: parsed.data.title,
         passing_score: parsed.data.passing_score,
         max_attempts: parsed.data.max_attempts,
       })
       .select('id')
-      .single()
+      .single() as { data: { id: string } | null; error: unknown }
 
     if (quizError) return { error: 'Error al crear la evaluación.' }
 
     await syncFinalModule(courseId)
     revalidatePath(`/admin/cursos/${courseId}/editar`)
-    return { success: true, id: module.id, quizId: quiz.id }
+    return { success: true, id: (module as { id: string }).id, quizId: (quiz as { id: string }).id }
   }
 
   return { error: 'Tipo de módulo no válido.' }
@@ -344,16 +350,18 @@ export async function updateModuleAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const acU = adminClient as any
 
   const title = formData.get('title') as string
   if (!title || title.length < 2) {
     return { error: 'El título debe tener al menos 2 caracteres' }
   }
 
-  const { error } = await adminClient
+  const { error } = await acU
     .from('modules')
     .update({ title })
-    .eq('id', moduleId)
+    .eq('id', moduleId) as { error: unknown }
 
   if (error) return { error: 'Error al actualizar el módulo.' }
 
@@ -371,10 +379,12 @@ export async function deleteModuleAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
-  const { error } = await adminClient
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const acD = adminClient as any
+  const { error } = await acD
     .from('modules')
     .delete()
-    .eq('id', moduleId)
+    .eq('id', moduleId) as { error: unknown }
 
   if (error) return { error: 'Error al eliminar el módulo.' }
 
@@ -393,12 +403,14 @@ export async function reorderModulesAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const acR = adminClient as any
 
   const updates = modules.map(({ id, order_index }) =>
-    adminClient
+    (acR
       .from('modules')
       .update({ order_index })
-      .eq('id', id)
+      .eq('id', id)) as Promise<{ error: unknown }>
   )
 
   const results = await Promise.all(updates)
@@ -417,27 +429,29 @@ export async function reorderModulesAction(
 
 async function syncFinalModule(courseId: string) {
   const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const acS = adminClient as any
 
   // 1. Obtenemos todos los módulos del curso ordenados
-  const { data: modules } = await adminClient
+  const { data: modules } = await acS
     .from('modules')
     .select('id')
     .eq('course_id', courseId)
-    .order('order_index', { ascending: true })
+    .order('order_index', { ascending: true }) as { data: { id: string }[] | null }
 
   if (!modules || modules.length === 0) return
 
   const lastModuleId = modules[modules.length - 1].id
 
   // 2. Le quitamos la etiqueta a todos los que NO son el último
-  await adminClient
+  await acS
     .from('modules')
     .update({ is_final_module: false })
     .eq('course_id', courseId)
     .neq('id', lastModuleId)
 
   // 3. Le ponemos la etiqueta exclusivamente al último
-  await adminClient
+  await acS
     .from('modules')
     .update({ is_final_module: true })
     .eq('id', lastModuleId)

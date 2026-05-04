@@ -22,7 +22,7 @@ export default function SearchBar({ placeholder, className }: SearchBarProps) {
 
   const containerRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const router = useRouter()
 
   useEffect(() => {

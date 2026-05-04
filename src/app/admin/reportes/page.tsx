@@ -13,17 +13,17 @@ export default async function ReportesPage() {
     .select('id, full_name, sede, area_trabajo')
     .eq('role', 'trabajador')
     .eq('status', 'activo')
-    .order('full_name')
+    .order('full_name') as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }
 
   const { data: courses } = await adminClient
     .from('courses')
     .select('id, title, target_areas')
     .eq('is_published', true)
-    .order('order_index')
+    .order('order_index') as { data: { id: string; title: string; target_areas: string[] | null }[] | null }
 
   const { data: progressRaw } = await adminClient
     .from('course_progress')
-    .select('user_id, course_id, is_completed')
+    .select('user_id, course_id, is_completed') as { data: { user_id: string; course_id: string; is_completed: boolean }[] | null }
 
   // Construir datos por trabajador, respetando target_areas por curso
   const workers = (workersRaw ?? []).map(worker => {

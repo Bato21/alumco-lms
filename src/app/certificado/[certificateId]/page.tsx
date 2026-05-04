@@ -32,7 +32,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
       )
     `)
     .eq('id', certificateId)
-    .single()
+    .single() as { data: { id: string; issued_at: string; pdf_url: string | null; user_id: string; course_id: string; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null } | null }
 
   if (!certificate) notFound()
 
@@ -40,7 +40,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
     .from('profiles')
     .select('full_name, role, sede, area_trabajo')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null } | null }
 
   if (
     certificate.user_id !== user.id &&
@@ -54,7 +54,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
     .from('profiles')
     .select('full_name, sede, area_trabajo')
     .eq('id', certificate.user_id)
-    .single()
+    .single() as { data: { full_name: string; sede: string; area_trabajo: string[] | null } | null }
 
   const course = Array.isArray(certificate.courses)
     ? certificate.courses[0]

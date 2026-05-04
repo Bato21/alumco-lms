@@ -33,7 +33,7 @@ export async function generateCertificateAction(
       .from('quiz_attempts')
       .select('id, status, user_id')
       .eq('id', quizAttemptId)
-      .single()
+      .single() as { data: { id: string; status: string; user_id: string } | null }
 
     if (!attempt) return { error: 'Intento no encontrado' }
     if (attempt.status !== 'aprobado') return { error: 'El intento no fue aprobado' }
@@ -46,7 +46,7 @@ export async function generateCertificateAction(
     .select('id')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
-    .maybeSingle()
+    .maybeSingle() as { data: { id: string } | null }
 
   if (existing) {
     return { success: true, certificateId: existing.id }
@@ -113,7 +113,7 @@ export async function generateCertificatePDF(
       .from('certificates')
       .select('id, issued_at, user_id, course_id, courses(title, created_by)')
       .eq('id', certificateId)
-      .single()
+      .single() as { data: { id: string; issued_at: string; user_id: string; course_id: string; courses: { title: string; created_by: string | null } | { title: string; created_by: string | null }[] | null } | null }
 
     if (!cert) return { error: 'Certificado no encontrado' }
 
@@ -121,7 +121,7 @@ export async function generateCertificatePDF(
       .from('profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .single() as { data: { role: string } | null }
 
     const isOwner = cert.user_id === user.id
     const isAdmin = callerProfile?.role === 'admin'
@@ -133,13 +133,13 @@ export async function generateCertificatePDF(
       .from('profiles')
       .select('full_name, rut, sede, area_trabajo')
       .eq('id', cert.user_id)
-      .single()
+      .single() as { data: { full_name: string; rut: string | null; sede: string; area_trabajo: string[] | null } | null }
 
     const { data: creator } = await adminClient
       .from('profiles')
       .select('full_name, firma_url')
       .eq('id', (course as { created_by?: string } | null)?.created_by ?? '')
-      .single()
+      .single() as { data: { full_name: string; firma_url: string | null } | null }
 
     const { data: directora } = await adminClient
       .from('profiles')
@@ -147,7 +147,7 @@ export async function generateCertificatePDF(
       .eq('role', 'admin')
       .eq('sede', worker?.sede ?? 'sede_1')
       .limit(1)
-      .single()
+      .single() as { data: { full_name: string; firma_url: string | null } | null }
 
     // ── Construir el PDF ──────────────────────────────────
     const pdfDoc = await PDFDocument.create()

@@ -16,12 +16,14 @@ export interface Profile {
   area_trabajo: AreaTrabajo[]
   fecha_nacimiento: string | null
   avatar_url: string | null
+  firma_url: string | null
   is_active: boolean
   status: ProfileStatus
   rut: string | null
   requested_at: string | null
   approved_by: string | null
   approved_at: string | null
+  onboarding_completed: boolean | null
   created_at: string
   updated_at: string
 }
@@ -63,6 +65,9 @@ export interface Course {
   created_by: string | null
   created_at: string
   updated_at: string
+  deadline: string | null
+  deadline_description: string | null
+  target_areas: string[] | null
 }
 
 export interface Module {
@@ -75,6 +80,7 @@ export interface Module {
   order_index: number
   duration_mins: number | null
   is_required: boolean
+  is_final_module: boolean
   created_at: string
   updated_at: string
 }
@@ -157,6 +163,8 @@ export interface CourseProgress {
   is_completed: boolean
   started_at: string
   completed_at: string | null
+  updated_at: string | null
+  last_quiz_reset_at: string | null
 }
 
 // ── Vista de reportes ──────────────────────────────────────
@@ -184,47 +192,56 @@ export interface Database {
       profiles: {
         Row: Profile
         Insert: Omit<Profile, 'created_at' | 'updated_at'>
-        Update: Partial<Pick<Profile, 'status' | 'sede' | 'area_trabajo' | 'role' | 'approved_by' | 'approved_at' | 'full_name' | 'rut' | 'fecha_nacimiento' | 'avatar_url'>>
+        Update: Partial<Pick<Profile, 'status' | 'sede' | 'area_trabajo' | 'role' | 'approved_by' | 'approved_at' | 'full_name' | 'rut' | 'fecha_nacimiento' | 'avatar_url' | 'firma_url' | 'onboarding_completed'>>
+        Relationships: []
       }
       courses: {
         Row: Course
         Insert: Omit<Course, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Course, 'id' | 'created_at'>>
+        Relationships: []
       }
       modules: {
         Row: Module
         Insert: Omit<Module, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Module, 'id' | 'created_at'>>
+        Relationships: []
       }
       quizzes: {
         Row: Quiz
         Insert: Omit<Quiz, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<Quiz, 'id' | 'created_at'>>
+        Relationships: []
       }
       questions: {
         Row: Question
         Insert: Omit<Question, 'id' | 'created_at'>
         Update: Partial<Omit<Question, 'id' | 'created_at'>>
+        Relationships: []
       }
       quiz_attempts: {
         Row: QuizAttempt
         Insert: Omit<QuizAttempt, 'id' | 'completed_at' | 'attempt_number'>
-        Update: never  // Tabla inmutable
+        Update: Record<string, never>  // Tabla inmutable — no se permiten updates
+        Relationships: []
       }
       certificates: {
         Row: Certificate
         Insert: Omit<Certificate, 'id' | 'issued_at'>
         Update: Pick<Certificate, 'pdf_url'>
+        Relationships: []
       }
       course_progress: {
         Row: CourseProgress
         Insert: Omit<CourseProgress, 'id' | 'started_at'>
         Update: Partial<Omit<CourseProgress, 'id' | 'user_id' | 'course_id' | 'started_at'>>
+        Relationships: []
       }
     }
     Views: {
       reporte_avance: {
         Row: ReporteAvance
+        Relationships: []
       }
     }
     Enums: {
@@ -234,5 +251,6 @@ export interface Database {
       sede: Sede
       profile_status: ProfileStatus
     }
+    Functions: Record<string, never>
   }
 }

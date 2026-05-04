@@ -19,7 +19,7 @@ export default async function DashboardLayout({
     .from('profiles')
     .select('full_name, role, sede, area_trabajo, avatar_url')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null; avatar_url: string | null } | null; error: unknown }
 
   if (!profile) {
     redirect('/login')
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
       <WorkerSidebar
         fullName={profile.full_name ?? 'Usuario'}
         sede={profile.sede ?? 'sede_1'}
-        area={profile.area_trabajo ?? undefined}
+        area={profile.area_trabajo ? profile.area_trabajo[0] : undefined}
         avatarUrl={profile.avatar_url}
         alerts={workerAlerts}
       />

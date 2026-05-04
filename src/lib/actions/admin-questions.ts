@@ -53,6 +53,8 @@ export async function saveQuestionAction(
     }
 
     const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
 
     const payload = {
       quiz_id: parsed.data.quiz_id,
@@ -65,15 +67,15 @@ export async function saveQuestionAction(
     let error
 
     if (parsed.data.id) {
-      const { error: updateError } = await adminClient
+      const { error: updateError } = await ac
         .from('questions')
         .update(payload)
-        .eq('id', parsed.data.id)
+        .eq('id', parsed.data.id) as { error: unknown }
       error = updateError
     } else {
-      const { error: insertError } = await adminClient
+      const { error: insertError } = await ac
         .from('questions')
-        .insert(payload)
+        .insert(payload) as { error: unknown }
       error = insertError
     }
 
@@ -97,11 +99,13 @@ export async function deleteQuestionAction(
     if (!auth.ok) return { success: false, error: auth.error }
 
     const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
 
-    const { error } = await adminClient
+    const { error } = await ac
       .from('questions')
       .delete()
-      .eq('id', questionId)
+      .eq('id', questionId) as { error: unknown }
 
     if (error) throw error
 
@@ -121,11 +125,13 @@ export async function getQuestionsAction(
     if (!auth.ok) return { success: false, error: auth.error }
 
     const adminClient = await createAdminClient()
-    const { data, error } = await adminClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data, error } = await ac
       .from('questions')
       .select('*')
       .eq('quiz_id', quizId)
-      .order('order_index')
+      .order('order_index') as { data: Question[] | null; error: unknown }
 
     if (error) throw error
     return { success: true, questions: data ?? [] }

@@ -13,26 +13,28 @@ export async function searchAction(query: string): Promise<{
   }
 
   const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sp = supabase as any
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { courses: [], workers: [], role: 'trabajador' }
 
-  const { data: profile } = await supabase
+  const { data: profile } = await sp
     .from('profiles')
     .select('role, area_trabajo')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string; area_trabajo: string[] | null } | null }
 
   const role = profile?.role ?? 'trabajador'
   const workerAreas: string[] = profile?.area_trabajo ?? []
   const q = query.trim().toLowerCase()
   const qPattern = `%${escapeIlike(q)}%`
 
-  const { data: allCourses } = await supabase
+  const { data: allCourses } = await sp
     .from('courses')
     .select('id, title, is_published, target_areas')
     .ilike('title', qPattern)
     .order('title')
-    .limit(5)
+    .limit(5) as { data: { id: string; title: string; is_published: boolean; target_areas: string[] | null }[] | null }
 
   let courses = (allCourses ?? [])
   if (role === 'trabajador') {
@@ -46,14 +48,16 @@ export async function searchAction(query: string): Promise<{
   let workers: { id: string; full_name: string; area_trabajo: string[]; sede: string }[] = []
   if (role === 'admin' || role === 'profesor') {
     const adminClient = await createAdminClient()
-    const { data: workersData } = await adminClient
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: workersData } = await ac
       .from('profiles')
       .select('id, full_name, area_trabajo, sede')
       .eq('status', 'activo')
       .eq('role', 'trabajador')
       .ilike('full_name', qPattern)
       .order('full_name')
-      .limit(5)
+      .limit(5) as { data: { id: string; full_name: string; area_trabajo: string[] | null; sede: string }[] | null }
 
     workers = (workersData ?? []).map(w => ({
       ...w,

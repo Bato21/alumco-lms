@@ -26,7 +26,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     .from('profiles')
     .select('id, full_name, rut, sede, area_trabajo, role, status')
     .eq('status', 'activo')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false }) as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string }[] | null }
 
   type ActiveWorker = {
     id: string
@@ -37,13 +37,13 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     role: string
     status: string
   }
-  const activos: ActiveWorker[] = (activosRaw as ActiveWorker[]) || []
+  const activos: ActiveWorker[] = (activosRaw as ActiveWorker[]) ?? []
 
   const { data: suspendidosRaw } = await adminClient
     .from('profiles')
     .select('id, full_name, rut, sede, area_trabajo, role, status, updated_at')
     .eq('status', 'suspendido')
-    .order('full_name')
+    .order('full_name') as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; updated_at: string }[] | null }
 
   const suspendidos = suspendidosRaw ?? []
 
@@ -51,7 +51,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     .from('profiles')
     .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
     .eq('status', 'pendiente')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false }) as { data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }
 
   const pendingCount = pendientesRaw?.length || 0
 

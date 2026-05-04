@@ -179,6 +179,7 @@ export async function registerWorkerAction(
 }
 
 export async function forgotPasswordAction(
+  _prevState: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const email = formData.get('email')

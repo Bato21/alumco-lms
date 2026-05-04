@@ -164,7 +164,7 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl, alerts }: Worke
     <>
       {/* Desktop Sidebar - fijo, solo visible en lg+ */}
       <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 flex flex-col border-r bg-[#1A2F6B] z-40">
-        <SidebarContent fullName={fullName} sede={sede} area={area} avatarUrl={avatarUrl} />
+        <SidebarContent fullName={fullName} sede={sede} area={area} avatarUrl={avatarUrl} alerts={alerts} />
       </aside>
 
       {/* Mobile Header - solo visible en mobile/tablet */}
@@ -240,6 +240,7 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl, alerts }: Worke
           sede={sede}
           area={area}
           avatarUrl={avatarUrl}
+          alerts={alerts}
           onClose={() => setIsDrawerOpen(false)}
         />
       </aside>

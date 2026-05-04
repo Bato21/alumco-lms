@@ -24,7 +24,7 @@ export default async function AdminCursosPage({
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single()
+    .single() as { data: { role: string } | null }
 
   if (profile?.role !== 'admin' && profile?.role !== 'profesor') redirect('/inicio')
 
@@ -32,7 +32,7 @@ export default async function AdminCursosPage({
   const { data: courses } = await supabase
     .from('courses')
     .select('*')
-    .order('order_index')
+    .order('order_index') as { data: { id: string; title: string; description: string | null; thumbnail_url: string | null; is_published: boolean; order_index: number; created_by: string | null; created_at: string; updated_at: string; target_areas: string[] | null; deadline: string | null; deadline_description: string | null }[] | null }
 
   const allCourses = courses ?? []
   const publicados = allCourses.filter(c => c.is_published)
