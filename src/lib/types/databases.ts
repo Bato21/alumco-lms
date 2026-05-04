@@ -63,14 +63,11 @@ export interface Course {
   is_published: boolean
   order_index: number
   created_by: string | null
-  target_areas: AreaTrabajo[] | null
+  target_areas: string[] | null
   deadline: string | null
   deadline_description: string | null
   created_at: string
   updated_at: string
-  deadline: string | null
-  deadline_description: string | null
-  target_areas: string[] | null
 }
 
 export interface Module {
@@ -192,7 +189,6 @@ export interface ReporteAvance {
 
 export interface Database {
   public: {
-    Functions: Record<string, never>
     Tables: {
       profiles: {
         Row: Profile

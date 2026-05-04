@@ -44,7 +44,7 @@ export default async function AdminPerfilPage() {
           .from('course_progress')
           .select('user_id, is_completed, course_id')
           .in('course_id', createdCourseIds) as { data: { user_id: string; is_completed: boolean; course_id: string }[] | null }
-      : { data: [] as { user_id: string; is_completed: boolean; course_id: string }[] }
+      : { data: [] as { user_id: string; is_completed: boolean; course_id: string }[] })
 
     capacitatedWorkers = new Set(
       (progressOnCourses ?? [])
@@ -57,7 +57,7 @@ export default async function AdminPerfilPage() {
           .from('certificates')
           .select('id')
           .in('course_id', createdCourseIds) as { data: { id: string }[] | null }
-      : { data: [] as { id: string }[] }
+      : { data: [] as { id: string }[] })
 
     totalCerts = certsOnCourses?.length ?? 0
 
@@ -75,7 +75,7 @@ export default async function AdminPerfilPage() {
           .from('quiz_attempts')
           .select('status')
           .in('quiz_id', quizIds) as { data: { status: string }[] | null }
-      : { data: [] as { status: string }[] }
+      : { data: [] as { status: string }[] })
 
     const totalAttempts = attemptsOnCourses?.length ?? 0
     const approvedAttempts = attemptsOnCourses?.filter(
