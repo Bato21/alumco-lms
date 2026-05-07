@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Award, BookOpen, CheckCircle2, Clock } from 'lucide-react'
 import { getWorkerDetailAction } from '@/lib/actions/trabajadores'
+import { createAdminClient } from '@/lib/supabase/server'
 import WorkerActions from './WorkerActions'
 
 export const dynamic = 'force-dynamic'
@@ -25,12 +26,6 @@ function formatDate(dateStr: string | null | undefined): string {
   })
 }
 
-function sedeName(sede: string): string {
-  if (sede === 'sede_1') return 'Sede Hualpén'
-  if (sede === 'sede_2') return 'Sede Coyhaique'
-  return sede
-}
-
 function roleName(role: string): string {
   if (role === 'trabajador') return 'Trabajador'
   if (role === 'admin') return 'Administrador'
@@ -45,6 +40,14 @@ export default async function WorkerDetailPage(
   const result = await getWorkerDetailAction(id)
 
   if ('error' in result) notFound()
+
+  const adminClient = await createAdminClient()
+  const { data: sedesData } = await adminClient
+    .from('sedes')
+    .select('id, nombre')
+    .eq('activa', true)
+    .order('created_at', { ascending: true }) as { data: { id: string; nombre: string }[] | null }
+  const sedes = sedesData ?? []
 
   const { worker, progress, certificates } = result
 
@@ -94,7 +97,7 @@ export default async function WorkerDetailPage(
           area_trabajo: areas,
           role: worker.role,
           status: worker.status,
-        }} />
+        }} sedes={sedes} />
       </div>
 
       {/* Card de perfil */}
@@ -111,9 +114,11 @@ export default async function WorkerDetailPage(
             <p className="text-sm text-[#6B7280] mt-0.5 capitalize">{roleName(worker.role)}</p>
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                worker.sede === 'sede_1' ? 'bg-[#E6F1FB] text-[#2B4FA0]' : 'bg-[#EAF3DE] text-[#27500A]'
+                sedes.findIndex(s => s.id === worker.sede) % 2 !== 0
+                  ? 'bg-[#EAF3DE] text-[#27500A]'
+                  : 'bg-[#E6F1FB] text-[#2B4FA0]'
               }`}>
-                {sedeName(worker.sede)}
+                {sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}
               </span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
                 isActive ? 'bg-green-50 text-[#27AE60]' : 'bg-red-50 text-[#E74C3C]'
@@ -137,7 +142,7 @@ export default async function WorkerDetailPage(
           </div>
           <div>
             <dt className="text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">Sede</dt>
-            <dd className="mt-1 text-sm text-[#1A1A2E]">{sedeName(worker.sede)}</dd>
+            <dd className="mt-1 text-sm text-[#1A1A2E]">{sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}</dd>
           </div>
           <div>
             <dt className="text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">Áreas</dt>

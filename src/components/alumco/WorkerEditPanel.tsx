@@ -11,6 +11,7 @@ interface WorkerEditPanelProps {
   rut: string | null
   sede: string
   areas: string[]
+  sedes: { id: string; nombre: string }[]
   onClose: () => void
 }
 
@@ -20,6 +21,7 @@ export function WorkerEditPanel({
   rut: initialRut,
   sede: initialSede,
   areas,
+  sedes,
   onClose,
 }: WorkerEditPanelProps) {
   const [fullName, setFullName] = useState(initialFullName)
@@ -188,8 +190,9 @@ export function WorkerEditPanel({
               disabled={isLoading}
               className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
             >
-              <option value="sede_1">Sede Hualpén</option>
-              <option value="sede_2">Sede Coyhaique</option>
+              {sedes.map(s => (
+                <option key={s.id} value={s.id}>{s.nombre}</option>
+              ))}
             </select>
           </div>
 

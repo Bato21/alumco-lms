@@ -37,9 +37,9 @@ function AreaBadges({ areas }: { areas: string[] }) {
   )
 }
 
-export function WorkersTable({ workers }: { workers: Worker[] }) {
+export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { id: string; nombre: string }[] }) {
   const [search, setSearch] = useState('')
-  const [sede, setSede] = useState<'todas' | 'sede_1' | 'sede_2'>('todas')
+  const [sede, setSede] = useState<string>('todas')
   const [area, setArea] = useState('todas')
   const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null)
   const [sortField, setSortField] = useState<SortField>('full_name')
@@ -104,6 +104,7 @@ export function WorkersTable({ workers }: { workers: Worker[] }) {
           rut={selectedWorker.rut}
           sede={selectedWorker.sede}
           areas={selectedWorker.area_trabajo}
+          sedes={sedes}
           onClose={() => setSelectedWorker(null)}
         />
       )}
@@ -120,12 +121,13 @@ export function WorkersTable({ workers }: { workers: Worker[] }) {
           />
           <select
             value={sede}
-            onChange={e => setSede(e.target.value as 'todas' | 'sede_1' | 'sede_2')}
+            onChange={e => setSede(e.target.value)}
             className="h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0]"
           >
             <option value="todas">Todas las sedes</option>
-            <option value="sede_1">Sede Hualpén</option>
-            <option value="sede_2">Sede Coyhaique</option>
+            {sedes.map(s => (
+              <option key={s.id} value={s.id}>{s.nombre}</option>
+            ))}
           </select>
           <select
             value={area}
@@ -232,11 +234,11 @@ export function WorkersTable({ workers }: { workers: Worker[] }) {
                         </td>
                         <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            worker.sede === 'sede_1'
-                              ? 'bg-[#E6F1FB] text-[#2B4FA0]'
-                              : 'bg-[#EAF3DE] text-[#27500A]'
+                            sedes.findIndex(s => s.id === worker.sede) % 2 !== 0
+                              ? 'bg-[#EAF3DE] text-[#27500A]'
+                              : 'bg-[#E6F1FB] text-[#2B4FA0]'
                           }`}>
-                            {worker.sede === 'sede_1' ? 'Hualpén' : 'Coyhaique'}
+                            {sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}
                           </span>
                         </td>
                         <td className="px-5 lg:px-6 py-4 hidden lg:table-cell">

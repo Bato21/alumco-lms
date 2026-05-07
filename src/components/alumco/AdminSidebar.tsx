@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   UserCircle,
+  MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from './LogoutButton'
@@ -43,6 +44,12 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
       href: '/admin/trabajadores',
       label: 'Trabajadores',
       icon: Users,
+      show: isAdmin,
+    },
+    {
+      href: '/admin/sedes',
+      label: 'Sedes',
+      icon: MapPin,
       show: isAdmin,
     },
     {

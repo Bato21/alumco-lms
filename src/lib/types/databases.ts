@@ -3,8 +3,15 @@
 export type UserRole = 'admin' | 'trabajador' | 'profesor'
 export type ContentType = 'video' | 'pdf' | 'slides' | 'quiz'
 export type AttemptStatus = 'aprobado' | 'reprobado' | 'en_progreso'
-export type Sede = 'sede_1' | 'sede_2'
+export type Sede = string
 export type ProfileStatus = 'pendiente' | 'activo' | 'suspendido'
+
+export interface SedeRecord {
+  id: string
+  nombre: string
+  activa: boolean
+  created_at: string
+}
 
 // ── Filas de cada tabla ────────────────────────────────────
 

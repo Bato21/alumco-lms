@@ -16,9 +16,10 @@ interface WorkerActionsProps {
     role: string
     status: string
   }
+  sedes: { id: string; nombre: string }[]
 }
 
-export default function WorkerActions({ worker }: WorkerActionsProps) {
+export default function WorkerActions({ worker, sedes }: WorkerActionsProps) {
   const router = useRouter()
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -49,6 +50,7 @@ export default function WorkerActions({ worker }: WorkerActionsProps) {
           rut={worker.rut}
           sede={worker.sede}
           areas={worker.area_trabajo}
+          sedes={sedes}
           onClose={() => {
             setIsEditOpen(false)
             router.refresh()

@@ -22,6 +22,15 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const adminClient = await createAdminClient()
 
+  const { data: sedesData } = await adminClient
+    .from('sedes')
+    .select('id, nombre')
+    .eq('activa', true)
+    .order('created_at', { ascending: true }) as {
+      data: { id: string; nombre: string }[] | null
+    }
+  const sedes = sedesData ?? []
+
   const { data: activosRaw } = await adminClient
     .from('profiles')
     .select('id, full_name, rut, sede, area_trabajo, role, status')
@@ -180,6 +189,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
                             profileId={solicitud.id}
                             fullName={solicitud.full_name}
                             rut={solicitud.rut || 'N/A'}
+                            sedes={sedes}
                           />
                         </td>
                       </tr>
@@ -193,7 +203,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
       ) : activeTab === 'suspendidos' ? (
         <SuspendedTable workers={suspendidos} />
       ) : (
-        <WorkersTable workers={activos} />
+        <WorkersTable workers={activos} sedes={sedes} />
       )}
     </div>
   )
