@@ -8,6 +8,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle, X, CheckCircle2, ChevronDown } from 'lucide-react'
 import { AREAS_TRABAJO } from '@/lib/types/database'
 
+function useLockBodyScroll(active: boolean) {
+  useEffect(() => {
+    if (!active) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [active])
+}
+
 interface ApprovalPanelProps {
   profileId: string
   fullName: string
@@ -25,6 +34,8 @@ export function ApprovalPanel({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [isRejecting, startRejectTransition] = useTransition()
+
+  useLockBodyScroll(isOpen)
 
   // Selector de área
   const [areaMode, setAreaMode] = useState<'single' | 'multi'>('single')

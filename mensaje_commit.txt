@@ -1,70 +1,50 @@
-fix: responsividad mobile, nuevo logo KimünKo y branding login
+fix: responsividad sedes, modal confirmación desactivar, scroll ApprovalPanel y badge sin sede
 
 ══════════════════════════════════════════════
-RESPONSIVIDAD MOBILE — 4 COMPONENTES
+SEDES — RESPONSIVIDAD Y UX
 ══════════════════════════════════════════════
 
-src/app/admin/dashboard/page.tsx — FIX 1: Hero banner
-· Altura fija h-48 → min-h-[12rem] con py-8 lg:py-0 para que el
-  contenido no quede cortado en pantallas pequeñas.
-· Padding: px-4 sm:px-6 lg:px-10.
-· Título: text-2xl sm:text-3xl lg:text-4xl.
-· Subtítulo: text-xs sm:text-sm.
-· Botones de acción: flex-col sm:flex-row para apilarse en mobile.
-· Div interno con w-full para ocupar el ancho disponible.
-
-src/app/admin/trabajadores/[id]/page.tsx — FIX 2: Stats cards
-· Grid: grid-cols-2 xl:grid-cols-4 gap-3 lg:gap-4 (2 columnas en mobile).
-· Padding de cada card: p-4 sm:p-5 lg:p-6.
-· Ícono contenedor: w-8 h-8 sm:w-10 sm:h-10 rounded-full.
-· Número: text-2xl sm:text-3xl font-extrabold.
-· Label: uppercase tracking-wider para consistencia visual.
-
-src/components/alumco/CourseBuilder/QuestionForm.tsx — FIX 3: Editor preguntas
-· Fila de alternativa: flex items-start gap-2 flex-wrap sm:flex-nowrap
-  para que no se desborde en mobile.
-· Radio: mt-2 shrink-0 para alinearse con el texto.
-· Input texto: min-w-0 para respetar el modelo de caja flex.
-· Botón eliminar: shrink-0 mt-1 para no comprimirse.
-· Textarea: min-h-[80px] como mínimo visual.
-· Botón guardar: w-full sm:w-auto con layout flex-col sm:flex-row.
-
-src/components/alumco/NotificationBell.tsx — FIX 4: Dropdown notificaciones
-· Problema raíz: el botón campana tiene el hamburger a su derecha,
-  por lo que right-0 anclaba al borde del botón (~60px del viewport),
-  haciendo que el dropdown se desbordara por la izquierda.
-· Solución: fixed right-4 top-[66px] en mobile para anclar al viewport.
-· Desktop: sm:absolute sm:right-0 sm:top-full sm:mt-2 (comportamiento original).
-· Ancho: w-[calc(100vw-2rem)] sm:w-80 max-w-sm min-w-[280px] sm:min-w-[320px].
-· z-[60] para quedar sobre el header sticky z-50.
+src/app/admin/sedes/SedesClient.tsx
+· Form "Crear sede": flex-col en mobile → flex-row en sm+ para que
+  el botón no quede aplastado en pantallas pequeñas.
+· Cards: truncate en nombre e ID para no desbordar en pantallas angostas.
+· Padding adaptado: p-5 en mobile, p-6 en lg+.
+· min-h-[44px] en botones de acción para cumplir target táctil.
 
 ══════════════════════════════════════════════
-NUEVO LOGO — KimünKo (SVG inline)
+SEDES — CONFIRMACIÓN AL DESACTIVAR
 ══════════════════════════════════════════════
 
-src/components/alumco/AdminSidebar.tsx
-src/components/alumco/WorkerSidebar.tsx
-· LogoAlumco.png reemplazado por SVG inline en las 4 instancias
-  (desktop SidebarContent + mobile header de cada sidebar).
-· SVG compuesto por: gota dorada (#F5A623), brillo interno con
-  opacidad 0.25, texto "KimünKo" con tspan para "Kimün" (blanco)
-  y "Ko" (dorado) en un solo elemento <text> (elimina el espacio
-  que aparecía al usar dos <text> con coordenadas manuales),
-  subtítulo "sabiduría del agua" integrado en el SVG.
-· Eliminado el <span>KimünKo</span> que existía debajo del logo
-  antiguo (ahora el subtítulo vive dentro del SVG).
-· import Image from 'next/image' eliminado de ambos archivos
-  (ya no se referencia en ningún lugar).
+src/app/admin/sedes/SedesClient.tsx
+· Al pulsar "Desactivar sede" aparece un modal de confirmación centrado
+  con overlay oscuro y backdrop-blur.
+· El modal muestra el nombre de la sede y la cantidad de trabajadores
+  afectados. Si no hay trabajadores avisa que la acción es sin riesgo.
+· Botones: "Cancelar" (cierra sin acción) y "Desactivar" (confirma).
+
+src/lib/actions/sedes.ts
+· toggleSedeAction: cuando activa=false, limpia el campo sede de todos
+  los trabajadores asignados a esa sede (profiles.sede = null), de forma
+  que queden pendientes de reasignación.
 
 ══════════════════════════════════════════════
-BRANDING LOGIN
+TRABAJADORES — BADGE Y FILTRO "SIN SEDE"
 ══════════════════════════════════════════════
 
-src/app/(auth)/login/page.tsx
-· Agregado LogoAlumco.png (con sus colores originales, sin filtro
-  brightness-0 invert) centrado encima del recuadro de credenciales
-  en la columna derecha (width=160, height=54).
-· La columna izquierda (branding azul) mantiene el SVG KimünKo
-  con colores invertidos para fondo oscuro.
-· Visible tanto en desktop como en mobile (donde la columna
-  izquierda está oculta con hidden md:flex).
+src/app/admin/trabajadores/WorkersTable.tsx
+· Badge naranja "Sin sede" (bg-[#FFF8EC] text-[#92600A]) en la columna
+  sede para trabajadores cuyo campo sede es null o vacío.
+· Opción "Sin sede asignada" agregada al filtro de sedes, permitiendo
+  al admin localizar rápidamente a los trabajadores afectados por
+  una desactivación de sede.
+
+══════════════════════════════════════════════
+APPROVAL PANEL — OVERLAY VERDADERO
+══════════════════════════════════════════════
+
+src/components/alumco/ApprovalPanel.tsx
+· Agregado hook useLockBodyScroll: mientras el panel está abierto,
+  document.body.style.overflow = 'hidden' para que la página detrás
+  no sea desplazable. Se restaura al cerrar.
+· El panel ya era fixed con overlay; este fix completa el bloqueo de
+  scroll de fondo que hacía que pareciera infinito.

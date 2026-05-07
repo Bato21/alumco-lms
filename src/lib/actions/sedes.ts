@@ -50,12 +50,20 @@ export async function toggleSedeAction(
   activa: boolean
 ): Promise<{ success?: boolean; error?: string }> {
   const adminClient = await createAdminClient()
+
   const { error } = await adminClient
     .from('sedes')
     .update({ activa } as unknown as never)
     .eq('id', sedeId)
 
   if (error) return { error: error.message }
+
+  if (!activa) {
+    await adminClient
+      .from('profiles')
+      .update({ sede: null } as unknown as never)
+      .eq('sede', sedeId)
+  }
 
   revalidatePath('/admin/sedes')
   revalidatePath('/admin/trabajadores')

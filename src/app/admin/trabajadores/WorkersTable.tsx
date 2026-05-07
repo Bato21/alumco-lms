@@ -55,7 +55,8 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
   }
 
   const filtered = workers.filter(w => {
-    if (sede !== 'todas' && w.sede !== sede) return false
+    if (sede === 'sin_sede' && w.sede) return false
+    if (sede !== 'todas' && sede !== 'sin_sede' && w.sede !== sede) return false
     if (area !== 'todas' && !w.area_trabajo.includes(area)) return false
     if (search && !w.full_name.toLowerCase().includes(search.toLowerCase())) return false
     return true
@@ -128,6 +129,7 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
             {sedes.map(s => (
               <option key={s.id} value={s.id}>{s.nombre}</option>
             ))}
+            <option value="sin_sede">Sin sede asignada</option>
           </select>
           <select
             value={area}
@@ -233,13 +235,19 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                           {worker.rut ?? '—'}
                         </td>
                         <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            sedes.findIndex(s => s.id === worker.sede) % 2 !== 0
-                              ? 'bg-[#EAF3DE] text-[#27500A]'
-                              : 'bg-[#E6F1FB] text-[#2B4FA0]'
-                          }`}>
-                            {sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}
-                          </span>
+                          {!worker.sede ? (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFF8EC] text-[#92600A]">
+                              Sin sede
+                            </span>
+                          ) : (
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                              sedes.findIndex(s => s.id === worker.sede) % 2 !== 0
+                                ? 'bg-[#EAF3DE] text-[#27500A]'
+                                : 'bg-[#E6F1FB] text-[#2B4FA0]'
+                            }`}>
+                              {sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}
+                            </span>
+                          )}
                         </td>
                         <td className="px-5 lg:px-6 py-4 hidden lg:table-cell">
                           <AreaBadges areas={worker.area_trabajo} />
