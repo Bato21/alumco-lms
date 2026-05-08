@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ChevronDown, X, Loader2 } from 'lucide-react'
 import { updateWorkerAction, suspendWorkerAction } from '@/lib/actions/trabajadores'
 import { AREAS_TRABAJO } from '@/lib/types/database'
@@ -101,11 +102,11 @@ export function WorkerEditPanel({
     .join('')
     .toUpperCase()
 
-  return (
+  return createPortal(
     <>
       {/* Overlay */}
       <div
-        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -115,10 +116,10 @@ export function WorkerEditPanel({
         role="dialog"
         aria-modal="true"
         aria-label={`Editar trabajador ${fullName}`}
-        className="fixed right-0 top-0 h-screen w-full md:w-[420px] bg-white z-[60] shadow-2xl border-l-4 border-[#2B4FA0] flex flex-col"
+        className="fixed right-0 top-0 h-screen w-full sm:w-[480px] md:w-[520px] bg-white z-[70] shadow-2xl border-l-4 border-[#2B4FA0] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+        <div className="flex-none flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-white">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-sm shrink-0">
               {initials}
@@ -280,7 +281,7 @@ export function WorkerEditPanel({
         </div>
 
         {/* Footer */}
-        <div className="p-6 bg-[#F8F9FA] border-t border-gray-100 space-y-3">
+        <div className="flex-none px-6 py-5 bg-[#F8F9FA] border-t border-slate-100 space-y-3">
           <button
             type="button"
             onClick={handleSave}
@@ -316,6 +317,7 @@ export function WorkerEditPanel({
           </button>
         </div>
       </aside>
-    </>
+    </>,
+    document.body
   )
 }

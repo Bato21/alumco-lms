@@ -1,22 +1,54 @@
-fix: permite entre 2 y 5 alternativas en preguntas de quiz (antes solo 4)
+fix: rediseña ApprovalPanel y WorkerEditPanel como paneles laterales correctamente superpuestos
 
-src/lib/actions/admin-questions.ts
+Archivos modificados:
+  src/components/alumco/ApprovalPanel.tsx
+  src/components/alumco/WorkerEditPanel.tsx
 
-CAMBIADO:
-· OptionIdSchema: z.enum(['a','b','c','d']) → z.enum(['a','b','c','d','e'])
-  Permite que correct_option y el id de cada opción usen la letra 'e'
+═══════════════════════════════════════
+PASO 1 — Rediseño estructural (ambos archivos)
+═══════════════════════════════════════
+  - Overlay: z-50 → z-[60], bg-black/20 → bg-black/40
+  - Panel: z-[60] → z-[70] — se superpone a sidebar y topbar
+  - Panel: w-full md:w-[420px] → w-full sm:w-[480px] md:w-[520px]
+  - Header: añadido flex-none + bg-white — jamás se comprime
+  - Footer: añadido flex-none — siempre visible, nunca cortado
+  - Footer bg: gray-50 → bg-[#F8F9FA] para consistencia entre paneles
+  - Footer padding: p-6 → px-6 py-5 (consistente con ApprovalPanel)
 
-· options array: .length(4, 'Debe haber exactamente 4 opciones')
-  → .min(2, 'Debe haber al menos 2 opciones').max(5, 'No puede haber más de 5 opciones')
-  El server action ya no rechaza payloads con 2, 3 ó 5 alternativas
+Cambios adicionales en ApprovalPanel.tsx:
+  - Botón "Aprobar": h-11 → h-12 (igual que WorkerEditPanel)
+  - Botón "Rechazar": h-11 → h-12
 
-· refine de ids únicos: new Set(ids).size === 4
-  → new Set(ids).size === data.options.length
-  La validación de unicidad ahora es relativa al número real de opciones
-  en lugar de estar fija en 4
+═══════════════════════════════════════
+PASO 2 — Fix botones cortados con createPortal (ambos archivos)
+═══════════════════════════════════════
+Causa raíz identificada:
+  El tab "solicitudes" en admin/trabajadores/page.tsx envuelve su
+  contenido en un div con `animate-in slide-in-from-bottom-2`, que
+  aplica CSS transform: translateY(...) durante la animación.
+  En CSS, cuando un ancestro tiene transform, los elementos
+  position: fixed pasan a posicionarse relativo a ese elemento
+  en vez del viewport — quedando atrapados y cortados por el
+  overflow-hidden del mismo contenedor.
+  WorkerEditPanel se igualó para garantizar consistencia futura
+  ante cualquier contenedor con transform o overflow.
 
-SIN CAMBIOS:
-· src/components/alumco/CourseBuilder/QuestionForm.tsx — el formulario
-  ya tenía OPTION_IDS=['a','b','c','d','e'], límite superior options.length>=5,
-  límite inferior options.length<=2 y counter {options.length}/5
-  correctamente implementados; no requirió modificación
+Fix aplicado:
+  - ApprovalPanel: import { createPortal } from 'react-dom'
+    {isOpen && <> overlay + aside </>}
+    → {isOpen && createPortal(<> overlay + aside </>, document.body)}
+
+  - WorkerEditPanel: import { createPortal } from 'react-dom'
+    return <> overlay + aside </>
+    → return createPortal(<> overlay + aside </>, document.body)
+
+Resultado:
+  - Overlay y panel se renderizan directamente en <body>,
+    escapando cualquier ancestro con transform u overflow
+  - Header fijo: nunca se desplaza ni comprime con el scroll
+  - Contenido (flex-1 overflow-y-auto): scroll interno cuando
+    el formulario excede la altura disponible
+  - Footer fijo: botones siempre visibles en cualquier viewport
+  - z-[70] garantiza superposición sobre sidebar y topbar
+  - Toda la lógica de negocio (actions, validaciones, estados) intacta
+  - Build Next.js pasa sin errores TypeScript

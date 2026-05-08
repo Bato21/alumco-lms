@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { approveWorkerAction, rejectWorkerAction } from '@/lib/actions/registro'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -119,11 +120,11 @@ export function ApprovalPanel({
         Revisar
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60]"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
@@ -133,10 +134,10 @@ export function ApprovalPanel({
             role="dialog"
             aria-modal="true"
             aria-label={`Aprobar solicitud de ${fullName}`}
-            className="fixed right-0 top-0 h-screen w-full md:w-[420px] bg-white z-[60] shadow-2xl border-l-4 border-[#2B4FA0] flex flex-col"
+            className="fixed right-0 top-0 h-screen w-full sm:w-[480px] md:w-[520px] bg-white z-[70] shadow-2xl border-l-4 border-[#2B4FA0] flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex-none flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-white">
               <div>
                 <h2 className="text-lg font-bold text-[#1A1A2E]">Revisar solicitud</h2>
                 <p className="text-xs text-[#6B7280] mt-0.5">Asigna sede, área y rol antes de aprobar</p>
@@ -360,12 +361,12 @@ export function ApprovalPanel({
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-5 bg-gray-50 border-t border-gray-100 space-y-3">
+            <div className="flex-none px-6 py-5 bg-[#F8F9FA] border-t border-slate-100 space-y-3">
               <Button
                 type="submit"
                 form="approval-form"
                 disabled={isPending || isRejecting}
-                className="w-full h-11 text-sm font-bold bg-[#27AE60] hover:bg-[#219150] text-white rounded-xl"
+                className="w-full h-12 text-sm font-bold bg-[#27AE60] hover:bg-[#219150] text-white rounded-xl"
                 aria-busy={isPending}
               >
                 {isPending ? (
@@ -385,7 +386,7 @@ export function ApprovalPanel({
                 type="button"
                 onClick={handleReject}
                 disabled={isPending || isRejecting}
-                className="w-full h-11 flex items-center justify-center rounded-xl border-2 border-[#E74C3C] text-[#E74C3C] font-semibold text-sm hover:bg-[#E74C3C]/5 transition-colors disabled:opacity-50"
+                className="w-full h-12 flex items-center justify-center rounded-xl border-2 border-[#E74C3C] text-[#E74C3C] font-semibold text-sm hover:bg-[#E74C3C]/5 transition-colors disabled:opacity-50"
               >
                 {isRejecting ? (
                   <>
@@ -398,7 +399,8 @@ export function ApprovalPanel({
               </button>
             </div>
           </aside>
-        </>
+        </>,
+        document.body
       )}
     </>
   )
