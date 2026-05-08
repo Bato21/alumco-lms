@@ -1,28 +1,22 @@
-refactor: elimina tabla "Progreso por trabajador" del dashboard admin
+fix: permite entre 2 y 5 alternativas en preguntas de quiz (antes solo 4)
 
-src/app/admin/dashboard/page.tsx
+src/lib/actions/admin-questions.ts
 
-ELIMINADO — exclusivo de la tabla eliminada:
-· interface WorkerProgress (id, full_name, sede, area_trabajo,
-  courses_completed, status, last_activity)
-· Query coursesForStatus (courses → id, deadline, target_areas,
-  is_published=true) — solo alimentaba el map de workerProgress
-· Variable today (new Date con setHours) — solo usada en hasOverdue
-  dentro del map
-· workerProgress: WorkerProgress[] completo — map sobre workersData
-  que calculaba completedCourseIds, relevantCourses, hasOverdue,
-  status, lastActivity por cada trabajador
-· Bloque JSX de la tabla (header "Progreso por trabajador" + botón
-  "Ver todos" + tabla con columnas Trabajador / Sede / Área /
-  Completados / Estado / Última actividad)
-· Función StatusBadge (badge al_dia / en_progreso / atrasado)
+CAMBIADO:
+· OptionIdSchema: z.enum(['a','b','c','d']) → z.enum(['a','b','c','d','e'])
+  Permite que correct_option y el id de cada opción usen la letra 'e'
 
-CONSERVADO — usado en otras secciones del dashboard:
-· allProgress (course_progress) → recentActivity (actividad reciente)
-  y workersWithNoProgress (hero banner)
-· allCertificates (certificates) → totalCertificates (card métricas)
-· workersData (profiles) → sede1Workers/sede2Workers (comparativa
-  por sede) y recentActivity
-· Resto del dashboard sin cambios: hero banner, cards de métricas,
-  comparativa por sede, actividad reciente, cursos más completados,
-  certificados este mes
+· options array: .length(4, 'Debe haber exactamente 4 opciones')
+  → .min(2, 'Debe haber al menos 2 opciones').max(5, 'No puede haber más de 5 opciones')
+  El server action ya no rechaza payloads con 2, 3 ó 5 alternativas
+
+· refine de ids únicos: new Set(ids).size === 4
+  → new Set(ids).size === data.options.length
+  La validación de unicidad ahora es relativa al número real de opciones
+  en lugar de estar fija en 4
+
+SIN CAMBIOS:
+· src/components/alumco/CourseBuilder/QuestionForm.tsx — el formulario
+  ya tenía OPTION_IDS=['a','b','c','d','e'], límite superior options.length>=5,
+  límite inferior options.length<=2 y counter {options.length}/5
+  correctamente implementados; no requirió modificación

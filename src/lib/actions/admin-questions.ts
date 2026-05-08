@@ -15,7 +15,7 @@ interface QuestionInput {
   correct_option: string
 }
 
-const OptionIdSchema = z.enum(['a', 'b', 'c', 'd'])
+const OptionIdSchema = z.enum(['a', 'b', 'c', 'd', 'e'])
 
 const QuestionInputSchema = z.object({
   id: z.string().uuid().optional(),
@@ -29,14 +29,15 @@ const QuestionInputSchema = z.object({
         text: z.string().min(1, 'El texto de la opción es requerido'),
       })
     )
-    .length(4, 'Debe haber exactamente 4 opciones'),
+    .min(2, 'Debe haber al menos 2 opciones')
+    .max(5, 'No puede haber más de 5 opciones'),
   correct_option: OptionIdSchema,
 }).refine(
   (data) => {
     const ids = data.options.map((o) => o.id)
-    return new Set(ids).size === 4
+    return new Set(ids).size === data.options.length
   },
-  { message: 'Las opciones deben tener ids únicos a, b, c, d' }
+  { message: 'Las opciones deben tener ids únicos (a–e)' }
 )
 
 export async function saveQuestionAction(
