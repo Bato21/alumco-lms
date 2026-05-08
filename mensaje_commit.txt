@@ -1,4 +1,4 @@
-fix: responsividad sedes, modal confirmación desactivar, scroll ApprovalPanel y badge sin sede
+fix: responsividad sedes, modal confirmación desactivar, scroll ApprovalPanel, badge sin sede y dashboard progreso trabajadores
 
 ══════════════════════════════════════════════
 SEDES — RESPONSIVIDAD Y UX
@@ -42,9 +42,25 @@ src/app/admin/trabajadores/WorkersTable.tsx
 APPROVAL PANEL — OVERLAY VERDADERO
 ══════════════════════════════════════════════
 
+
+
 src/components/alumco/ApprovalPanel.tsx
 · Agregado hook useLockBodyScroll: mientras el panel está abierto,
   document.body.style.overflow = 'hidden' para que la página detrás
   no sea desplazable. Se restaura al cerrar.
 · El panel ya era fixed con overlay; este fix completa el bloqueo de
   scroll de fondo que hacía que pareciera infinito.
+
+══════════════════════════════════════════════
+DASHBOARD ADMIN — PROGRESO POR TRABAJADOR
+══════════════════════════════════════════════
+
+src/app/admin/dashboard/page.tsx
+· Agregado export const dynamic = 'force-dynamic' para evitar que
+  Next.js sirva datos cacheados con progreso desactualizado (causa
+  principal de que la tabla mostrara 0 para todos los trabajadores).
+· Corregido el cálculo de courses_completed: antes contaba todos los
+  rows de course_progress con is_completed=true sin cruzar con los
+  cursos relevantes al área del trabajador. Ahora usa el mismo patrón
+  que reportes: relevantCourses.filter(c => completedCourseIds.has(c.id)).length,
+  garantizando coherencia entre ambas vistas.

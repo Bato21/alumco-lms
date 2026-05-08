@@ -7,6 +7,8 @@ export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
 }
 
+export const dynamic = 'force-dynamic'
+
 interface WorkerProgress {
   id: string
   full_name: string
@@ -122,7 +124,6 @@ export default async function AdminDashboardPage() {
 
   const workerProgress: WorkerProgress[] = (workersData ?? []).map((worker) => {
     const workerProgressList = allProgress?.filter(p => p.user_id === worker.id) ?? []
-    const completed = workerProgressList.filter(p => p.is_completed).length
     const inProgressCount = workerProgressList.filter(p => !p.is_completed).length
 
     const workerAreas = (worker.area_trabajo as string[]) ?? []
@@ -132,6 +133,8 @@ export default async function AdminDashboardPage() {
       const targetAreas = (c.target_areas as string[] | null) ?? []
       return targetAreas.length === 0 || targetAreas.some(a => workerAreas.includes(a))
     })
+
+    const completed = relevantCourses.filter(c => completedCourseIds.has(c.id)).length
 
     const hasOverdue = relevantCourses.some(c => {
       if (!c.deadline) return false
