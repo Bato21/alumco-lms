@@ -67,6 +67,7 @@ const RegisterSchema = z.object({
 const ApproveSchema = z.object({
   profileId: z.string().uuid(),
   sede: z.enum(['sede_1', 'sede_2']),
+  role: z.enum(['trabajador', 'profesor', 'admin']),
   area_trabajo: z.array(z.enum([
     'Enfermería',
     'Auxiliar de enfermería',
@@ -79,8 +80,7 @@ const ApproveSchema = z.object({
     'Dirección técnica',
     'Geriatría',
     'Sin asignar',
-  ])).min(1, 'Selecciona al menos un área'),
-  role: z.enum(['admin', 'trabajador', 'profesor']),
+  ])).default([]),
 })
 
 // ── Tipos de respuesta ─────────────────────────────────────
@@ -187,6 +187,10 @@ export async function approveWorkerAction(
   const parsed = ApproveSchema.safeParse(raw)
   if (!parsed.success) {
     return { error: parsed.error.issues[0].message }
+  }
+
+  if (parsed.data.role === 'trabajador' && parsed.data.area_trabajo.length === 0) {
+    return { error: 'Selecciona al menos un área para el trabajador' }
   }
 
   const supabase = await createClient()
