@@ -9,16 +9,6 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-interface WorkerProgress {
-  id: string
-  full_name: string
-  sede: string
-  area_trabajo: string[]
-  courses_completed: number
-  status: 'al_dia' | 'en_progreso' | 'atrasado'
-  last_activity: string
-}
-
 interface CourseCompletion {
   course_name: string
   completion_rate: number
@@ -113,81 +103,6 @@ export default async function AdminDashboardPage() {
   const { data: allCertificates } = await adminClient
     .from('certificates')
     .select('user_id, issued_at') as { data: { user_id: string; issued_at: string }[] | null }
-
-  const { data: coursesForStatus } = await adminClient
-    .from('courses')
-    .select('id, deadline, target_areas')
-    .eq('is_published', true) as { data: { id: string; deadline: string | null; target_areas: string[] | null }[] | null }
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-
-  const workerProgress: WorkerProgress[] = (workersData ?? []).map((worker) => {
-    const workerProgressList = allProgress?.filter(p => p.user_id === worker.id) ?? []
-    const inProgressCount = workerProgressList.filter(p => !p.is_completed).length
-
-    const workerAreas = (worker.area_trabajo as string[]) ?? []
-    const completedCourseIds = new Set(workerProgressList.filter(p => p.is_completed).map(p => p.course_id))
-
-    const relevantCourses = (coursesForStatus ?? []).filter(c => {
-      const targetAreas = (c.target_areas as string[] | null) ?? []
-      return targetAreas.length === 0 || targetAreas.some(a => workerAreas.includes(a))
-    })
-
-    const completed = relevantCourses.filter(c => completedCourseIds.has(c.id)).length
-
-    const hasOverdue = relevantCourses.some(c => {
-      if (!c.deadline) return false
-      const dl = new Date(c.deadline as string)
-      dl.setHours(0, 0, 0, 0)
-      return dl < today && !completedCourseIds.has(c.id as string)
-    })
-
-    let status: 'al_dia' | 'en_progreso' | 'atrasado' = 'al_dia'
-    if (hasOverdue) status = 'atrasado'
-    else if (inProgressCount > 0) status = 'en_progreso'
-    else if (workerProgressList.length === 0 && relevantCourses.length > 0) status = 'atrasado'
-
-    const lastProgress = workerProgressList
-      .map(p => p.completed_at ?? p.updated_at)
-      .filter(Boolean)
-      .sort()
-      .at(-1)
-
-    const lastCert = allCertificates
-      ?.filter(c => c.user_id === worker.id)
-      .map(c => c.issued_at)
-      .sort()
-      .at(-1)
-
-    const lastActivityRaw = [lastProgress, lastCert]
-      .filter(Boolean)
-      .sort()
-      .at(-1)
-
-    let lastActivity = 'Sin actividad'
-    if (lastActivityRaw) {
-      const diff = Math.floor(
-        (Date.now() - new Date(lastActivityRaw).getTime()) / (1000 * 60 * 60 * 24)
-      )
-      if (diff === 0) lastActivity = 'Hoy'
-      else if (diff === 1) lastActivity = 'Ayer'
-      else if (diff < 7) lastActivity = `Hace ${diff} días`
-      else lastActivity = new Intl.DateTimeFormat('es-CL', {
-        day: '2-digit', month: 'short'
-      }).format(new Date(lastActivityRaw))
-    }
-
-    return {
-      id: worker.id,
-      full_name: worker.full_name,
-      sede: worker.sede === 'sede_1' ? 'SEDE 1' : 'SEDE 2',
-      area_trabajo: (worker.area_trabajo as string[]) ?? [],
-      courses_completed: completed,
-      status,
-      last_activity: lastActivity,
-    }
-  })
 
   const { data: allCourses } = await adminClient
     .from('courses')
@@ -473,68 +388,8 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* Tabla: Progreso por trabajador */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="px-5 lg:px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h3 className="font-bold text-[#1A1A2E] text-base">Progreso por trabajador</h3>
-            <button className="text-[#2B4FA0] text-sm font-semibold hover:underline">Ver todos</button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
-                <tr>
-                  <th className="px-5 lg:px-6 py-3">Trabajador</th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Sede</th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Área</th>
-                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Completados</th>
-                  <th className="px-5 lg:px-6 py-3">Estado</th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Última actividad</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-gray-50">
-                {workerProgress.map((worker) => (
-                  <tr key={worker.id} className="hover:bg-gray-50/70 transition-colors">
-                    <td className="px-5 lg:px-6 py-4 font-semibold text-[#1A1A2E]">{worker.full_name}</td>
-                    <td className="px-5 lg:px-6 py-4 hidden lg:table-cell">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                        worker.sede === 'SEDE 1'
-                          ? 'bg-[#E6F1FB] text-[#2B4FA0]'
-                          : 'bg-[#EAF3DE] text-[#27500A]'
-                      }`}>
-                        {worker.sede === 'SEDE 1' ? 'Hualpén' : 'Coyhaique'}
-                      </span>
-                    </td>
-                    <td className="px-5 lg:px-6 py-4 text-[#6B7280] hidden lg:table-cell">
-                      {worker.area_trabajo.length > 0 ? worker.area_trabajo.join(', ') : 'Sin asignar'}
-                    </td>
-                    <td className="px-5 lg:px-6 py-4 text-center font-medium hidden lg:table-cell">{worker.courses_completed}</td>
-                    <td className="px-5 lg:px-6 py-4">
-                      <StatusBadge status={worker.status} />
-                    </td>
-                    <td className="px-5 lg:px-6 py-4 text-[#6B7280] text-xs hidden lg:table-cell">{worker.last_activity}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
       </div>
     </div>
   )
 }
 
-function StatusBadge({ status }: { status: 'al_dia' | 'en_progreso' | 'atrasado' }) {
-  const config = {
-    al_dia: { color: '#27AE60', label: 'Al día' },
-    en_progreso: { color: '#F5A623', label: 'En progreso' },
-    atrasado: { color: '#E74C3C', label: 'Atrasado' },
-  }
-  const { color, label } = config[status]
-  return (
-    <span className="flex items-center gap-1.5 font-bold text-xs" style={{ color }}>
-      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-      {label}
-    </span>
-  )
-}

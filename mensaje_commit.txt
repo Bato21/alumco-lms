@@ -1,66 +1,28 @@
-fix: responsividad sedes, modal confirmación desactivar, scroll ApprovalPanel, badge sin sede y dashboard progreso trabajadores
-
-══════════════════════════════════════════════
-SEDES — RESPONSIVIDAD Y UX
-══════════════════════════════════════════════
-
-src/app/admin/sedes/SedesClient.tsx
-· Form "Crear sede": flex-col en mobile → flex-row en sm+ para que
-  el botón no quede aplastado en pantallas pequeñas.
-· Cards: truncate en nombre e ID para no desbordar en pantallas angostas.
-· Padding adaptado: p-5 en mobile, p-6 en lg+.
-· min-h-[44px] en botones de acción para cumplir target táctil.
-
-══════════════════════════════════════════════
-SEDES — CONFIRMACIÓN AL DESACTIVAR
-══════════════════════════════════════════════
-
-src/app/admin/sedes/SedesClient.tsx
-· Al pulsar "Desactivar sede" aparece un modal de confirmación centrado
-  con overlay oscuro y backdrop-blur.
-· El modal muestra el nombre de la sede y la cantidad de trabajadores
-  afectados. Si no hay trabajadores avisa que la acción es sin riesgo.
-· Botones: "Cancelar" (cierra sin acción) y "Desactivar" (confirma).
-
-src/lib/actions/sedes.ts
-· toggleSedeAction: cuando activa=false, limpia el campo sede de todos
-  los trabajadores asignados a esa sede (profiles.sede = null), de forma
-  que queden pendientes de reasignación.
-
-══════════════════════════════════════════════
-TRABAJADORES — BADGE Y FILTRO "SIN SEDE"
-══════════════════════════════════════════════
-
-src/app/admin/trabajadores/WorkersTable.tsx
-· Badge naranja "Sin sede" (bg-[#FFF8EC] text-[#92600A]) en la columna
-  sede para trabajadores cuyo campo sede es null o vacío.
-· Opción "Sin sede asignada" agregada al filtro de sedes, permitiendo
-  al admin localizar rápidamente a los trabajadores afectados por
-  una desactivación de sede.
-
-══════════════════════════════════════════════
-APPROVAL PANEL — OVERLAY VERDADERO
-══════════════════════════════════════════════
-
-
-
-src/components/alumco/ApprovalPanel.tsx
-· Agregado hook useLockBodyScroll: mientras el panel está abierto,
-  document.body.style.overflow = 'hidden' para que la página detrás
-  no sea desplazable. Se restaura al cerrar.
-· El panel ya era fixed con overlay; este fix completa el bloqueo de
-  scroll de fondo que hacía que pareciera infinito.
-
-══════════════════════════════════════════════
-DASHBOARD ADMIN — PROGRESO POR TRABAJADOR
-══════════════════════════════════════════════
+refactor: elimina tabla "Progreso por trabajador" del dashboard admin
 
 src/app/admin/dashboard/page.tsx
-· Agregado export const dynamic = 'force-dynamic' para evitar que
-  Next.js sirva datos cacheados con progreso desactualizado (causa
-  principal de que la tabla mostrara 0 para todos los trabajadores).
-· Corregido el cálculo de courses_completed: antes contaba todos los
-  rows de course_progress con is_completed=true sin cruzar con los
-  cursos relevantes al área del trabajador. Ahora usa el mismo patrón
-  que reportes: relevantCourses.filter(c => completedCourseIds.has(c.id)).length,
-  garantizando coherencia entre ambas vistas.
+
+ELIMINADO — exclusivo de la tabla eliminada:
+· interface WorkerProgress (id, full_name, sede, area_trabajo,
+  courses_completed, status, last_activity)
+· Query coursesForStatus (courses → id, deadline, target_areas,
+  is_published=true) — solo alimentaba el map de workerProgress
+· Variable today (new Date con setHours) — solo usada en hasOverdue
+  dentro del map
+· workerProgress: WorkerProgress[] completo — map sobre workersData
+  que calculaba completedCourseIds, relevantCourses, hasOverdue,
+  status, lastActivity por cada trabajador
+· Bloque JSX de la tabla (header "Progreso por trabajador" + botón
+  "Ver todos" + tabla con columnas Trabajador / Sede / Área /
+  Completados / Estado / Última actividad)
+· Función StatusBadge (badge al_dia / en_progreso / atrasado)
+
+CONSERVADO — usado en otras secciones del dashboard:
+· allProgress (course_progress) → recentActivity (actividad reciente)
+  y workersWithNoProgress (hero banner)
+· allCertificates (certificates) → totalCertificates (card métricas)
+· workersData (profiles) → sede1Workers/sede2Workers (comparativa
+  por sede) y recentActivity
+· Resto del dashboard sin cambios: hero banner, cards de métricas,
+  comparativa por sede, actividad reciente, cursos más completados,
+  certificados este mes
