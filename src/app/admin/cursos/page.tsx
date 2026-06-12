@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Plus, Calendar, BookOpen } from 'lucide-react'
 import { getCourseGradient } from '@/lib/utils'
@@ -17,23 +17,23 @@ export default async function AdminCursosPage({
   const { tab = 'todos' } = await searchParams
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single() as { data: { role: string } | null }
+  const [{ data: profile }, { data: courses }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { role: string } | null }>,
+    supabase
+      .from('courses')
+      .select('*')
+      .order('order_index') as unknown as Promise<{ data: { id: string; title: string; description: string | null; thumbnail_url: string | null; is_published: boolean; order_index: number; created_by: string | null; created_at: string; updated_at: string; target_areas: string[] | null; deadline: string | null; deadline_description: string | null }[] | null }>,
+  ])
 
   if (profile?.role !== 'admin' && profile?.role !== 'profesor') redirect('/inicio')
-
-  // Fetch all courses
-  const { data: courses } = await supabase
-    .from('courses')
-    .select('*')
-    .order('order_index') as { data: { id: string; title: string; description: string | null; thumbnail_url: string | null; is_published: boolean; order_index: number; created_by: string | null; created_at: string; updated_at: string; target_areas: string[] | null; deadline: string | null; deadline_description: string | null }[] | null }
 
   const allCourses = courses ?? []
   const publicados = allCourses.filter(c => c.is_published)

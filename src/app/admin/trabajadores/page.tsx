@@ -22,20 +22,37 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const adminClient = await createAdminClient()
 
-  const { data: sedesData } = await adminClient
-    .from('sedes')
-    .select('id, nombre')
-    .eq('activa', true)
-    .order('created_at', { ascending: true }) as {
-      data: { id: string; nombre: string }[] | null
-    }
-  const sedes = sedesData ?? []
+  const [
+    { data: sedesData },
+    { data: activosRaw },
+    { data: suspendidosRaw },
+    { data: pendientesRaw },
+  ] = await Promise.all([
+    adminClient
+      .from('sedes')
+      .select('id, nombre')
+      .eq('activa', true)
+      .order('created_at', { ascending: true }) as unknown as Promise<{
+        data: { id: string; nombre: string }[] | null
+      }>,
+    adminClient
+      .from('profiles')
+      .select('id, full_name, rut, sede, area_trabajo, role, status')
+      .eq('status', 'activo')
+      .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string }[] | null }>,
+    adminClient
+      .from('profiles')
+      .select('id, full_name, rut, sede, area_trabajo, role, status, updated_at')
+      .eq('status', 'suspendido')
+      .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; updated_at: string }[] | null }>,
+    adminClient
+      .from('profiles')
+      .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
+      .eq('status', 'pendiente')
+      .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }>,
+  ])
 
-  const { data: activosRaw } = await adminClient
-    .from('profiles')
-    .select('id, full_name, rut, sede, area_trabajo, role, status')
-    .eq('status', 'activo')
-    .order('created_at', { ascending: false }) as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string }[] | null }
+  const sedes = sedesData ?? []
 
   type ActiveWorker = {
     id: string
@@ -48,19 +65,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
   }
   const activos: ActiveWorker[] = (activosRaw as ActiveWorker[]) ?? []
 
-  const { data: suspendidosRaw } = await adminClient
-    .from('profiles')
-    .select('id, full_name, rut, sede, area_trabajo, role, status, updated_at')
-    .eq('status', 'suspendido')
-    .order('full_name') as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; updated_at: string }[] | null }
-
   const suspendidos = suspendidosRaw ?? []
-
-  const { data: pendientesRaw } = await adminClient
-    .from('profiles')
-    .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
-    .eq('status', 'pendiente')
-    .order('created_at', { ascending: false }) as { data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }
 
   const pendingCount = pendientesRaw?.length || 0
 
@@ -139,8 +144,19 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
               <tbody className="text-sm divide-y divide-gray-100">
                 {solicitudes.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-5 lg:px-6 py-16 text-center text-[#6B7280]">
-                      No hay solicitudes pendientes por revisar.
+                    <td colSpan={5} className="px-5 lg:px-6 py-16">
+                      <div className="flex flex-col items-center justify-center text-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-[#EDFAF3] flex items-center justify-center">
+                          <svg className="w-6 h-6 text-[#27AE60]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                          </svg>
+                        </div>
+                        <p className="text-sm font-semibold text-[#1A1A2E]">Todo al día</p>
+                        <p className="text-sm text-[#6B7280]">
+                          No hay solicitudes pendientes por revisar.
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 ) : (

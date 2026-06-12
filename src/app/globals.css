@@ -119,6 +119,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -390,4 +391,276 @@ main > * {
   .stagger-children > * {
     animation: none;
   }
+}
+/* ============================================
+   Login "Amanecer sobre agua"
+   Animaciones: solo transform/opacity (compositor),
+   periodos no armonicos para movimiento organico
+   ============================================ */
+
+/* --- Agua: deriva horizontal (loop perfecto) --- */
+@keyframes login-wave-drift {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+.login-wave {
+  animation: login-wave-drift 26s linear infinite;
+  will-change: transform;
+}
+.login-wave-slow .login-wave {
+  animation-duration: 44s;
+}
+.login-wave-reverse .login-wave {
+  animation-direction: reverse;
+  animation-duration: 33s;
+}
+
+/* --- Agua: vaiven vertical (marea respirando) --- */
+@keyframes login-wave-bob {
+  0%, 100% { transform: translateY(2px) scaleY(0.97); }
+  50%      { transform: translateY(-2px) scaleY(1.05); }
+}
+.login-wave-bob {
+  animation: login-wave-bob 7.3s ease-in-out infinite;
+  transform-origin: bottom;
+  height: 100%;
+}
+.login-wave-slow .login-wave-bob {
+  animation-duration: 9.1s;
+  animation-delay: -2s;
+}
+.login-wave-reverse .login-wave-bob {
+  animation-duration: 5.9s;
+  animation-delay: -4s;
+}
+
+/* --- Gota: flotacion + balanceo + respiracion (Lissajous) --- */
+@keyframes login-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-13px); }
+}
+.login-float {
+  animation: login-float 6.7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes mascot-sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50%      { transform: rotate(2deg); }
+}
+.mascot-sway {
+  animation: mascot-sway 9.3s ease-in-out infinite;
+  transform-origin: 50% 92%;
+}
+
+@keyframes mascot-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  38%      { transform: scale(1.045, 0.955); }
+  64%      { transform: scale(0.985, 1.025); }
+  82%      { transform: scale(1.008, 0.995); }
+}
+.mascot-breathe {
+  animation: mascot-breathe 4.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  transform-origin: 50% 85%;
+}
+
+/* --- Entrada del formulario: escalonada --- */
+@keyframes login-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.login-fade-up > * {
+  animation: login-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.login-fade-up > *:nth-child(1) { animation-delay: 0.05s; }
+.login-fade-up > *:nth-child(2) { animation-delay: 0.14s; }
+.login-fade-up > *:nth-child(3) { animation-delay: 0.23s; }
+.login-fade-up > *:nth-child(4) { animation-delay: 0.32s; }
+
+/* ============================================
+   Mascota gota — reacciones al formulario
+   (CSS puro via :has(), sin JavaScript)
+   ============================================ */
+
+/* Estado base + transicion de REFORMARSE: resorte elastico hacia arriba.
+   Origen en la base: el charco se forma a los pies de la gota. */
+.mascot-pose {
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.7s cubic-bezier(0.34, 1.6, 0.4, 1),
+    opacity 0.35s ease;
+  will-change: transform;
+}
+
+/* Curiosa: se inclina hacia el formulario al escribir el correo */
+.login-shell:has(#email:focus) .mascot-pose,
+.login-shell:has(#reset-email:focus) .mascot-pose {
+  transform: rotate(9deg) translateX(10px) scale(1.03);
+  transition: transform 0.55s cubic-bezier(0.3, 1.35, 0.5, 1);
+}
+
+/* Discreta: se derrite en un charquito en su lugar al escribir la contrasena.
+   Coreografia en 4 etapas: se ablanda -> colapsa -> splat con overshoot ->
+   el charco rebota y se asienta. (float/sway/breathe siguen corriendo:
+   escalados se vuelven el temblor organico del charco) */
+@keyframes mascot-melt {
+  0%   { transform: scale(1, 1); }
+  18%  { transform: scale(0.93, 1.07); }
+  42%  { transform: scale(1.22, 0.5); }
+  62%  { transform: scale(1.88, 0.07); }
+  80%  { transform: scale(1.48, 0.21); }
+  100% { transform: scale(1.62, 0.15); }
+}
+.login-shell:has(#password:focus) .mascot-pose {
+  animation: mascot-melt 0.72s cubic-bezier(0.4, 0, 0.55, 1) forwards;
+  transform: scale(1.62, 0.15);
+  opacity: 0.85;
+  transition: opacity 0.3s ease 0.15s;
+}
+
+/* Gotitas que saltan al momento del splat */
+.mascot-drips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.mascot-drips span {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  width: 9px;
+  height: 10px;
+  margin-left: -4.5px;
+  border-radius: 50% 50% 46% 46% / 62% 62% 38% 38%;
+  background: #F5A623;
+  opacity: 0;
+}
+@keyframes mascot-drip {
+  0%   { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  12%  { opacity: 0.95; }
+  45%  { transform: translate(var(--dx), -30px) scale(1); opacity: 0.95; }
+  100% { transform: translate(calc(var(--dx) * 1.7), 16px) scale(0.7); opacity: 0; }
+}
+.login-shell:has(#password:focus) .mascot-drips span {
+  animation: mascot-drip 0.75s cubic-bezier(0.3, 0.1, 0.6, 1) forwards;
+}
+.mascot-drips span:nth-child(1) { --dx: -34px; animation-delay: 0s; }
+.login-shell:has(#password:focus) .mascot-drips span:nth-child(1) { animation-delay: 0.34s; }
+.mascot-drips span:nth-child(2) { --dx: 30px; }
+.login-shell:has(#password:focus) .mascot-drips span:nth-child(2) { animation-delay: 0.4s; }
+.mascot-drips span:nth-child(3) { --dx: -12px; }
+.login-shell:has(#password:focus) .mascot-drips span:nth-child(3) { animation-delay: 0.48s; }
+
+/* Celebracion: brinco de emocion en bucle mientras carga
+   (squash de anticipacion -> salto estirada -> aterrizaje -> rebotito) */
+@keyframes mascot-bounce {
+  0%   { transform: translateY(0) scale(1, 1); }
+  16%  { transform: translateY(2px) scale(1.12, 0.84); }
+  38%  { transform: translateY(-30px) scale(0.93, 1.12); }
+  58%  { transform: translateY(0) scale(1.08, 0.9); }
+  72%  { transform: translateY(-9px) scale(0.98, 1.04); }
+  84%  { transform: translateY(0) scale(1.03, 0.97); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+.login-shell:has(button[aria-busy="true"]) .mascot-pose {
+  animation: mascot-bounce 1.15s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* El agua se agita mientras carga */
+.login-wave-layer {
+  transition: transform 0.9s cubic-bezier(0.34, 1.3, 0.5, 1);
+  transform-origin: bottom;
+}
+.login-shell:has(button[aria-busy="true"]) .login-wave-layer {
+  transform: scaleY(1.4);
+}
+
+/* Splash: anillos en la superficie del agua mientras carga */
+.mascot-splash {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  width: 56px;
+  height: 20px;
+  margin-left: -28px;
+  pointer-events: none;
+  z-index: 5;
+}
+.mascot-splash span {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  opacity: 0;
+}
+@keyframes mascot-ripple {
+  from { transform: scale(0.35); opacity: 0.9; }
+  to   { transform: scale(2.6);  opacity: 0; }
+}
+.login-shell:has(button[aria-busy="true"]) .mascot-splash span {
+  animation: mascot-ripple 1.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+.login-shell:has(button[aria-busy="true"]) .mascot-splash span:nth-child(2) {
+  animation-delay: 0.45s;
+}
+.login-shell:has(button[aria-busy="true"]) .mascot-splash span:nth-child(3) {
+  animation-delay: 0.9s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-wave,
+  .login-wave-bob,
+  .login-float,
+  .mascot-sway,
+  .mascot-breathe,
+  .login-fade-up > *,
+  .mascot-splash span {
+    animation: none;
+  }
+  .login-fade-up > * {
+    opacity: 1;
+  }
+  .mascot-pose,
+  .login-wave-layer {
+    transition: none;
+  }
+  .login-shell:has(#email:focus) .mascot-pose,
+  .login-shell:has(#reset-email:focus) .mascot-pose,
+  .login-shell:has(#password:focus) .mascot-pose {
+    animation: none;
+    transform: none;
+    opacity: 1;
+  }
+  .login-shell:has(#password:focus) .mascot-drips span {
+    animation: none;
+  }
+  .login-shell:has(button[aria-busy="true"]) .mascot-pose {
+    animation: none;
+  }
+  .login-shell:has(button[aria-busy="true"]) .login-wave-layer {
+    transform: none;
+  }
+}
+
+/* ── Grano de película — textura "raspa" sobre superficies oscuras ──
+   Ruido SVG inline (feTurbulence): sin assets, sin peso de red.
+   Usar sobre contenedores con `relative overflow-hidden`. */
+.film-grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.06 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* Viñeta cinematográfica para paneles con foto */
+.cine-vignette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(8, 16, 40, 0.55) 100%);
 }

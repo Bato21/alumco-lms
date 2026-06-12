@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { BookOpen, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
 import { DeadlineCalendar } from '@/components/alumco/DeadlineCalendar'
@@ -10,31 +10,31 @@ export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
 
 export default async function InicioPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, sede, area_trabajo, onboarding_completed')
-    .eq('id', user!.id)
-    .single() as { data: { full_name: string; sede: string; area_trabajo: string[] | null; onboarding_completed: boolean | null } | null }
+  const [{ data: profile }, { data: courses }, { data: progressData }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name, sede, area_trabajo, onboarding_completed')
+      .eq('id', user!.id)
+      .single() as unknown as Promise<{ data: { full_name: string; sede: string; area_trabajo: string[] | null; onboarding_completed: boolean | null } | null }>,
+    supabase
+      .from('courses')
+      .select('id, title, deadline, deadline_description, is_published, target_areas')
+      .eq('is_published', true)
+      .order('order_index') as unknown as Promise<{ data: { id: string; title: string; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null }[] | null }>,
+    supabase
+      .from('course_progress')
+      .select('course_id, completed_modules, is_completed')
+      .eq('user_id', user!.id) as unknown as Promise<{ data: { course_id: string; completed_modules: string[] | null; is_completed: boolean }[] | null }>,
+  ])
 
   const workerAreas = profile?.area_trabajo ?? []
-
-  const { data: courses } = await supabase
-    .from('courses')
-    .select('id, title, deadline, deadline_description, is_published, target_areas')
-    .eq('is_published', true)
-    .order('order_index') as { data: { id: string; title: string; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null }[] | null }
 
   const filteredCourses = filterCoursesByWorkerAreas(
     (courses ?? []).map(c => ({ ...c, target_areas: c.target_areas ?? [] })),
     workerAreas
   )
-
-  const { data: progressData } = await supabase
-    .from('course_progress')
-    .select('course_id, completed_modules, is_completed')
-    .eq('user_id', user!.id) as { data: { course_id: string; completed_modules: string[] | null; is_completed: boolean }[] | null }
 
   const courseIds = filteredCourses.map(c => c.id)
   const { data: allModules } = await supabase
@@ -121,19 +121,18 @@ export default async function InicioPage() {
         />
       )}
 
-      {/* Hero Banner — negative margins to break out of layout padding */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] h-52 lg:h-56 flex items-center px-6 lg:px-10 -mx-4 lg:-mx-8">
+      {/* Hero Banner — tratamiento cinematográfico, negative margins to break out of layout padding */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0d1c45] to-[#2B4FA0] h-52 lg:h-56 flex items-center px-6 lg:px-10 -mx-4 lg:-mx-8 film-grain">
         {/* Decorative circles */}
         <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
           <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
           <div className="absolute right-[60px] top-[20px] w-44 h-44 rounded-full bg-[#2B4FA0] opacity-20 border-2 border-white/10" />
-          <div className="absolute right-[20px] bottom-[-40px] w-48 h-48 rounded-full bg-[#E74C3C] opacity-10" />
         </div>
         <div className="relative z-10 max-w-2xl">
-          <p className="text-white/60 text-sm font-medium mb-1">
-            {sedeName}{areaName && ` · ${areaName}`}
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[#F5A623]/80 mb-2 flex items-center gap-2">
+            <span aria-hidden="true">◆</span> {sedeName}{areaName && ` · ${areaName}`}
           </p>
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight mb-2">
+          <h1 className="font-display text-3xl lg:text-4xl font-medium text-white leading-[1.15] mb-2 [text-wrap:balance]">
             {heroBannerTitle}
           </h1>
           <p className="text-white/75 text-sm mb-5">

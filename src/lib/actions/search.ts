@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { escapeIlike } from '@/lib/utils'
 
 export async function searchAction(query: string): Promise<{
@@ -15,26 +15,42 @@ export async function searchAction(query: string): Promise<{
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const sp = supabase as any
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) return { courses: [], workers: [], role: 'trabajador' }
 
-  const { data: profile } = await sp
-    .from('profiles')
-    .select('role, area_trabajo')
-    .eq('id', user.id)
-    .single() as { data: { role: string; area_trabajo: string[] | null } | null }
-
-  const role = profile?.role ?? 'trabajador'
-  const workerAreas: string[] = profile?.area_trabajo ?? []
   const q = query.trim().toLowerCase()
   const qPattern = `%${escapeIlike(q)}%`
 
-  const { data: allCourses } = await sp
-    .from('courses')
-    .select('id, title, is_published, target_areas')
-    .ilike('title', qPattern)
-    .order('title')
-    .limit(5) as { data: { id: string; title: string; is_published: boolean; target_areas: string[] | null }[] | null }
+  // Perfil, cursos y trabajadores en paralelo; el resultado de trabajadores
+  // se descarta si el rol no es staff.
+  const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+
+  const [{ data: profile }, { data: allCourses }, { data: workersData }] = await Promise.all([
+    sp
+      .from('profiles')
+      .select('role, area_trabajo')
+      .eq('id', user.id)
+      .single() as Promise<{ data: { role: string; area_trabajo: string[] | null } | null }>,
+    sp
+      .from('courses')
+      .select('id, title, is_published, target_areas')
+      .ilike('title', qPattern)
+      .order('title')
+      .limit(5) as Promise<{ data: { id: string; title: string; is_published: boolean; target_areas: string[] | null }[] | null }>,
+    ac
+      .from('profiles')
+      .select('id, full_name, area_trabajo, sede')
+      .eq('status', 'activo')
+      .eq('role', 'trabajador')
+      .ilike('full_name', qPattern)
+      .order('full_name')
+      .limit(5) as Promise<{ data: { id: string; full_name: string; area_trabajo: string[] | null; sede: string }[] | null }>,
+  ])
+
+  const role = profile?.role ?? 'trabajador'
+  const workerAreas: string[] = profile?.area_trabajo ?? []
 
   let courses = (allCourses ?? [])
   if (role === 'trabajador') {
@@ -47,19 +63,7 @@ export async function searchAction(query: string): Promise<{
 
   let workers: { id: string; full_name: string; area_trabajo: string[]; sede: string }[] = []
   if (role === 'admin' || role === 'profesor') {
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: workersData } = await ac
-      .from('profiles')
-      .select('id, full_name, area_trabajo, sede')
-      .eq('status', 'activo')
-      .eq('role', 'trabajador')
-      .ilike('full_name', qPattern)
-      .order('full_name')
-      .limit(5) as { data: { id: string; full_name: string; area_trabajo: string[] | null; sede: string }[] | null }
-
-    workers = (workersData ?? []).map(w => ({
+    workers = (workersData ?? []).map((w: { id: string; full_name: string; area_trabajo: string[] | null; sede: string }) => ({
       ...w,
       area_trabajo: Array.isArray(w.area_trabajo) ? w.area_trabajo : [],
     }))

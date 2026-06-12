@@ -11,25 +11,24 @@ export const dynamic = 'force-dynamic'
 export default async function SedesPage() {
   const adminClient = await createAdminClient()
 
-  const { data: sedesData } = await adminClient
-    .from('sedes')
-    .select('id, nombre, activa')
-    .order('created_at', { ascending: true }) as {
-      data: { id: string; nombre: string; activa: boolean }[] | null
-    }
+  const [{ data: sedesData }, { data: counts }] = await Promise.all([
+    adminClient
+      .from('sedes')
+      .select('id, nombre, activa')
+      .order('created_at', { ascending: true }) as unknown as Promise<{
+        data: { id: string; nombre: string; activa: boolean }[] | null
+      }>,
+    adminClient
+      .from('profiles')
+      .select('sede')
+      .eq('status', 'activo') as unknown as Promise<{ data: { sede: string }[] | null }>,
+  ])
 
   const sedes = sedesData ?? []
 
   const workersPerSede: Record<string, number> = {}
-  if (sedes.length > 0) {
-    const { data: counts } = await adminClient
-      .from('profiles')
-      .select('sede')
-      .eq('status', 'activo') as { data: { sede: string }[] | null }
-
-    for (const row of counts ?? []) {
-      workersPerSede[row.sede] = (workersPerSede[row.sede] ?? 0) + 1
-    }
+  for (const row of counts ?? []) {
+    workersPerSede[row.sede] = (workersPerSede[row.sede] ?? 0) + 1
   }
 
   return (

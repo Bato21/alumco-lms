@@ -173,8 +173,7 @@ export default function SedesClient({ sedes, workersPerSede }: SedesClientProps)
                         <MapPin className="h-5 w-5 text-[#2B4FA0]" aria-hidden="true" />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-[#1A1A2E] leading-tight truncate">{sede.nombre}</p>
-                        <p className="text-[10px] font-mono text-[#6B7280] mt-0.5 truncate">{sede.id}</p>
+                        <p className="font-bold text-[#1A1A2E] leading-tight line-clamp-2">{sede.nombre}</p>
                       </div>
                     </div>
                     <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold ${
@@ -194,9 +193,9 @@ export default function SedesClient({ sedes, workersPerSede }: SedesClientProps)
                       sede.activa ? requestDeactivate(sede) : handleActivate(sede.id)
                     }
                     disabled={isToggling}
-                    className={`w-full h-10 flex items-center justify-center gap-2 rounded-xl border-2 font-semibold text-sm transition-colors disabled:opacity-50 min-h-[44px] ${
+                    className={`w-full h-10 flex items-center justify-center gap-2 rounded-xl border font-semibold text-sm transition-colors disabled:opacity-50 min-h-[44px] ${
                       sede.activa
-                        ? 'border-[#E74C3C] text-[#E74C3C] hover:bg-[#E74C3C]/5'
+                        ? 'border-slate-200 text-[#6B7280] hover:border-[#E74C3C]/60 hover:text-[#E74C3C] hover:bg-[#E74C3C]/5'
                         : 'border-[#27AE60] text-[#27AE60] hover:bg-[#27AE60]/5'
                     }`}
                   >

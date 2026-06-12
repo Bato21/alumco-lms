@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
 import { BookOpen } from 'lucide-react'
 
@@ -50,29 +50,29 @@ export default async function CursosPage({
   const { filter = 'todos' } = await searchParams
 
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
-  const { data: workerProfile } = await supabase
-    .from('profiles')
-    .select('area_trabajo')
-    .eq('id', user!.id)
-    .single() as { data: { area_trabajo: string[] | null } | null }
+  const [{ data: workerProfile }, { data: courses }, { data: progressData }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('area_trabajo')
+      .eq('id', user!.id)
+      .single() as unknown as Promise<{ data: { area_trabajo: string[] | null } | null }>,
+    supabase
+      .from('courses')
+      .select('id, title, description, thumbnail_url, target_areas')
+      .eq('is_published', true)
+      .order('order_index') as unknown as Promise<{ data: { id: string; title: string; description: string | null; thumbnail_url: string | null; target_areas: string[] | null }[] | null }>,
+    supabase
+      .from('course_progress')
+      .select('course_id, completed_modules, is_completed')
+      .eq('user_id', user!.id) as unknown as Promise<{ data: { course_id: string; completed_modules: string[] | null; is_completed: boolean }[] | null }>,
+  ])
 
   const workerAreas = workerProfile?.area_trabajo ?? []
 
-  const { data: courses } = await supabase
-    .from('courses')
-    .select('id, title, description, thumbnail_url, target_areas')
-    .eq('is_published', true)
-    .order('order_index') as { data: { id: string; title: string; description: string | null; thumbnail_url: string | null; target_areas: string[] | null }[] | null }
-
   const coursesNormalized = (courses ?? []).map(c => ({ ...c, target_areas: c.target_areas ?? [] }))
   const coursesByArea = filterCoursesByWorkerAreas(coursesNormalized, workerAreas)
-
-  const { data: progressData } = await supabase
-    .from('course_progress')
-    .select('course_id, completed_modules, is_completed')
-    .eq('user_id', user!.id) as { data: { course_id: string; completed_modules: string[] | null; is_completed: boolean }[] | null }
 
   const courseIds = coursesByArea.map(c => c.id)
 

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { Users, BookOpen, TrendingUp, Award, Medal } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -16,71 +16,72 @@ interface CourseCompletion {
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
+  const adminClient = await createAdminClient()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user!.id)
-    .single() as { data: { full_name: string } | null }
+  // 5 queries en paralelo; el resto de las métricas se derivan en memoria.
+  const [
+    { data: profile },
+    { data: workersData },
+    { data: allCourses },
+    { data: allProgress },
+    { data: allCertificates },
+  ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user!.id)
+      .single() as unknown as Promise<{ data: { full_name: string } | null }>,
+    adminClient
+      .from('profiles')
+      .select('id, full_name, sede, area_trabajo')
+      .eq('role', 'trabajador')
+      .eq('status', 'activo')
+      .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }>,
+    adminClient
+      .from('courses')
+      .select('id, title, target_areas')
+      .eq('is_published', true) as unknown as Promise<{ data: { id: string; title: string; target_areas: string[] | null }[] | null }>,
+    adminClient
+      .from('course_progress')
+      .select('user_id, course_id, is_completed, completed_at, updated_at') as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }>,
+    adminClient
+      .from('certificates')
+      .select('user_id, issued_at') as unknown as Promise<{ data: { user_id: string; issued_at: string }[] | null }>,
+  ])
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
 
-  const adminClient = await createAdminClient()
-  const { data: activeWorkers } = await adminClient
-    .from('profiles')
-    .select('id')
-    .eq('role', 'trabajador')
-    .eq('status', 'activo') as { data: { id: string }[] | null }
-
-  const totalWorkers = activeWorkers?.length ?? 0
+  const totalWorkers = workersData?.length ?? 0
 
   const sevenDaysAgo = new Date()
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
   sevenDaysAgo.setHours(0, 0, 0, 0)
+  const sevenDaysAgoMs = sevenDaysAgo.getTime()
 
-  const { data: weekCompletions } = await adminClient
-    .from('course_progress')
-    .select('id')
-    .eq('is_completed', true)
-    .gte('completed_at', sevenDaysAgo.toISOString()) as { data: { id: string }[] | null }
+  const coursesCompleted = (allProgress ?? []).filter(
+    p => p.is_completed && p.completed_at && new Date(p.completed_at).getTime() >= sevenDaysAgoMs
+  ).length
 
-  const coursesCompleted = weekCompletions?.length ?? 0
-
-  const { data: inProgressData } = await supabase
-    .from('course_progress')
-    .select('user_id')
-    .eq('is_completed', false) as { data: { user_id: string }[] | null }
-
-  const uniqueInProgress = new Set(inProgressData?.map(p => p.user_id) ?? [])
+  const uniqueInProgress = new Set(
+    (allProgress ?? []).filter(p => !p.is_completed).map(p => p.user_id)
+  )
   const inProgress = uniqueInProgress.size
 
-  const { data: coursesForCompliance } = await adminClient
-    .from('courses')
-    .select('id, target_areas')
-    .eq('is_published', true) as { data: { id: string; target_areas: string[] | null }[] | null }
-
-  const { data: workersForCompliance } = await adminClient
-    .from('profiles')
-    .select('id, area_trabajo')
-    .eq('role', 'trabajador')
-    .eq('status', 'activo') as { data: { id: string; area_trabajo: string[] | null }[] | null }
-
-  const { data: completedProgress } = await adminClient
-    .from('course_progress')
-    .select('user_id, course_id')
-    .eq('is_completed', true) as { data: { user_id: string; course_id: string }[] | null }
+  const completedSet = new Set(
+    (allProgress ?? []).filter(p => p.is_completed).map(p => `${p.user_id}:${p.course_id}`)
+  )
 
   let assignmentsTotal = 0
   let assignmentsCompleted = 0
-  for (const w of workersForCompliance ?? []) {
+  for (const w of workersData ?? []) {
     const wAreas = (w.area_trabajo as string[]) ?? []
-    for (const c of coursesForCompliance ?? []) {
+    for (const c of allCourses ?? []) {
       const tAreas = (c.target_areas as string[] | null) ?? []
       const visible = tAreas.length === 0 || tAreas.some(a => wAreas.includes(a))
       if (!visible) continue
       assignmentsTotal++
-      if (completedProgress?.some(p => p.user_id === w.id && p.course_id === c.id)) {
+      if (completedSet.has(`${w.id}:${c.id}`)) {
         assignmentsCompleted++
       }
     }
@@ -89,39 +90,18 @@ export default async function AdminDashboardPage() {
     ? Math.round((assignmentsCompleted / assignmentsTotal) * 100)
     : 0
 
-  const { data: workersData } = await adminClient
-    .from('profiles')
-    .select('id, full_name, sede, area_trabajo')
-    .eq('role', 'trabajador')
-    .eq('status', 'activo')
-    .order('full_name') as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }
-
-  const { data: allProgress } = await adminClient
-    .from('course_progress')
-    .select('user_id, course_id, is_completed, completed_at, updated_at') as { data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }
-
-  const { data: allCertificates } = await adminClient
-    .from('certificates')
-    .select('user_id, issued_at') as { data: { user_id: string; issued_at: string }[] | null }
-
-  const { data: allCourses } = await adminClient
-    .from('courses')
-    .select('id, title')
-    .eq('is_published', true) as { data: { id: string; title: string }[] | null }
-
-  const { data: allCourseProgress } = await adminClient
-    .from('course_progress')
-    .select('course_id, is_completed, user_id') as { data: { course_id: string; is_completed: boolean; user_id: string }[] | null }
+  const completedByCourse = new Map<string, number>()
+  for (const p of allProgress ?? []) {
+    if (p.is_completed) {
+      completedByCourse.set(p.course_id, (completedByCourse.get(p.course_id) ?? 0) + 1)
+    }
+  }
 
   const topCourses: CourseCompletion[] = (allCourses ?? [])
     .map((course) => {
-      const courseProgressList = allCourseProgress?.filter(
-        p => p.course_id === course.id
-      ) ?? []
-      const completedCount = courseProgressList.filter(p => p.is_completed).length
-      const totalWorkerCount = activeWorkers?.length ?? 1
-      const completion_rate = totalWorkerCount > 0
-        ? Math.round((completedCount / totalWorkerCount) * 100)
+      const completedCount = completedByCourse.get(course.id) ?? 0
+      const completion_rate = totalWorkers > 0
+        ? Math.round((completedCount / totalWorkers) * 100)
         : 0
 
       return {
@@ -135,13 +115,11 @@ export default async function AdminDashboardPage() {
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
+  const startOfMonthMs = startOfMonth.getTime()
 
-  const { data: monthCertificates } = await adminClient
-    .from('certificates')
-    .select('id')
-    .gte('issued_at', startOfMonth.toISOString()) as { data: { id: string }[] | null }
-
-  const certificatesThisMonth = monthCertificates?.length ?? 0
+  const certificatesThisMonth = (allCertificates ?? []).filter(
+    c => new Date(c.issued_at).getTime() >= startOfMonthMs
+  ).length
 
   // Derived stats (no new queries)
   const publishedCourses = allCourses?.length ?? 0
@@ -153,7 +131,7 @@ export default async function AdminDashboardPage() {
   const getSedeRate = (sedeWorkers: { id: string }[]) => {
     if (sedeWorkers.length === 0) return 0
     const ids = new Set(sedeWorkers.map(w => w.id))
-    const rel = allCourseProgress?.filter(p => ids.has(p.user_id)) ?? []
+    const rel = allProgress?.filter(p => ids.has(p.user_id)) ?? []
     if (rel.length === 0) return 0
     return Math.round((rel.filter(p => p.is_completed).length / rel.length) * 100)
   }
@@ -161,10 +139,12 @@ export default async function AdminDashboardPage() {
   const sede1Rate = getSedeRate(sede1Workers)
   const sede2Rate = getSedeRate(sede2Workers)
 
+  const workersById = new Map((workersData ?? []).map(w => [w.id, w]))
+
   const recentActivity = (allProgress ?? [])
     .map(p => ({
       ...p,
-      worker: workersData?.find(w => w.id === p.user_id),
+      worker: workersById.get(p.user_id),
     }))
     .filter(p => p.worker && p.updated_at)
     .sort((a, b) => new Date(b.updated_at!).getTime() - new Date(a.updated_at!).getTime())
@@ -184,8 +164,9 @@ export default async function AdminDashboardPage() {
       }
     })
 
+  const usersWithProgress = new Set((allProgress ?? []).map(p => p.user_id))
   const workersWithNoProgress = (workersData ?? []).filter(w =>
-    !allProgress?.some(p => p.user_id === w.id)
+    !usersWithProgress.has(w.id)
   ).length
 
   const heroBannerTitle = workersWithNoProgress > 0
@@ -195,17 +176,18 @@ export default async function AdminDashboardPage() {
   return (
     <div className="bg-[#F8F9FA] min-h-screen">
 
-      {/* Hero Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] min-h-[12rem] lg:h-56 flex items-center px-4 sm:px-6 lg:px-10 py-8 lg:py-0">
+      {/* Hero Banner — tratamiento cinematográfico */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#0d1c45] to-[#2B4FA0] min-h-[12rem] lg:h-56 flex items-center px-4 sm:px-6 lg:px-10 py-8 lg:py-0 film-grain">
         {/* Decorative circles */}
         <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
           <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
           <div className="absolute right-[60px] top-[20px] w-44 h-44 rounded-full bg-[#2B4FA0] opacity-20 border-2 border-white/10" />
-          <div className="absolute right-[20px] bottom-[-40px] w-48 h-48 rounded-full bg-[#E74C3C] opacity-10" />
         </div>
         <div className="relative z-10 max-w-2xl w-full">
-          <p className="text-white/60 text-[10px] uppercase tracking-widest font-semibold mb-2">Progreso semanal</p>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight mb-2">
+          <p className="text-[10px] uppercase tracking-[0.3em] text-[#F5A623]/80 mb-2 flex items-center gap-2">
+            <span aria-hidden="true">◆</span> Progreso semanal
+          </p>
+          <h1 className="font-display text-3xl sm:text-4xl font-medium text-white leading-[1.15] mb-2 [text-wrap:balance]">
             {heroBannerTitle}
           </h1>
           <p className="text-white/75 text-xs sm:text-sm mb-5">
@@ -229,10 +211,6 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="p-4 lg:p-8 space-y-8">
-
-        <div className="flex items-center justify-end gap-4 flex-wrap">
-          <p className="text-[#6B7280] text-xs">Actualizado hace 0 minutos</p>
-        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
@@ -320,7 +298,15 @@ export default async function AdminDashboardPage() {
           <div className="lg:col-span-3 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
             <h3 className="font-bold text-[#1A1A2E] text-base mb-6">Actividad reciente</h3>
             {recentActivity.length === 0 ? (
-              <p className="text-sm text-[#6B7280]">Sin actividad reciente.</p>
+              <div className="flex flex-col items-center justify-center text-center py-8 gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#E6F1FB] flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-[#2B4FA0]" aria-hidden="true" />
+                </div>
+                <p className="text-sm text-[#6B7280]">Aún no hay actividad esta semana.</p>
+                <p className="text-xs text-[#6B7280]/70">
+                  Aquí verás los avances de los trabajadores en sus cursos.
+                </p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {recentActivity.map((item) => (

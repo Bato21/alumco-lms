@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { AdminSidebar } from '@/components/alumco/AdminSidebar'
 import { getAdminAlerts } from '@/lib/actions/alerts'
 import { type UserRole } from '@/lib/types/database'
@@ -19,20 +19,21 @@ export default async function AdminLayout({
 }) {
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) redirect('/login')
 
-  const { data: rawProfile } = await supabase
-    .from('profiles')
-    .select('full_name, role')
-    .eq('id', user.id)
-    .single()
+  const [{ data: rawProfile }, adminAlerts] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name, role')
+      .eq('id', user.id)
+      .single(),
+    getAdminAlerts(),
+  ])
 
   const profile = rawProfile as AdminProfile | null
 
   if (!profile || (profile.role !== 'admin' && profile.role !== 'profesor')) redirect('/inicio')
-
-  const adminAlerts = await getAdminAlerts()
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">

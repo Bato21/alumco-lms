@@ -31,8 +31,8 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
 
       <div className={`bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 ${isLeaving ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}>
 
-        {/* Header azul marino con decoración */}
-        <div className="relative bg-gradient-to-br from-[#F5A623] to-[#e0961a] px-8 pt-10 pb-16 overflow-hidden">
+        {/* Header ámbar con decoración y grano */}
+        <div className="relative bg-gradient-to-br from-[#F5A623] to-[#e0961a] px-8 pt-10 pb-16 overflow-hidden film-grain">
 
           {/* Círculos decorativos */}
           <div className="absolute right-[-40px] top-[-40px] w-48 h-48 rounded-full bg-white/5" />
@@ -46,7 +46,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
           />
 
           {/* Saludo */}
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-white leading-tight relative z-10">
+          <h1 className="font-display text-3xl lg:text-4xl font-medium text-white leading-[1.15] relative z-10">
             ¡Bienvenido/a a KimünKo,<br />
             <span className="text-white">
               {fullName.split(' ')[0]}

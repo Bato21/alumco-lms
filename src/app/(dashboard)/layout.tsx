@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { WorkerSidebar } from '@/components/alumco/WorkerSidebar'
 import { getWorkerAlerts } from '@/lib/actions/alerts'
 import { UserRole } from '@/lib/types/database'
@@ -11,23 +11,24 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) redirect('/login')
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('full_name, role, sede, area_trabajo, avatar_url')
-    .eq('id', user.id)
-    .single() as { data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null; avatar_url: string | null } | null; error: unknown }
+  const [{ data: profile }, workerAlerts] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name, role, sede, area_trabajo, avatar_url')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null; avatar_url: string | null } | null }>,
+    getWorkerAlerts(),
+  ])
 
   if (!profile) {
     redirect('/login')
   }
 
   if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')
-
-  const workerAlerts = await getWorkerAlerts()
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">

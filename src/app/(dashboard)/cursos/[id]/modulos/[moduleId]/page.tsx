@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { VideoPlayer } from '@/components/alumco/VideoPlayer'
 import { PdfViewer } from '@/components/alumco/PdfViewer'
@@ -19,17 +19,18 @@ export async function generateMetadata({ params }: ModulePageProps): Promise<Met
   const { id: courseId, moduleId } = await params
   const supabase = await createClient()
 
-  const { data: module } = await supabase
-    .from('modules')
-    .select('title')
-    .eq('id', moduleId)
-    .single() as { data: { title: string } | null }
-
-  const { data: course } = await supabase
-    .from('courses')
-    .select('title')
-    .eq('id', courseId)
-    .single() as { data: { title: string } | null }
+  const [{ data: module }, { data: course }] = await Promise.all([
+    supabase
+      .from('modules')
+      .select('title')
+      .eq('id', moduleId)
+      .single() as unknown as Promise<{ data: { title: string } | null }>,
+    supabase
+      .from('courses')
+      .select('title')
+      .eq('id', courseId)
+      .single() as unknown as Promise<{ data: { title: string } | null }>,
+  ])
 
   return {
     title: module?.title
@@ -41,7 +42,7 @@ export async function generateMetadata({ params }: ModulePageProps): Promise<Met
 export default async function ModulePage({ params }: ModulePageProps) {
   const { id: courseId, moduleId } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return (
@@ -51,23 +52,47 @@ export default async function ModulePage({ params }: ModulePageProps) {
     )
   }
 
-  const { data: course } = await supabase
-    .from('courses')
-    .select('*, profiles(full_name)')
-    .eq('id', courseId)
-    .eq('is_published', true)
-    .single() as { data: Course | null }
+  // Todas las consultas en paralelo; los checks de acceso se validan después.
+  const [
+    { data: course },
+    { data: accessProfile },
+    { data: module },
+    { data: modules },
+    { data: progress },
+  ] = await Promise.all([
+    supabase
+      .from('courses')
+      .select('*, profiles(full_name)')
+      .eq('id', courseId)
+      .eq('is_published', true)
+      .single() as unknown as Promise<{ data: Course | null }>,
+    supabase
+      .from('profiles')
+      .select('area_trabajo, role')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { area_trabajo: string[] | null; role: string } | null }>,
+    supabase
+      .from('modules')
+      .select('*')
+      .eq('id', moduleId)
+      .eq('course_id', courseId)
+      .single() as unknown as Promise<{ data: Module | null }>,
+    supabase
+      .from('modules')
+      .select('*')
+      .eq('course_id', courseId)
+      .order('order_index') as unknown as Promise<{ data: Module[] | null }>,
+    supabase
+      .from('course_progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('course_id', courseId)
+      .single() as unknown as Promise<{ data: CourseProgress | null }>,
+  ])
 
   if (!course) {
     notFound()
   }
-
-  // Verificar acceso por área (sólo trabajadores)
-  const { data: accessProfile } = await supabase
-    .from('profiles')
-    .select('area_trabajo, role')
-    .eq('id', user.id)
-    .single() as { data: { area_trabajo: string[] | null; role: string } | null }
 
   if (accessProfile?.role === 'trabajador') {
     const courseForCheck = course as unknown as { target_areas?: string[] }
@@ -100,13 +125,6 @@ export default async function ModulePage({ params }: ModulePageProps) {
     }
   }
 
-  const { data: module } = await supabase
-    .from('modules')
-    .select('*')
-    .eq('id', moduleId)
-    .eq('course_id', courseId)
-    .single() as { data: Module | null }
-
   if (!module) {
     notFound()
   }
@@ -114,19 +132,6 @@ export default async function ModulePage({ params }: ModulePageProps) {
   if (module.content_type === 'quiz') {
     redirect(`/cursos/${courseId}/modulos/${moduleId}/quiz`)
   }
-
-  const { data: modules } = await supabase
-    .from('modules')
-    .select('*')
-    .eq('course_id', courseId)
-    .order('order_index') as { data: Module[] | null }
-
-  const { data: progress } = await supabase
-    .from('course_progress')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('course_id', courseId)
-    .single() as { data: CourseProgress | null }
 
   const completedModuleIds = progress?.completed_modules || []
   const isModuleCompleted = completedModuleIds.includes(moduleId)

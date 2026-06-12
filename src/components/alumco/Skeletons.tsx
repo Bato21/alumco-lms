@@ -47,7 +47,7 @@ export function SkeletonTable({ rows = 6 }: { rows?: number }) {
 
 export function SkeletonHero() {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] h-48 lg:h-56 animate-pulse flex items-center px-6 lg:px-10">
+    <div className="relative overflow-hidden bg-gradient-to-br from-[#0d1c45] to-[#2B4FA0] h-48 lg:h-56 animate-pulse flex items-center px-6 lg:px-10">
       <div className="space-y-3 max-w-md">
         <div className="h-3 w-32 bg-white/20 rounded" />
         <div className="h-8 w-80 bg-white/20 rounded" />

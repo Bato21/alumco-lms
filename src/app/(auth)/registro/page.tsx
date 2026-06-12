@@ -15,15 +15,18 @@ export default function RegistroPage() {
         {/* Logo de la ONG (Local) */}
         <div className="flex flex-col items-center space-y-4 mb-8">
           <Image
-            src="/LogoAlumco.png" 
+            src="/LogoAlumco.png"
             alt="Alumco LMS"
             width={200}
             height={68}
-            className="object-contain" 
-            priority 
+            className="object-contain"
+            priority
           />
-          <div className="h-px w-12 bg-white/20" />
-            </div>
+          <p className="text-xs text-slate-400 tracking-wide">
+            <span className="font-semibold text-slate-500">Kimün<span className="text-[#F5A623]">Ko</span></span>
+            {' '}· plataforma de capacitación de ONG Alumco
+          </p>
+        </div>
 
         {/* Tarjeta */}
         <div className="rounded-2xl border bg-white p-8 shadow-sm">

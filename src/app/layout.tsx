@@ -1,11 +1,18 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
-import { Geist } from 'next/font/google'
+import { Geist, Fraunces } from 'next/font/google'
 import './globals.css'
 
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-sans',
+})
+
+// Serif display para titulares grandes (login, heros). Cuerpo sigue en Geist.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-display',
 })
 
 export const metadata: Metadata = {
@@ -30,7 +37,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${geist.variable} font-sans antialiased`}>
+      <body className={`${geist.variable} ${fraunces.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

@@ -1,9 +1,12 @@
+import { cache } from 'react'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { type Database } from '@/lib/types/database'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
-export async function createClient() {
+// cache() memoiza por request: layout, página y server actions comparten
+// la misma instancia en un mismo render.
+export const createClient = cache(async function createClient() {
   const cookieStore = await cookies()
 
   return createServerClient<Database>(
@@ -27,9 +30,9 @@ export async function createClient() {
       },
     }
   )
-}
+})
 
-export async function createAdminClient() {
+export const createAdminClient = cache(async function createAdminClient() {
   return createSupabaseClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -40,4 +43,12 @@ export async function createAdminClient() {
       },
     }
   )
-}
+})
+
+// Evita llamadas repetidas al servidor de auth dentro de un mismo request
+// (layout + página + alerts llamaban a getUser por separado).
+export const getCachedUser = cache(async () => {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
+})

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
 import { CertificateBadge } from '@/components/alumco/CertificateBadge'
 import Link from 'next/link'
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: CourseDetailPageProps): Promi
 export default async function CourseDetailPage({ params }: CourseDetailPageProps) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) {
     return (
@@ -40,27 +40,50 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
     )
   }
 
-  // Fetch course data
-  const { data: course } = await supabase
-    .from('courses')
-    .select('*')
-    .eq('id', id)
-    .eq('is_published', true)
-    .single() as { data: { id: string; title: string; description: string | null; thumbnail_url: string | null; is_published: boolean; order_index: number; created_by: string | null; created_at: string; updated_at: string; target_areas: string[] | null; deadline: string | null; deadline_description: string | null } | null }
+  // Todas las consultas en paralelo; el control de acceso se valida después.
+  const [
+    { data: course },
+    { data: profile },
+    { data: modules },
+    { data: progress },
+    { data: certificate },
+  ] = await Promise.all([
+    supabase
+      .from('courses')
+      .select('*')
+      .eq('id', id)
+      .eq('is_published', true)
+      .single() as unknown as Promise<{ data: { id: string; title: string; description: string | null; thumbnail_url: string | null; is_published: boolean; order_index: number; created_by: string | null; created_at: string; updated_at: string; target_areas: string[] | null; deadline: string | null; deadline_description: string | null } | null }>,
+    supabase
+      .from('profiles')
+      .select('full_name, area_trabajo, role')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { full_name: string; area_trabajo: string[] | null; role: string } | null }>,
+    supabase
+      .from('modules')
+      .select('*')
+      .eq('course_id', id)
+      .order('order_index') as unknown as Promise<{ data: import('@/lib/types/database').Module[] | null }>,
+    supabase
+      .from('course_progress')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('course_id', id)
+      .single() as unknown as Promise<{ data: { completed_modules: string[]; is_completed: boolean } | null }>,
+    supabase
+      .from('certificates')
+      .select('id, issued_at, pdf_url')
+      .eq('user_id', user.id)
+      .eq('course_id', id)
+      .single() as unknown as Promise<{ data: { id: string; issued_at: string; pdf_url: string | null } | null }>,
+  ])
 
   if (!course) {
     notFound()
   }
 
-  // Fetch perfil temprano para control de acceso
-  const { data: accessProfile } = await supabase
-    .from('profiles')
-    .select('area_trabajo, role')
-    .eq('id', user.id)
-    .single() as { data: { area_trabajo: string[] | null; role: string } | null }
-
-  if (accessProfile?.role === 'trabajador') {
-    const workerAreas = accessProfile.area_trabajo ?? []
+  if (profile?.role === 'trabajador') {
+    const workerAreas = profile.area_trabajo ?? []
     const hasAccess = filterCoursesByWorkerAreas(
       [{ ...course, target_areas: course.target_areas ?? [] }],
       workerAreas
@@ -91,42 +114,6 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
       )
     }
   }
-
-  // Fetch modules for this course
-  const { data: modules } = await supabase
-    .from('modules')
-    .select('*')
-    .eq('course_id', id)
-    .order('order_index') as { data: import('@/lib/types/database').Module[] | null }
-
-  // Fetch user's progress for this course
-  const { data: progress } = await supabase
-    .from('course_progress')
-    .select('*')
-    .eq('user_id', user.id)
-    .eq('course_id', id)
-    .single() as { data: { completed_modules: string[]; is_completed: boolean } | null }
-
-  // Fetch quiz attempts for this user in this course
-  const { data: quizAttempts } = await supabase
-    .from('quiz_attempts')
-    .select('id, quiz_id, status, score')
-    .eq('user_id', user.id) as { data: { id: string; quiz_id: string; status: string; score: number }[] | null }
-
-  // Fetch perfil del usuario para el certificado y control de acceso
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, area_trabajo, role')
-    .eq('id', user.id)
-    .single() as { data: { full_name: string; area_trabajo: string[] | null; role: string } | null }
-
-  // Fetch certificado si el curso está completado
-  const { data: certificate } = await supabase
-    .from('certificates')
-    .select('id, issued_at, pdf_url')
-    .eq('user_id', user.id)
-    .eq('course_id', id)
-    .single() as { data: { id: string; issued_at: string; pdf_url: string | null } | null }
 
   // Calcular course progress
   const completedModuleIds = progress?.completed_modules || []

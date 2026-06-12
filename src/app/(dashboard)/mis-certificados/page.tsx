@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Award } from 'lucide-react'
@@ -8,29 +8,30 @@ export const metadata: Metadata = { title: 'Mis Certificados | Alumco LMS' }
 
 export default async function MisCertificadosPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) redirect('/login')
 
-  const { data: certificates } = await supabase
-    .from('certificates')
-    .select(`
-      id,
-      issued_at,
-      pdf_url,
-      course_id,
-      courses (
-        title,
-        description
-      )
-    `)
-    .eq('user_id', user.id)
-    .order('issued_at', { ascending: false }) as { data: { id: string; issued_at: string; pdf_url: string | null; course_id: string; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null }[] | null }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .single() as { data: { full_name: string } | null }
+  const [{ data: certificates }, { data: profile }] = await Promise.all([
+    supabase
+      .from('certificates')
+      .select(`
+        id,
+        issued_at,
+        pdf_url,
+        course_id,
+        courses (
+          title,
+          description
+        )
+      `)
+      .eq('user_id', user.id)
+      .order('issued_at', { ascending: false }) as unknown as Promise<{ data: { id: string; issued_at: string; pdf_url: string | null; course_id: string; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null }[] | null }>,
+    supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { full_name: string } | null }>,
+  ])
 
   const total = certificates?.length ?? 0
 

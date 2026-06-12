@@ -76,8 +76,11 @@ export const AREA_COLORS: Record<string, string> = {
   'Geriatría':               '#0891B2',
 }
 
-const DEFAULT_GRADIENT = 'linear-gradient(135deg, #1A2F6B 0%, #2B4FA0 100%)'
+const DEFAULT_GRADIENT = 'linear-gradient(160deg, #1A2F6B 0%, #2B4FA0 100%)'
 
+// Todos los gradientes parten del navy de marca y terminan en el color del
+// área: identidad por área sin romper la paleta corporativa. Con varias
+// áreas se usa la primera como color dominante.
 export function getCourseGradient(targetAreas: string[]): string {
   if (!targetAreas || targetAreas.length === 0) {
     return DEFAULT_GRADIENT
@@ -91,18 +94,9 @@ export function getCourseGradient(targetAreas: string[]): string {
     return DEFAULT_GRADIENT
   }
 
-  if (colors.length === 1) {
-    const hex = colors[0]
-    const darker = darkenHex(hex, 25)
-    return `linear-gradient(135deg, ${darker} 0%, ${hex} 100%)`
-  }
-
-  const stops = colors.map((color, i) => {
-    const pct = Math.round((i / (colors.length - 1)) * 100)
-    return `${color} ${pct}%`
-  }).join(', ')
-
-  return `linear-gradient(135deg, ${stops})`
+  const hex = colors[0]
+  const darker = darkenHex(hex, 25)
+  return `linear-gradient(160deg, #1A2F6B 0%, ${darker} 65%, ${hex} 100%)`
 }
 
 function darkenHex(hex: string, percent: number): string {

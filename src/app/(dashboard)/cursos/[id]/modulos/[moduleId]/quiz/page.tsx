@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getCachedUser } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import QuizClient from './QuizClient'
@@ -18,17 +18,18 @@ export async function generateMetadata({ params }: QuizPageProps): Promise<Metad
   const { id: courseId, moduleId } = await params
   const supabase = await createClient()
 
-  const { data: module } = await supabase
-    .from('modules')
-    .select('title')
-    .eq('id', moduleId)
-    .single() as { data: { title: string } | null }
-
-  const { data: course } = await supabase
-    .from('courses')
-    .select('title')
-    .eq('id', courseId)
-    .single() as { data: { title: string } | null }
+  const [{ data: module }, { data: course }] = await Promise.all([
+    supabase
+      .from('modules')
+      .select('title')
+      .eq('id', moduleId)
+      .single() as unknown as Promise<{ data: { title: string } | null }>,
+    supabase
+      .from('courses')
+      .select('title')
+      .eq('id', courseId)
+      .single() as unknown as Promise<{ data: { title: string } | null }>,
+  ])
 
   return {
     title: module?.title
@@ -42,24 +43,41 @@ export default async function QuizPage({ params }: QuizPageProps) {
   const supabase = await createClient()
 
   // Auth check
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) notFound()
 
-  // Verificar que el curso existe, está publicado y el trabajador tiene acceso por área
-  const { data: courseAccess } = await supabase
-    .from('courses')
-    .select('target_areas, is_published')
-    .eq('id', courseId)
-    .eq('is_published', true)
-    .single() as { data: { target_areas: string[] | null; is_published: boolean } | null }
+  // Consultas independientes en paralelo; las preguntas se cargan después
+  // porque dependen del id del quiz.
+  const [
+    { data: courseAccess },
+    { data: quizProfile },
+    { data: quiz },
+    { data: modules },
+  ] = await Promise.all([
+    supabase
+      .from('courses')
+      .select('target_areas, is_published')
+      .eq('id', courseId)
+      .eq('is_published', true)
+      .single() as unknown as Promise<{ data: { target_areas: string[] | null; is_published: boolean } | null }>,
+    supabase
+      .from('profiles')
+      .select('area_trabajo, role')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { area_trabajo: string[] | null; role: string } | null }>,
+    supabase
+      .from('quizzes')
+      .select('id, passing_score, max_attempts')
+      .eq('module_id', moduleId)
+      .single() as unknown as Promise<{ data: { id: string; passing_score: number; max_attempts: number } | null }>,
+    supabase
+      .from('modules')
+      .select('id')
+      .eq('course_id', courseId)
+      .order('order_index') as unknown as Promise<{ data: { id: string }[] | null }>,
+  ])
 
   if (!courseAccess) notFound()
-
-  const { data: quizProfile } = await supabase
-    .from('profiles')
-    .select('area_trabajo, role')
-    .eq('id', user.id)
-    .single() as { data: { area_trabajo: string[] | null; role: string } | null }
 
   if (quizProfile?.role === 'trabajador') {
     const hasAccess = filterCoursesByWorkerAreas(
@@ -90,13 +108,6 @@ export default async function QuizPage({ params }: QuizPageProps) {
     }
   }
 
-  // Fetch quiz data
-  const { data: quiz } = await supabase
-    .from('quizzes')
-    .select('id, passing_score, max_attempts')
-    .eq('module_id', moduleId)
-    .single() as { data: { id: string; passing_score: number; max_attempts: number } | null }
-
   if (!quiz) {
     notFound()
   }
@@ -107,13 +118,6 @@ export default async function QuizPage({ params }: QuizPageProps) {
     .select('*')
     .eq('quiz_id', quiz.id)
     .order('order_index')
-
-  // Fetch all modules to find previous module
-  const { data: modules } = await supabase
-    .from('modules')
-    .select('id')
-    .eq('course_id', courseId)
-    .order('order_index') as { data: { id: string }[] | null }
 
   // Find previous and next module (the content modules before/after this quiz)
   const moduleIds = modules?.map(m => m.id) || []
