@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
-import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
+import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { CertificateBadge } from '@/components/alumco/CertificateBadge'
 import Link from 'next/link'
-import type { ContentType, Course, Module, Quiz, CourseProgress } from '@/lib/types/database'
+import type { ContentType, Module } from '@/lib/types/database'
+import { Badge, BadgeEstado, Anillo, Onda, Icono, type IconoNombre } from '@/components/alumco/ds'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -35,12 +36,11 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
   if (!user) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
-        <p className="text-[#6B7280]">Debes iniciar sesión para ver este curso.</p>
+        <p className="silencio">Debes iniciar sesión para ver este curso.</p>
       </div>
     )
   }
 
-  // Todas las consultas en paralelo; el control de acceso se valida después.
   const [
     { data: course },
     { data: profile },
@@ -91,289 +91,210 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
     if (!hasAccess) {
       return (
-        <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
-          <div className="h-16 w-16 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto">
-            <svg className="h-8 w-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold text-[#1A1A2E]">
-            Curso no disponible
-          </h2>
-          <p className="text-[#6B7280]">
-            Este curso no está asignado a tu área de trabajo.
-            Contacta a tu administrador si crees que es un error.
+        <div className="col" style={{ maxWidth: 560, margin: '0 auto', padding: '64px 0', alignItems: 'center', textAlign: 'center', gap: 12 }}>
+          <div className="vacio-icono"><Icono n="alerta" s={30} /></div>
+          <h2 className="t-display" style={{ fontSize: 24 }}>Curso no disponible</h2>
+          <p className="silencio">
+            Este curso no está asignado a tu área de trabajo. Contacta a tu administrador si crees que es un error.
           </p>
-          <a
-            href="/cursos"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-lg font-semibold text-sm hover:bg-[#2B4FA0]/90 transition-colors"
-          >
-            ← Volver a mis cursos
-          </a>
+          <Link href="/cursos" className="btn btn-primary" style={{ marginTop: 8 }}>
+            <Icono n="flechaIzq" s={18} /> Volver a mis cursos
+          </Link>
         </div>
       )
     }
   }
 
-  // Calcular course progress
   const completedModuleIds = progress?.completed_modules || []
   const totalModules = modules?.length || 0
   const completedModules = completedModuleIds.length
-  const courseProgress = totalModules > 0
-    ? Math.round((completedModules / totalModules) * 100)
-    : 0
-
+  const courseProgress = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0
   const isCourseCompleted = progress?.is_completed || false
 
-  const statusLabel = isCourseCompleted
-    ? 'Completado'
-    : courseProgress > 0 ? 'En progreso' : 'No iniciado'
+  const estadoCurso = isCourseCompleted ? 'completado' : courseProgress > 0 ? 'en-curso' : 'pendiente'
 
-  const statusBadgeClass = isCourseCompleted
-    ? 'bg-[#27AE60]/20 text-[#EDFAF3] border border-[#27AE60]/30'
-    : courseProgress > 0
-      ? 'bg-[#F5A623]/20 text-[#FFF8EC] border border-[#F5A623]/30'
-      : 'bg-white/10 text-white/80 border border-white/20'
+  // Próximo módulo accesible no completado
+  const nextModule = (modules ?? []).find((m, i) => {
+    const prevDone = i === 0 || completedModuleIds.includes(modules![i - 1]?.id)
+    return !completedModuleIds.includes(m.id) && prevDone
+  })
 
   return (
-    <div className="space-y-6 lg:space-y-8">
-
-      {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb">
-        <ol className="flex items-center gap-1.5 flex-wrap">
-          <li className="flex items-center">
-            <Link
-              href="/cursos"
-              className="text-sm text-[#6B7280] hover:text-[#2B4FA0] transition-colors leading-none"
-              style={{ minHeight: 0, minWidth: 'auto' }}
-            >
-              Mis cursos
-            </Link>
-          </li>
-          <li className="flex items-center">
-            <svg
-              className="h-3.5 w-3.5 text-slate-400 shrink-0"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 18l6-6-6-6"/>
-            </svg>
-          </li>
-          <li className="flex items-center">
-            <span className="text-sm font-semibold text-[#1A1A2E] leading-none line-clamp-1">
-              {course.title}
-            </span>
-          </li>
-        </ol>
-      </nav>
+    <div className="col" style={{ gap: 22 }} data-screen-label="Trabajador · Detalle de curso">
+      <Link href="/cursos" className="btn btn-ghost entra" style={{ alignSelf: 'flex-start', marginLeft: -12 }}>
+        <Icono n="flechaIzq" s={18} /> Volver a mis cursos
+      </Link>
 
       {/* Hero del curso */}
       <div
-        className="relative rounded-2xl overflow-hidden h-48 flex items-end p-6"
-        style={{ background: getCourseGradient(course.target_areas ?? []) }}
+        className="card bloque-marca entra entra-1"
+        style={{ background: 'var(--grad-marca)', border: 'none', color: '#fff', overflow: 'hidden' }}
       >
-        {/* Decorative icon */}
-        <div className="absolute top-4 left-6 opacity-10 pointer-events-none" aria-hidden="true">
-          <svg className="w-24 h-24 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
+        <div style={{ padding: '30px 32px 18px', position: 'relative', zIndex: 1 }}>
+          <div className="fila" style={{ gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+            <BadgeEstado estado={estadoCurso} />
+            {(course.target_areas ?? []).slice(0, 1).map((a) => (
+              <Badge key={a} tono="info" punto={false}>{a}</Badge>
+            ))}
+          </div>
+          <h1 className="t-display" style={{ fontSize: 30, color: '#fff', maxWidth: 640 }}>{course.title}</h1>
+          {course.description && (
+            <p style={{ color: 'rgba(255,255,255,0.72)', marginTop: 10, maxWidth: 600, fontSize: 15.5 }}>{course.description}</p>
+          )}
+          <div className="fila texto-s" style={{ gap: 20, marginTop: 16, color: 'rgba(255,255,255,0.85)', flexWrap: 'wrap' }}>
+            <span className="fila" style={{ gap: 6 }}><Icono n="doc" s={16} />{totalModules} módulos</span>
+            <span className="fila" style={{ gap: 6 }}><Icono n="check" s={16} />{completedModules} completados</span>
+          </div>
+        </div>
+        <Onda alto={30} />
+      </div>
+
+      <div className="entra entra-2 grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 items-start">
+        {/* Contenido del curso */}
+        <div className="card col" style={{ gap: 0 }}>
+          <div className="fila card-pad" style={{ paddingBottom: 10 }}>
+            <h2 className="t-display crece" style={{ fontSize: 21 }}>Contenido del curso</h2>
+            <span className="badge badge-neutro">{totalModules} módulos</span>
+          </div>
+          {modules && modules.length > 0 ? (
+            modules.map((module, index) => {
+              const isCompleted = completedModuleIds.includes(module.id)
+              const isPreviousCompleted = index === 0 || completedModuleIds.includes(modules[index - 1]?.id)
+              const canAccess = isPreviousCompleted || isCompleted
+              const enCurso = canAccess && !isCompleted && module.id === nextModule?.id
+              return (
+                <ModuleRow
+                  key={module.id}
+                  module={module}
+                  index={index + 1}
+                  isCompleted={isCompleted}
+                  canAccess={canAccess}
+                  enCurso={enCurso}
+                />
+              )
+            })
+          ) : (
+            <div className="card-pad" style={{ textAlign: 'center', padding: 40 }}>
+              <p className="silencio">Este curso aún no tiene contenido disponible.</p>
+            </div>
+          )}
         </div>
 
-        {/* Status badge */}
-        <span className={`absolute top-4 right-4 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusBadgeClass}`}>
-          {statusLabel}
-        </span>
+        {/* Panel lateral */}
+        <div className="col" style={{ gap: 20 }}>
+          <div className="card card-pad col" style={{ gap: 16, alignItems: 'center', textAlign: 'center' }}>
+            <Anillo pct={courseProgress} s={110} grosor={11} color={isCourseCompleted ? 'var(--ok)' : 'var(--ambar)'} />
+            <div>
+              <h3 style={{ fontSize: 17 }}>{isCourseCompleted ? '¡Curso completado!' : 'Vas por buen camino'}</h3>
+              <p className="texto-s silencio" style={{ marginTop: 4 }}>
+                {completedModules} de {totalModules} módulos completados.
+              </p>
+            </div>
+            {nextModule ? (
+              <Link href={`/cursos/${course.id}/modulos/${nextModule.id}`} className="btn btn-primary btn-lg" style={{ width: '100%' }}>
+                <Icono n="play" s={20} /> {courseProgress > 0 ? 'Continuar' : 'Comenzar curso'}
+              </Link>
+            ) : modules && modules.length > 0 ? (
+              <Link href={`/cursos/${course.id}/modulos/${modules[0].id}`} className="btn btn-secondary btn-lg" style={{ width: '100%' }}>
+                Repasar curso
+              </Link>
+            ) : null}
+          </div>
 
-        {/* Title + description */}
-        <div className="relative z-10 max-w-2xl">
-          <h1 className="text-2xl font-extrabold text-white leading-tight">
-            {course.title}
-          </h1>
-          {course.description && (
-            <p className="text-white/70 text-sm mt-1 line-clamp-2">{course.description}</p>
+          {isCourseCompleted && certificate && profile ? (
+            <div className="card card-pad">
+              <CertificateBadge certificate={certificate} courseName={course.title} workerName={profile.full_name} />
+            </div>
+          ) : (
+            <div className="card card-pad fila" style={{ gap: 14 }}>
+              <span style={{ width: 44, height: 44, borderRadius: '50%', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--ambar-50)', color: 'var(--ambar-700)' }}>
+                <Icono n="certificado" s={22} />
+              </span>
+              <p className="texto-s silencio" style={{ lineHeight: 1.45 }}>
+                Al completar todos los módulos y aprobar la evaluación recibirás tu{' '}
+                <strong style={{ color: 'var(--tinta)' }}>certificado con folio verificable</strong>.
+              </p>
+            </div>
           )}
         </div>
       </div>
-
-      {/* Barra de progreso */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm font-semibold text-[#1A1A2E]">Progreso del curso</span>
-          <span className={`text-sm font-bold ${isCourseCompleted ? 'text-[#1A6B3A]' : 'text-[#2B4FA0]'}`}>
-            {courseProgress}%
-          </span>
-        </div>
-        <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{
-              width: `${courseProgress}%`,
-              backgroundColor: isCourseCompleted ? '#27AE60' : '#2B4FA0',
-            }}
-          />
-        </div>
-        <p className="text-xs text-[#6B7280] mt-2">
-          {completedModules} de {totalModules} módulos completados
-        </p>
-
-        {isCourseCompleted && certificate && profile && (
-          <div className="mt-5 pt-5 border-t border-slate-100">
-            <CertificateBadge
-              certificate={certificate}
-              courseName={course.title}
-              workerName={profile.full_name}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Lista de módulos */}
-      <section>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-[#1A1A2E]">Contenido del curso</h2>
-          <span className="text-xs font-semibold text-[#6B7280] bg-slate-100 px-2.5 py-1 rounded-full">
-            {totalModules} módulos
-          </span>
-        </div>
-
-        {modules && modules.length > 0 ? (
-          <div>
-            {modules.map((module, index) => (
-              <div key={module.id}>
-                <ModuleCard
-                  module={module}
-                  index={index + 1}
-                  isCompleted={completedModuleIds.includes(module.id)}
-                  isPreviousCompleted={index === 0 || completedModuleIds.includes(modules[index - 1]?.id)}
-                  hasQuiz={true}
-                />
-                {/* Connector line */}
-                {index < modules.length - 1 && (
-                  <div className="ml-[1.125rem] h-4 border-l-2 border-dashed border-slate-200" />
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-12 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14,2 14,8 20,8" />
-              </svg>
-            </div>
-            <p className="text-[#6B7280]">Este curso aún no tiene contenido disponible.</p>
-          </div>
-        )}
-      </section>
     </div>
   )
 }
 
-// ─── Module Card ────────────────────────────────────────────────────────────
+// ─── Module Row (didasko) ────────────────────────────────────────────────────
 
-interface ModuleCardProps {
+const TIPO_ICONO: Record<ContentType, IconoNombre> = {
+  video: 'video',
+  pdf: 'doc',
+  slides: 'doc',
+  quiz: 'quiz',
+}
+
+function ModuleRow({
+  module,
+  index,
+  isCompleted,
+  canAccess,
+  enCurso,
+}: {
   module: Module
   index: number
   isCompleted: boolean
-  isPreviousCompleted: boolean
-  hasQuiz: boolean
-}
+  canAccess: boolean
+  enCurso: boolean
+}) {
+  const icono: IconoNombre = isCompleted ? 'check' : TIPO_ICONO[module.content_type]
+  const estado = isCompleted ? 'completado' : enCurso ? 'en-curso' : canAccess ? 'pendiente' : 'pendiente'
 
-const contentTypeConfig: Record<ContentType, { label: string; badgeClass: string }> = {
-  video:  { label: 'Video',       badgeClass: 'bg-red-50 text-red-700' },
-  pdf:    { label: 'PDF',         badgeClass: 'bg-[#E6F1FB] text-[#2B4FA0]' },
-  slides: { label: 'Presentación',badgeClass: 'bg-purple-50 text-purple-700' },
-  quiz:   { label: 'Evaluación',  badgeClass: 'bg-[#FFF8EC] text-[#92600A]' },
-}
+  const inner = (
+    <>
+      <span
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          flex: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: isCompleted ? 'var(--ok-bg)' : enCurso ? 'var(--ambar-100)' : 'var(--arena-100)',
+          color: isCompleted ? 'var(--ok)' : enCurso ? 'var(--ambar-700)' : 'var(--tinta-3)',
+        }}
+      >
+        <Icono n={icono} s={20} />
+      </span>
+      <div className="crece" style={{ lineHeight: 1.35, minWidth: 0 }}>
+        <div style={{ fontWeight: 600, fontSize: 15.5, color: 'var(--tinta)' }}>
+          {index}. {module.title}
+        </div>
+        <div className="texto-s silencio-3">
+          {module.duration_mins ? `${module.duration_mins} min` : 'Módulo'}
+        </div>
+      </div>
+      {canAccess ? <BadgeEstado estado={estado} /> : <Icono n="ojo" s={18} />}
+      {canAccess && (isCompleted || enCurso) && <Icono n="chevR" s={18} />}
+    </>
+  )
 
-function ModuleCard({ module, index, isCompleted, isPreviousCompleted }: ModuleCardProps) {
-  const canAccess = isPreviousCompleted || isCompleted
-  const config = contentTypeConfig[module.content_type]
+  const baseStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    width: '100%',
+    textAlign: 'left' as const,
+    padding: '16px 22px',
+    minHeight: 68,
+    borderTop: '1px solid var(--borde-suave)',
+    background: enCurso ? 'var(--ambar-50)' : 'transparent',
+  }
 
+  if (!canAccess) {
+    return <div style={{ ...baseStyle, opacity: 0.6 }}>{inner}</div>
+  }
   return (
-    <div className="flex gap-4">
-      {/* Left indicator */}
-      <div className="flex flex-col items-center shrink-0 pt-3">
-        <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-          isCompleted
-            ? 'bg-[#27AE60] text-white'
-            : canAccess
-              ? 'bg-[#2B4FA0] text-white'
-              : 'bg-slate-100 text-slate-400'
-        }`}>
-          {isCompleted ? (
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="20,6 9,17 4,12" />
-            </svg>
-          ) : (
-            <span>{index}</span>
-          )}
-        </div>
-      </div>
-
-      {/* Card */}
-      <div className={`flex-1 min-w-0 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4 lg:p-5 mb-0 ${
-        !canAccess ? 'opacity-60' : ''
-      }`}>
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap mb-1.5">
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${config.badgeClass}`}>
-                {config.label}
-              </span>
-              {module.is_required && (
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-700">
-                  Obligatorio
-                </span>
-              )}
-              {module.duration_mins && (
-                <span className="flex items-center gap-1 text-xs text-[#6B7280]">
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12,6 12,12 16,14" />
-                  </svg>
-                  {module.duration_mins} min
-                </span>
-              )}
-            </div>
-            <h3 className="font-semibold text-[#1A1A2E] leading-snug">{module.title}</h3>
-            {module.description && (
-              <p className="text-sm text-[#6B7280] mt-1 line-clamp-2">{module.description}</p>
-            )}
-          </div>
-
-          {/* Action */}
-          <div className="shrink-0">
-            {canAccess ? (
-              <Link
-                href={`/cursos/${module.course_id}/modulos/${module.id}`}
-                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-colors min-h-[40px] flex items-center ${
-                  isCompleted
-                    ? 'bg-slate-100 text-[#2B4FA0] hover:bg-slate-200'
-                    : 'bg-[#2B4FA0] text-white hover:bg-[#1A2F6B]'
-                }`}
-              >
-                {isCompleted ? 'Repasar' : 'Iniciar'}
-              </Link>
-            ) : (
-              <div className="flex items-center gap-1.5 text-slate-400 px-2">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                <span className="text-xs font-semibold hidden sm:inline">Bloqueado</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <Link href={`/cursos/${module.course_id}/modulos/${module.id}`} style={baseStyle}>
+      {inner}
+    </Link>
   )
 }
