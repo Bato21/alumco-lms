@@ -3,11 +3,8 @@
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
 import { updateProfileAction, uploadFirmaAction, deleteFirmaAction } from '@/lib/actions/trabajadores'
-import {
-  Mail, MapPin, Calendar, CreditCard,
-  BookOpen, Clock, CheckCircle, Award,
-  Users, TrendingUp,
-} from 'lucide-react'
+import { Mail, MapPin, Calendar, CreditCard } from 'lucide-react'
+import { TarjetaStat, Badge } from '@/components/alumco/ds'
 
 interface ProfileClientProps {
   userId: string
@@ -156,7 +153,7 @@ export function ProfileClient({
     <div className="space-y-6">
 
       {/* ── Card perfil ─────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6">
+      <div className="card card-pad">
         <div className="flex flex-col lg:flex-row gap-6">
 
           {/* Avatar + nombre + badges */}
@@ -175,18 +172,11 @@ export function ProfileClient({
                 {initial2}
               </div>
             )}
-            <p className="font-bold text-xl text-[#1A1A2E] text-center lg:text-left">
+            <p className="text-center lg:text-left" style={{ fontWeight: 700, fontSize: 20 }}>
               {fullName}
             </p>
-            <span className="bg-[#E6F1FB] text-[#2B4FA0] rounded-full px-3 py-1 text-xs font-semibold">
-              {roleLabel[role] ?? role}
-            </span>
-            {status === 'activo' && (
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#27AE60]">
-                <span className="h-2 w-2 rounded-full bg-[#27AE60]" />
-                Activo
-              </span>
-            )}
+            <Badge tono="info" punto={false}>{roleLabel[role] ?? role}</Badge>
+            {status === 'activo' && <Badge tono="ok">Activo</Badge>}
           </div>
 
           {/* Datos de solo lectura */}
@@ -234,23 +224,18 @@ export function ProfileClient({
       </div>
 
       {/* ── Áreas de trabajo ────────────────────────────────── */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6 space-y-3">
+      <div className="card card-pad space-y-3">
         <div>
           <h2 className="text-base font-bold text-[#1A1A2E]">Áreas de trabajo asignadas</h2>
           <p className="text-xs text-[#6B7280] mt-0.5">Asignado por tu administrador</p>
         </div>
 
         {areas.length === 0 ? (
-          <p className="text-sm text-[#6B7280] italic">Sin área asignada</p>
+          <p className="silencio texto-s" style={{ fontStyle: 'italic' }}>Sin área asignada</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="fila" style={{ flexWrap: 'wrap', gap: 8 }}>
             {areas.map(area => (
-              <span
-                key={area}
-                className="bg-[#E6F1FB] text-[#2B4FA0] rounded-full px-3 py-1 text-sm font-semibold"
-              >
-                {area}
-              </span>
+              <Badge key={area} tono="info" punto={false}>{area}</Badge>
             ))}
           </div>
         )}
@@ -261,7 +246,7 @@ export function ProfileClient({
       </div>
 
       {/* ── Formulario editable ─────────────────────────────── */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6 space-y-4">
+      <div className="card card-pad space-y-4">
         <h2 className="text-base font-bold text-[#1A1A2E]">Información personal editable</h2>
 
         <div className="space-y-1.5">
@@ -274,30 +259,22 @@ export function ProfileClient({
             value={fechaNac}
             onChange={e => setFechaNac(e.target.value)}
             max={today}
-            className="w-full sm:w-64 h-11 px-3 rounded-lg border border-slate-200 text-sm text-[#1A1A2E] focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/30 focus:border-[#2B4FA0]"
+            className="input"
+            style={{ width: 260, maxWidth: '100%' }}
           />
         </div>
 
-        {successMsg && (
-          <p className="text-sm font-semibold text-[#27AE60]">{successMsg}</p>
-        )}
-        {errorMsg && (
-          <p className="text-sm font-semibold text-[#E74C3C]">{errorMsg}</p>
-        )}
+        {successMsg && <p className="texto-s" style={{ fontWeight: 600, color: 'var(--ok)' }}>{successMsg}</p>}
+        {errorMsg && <p className="texto-s" style={{ fontWeight: 600, color: 'var(--peligro)' }}>{errorMsg}</p>}
 
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={isPending || !hasChanges}
-          className="h-11 px-6 rounded-lg bg-[#2B4FA0] text-white font-semibold text-sm hover:bg-[#1A2F6B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <button type="button" onClick={handleSave} disabled={isPending || !hasChanges} className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>
           {isPending ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </div>
 
       {/* ── Firma digital (solo admin / profesor) ───────────── */}
       {(role === 'admin' || role === 'profesor') && (
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-6 space-y-4">
+        <div className="card card-pad space-y-4">
           <div>
             <h2 className="font-bold text-[#1A1A2E]">Firma digital</h2>
             <p className="text-sm text-[#6B7280] mt-1">
@@ -318,21 +295,12 @@ export function ProfileClient({
                   unoptimized
                 />
               </div>
-              <div className="flex gap-3">
-                <label className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border-2 border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold cursor-pointer hover:bg-[#F0F4FF] transition-colors">
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    className="hidden"
-                    onChange={handleFirmaChange}
-                  />
+              <div className="fila" style={{ gap: 10 }}>
+                <label className="btn btn-secondary crece" style={{ cursor: 'pointer' }}>
+                  <input type="file" accept="image/png,image/jpeg" className="hidden" onChange={handleFirmaChange} />
                   Cambiar firma
                 </label>
-                <button
-                  onClick={handleDeleteFirma}
-                  disabled={isFirmaPending}
-                  className="px-4 h-10 rounded-lg border-2 border-[#E74C3C] text-[#E74C3C] text-sm font-semibold hover:bg-[#FAECE7] transition-colors disabled:opacity-50"
-                >
+                <button onClick={handleDeleteFirma} disabled={isFirmaPending} className="btn btn-peligro-ghost">
                   Eliminar
                 </button>
               </div>
@@ -360,14 +328,10 @@ export function ProfileClient({
           )}
 
           {firmaFile && (
-            <div className="flex items-center justify-between gap-3 p-3 bg-[#F0F4FF] rounded-lg">
-              <p className="text-sm text-[#2B4FA0] font-medium truncate">{firmaFile.name}</p>
-              <button
-                onClick={handleUploadFirma}
-                disabled={isFirmaPending}
-                className="shrink-0 px-4 h-9 bg-[#2B4FA0] text-white text-sm font-semibold rounded-lg hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {isFirmaPending ? 'Guardando...' : 'Guardar firma'}
+            <div className="fila" style={{ gap: 12, padding: 12, background: 'var(--ambar-50)', borderRadius: 'var(--radio-m)' }}>
+              <p className="texto-s crece recorte" style={{ fontWeight: 600, color: 'var(--azul-800)' }}>{firmaFile.name}</p>
+              <button onClick={handleUploadFirma} disabled={isFirmaPending} className="btn btn-primary btn-sm">
+                {isFirmaPending ? 'Guardando…' : 'Guardar firma'}
               </button>
             </div>
           )}
@@ -383,74 +347,18 @@ export function ProfileClient({
 
       {/* ── Stats rápidas ────────────────────────────────────── */}
       {(role === 'admin' || role === 'profesor') ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-
-          <div className="bg-[#2B4FA0] text-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4">
-              <BookOpen className="w-5 h-5 text-white" aria-hidden="true" />
-            </div>
-            <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Cursos creados</p>
-            <p className="text-3xl font-extrabold">{totalCreated ?? 0}</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 text-[#1A1A2E] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-[#E6F1FB] flex items-center justify-center mb-4">
-              <Users className="w-5 h-5 text-[#2B4FA0]" aria-hidden="true" />
-            </div>
-            <p className="text-[#1A1A2E]/70 text-xs font-semibold uppercase tracking-wider mb-1">Trabajadores capacitados</p>
-            <p className="text-3xl font-extrabold">{capacitatedWorkers ?? 0}</p>
-          </div>
-
-          <div className="bg-[#EDFAF3] text-[#1A6B3A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4">
-              <TrendingUp className="w-5 h-5 text-[#27AE60]" aria-hidden="true" />
-            </div>
-            <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Aprobación</p>
-            <p className="text-3xl font-extrabold">{approvalRate ?? 0}%</p>
-          </div>
-
-          <div className="bg-[#FFF8EC] text-[#92600A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-[#F5A623]/20 flex items-center justify-center mb-4">
-              <Award className="w-5 h-5 text-[#F5A623]" aria-hidden="true" />
-            </div>
-            <p className="text-[#92600A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Certificados emitidos</p>
-            <p className="text-3xl font-extrabold">{totalCerts ?? 0}</p>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          <TarjetaStat etiqueta="Cursos creados" valor={totalCreated ?? 0} icono="cursos" />
+          <TarjetaStat etiqueta="Trabajadores capacitados" valor={capacitatedWorkers ?? 0} icono="usuarios" />
+          <TarjetaStat etiqueta="Aprobación" valor={`${approvalRate ?? 0}%`} icono="reportes" tono="ambar" />
+          <TarjetaStat etiqueta="Certificados emitidos" valor={totalCerts ?? 0} icono="certificado" />
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-
-          <div className="bg-[#2B4FA0] text-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4">
-              <CheckCircle className="w-5 h-5 text-white" aria-hidden="true" />
-            </div>
-            <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Completados</p>
-            <p className="text-3xl font-extrabold">{completedCount}</p>
-          </div>
-
-          <div className="bg-white border border-slate-200 text-[#1A1A2E] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-[#E6F1FB] flex items-center justify-center mb-4">
-              <Clock className="w-5 h-5 text-[#2B4FA0]" aria-hidden="true" />
-            </div>
-            <p className="text-[#1A1A2E]/70 text-xs font-semibold uppercase tracking-wider mb-1">En progreso</p>
-            <p className="text-3xl font-extrabold">{inProgressCount}</p>
-          </div>
-
-          <div className="bg-[#F0F4FF] text-[#2B4FA0] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center mb-4">
-              <BookOpen className="w-5 h-5 text-[#2B4FA0]" aria-hidden="true" />
-            </div>
-            <p className="text-[#2B4FA0]/70 text-xs font-semibold uppercase tracking-wider mb-1">Sin iniciar</p>
-            <p className="text-3xl font-extrabold">{notStartedCount}</p>
-          </div>
-
-          <div className="bg-[#FFF8EC] text-[#92600A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="w-10 h-10 rounded-full bg-[#F5A623]/20 flex items-center justify-center mb-4">
-              <Award className="w-5 h-5 text-[#F5A623]" aria-hidden="true" />
-            </div>
-            <p className="text-[#92600A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Certificados</p>
-            <p className="text-3xl font-extrabold">{certsCount}</p>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          <TarjetaStat etiqueta="Completados" valor={completedCount} icono="check" />
+          <TarjetaStat etiqueta="En progreso" valor={inProgressCount} icono="reloj" />
+          <TarjetaStat etiqueta="Sin iniciar" valor={notStartedCount} icono="cursos" />
+          <TarjetaStat etiqueta="Certificados" valor={certsCount} icono="certificado" tono="ambar" />
         </div>
       )}
 

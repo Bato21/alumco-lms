@@ -2,182 +2,89 @@
 
 import { useActionState } from 'react'
 import { registerRequestAction, type ActionResult } from '@/lib/actions/registro'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle, Info, CheckCircle2 } from 'lucide-react'
 
 const initialState: ActionResult = {}
 
 export function RegisterForm() {
-  const [state, formAction, isPending] = useActionState(
-    registerRequestAction,
-    initialState
-  )
+  const [state, formAction, isPending] = useActionState(registerRequestAction, initialState)
 
   if (state.success) {
     return (
-      <div className="flex flex-col items-center text-center space-y-4 py-8">
-        <div className="h-16 w-16 rounded-full bg-[#27AE60]/10 flex items-center justify-center">
-          <CheckCircle2
-            className="h-8 w-8 text-[#27AE60]"
-            aria-hidden="true"
-          />
+      <div className="col" style={{ alignItems: 'center', textAlign: 'center', gap: 16, padding: '24px 0' }}>
+        <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--ok-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CheckCircle2 className="h-8 w-8" style={{ color: 'var(--ok)' }} aria-hidden="true" />
         </div>
-        <h2 className="text-xl font-semibold text-[#1A1A2E]">
-          Solicitud enviada
-        </h2>
-        <p className="text-muted-foreground text-base max-w-sm">
-          Te notificaremos por correo cuando un administrador
-          active tu cuenta. Este proceso puede tomar algunas horas.
+        <h2 className="t-display" style={{ fontSize: 22 }}>Solicitud enviada</h2>
+        <p className="silencio" style={{ maxWidth: 360 }}>
+          Te notificaremos por correo cuando un administrador active tu cuenta. Este proceso puede tomar algunas horas.
         </p>
-        <a
-          href="/login"
-          className="text-[#2B4FA0] font-semibold hover:underline text-base"
-        >
-          Volver al inicio de sesión
-        </a>
+        <a href="/login" style={{ fontWeight: 600, color: 'var(--azul-800)' }}>Volver al inicio de sesión</a>
       </div>
     )
   }
 
   return (
-    <form action={formAction} className="space-y-5" noValidate>
-      {/* Error global */}
+    <form action={formAction} className="col" style={{ gap: 16 }} noValidate>
       {state.error && (
-        <Alert
-          variant="destructive"
+        <div
           role="alert"
           aria-live="assertive"
+          className="fila"
+          style={{ gap: 10, padding: '12px 14px', borderRadius: 'var(--radio-m)', background: 'var(--peligro-bg)', color: 'var(--peligro)', border: '2px solid var(--peligro)', boxShadow: '3px 3px 0 var(--peligro)', fontSize: 14.5, fontWeight: 600 }}
         >
-          <AlertCircle className="h-5 w-5" aria-hidden="true" />
-          <AlertDescription className="text-base">
-            {state.error}
-          </AlertDescription>
-        </Alert>
+          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span>{state.error}</span>
+        </div>
       )}
 
-      {/* Nombre completo */}
-      <div className="space-y-2">
-        <Label htmlFor="full_name" className="text-base font-medium">
-          Nombre completo
-        </Label>
-        <Input
-          id="full_name"
-          name="full_name"
-          type="text"
-          autoComplete="name"
-          required
-          disabled={isPending}
-          placeholder="María González"
-          className="h-12 text-base"
-        />
+      <div className="campo">
+        <label htmlFor="full_name">Nombre completo</label>
+        <input id="full_name" name="full_name" type="text" autoComplete="name" required disabled={isPending} placeholder="María González" className="input" />
       </div>
 
-      {/* RUT */}
-      <div className="space-y-2">
-        <Label htmlFor="rut" className="text-base font-medium">
-          RUT
-        </Label>
-        <Input
-          id="rut"
-          name="rut"
-          type="text"
-          autoComplete="off"
-          required
-          disabled={isPending}
-          placeholder="12.345.678-9"
-          className="h-12 text-base"
-        />
+      <div className="campo">
+        <label htmlFor="rut">RUT</label>
+        <input id="rut" name="rut" type="text" autoComplete="off" required disabled={isPending} placeholder="12.345.678-9" className="input" />
       </div>
 
-      {/* Correo */}
-      <div className="space-y-2">
-        <Label htmlFor="email" className="text-base font-medium">
-          Correo electrónico
-        </Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          disabled={isPending}
-          placeholder="nombre@ejemplo.cl"
-          className="h-12 text-base"
-        />
+      <div className="campo">
+        <label htmlFor="email">Correo electrónico</label>
+        <input id="email" name="email" type="email" autoComplete="email" required disabled={isPending} placeholder="nombre@ejemplo.cl" className="input" />
       </div>
 
-      {/* Contraseña */}
-      <div className="space-y-2">
-        <Label htmlFor="password" className="text-base font-medium">
-          Contraseña
-        </Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          disabled={isPending}
-          placeholder="Mínimo 8 caracteres"
-          className="h-12 text-base"
-        />
+      <div className="campo">
+        <label htmlFor="password">Contraseña</label>
+        <input id="password" name="password" type="password" autoComplete="new-password" required disabled={isPending} placeholder="Mínimo 8 caracteres" className="input" />
       </div>
 
-      {/* Confirmar contraseña */}
-      <div className="space-y-2">
-        <Label htmlFor="confirm_password" className="text-base font-medium">
-          Confirmar contraseña
-        </Label>
-        <Input
-          id="confirm_password"
-          name="confirm_password"
-          type="password"
-          autoComplete="new-password"
-          required
-          disabled={isPending}
-          placeholder="Repite tu contraseña"
-          className="h-12 text-base"
-        />
+      <div className="campo">
+        <label htmlFor="confirm_password">Confirmar contraseña</label>
+        <input id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" required disabled={isPending} placeholder="Repite tu contraseña" className="input" />
       </div>
 
-      {/* Banner informativo */}
       <div
-        className="flex gap-3 rounded-xl border border-[#F5A623] bg-[#FFF8E7] p-4"
         role="note"
         aria-label="Información sobre el proceso de aprobación"
+        className="fila"
+        style={{ gap: 12, borderRadius: 'var(--radio-m)', border: '1.5px solid var(--ambar)', background: 'var(--ambar-50)', padding: 14, alignItems: 'flex-start' }}
       >
-        <Info
-          className="h-5 w-5 shrink-0 text-[#F5A623] mt-0.5"
-          aria-hidden="true"
-        />
-        <p className="text-sm text-[#1A1A2E] leading-snug">
-          Tu solicitud será revisada por un administrador antes de
-          activar tu cuenta. Recibirás un correo cuando sea aprobada.
+        <Info className="h-5 w-5 shrink-0" style={{ color: 'var(--ambar-700)', marginTop: 2 }} aria-hidden="true" />
+        <p className="texto-s" style={{ lineHeight: 1.4 }}>
+          Tu solicitud será revisada por un administrador antes de activar tu cuenta. Recibirás un correo cuando sea aprobada.
         </p>
       </div>
 
-      {/* Submit */}
-      <Button
-        type="submit"
-        disabled={isPending}
-        className="w-full h-12 text-base font-semibold bg-[#2B4FA0] hover:bg-[#2B4FA0]/90"
-        aria-busy={isPending}
-      >
+      <button type="submit" disabled={isPending} className="btn btn-primary btn-lg" style={{ width: '100%' }} aria-busy={isPending}>
         {isPending ? (
           <>
-            <Loader2
-              className="mr-2 h-5 w-5 animate-spin"
-              aria-hidden="true"
-            />
-            Enviando solicitud...
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
+            Enviando solicitud…
           </>
         ) : (
           'Enviar solicitud'
         )}
-      </Button>
+      </button>
     </form>
   )
 }
