@@ -4,7 +4,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 /* src/app/globals.css */
-@import "tailwindcss";
+@import "./didasko.css";
 
 @layer base {
   :root {
