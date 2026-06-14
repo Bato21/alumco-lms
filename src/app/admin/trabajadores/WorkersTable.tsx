@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { AREAS_TRABAJO } from '@/lib/types/database'
 import { WorkerEditPanel } from '@/components/alumco/WorkerEditPanel'
+import { Avatar, Badge, Icono } from '@/components/alumco/ds'
 
 interface Worker {
   id: string
@@ -22,17 +23,11 @@ function AreaBadges({ areas }: { areas: string[] }) {
   const visible = areas.slice(0, 2)
   const extra = areas.length - 2
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="fila" style={{ flexWrap: 'wrap', gap: 6 }}>
       {visible.map(a => (
-        <span key={a} className="text-[10px] bg-[#E6F1FB] text-[#2B4FA0] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
-          {a}
-        </span>
+        <Badge key={a} tono="info" punto={false}>{a}</Badge>
       ))}
-      {extra > 0 && (
-        <span className="text-[10px] bg-gray-100 text-[#6B7280] px-2 py-0.5 rounded-full font-semibold">
-          +{extra} más
-        </span>
-      )}
+      {extra > 0 && <Badge tono="neutro" punto={false}>+{extra} más</Badge>}
     </div>
   )
 }
@@ -110,32 +105,27 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
         />
       )}
 
-      <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 space-y-4">
+      <div className="col" style={{ gap: 16 }}>
         {/* Filtros */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <input
-            type="text"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por nombre..."
-            className="h-10 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0]"
-          />
-          <select
-            value={sede}
-            onChange={e => setSede(e.target.value)}
-            className="h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0]"
-          >
+        <div className="card card-pad grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="input-busqueda">
+            <Icono n="lupa" s={18} />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por nombre…"
+              aria-label="Buscar trabajador"
+            />
+          </div>
+          <select className="select" value={sede} onChange={e => setSede(e.target.value)} aria-label="Filtrar por sede">
             <option value="todas">Todas las sedes</option>
             {sedes.map(s => (
               <option key={s.id} value={s.id}>{s.nombre}</option>
             ))}
             <option value="sin_sede">Sin sede asignada</option>
           </select>
-          <select
-            value={area}
-            onChange={e => setArea(e.target.value)}
-            className="h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0]"
-          >
+          <select className="select" value={area} onChange={e => setArea(e.target.value)} aria-label="Filtrar por área">
             <option value="todas">Todas las áreas</option>
             {AREAS_TRABAJO.map(a => (
               <option key={a} value={a}>{a}</option>
@@ -144,10 +134,9 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
         </div>
 
         {/* Tabla */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
+        <div className="card tabla-envoltura">
+            <table className="tabla">
+              <thead>
                 <tr>
                   <th className="px-5 lg:px-6 py-3 cursor-pointer select-none">
                     <button
@@ -198,95 +187,63 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                   <th className="px-5 lg:px-6 py-3 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="text-sm divide-y divide-gray-100">
+              <tbody>
                 {sorted.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 lg:px-6 py-16 text-center text-[#6B7280]">
+                    <td colSpan={7} className="silencio" style={{ textAlign: 'center', padding: '48px 16px' }}>
                       No se encontraron trabajadores con los filtros aplicados.
                     </td>
                   </tr>
                 ) : (
-                  sorted.map(worker => {
-                    const initials = worker.full_name
-                      .split(' ')
-                      .map(n => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-
-                    return (
-                      <tr key={worker.id} className="hover:bg-gray-50/70 transition-colors">
-                        <td className="px-5 lg:px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-[#2B4FA0]/10 flex items-center justify-center text-[#2B4FA0] font-bold text-sm shrink-0">
-                              {initials}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-semibold text-[#1A1A2E] truncate max-w-[160px]">
-                                {worker.full_name}
-                              </p>
-                              <p className="text-xs text-[#6B7280] lg:hidden truncate">
-                                {worker.area_trabajo[0] ?? '—'}
-                              </p>
-                            </div>
+                  sorted.map(worker => (
+                    <tr key={worker.id}>
+                      <td>
+                        <div className="fila" style={{ gap: 12 }}>
+                          <Avatar nombre={worker.full_name} s={38} />
+                          <div style={{ minWidth: 0 }}>
+                            <div className="recorte" style={{ fontWeight: 600, fontSize: 14.5 }}>{worker.full_name}</div>
+                            <div className="texto-s silencio-3 lg:hidden recorte">{worker.area_trabajo[0] ?? '—'}</div>
                           </div>
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 text-[#6B7280] font-mono text-xs hidden lg:table-cell">
-                          {worker.rut ?? '—'}
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          {!worker.sede ? (
-                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#FFF8EC] text-[#92600A]">
-                              Sin sede
-                            </span>
-                          ) : (
-                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                              sedes.findIndex(s => s.id === worker.sede) % 2 !== 0
-                                ? 'bg-[#EAF3DE] text-[#27500A]'
-                                : 'bg-[#E6F1FB] text-[#2B4FA0]'
-                            }`}>
-                              {sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 hidden lg:table-cell">
-                          <AreaBadges areas={worker.area_trabajo} />
-                        </td>
-                        <td className="px-5 lg:px-6 py-4 text-center hidden lg:table-cell">
-                          <span className="capitalize bg-[#E6F1FB] text-[#2B4FA0] px-2.5 py-1 rounded-full text-[10px] font-bold">
-                            {worker.role}
-                          </span>
-                        </td>
-                        <td className="px-5 lg:px-6 py-4">
-                          <span className="flex items-center gap-1.5 font-semibold text-xs text-[#27AE60]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" aria-hidden="true" />
-                            Activo
-                          </span>
-                        </td>
-                        <td className="px-5 lg:px-6 py-4">
-                          <div className="flex items-center justify-end gap-3">
-                            <Link
-                              href={`/admin/trabajadores/${worker.id}`}
-                              className="text-[#2B4FA0] text-sm font-semibold hover:underline whitespace-nowrap"
-                            >
-                              Ver detalle
-                            </Link>
-                            <button
-                              onClick={() => setSelectedWorker(worker)}
-                              className="inline-flex items-center px-3 py-1.5 rounded-lg border border-[#2B4FA0] text-[#2B4FA0] text-sm font-semibold hover:bg-[#2B4FA0]/5 transition-colors min-h-[36px]"
-                              aria-label={`Editar ${worker.full_name}`}
-                            >
-                              Editar
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })
+                        </div>
+                      </td>
+                      <td className="silencio texto-s hidden lg:table-cell" style={{ fontFamily: 'monospace' }}>
+                        {worker.rut ?? '—'}
+                      </td>
+                      <td className="hidden lg:table-cell">
+                        {!worker.sede ? (
+                          <Badge tono="aviso" punto={false}>Sin sede</Badge>
+                        ) : (
+                          <Badge tono="info" punto={false}>{sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}</Badge>
+                        )}
+                      </td>
+                      <td className="hidden lg:table-cell">
+                        <AreaBadges areas={worker.area_trabajo} />
+                      </td>
+                      <td className="hidden lg:table-cell">
+                        <Badge tono="info" punto={false}>{worker.role}</Badge>
+                      </td>
+                      <td>
+                        <Badge tono="ok">Activo</Badge>
+                      </td>
+                      <td>
+                        <div className="fila" style={{ justifyContent: 'flex-end', gap: 8 }}>
+                          <Link href={`/admin/trabajadores/${worker.id}`} className="btn btn-ghost btn-sm">
+                            Ver detalle
+                          </Link>
+                          <button
+                            onClick={() => setSelectedWorker(worker)}
+                            className="btn btn-secondary btn-sm"
+                            aria-label={`Editar ${worker.full_name}`}
+                          >
+                            <Icono n="editar" s={16} /> Editar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
-          </div>
         </div>
       </div>
     </>
