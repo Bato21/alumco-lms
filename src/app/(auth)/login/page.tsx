@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { LoginForm } from '@/components/alumco/LoginForm'
 import { Gota, MarcaAlumco, Onda } from '@/components/alumco/ds'
 
@@ -13,7 +14,7 @@ export default function LoginPage() {
 
       {/* Panel de marca — "Amanecer sobre agua" */}
       <div
-        className="hidden md:flex"
+        className="hidden md:flex film-grain"
         style={{
           flex: '0 0 44%',
           background: 'var(--grad-marca)',
@@ -26,6 +27,26 @@ export default function LoginPage() {
           overflow: 'hidden',
         }}
       >
+        {/* Foto atmosférica difuminada */}
+        <Image
+          src="/login-hero.jpg"
+          alt=""
+          fill
+          priority
+          sizes="(min-width: 768px) 44vw, 0px"
+          aria-hidden="true"
+          style={{ objectFit: 'cover', transform: 'scale(1.08)', filter: 'blur(3px)' }}
+        />
+        {/* Tinte navy de marca para legibilidad */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(168deg, rgba(13,28,69,0.85) 0%, rgba(21,42,102,0.88) 55%, rgba(10,22,56,0.94) 100%)',
+          }}
+        />
+        {/* Resplandor ámbar — el amanecer */}
         <div
           style={{
             position: 'absolute',
