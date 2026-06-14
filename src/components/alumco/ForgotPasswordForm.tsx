@@ -2,10 +2,6 @@
 
 import { useActionState } from 'react'
 import { forgotPasswordAction, type ActionResult } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react'
 
 const initialState: ActionResult = {}
@@ -15,28 +11,33 @@ interface ForgotPasswordFormProps {
 }
 
 export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
-  const [state, formAction, isPending] = useActionState(
-    forgotPasswordAction,
-    initialState
-  )
+  const [state, formAction, isPending] = useActionState(forgotPasswordAction, initialState)
 
   if (state.success) {
     return (
-      <div className="flex flex-col items-center text-center space-y-4 py-4">
-        <div className="h-14 w-14 rounded-full bg-emerald-50 flex items-center justify-center">
-          <CheckCircle2 className="h-7 w-7 text-emerald-600" aria-hidden="true" />
+      <div className="col" style={{ alignItems: 'center', textAlign: 'center', gap: 16, padding: '16px 0' }}>
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            background: 'var(--ok-bg)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <CheckCircle2 className="h-7 w-7" style={{ color: 'var(--ok)' }} aria-hidden="true" />
         </div>
         <div>
-          <p className="font-semibold text-slate-900 text-lg">
-            Revise su correo
-          </p>
-          <p className="text-base text-slate-600 mt-1">
+          <p style={{ fontWeight: 700, fontSize: 18 }}>Revise su correo</p>
+          <p className="silencio" style={{ fontSize: 15, marginTop: 4 }}>
             Si existe una cuenta con ese correo, recibirá un enlace para restablecer su contraseña.
           </p>
         </div>
         <button
           onClick={onBack}
-          className="text-base text-amber-700 font-semibold underline underline-offset-4 decoration-amber-700/40 hover:decoration-amber-700 hover:text-amber-800 transition-colors min-h-[44px]"
+          style={{ fontSize: 15, fontWeight: 600, color: 'var(--azul-800)', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           Volver al inicio de sesión
         </button>
@@ -45,24 +46,37 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   }
 
   return (
-    <div className="space-y-5">
-      <p className="text-base text-slate-600">
+    <div className="col" style={{ gap: 18 }}>
+      <p className="silencio" style={{ fontSize: 15 }}>
         Ingrese su correo y le enviaremos un enlace para restablecer su contraseña.
       </p>
 
       {state.error && (
-        <Alert variant="destructive" role="alert" aria-live="assertive">
-          <AlertCircle className="h-5 w-5" aria-hidden="true" />
-          <AlertDescription className="text-base">{state.error}</AlertDescription>
-        </Alert>
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fila"
+          style={{
+            gap: 10,
+            padding: '12px 14px',
+            borderRadius: 'var(--radio-m)',
+            background: 'var(--peligro-bg)',
+            color: 'var(--peligro)',
+            border: '2px solid var(--peligro)',
+            boxShadow: '3px 3px 0 var(--peligro)',
+            fontSize: 14.5,
+            fontWeight: 600,
+          }}
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span>{state.error}</span>
+        </div>
       )}
 
-      <form action={formAction} className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="reset-email" className="text-base font-medium text-slate-700">
-            Correo electrónico
-          </Label>
-          <Input
+      <form action={formAction} className="col" style={{ gap: 18 }}>
+        <div className="campo">
+          <label htmlFor="reset-email">Correo electrónico</label>
+          <input
             id="reset-email"
             name="email"
             type="email"
@@ -70,16 +84,11 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
             required
             disabled={isPending}
             placeholder="nombre@alumco.cl"
-            className="h-12 text-base bg-white border-slate-300 rounded-lg shadow-sm transition-[border-color,box-shadow] duration-200 focus-visible:ring-[#F5A623]/40 focus-visible:border-[#F5A623]"
+            className="input"
           />
         </div>
 
-        <Button
-          type="submit"
-          disabled={isPending}
-          className="w-full h-12 text-base font-semibold bg-[#F5A623] hover:bg-[#E0930F] text-slate-900 rounded-lg transition-[background-color,box-shadow,transform] duration-200 hover:shadow-md hover:shadow-amber-200/60 active:scale-[0.98]"
-          aria-busy={isPending}
-        >
+        <button type="submit" disabled={isPending} className="btn btn-primary btn-lg" style={{ width: '100%' }} aria-busy={isPending}>
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" aria-hidden="true" />
@@ -88,12 +97,13 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
           ) : (
             'Enviar enlace de recuperación'
           )}
-        </Button>
+        </button>
       </form>
 
       <button
         onClick={onBack}
-        className="w-full flex items-center justify-center gap-2 text-base text-slate-600 hover:text-amber-700 transition-colors min-h-[44px]"
+        className="fila"
+        style={{ justifyContent: 'center', gap: 8, fontSize: 15, color: 'var(--tinta-2)', background: 'none', border: 'none', cursor: 'pointer', minHeight: 44 }}
       >
         <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         Volver al inicio de sesión
