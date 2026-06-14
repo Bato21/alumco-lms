@@ -108,10 +108,10 @@ export default async function AdminPerfilPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-[#1A1A2E]">Mi perfil</h1>
-        <p className="text-[#6B7280] text-sm mt-0.5">Gestiona tu información personal</p>
+    <div className="col max-w-4xl mx-auto" style={{ gap: 22 }} data-screen-label="Admin · Mi perfil">
+      <div className="entra">
+        <h1 className="t-display" style={{ fontSize: 32 }}>Mi perfil</h1>
+        <p className="silencio" style={{ marginTop: 4, fontSize: 15 }}>Gestiona tu información personal</p>
       </div>
 
       <ProfileClient
