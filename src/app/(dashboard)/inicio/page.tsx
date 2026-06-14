@@ -2,9 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
-import { BookOpen, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
 import { DeadlineCalendar } from '@/components/alumco/DeadlineCalendar'
 import WelcomeModal from '@/components/alumco/WelcomeModal'
+import { Anillo, Onda, Icono } from '@/components/alumco/ds'
+import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/CursoCardTrab'
 
 export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
 
@@ -79,10 +80,7 @@ export default async function InicioPage() {
   })
 
   const totalCourses = coursesWithStatus.length
-  const inProgress = coursesWithStatus.filter(c => c.status === 'in_progress').length
   const completedCount = coursesWithStatus.filter(c => c.status === 'completed').length
-  const overdue = coursesWithStatus.filter(c => c.deadlineStatus === 'overdue').length
-  const soonCount = coursesWithStatus.filter(c => c.deadlineStatus === 'soon').length
 
   const cumulativeProgress = coursesWithStatus.length > 0
     ? Math.round(
@@ -92,26 +90,28 @@ export default async function InicioPage() {
     : 0
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
-  const sedeName = profile?.sede === 'sede_1' ? 'Sede Hualpén' : 'Sede Coyhaique'
-  const areaName = Array.isArray(profile?.area_trabajo)
-    ? profile.area_trabajo.join(', ')
-    : (profile?.area_trabajo ?? '')
-
-  let heroBannerTitle: string
-  if (overdue > 0) {
-    heroBannerTitle = `Tienes ${overdue} curso${overdue > 1 ? 's' : ''} vencido${overdue > 1 ? 's' : ''}, ${firstName}.`
-  } else if (soonCount > 0) {
-    heroBannerTitle = `Atención: ${soonCount} curso${soonCount > 1 ? 's' : ''} vence${soonCount > 1 ? 'n' : ''} pronto.`
-  } else if (completedCount === totalCourses && totalCourses > 0) {
-    heroBannerTitle = `¡Vas muy bien, ${firstName}! Sigue así.`
-  } else {
-    heroBannerTitle = `Capacítate a tu ritmo, ${firstName}.`
-  }
 
   const showWelcome = profile?.onboarding_completed === false
 
+  const estadoCurso = (s: 'completed' | 'in_progress' | 'not_started'): EstadoCurso =>
+    s === 'completed' ? 'completado' : s === 'in_progress' ? 'en-curso' : 'pendiente'
+
+  const continuar =
+    coursesWithStatus.find((c) => c.status === 'in_progress') ??
+    coursesWithStatus.find((c) => c.status === 'not_started')
+
+  const proximos = coursesWithStatus
+    .filter((c) => c.id !== continuar?.id && c.status !== 'completed')
+    .slice(0, 3)
+
+  const alertCourse =
+    coursesWithStatus.find((c) => c.deadlineStatus === 'overdue') ??
+    coursesWithStatus.find((c) => c.deadlineStatus === 'soon')
+
+  const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+
   return (
-    <div className="space-y-8">
+    <div className="col" style={{ gap: 26 }} data-screen-label="Trabajador · Inicio">
 
       {showWelcome && (
         <WelcomeModal
@@ -121,87 +121,99 @@ export default async function InicioPage() {
         />
       )}
 
-      {/* Hero Banner — tratamiento cinematográfico, negative margins to break out of layout padding */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#0d1c45] to-[#2B4FA0] h-52 lg:h-56 flex items-center px-6 lg:px-10 -mx-4 lg:-mx-8 film-grain">
-        {/* Decorative circles */}
-        <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
-          <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
-          <div className="absolute right-[60px] top-[20px] w-44 h-44 rounded-full bg-[#2B4FA0] opacity-20 border-2 border-white/10" />
+      {/* Saludo */}
+      <div className="entra">
+        <span className="t-eyebrow">◆ {fechaHoy}</span>
+        <h1 className="t-display" style={{ fontSize: 36, marginTop: 8 }}>
+          Hola {firstName},<br />sigamos <em>aprendiendo</em>.
+        </h1>
+        <p className="silencio" style={{ marginTop: 8, fontSize: 16.5 }}>
+          Llevas {completedCount} de {totalCourses} cursos al día. {completedCount === totalCourses && totalCourses > 0 ? '¡Excelente trabajo!' : '¡Buen trabajo!'}
+        </p>
+      </div>
+
+      {/* Card continuar */}
+      {continuar && (
+        <div
+          className="card bloque-marca entra entra-1"
+          style={{ background: 'var(--grad-marca)', border: 'none', color: '#fff', overflow: 'hidden' }}
+        >
+          <div style={{ padding: '30px 32px 20px', position: 'relative', zIndex: 1 }}>
+            <div className="fila" style={{ gap: 24, flexWrap: 'wrap' }}>
+              <div className="crece" style={{ minWidth: 260 }}>
+                <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>Continúa donde quedaste</span>
+                <h2 className="t-display" style={{ fontSize: 27, color: '#fff', margin: '10px 0 8px' }}>{continuar.title}</h2>
+                <p className="texto-s" style={{ color: 'rgba(255,255,255,0.72)', marginBottom: 18 }}>
+                  {continuar.progressPct > 0 ? `Vas en el ${continuar.progressPct}% del curso` : 'Aún no comienzas este curso'}
+                </p>
+                <Link href={`/cursos/${continuar.id}`} className="btn btn-primary btn-lg">
+                  <Icono n="play" s={20} /> {continuar.progressPct > 0 ? 'Continuar curso' : 'Comenzar curso'}
+                </Link>
+              </div>
+              <div style={{ alignSelf: 'center' }}>
+                <Anillo pct={cumulativeProgress} s={104} grosor={10} etiqueta={`${cumulativeProgress}%`} />
+              </div>
+            </div>
+          </div>
+          <Onda alto={30} />
         </div>
-        <div className="relative z-10 max-w-2xl">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[#F5A623]/80 mb-2 flex items-center gap-2">
-            <span aria-hidden="true">◆</span> {sedeName}{areaName && ` · ${areaName}`}
-          </p>
-          <h1 className="font-display text-3xl lg:text-4xl font-medium text-white leading-[1.15] mb-2 [text-wrap:balance]">
-            {heroBannerTitle}
-          </h1>
-          <p className="text-white/75 text-sm mb-5">
-            Llevas {completedCount} cursos completados de {totalCourses}.
-          </p>
-          <Link
-            href="/cursos"
-            className="px-5 py-2.5 bg-[#F5A623] text-[#1A2F6B] font-bold rounded-lg text-sm hover:bg-[#e0961a] transition-colors inline-block"
+      )}
+
+      {/* Próximos cursos */}
+      {proximos.length > 0 && (
+        <div className="entra entra-2">
+          <div className="fila" style={{ marginBottom: 14 }}>
+            <h2 className="t-display crece" style={{ fontSize: 23 }}>Tus próximos cursos</h2>
+            <Link href="/cursos" className="btn btn-ghost">Ver todos <Icono n="chevR" s={17} /></Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 18 }}>
+            {proximos.map((c) => (
+              <CursoCardTrab
+                key={c.id}
+                titulo={c.title}
+                href={`/cursos/${c.id}`}
+                estado={estadoCurso(c.status)}
+                progreso={c.progressPct}
+                meta={`${totalModulesByCourse.get(c.id) ?? 0} módulos`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Alerta de vencimiento */}
+      {alertCourse && (
+        <div className="card entra entra-3 fila card-pad" style={{ gap: 18, flexWrap: 'wrap' }}>
+          <span
+            style={{
+              width: 50,
+              height: 50,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: alertCourse.deadlineStatus === 'overdue' ? 'var(--peligro-bg)' : 'var(--aviso-bg)',
+              color: alertCourse.deadlineStatus === 'overdue' ? 'var(--peligro)' : 'var(--aviso)',
+              flex: 'none',
+            }}
           >
-            Ver mis cursos →
-          </Link>
-        </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-
-        {/* Card 1 — Blue */}
-        <div className="bg-[#2B4FA0] text-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4">
-            <BookOpen className="w-5 h-5 text-white" aria-hidden="true" />
+            <Icono n="alerta" s={24} />
+          </span>
+          <div className="crece" style={{ minWidth: 240 }}>
+            <h3 style={{ fontSize: 16.5 }}>
+              {alertCourse.deadlineStatus === 'overdue' ? 'Tienes un curso vencido' : 'Un curso vence pronto'}: {alertCourse.title}
+            </h3>
+            <p className="texto-s silencio">Complétalo a la brevedad para mantener tu certificación vigente.</p>
           </div>
-          <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Total de cursos</p>
-          <p className="text-3xl font-extrabold">{totalCourses}</p>
+          <Link href={`/cursos/${alertCourse.id}`} className="btn btn-primary">Ir al curso</Link>
         </div>
-
-        {/* Card 2 — White */}
-        <div className="bg-white border border-slate-200 text-[#1A1A2E] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-          <div className="w-10 h-10 rounded-full bg-[#E6F1FB] flex items-center justify-center mb-4">
-            <Clock className="w-5 h-5 text-[#2B4FA0]" aria-hidden="true" />
-          </div>
-          <p className="text-[#1A1A2E]/70 text-xs font-semibold uppercase tracking-wider mb-1">En progreso</p>
-          <p className="text-3xl font-extrabold">{inProgress}</p>
-        </div>
-
-        {/* Card 3 — Soft green */}
-        <div className="bg-[#EDFAF3] text-[#1A6B3A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-          <div className="w-10 h-10 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4">
-            <CheckCircle className="w-5 h-5 text-[#27AE60]" aria-hidden="true" />
-          </div>
-          <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Cumplimiento</p>
-          <p className="text-3xl font-extrabold text-[#1A6B3A]">{cumulativeProgress}%</p>
-        </div>
-
-        {/* Card 4 — Amber tint if overdue, slate if none */}
-        <div className={`${overdue > 0 ? 'bg-[#FFF8EC] text-[#92600A]' : 'bg-slate-50 text-slate-500'} rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6`}>
-          <div className={`w-10 h-10 rounded-full ${overdue > 0 ? 'bg-[#F5A623]/20' : 'bg-slate-200'} flex items-center justify-center mb-4`}>
-            <AlertTriangle className={`w-5 h-5 ${overdue > 0 ? 'text-[#F5A623]' : 'text-slate-400'}`} aria-hidden="true" />
-          </div>
-          <p className={`${overdue > 0 ? 'text-[#92600A]/70' : 'text-slate-400'} text-xs font-semibold uppercase tracking-wider mb-1`}>Vencidos</p>
-          <p className="text-3xl font-extrabold">{overdue}</p>
-          <p className="text-xs mt-1 opacity-60">{completedCount} completado{completedCount !== 1 ? 's' : ''}</p>
-        </div>
-      </div>
+      )}
 
       {/* Calendario de plazos */}
-      <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold text-[#1A1A2E]">Plazos de cursos</h2>
-          <Link
-            href="/cursos"
-            className="text-sm text-[#2B4FA0] font-semibold hover:underline flex items-center gap-1 shrink-0"
-          >
-            <span className="hidden sm:inline">Ver todos los cursos</span>
-            <span className="sm:hidden">Ver todos</span>
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M5 12h14M12 5l7 7-7 7"/>
-            </svg>
-          </Link>
+      <div className="card card-pad entra entra-4 col" style={{ gap: 16 }}>
+        <div className="fila">
+          <h2 className="crece" style={{ fontSize: 16.5 }}>Plazos de cursos</h2>
+          <Link href="/cursos" className="btn btn-ghost btn-sm">Ver todos <Icono n="chevR" s={16} /></Link>
         </div>
         <DeadlineCalendar courses={coursesWithStatus.filter((c): c is typeof c & { deadline: string } => c.deadline !== null)} />
       </div>

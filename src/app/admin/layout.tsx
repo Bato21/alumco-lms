@@ -40,7 +40,7 @@ export default async function AdminLayout({
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
 
     <div className="lg:pl-[264px] min-h-screen flex flex-col overflow-x-hidden">
-      <AdminTopBar alerts={adminAlerts} role={profile.role as 'admin' | 'profesor'} />
+      <AdminTopBar alerts={adminAlerts} role={profile.role as 'admin' | 'profesor'} fullName={profile.full_name} />
       {/* Espaciador para el header fixed */}
       <div className="hidden lg:block h-[73px] shrink-0" aria-hidden="true" />
 

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { Settings } from 'lucide-react'
 import { NotificationBell } from '@/components/alumco/NotificationBell'
 import SearchBar from '@/components/alumco/SearchBar'
+import { Avatar } from '@/components/alumco/ds'
 
 interface AdminTopBarProps {
   alerts: {
@@ -21,9 +21,10 @@ interface AdminTopBarProps {
     }[]
   }
   role: 'admin' | 'profesor'
+  fullName: string
 }
 
-export function AdminTopBar({ alerts, role }: AdminTopBarProps) {
+export function AdminTopBar({ alerts, role, fullName }: AdminTopBarProps) {
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
@@ -59,21 +60,23 @@ export function AdminTopBar({ alerts, role }: AdminTopBarProps) {
         left: 264,
         right: 0,
         zIndex: 30,
-        justifyContent: 'flex-end',
         gap: 16,
         transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
         transition: 'transform 0.3s ease-in-out',
       }}
     >
-      <SearchBar placeholder="Buscar personas o cursos…" className="w-72" />
+      <SearchBar placeholder="Buscar cursos, trabajadores o sedes…" className="w-full max-w-[480px]" />
+      <div className="crece" />
       <NotificationBell initialAlerts={alerts} role={role} />
       <span style={{ width: 1, height: 26, background: 'var(--borde-suave)' }} />
       <Link
         href="/admin/perfil"
-        aria-label="Mi perfil y configuración"
-        className="btn btn-ghost btn-icon"
+        aria-label="Mi perfil"
+        className="fila"
+        style={{ gap: 10, padding: '4px 6px', borderRadius: 12, minHeight: 44 }}
       >
-        <Settings className="h-5 w-5" aria-hidden="true" />
+        <Avatar nombre={fullName} s={36} />
+        <span style={{ fontWeight: 600, fontSize: 14.5 }}>{fullName.split(' ')[0]}</span>
       </Link>
     </header>
   )

@@ -1,9 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
-import { WorkerSidebar } from '@/components/alumco/WorkerSidebar'
+import { WorkerTopNav } from '@/components/alumco/WorkerTopNav'
 import { getWorkerAlerts } from '@/lib/actions/alerts'
-import { UserRole } from '@/lib/types/database'
-import { WorkerTopBar } from './TopBar'
 
 export default async function DashboardLayout({
   children,
@@ -31,30 +29,18 @@ export default async function DashboardLayout({
   if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA]">
-      {/* Sidebar Navigation */}
-      <WorkerSidebar
+    <div className="min-h-screen flex flex-col">
+      <WorkerTopNav
         fullName={profile.full_name ?? 'Usuario'}
-        sede={profile.sede ?? 'sede_1'}
-        area={profile.area_trabajo ? profile.area_trabajo[0] : undefined}
         avatarUrl={profile.avatar_url}
         alerts={workerAlerts}
       />
-
-      {/* Main Content Area */}
-      <div className="lg:ml-64 min-h-screen flex flex-col overflow-x-hidden">
-        <WorkerTopBar alerts={workerAlerts} />
-        {/* Espaciador para el header fixed */}
-        <div className="hidden lg:block h-[73px] shrink-0" aria-hidden="true" />
-
-        {/* Main Content */}
-        <main
-          id="main-content"
-          className="flex-1 w-full p-4 lg:p-8"
-        >
-          {children}
-        </main>
-      </div>
+      <main
+        id="main-content"
+        className="flex-1 w-full mx-auto max-w-[1080px] px-5 pt-7 pb-24 lg:pb-16"
+      >
+        {children}
+      </main>
     </div>
   )
 }

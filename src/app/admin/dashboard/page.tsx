@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
-import { Avatar, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
+import { getAdminAlerts } from '@/lib/actions/alerts'
+import { Avatar, Badge, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
@@ -125,30 +126,6 @@ export default async function AdminDashboardPage() {
   const sede1Rate = getSedeRate(sede1Workers)
   const sede2Rate = getSedeRate(sede2Workers)
 
-  const workersById = new Map((workersData ?? []).map(w => [w.id, w]))
-
-  const recentActivity = (allProgress ?? [])
-    .map(p => ({
-      ...p,
-      worker: workersById.get(p.user_id),
-    }))
-    .filter(p => p.worker && p.updated_at)
-    .sort((a, b) => new Date(b.updated_at!).getTime() - new Date(a.updated_at!).getTime())
-    .slice(0, 5)
-    .map(p => {
-      const diff = Math.floor((Date.now() - new Date(p.updated_at!).getTime()) / (1000 * 60 * 60 * 24))
-      const timeAgo = diff === 0 ? 'Hoy' : diff === 1 ? 'Ayer' : `Hace ${diff} días`
-      const name = p.worker!.full_name
-      return {
-        userId: p.user_id as string,
-        courseId: p.course_id as string,
-        updatedAt: p.updated_at as string,
-        name,
-        action: p.is_completed ? 'completó un curso' : 'actualizó su progreso',
-        time: timeAgo,
-      }
-    })
-
   const sedeLabel = (s: string) => (s === 'sede_1' ? 'Hualpén' : s === 'sede_2' ? 'Coyhaique' : s)
 
   // Trabajadores que requieren seguimiento (pendientes > 0), derivado de los datos ya cargados
@@ -173,7 +150,14 @@ export default async function AdminDashboardPage() {
     .sort((a, b) => b.pendientes - a.pendientes)
     .slice(0, 6)
 
-  const pendientesTotal = assignmentsTotal - assignmentsCompleted
+  const adminAlerts = await getAdminAlerts()
+  const vencimientos = adminAlerts.alerts.slice(0, 3)
+
+  const plazoLabel = (daysLeft: number, urgency: string): [string, 'peligro' | 'aviso'] => {
+    if (urgency === 'overdue' || daysLeft < 0) return ['Vencido', 'peligro']
+    if (daysLeft <= 14) return [`En ${daysLeft} día${daysLeft !== 1 ? 's' : ''}`, 'aviso']
+    return [`En ${Math.ceil(daysLeft / 7)} semanas`, 'aviso']
+  }
 
   const hora = new Date().getHours()
   const saludo = hora < 12 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches'
@@ -202,14 +186,8 @@ export default async function AdminDashboardPage() {
             <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>◆ {mesLabel}</span>
             <h2 className="t-display" style={{ fontSize: 30, color: '#fff', marginTop: 8 }}>
               {saludo}, {firstName}.<br />
-              Hay <em style={{ color: 'var(--ambar)' }}>{pendientesTotal} cursos pendientes</em> en el equipo.
+              Hay <em style={{ color: 'var(--ambar)' }}>{adminAlerts.count} vencimiento{adminAlerts.count !== 1 ? 's' : ''}</em> este mes.
             </h2>
-            <div className="fila" style={{ gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
-              <Link href="/admin/cursos/nuevo" className="btn btn-primary">
-                <Icono n="mas" s={18} /> Nueva capacitación
-              </Link>
-              <Link href="/admin/reportes" className="btn btn-secondary">Ver reportes</Link>
-            </div>
           </div>
           <div className="fila" style={{ gap: 28 }}>
             {heroStats.map(([v, l]) => (
@@ -261,11 +239,47 @@ export default async function AdminDashboardPage() {
 
         {/* Columna derecha */}
         <div className="col" style={{ gap: 20 }}>
+          {/* Vencimientos próximos */}
+          <div className="card card-pad col" style={{ gap: 14 }}>
+            <div className="fila">
+              <h3 className="crece" style={{ fontSize: 16.5 }}>Vencimientos próximos</h3>
+              <Link href="/admin/reportes" style={{ fontSize: 14, fontWeight: 600 }}>Ver reportes</Link>
+            </div>
+            {vencimientos.length === 0 ? (
+              <p className="silencio texto-s">No hay vencimientos próximos.</p>
+            ) : (
+              <div className="col" style={{ gap: 10 }}>
+                {vencimientos.map((a) => {
+                  const [texto, tono] = plazoLabel(a.daysLeft, a.urgency)
+                  return (
+                    <div
+                      key={a.courseId}
+                      className="fila"
+                      style={{ gap: 12, padding: '10px 12px', borderRadius: 12, background: 'var(--crema)', border: '1px solid var(--borde-suave)' }}
+                    >
+                      <span style={{ color: tono === 'peligro' ? 'var(--peligro)' : 'var(--aviso)' }}>
+                        <Icono n={tono === 'peligro' ? 'alerta' : 'reloj'} s={19} />
+                      </span>
+                      <div className="crece" style={{ lineHeight: 1.3, minWidth: 0 }}>
+                        <div className="recorte" style={{ fontWeight: 600, fontSize: 14.5 }}>{a.courseTitle}</div>
+                        <div className="texto-s silencio-3">{a.pendingWorkers ?? 0} personas</div>
+                      </div>
+                      <Badge tono={tono} punto={false}>{texto}</Badge>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           {/* Cumplimiento por sede */}
           <div className="card card-pad col" style={{ gap: 16 }}>
-            <div>
-              <h3 style={{ fontSize: 16.5 }}>Cumplimiento por sede</h3>
-              <p className="texto-s silencio-3">Cursos completados por residencia</p>
+            <div className="fila">
+              <div className="crece">
+                <h3 style={{ fontSize: 16.5 }}>Cumplimiento por sede</h3>
+                <p className="texto-s silencio-3">Cursos obligatorios al día, por residencia</p>
+              </div>
+              <Link href="/admin/reportes" style={{ fontSize: 14, fontWeight: 600 }}>Detalle</Link>
             </div>
             <div className="col" style={{ gap: 14 }}>
               {sedeRows.map(([n, rate, count]) => (
@@ -279,30 +293,6 @@ export default async function AdminDashboardPage() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Actividad reciente */}
-          <div className="card card-pad col" style={{ gap: 14 }}>
-            <h3 style={{ fontSize: 16.5 }}>Actividad reciente</h3>
-            {recentActivity.length === 0 ? (
-              <p className="silencio texto-s">Aún no hay actividad esta semana.</p>
-            ) : (
-              <div className="col" style={{ gap: 0 }}>
-                {recentActivity.map((item, i) => (
-                  <div
-                    key={`${item.userId}-${item.courseId}-${item.updatedAt}`}
-                    className="fila"
-                    style={{ gap: 12, padding: '10px 0', borderBottom: i < recentActivity.length - 1 ? '1px solid var(--borde-suave)' : 'none' }}
-                  >
-                    <Avatar nombre={item.name} s={34} />
-                    <div className="crece texto-s" style={{ lineHeight: 1.4 }}>
-                      <strong>{item.name}</strong> {item.action}
-                    </div>
-                    <span className="texto-s silencio-3" style={{ whiteSpace: 'nowrap' }}>{item.time}</span>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
