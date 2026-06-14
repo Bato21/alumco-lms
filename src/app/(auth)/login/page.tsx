@@ -2,10 +2,20 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { LoginForm } from '@/components/alumco/LoginForm'
-import { Gota, MarcaAlumco, Onda } from '@/components/alumco/ds'
+import { MarcaAlumco, Onda } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
   title: 'Ingresar | Alumco LMS',
+}
+
+// Gota mascota animada (reacciona al formulario vía :has() en .login-shell)
+function GotaMascota({ size = 56 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 44 52" width={size} height={size * 1.18} xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M22 2 C22 2 4 19 4 30 C4 41 12 49 22 49 C32 49 40 41 40 30 C40 19 22 2 22 2Z" fill="#F5A623" />
+      <ellipse cx="16" cy="26" rx="4" ry="7" fill="white" opacity="0.3" transform="rotate(-20 16 26)" />
+    </svg>
+  )
 }
 
 export default function LoginPage() {
@@ -55,7 +65,28 @@ export default function LoginPage() {
           }}
         />
         <div className="col entra" style={{ alignItems: 'center', textAlign: 'center', gap: 0, position: 'relative', zIndex: 1, maxWidth: 420 }}>
-          <Gota s={52} />
+          {/* Gota mascota — reacciona al formulario vía :has() (animaciones en globals.css) */}
+          <div
+            className="login-float"
+            style={{ position: 'relative', width: 96, height: 116, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
+          >
+            {/* anillos en el agua (mientras carga) */}
+            <div className="mascot-splash" aria-hidden="true">
+              <span /><span /><span />
+            </div>
+            {/* la gota: float (ancestro) ∘ sway ∘ breathe ∘ pose */}
+            <div className="mascot-sway">
+              <div className="mascot-breathe">
+                <div className="mascot-pose">
+                  <GotaMascota size={72} />
+                </div>
+              </div>
+            </div>
+            {/* gotitas que saltan al escribir la contraseña */}
+            <div className="mascot-drips" aria-hidden="true">
+              <span /><span /><span />
+            </div>
+          </div>
           <div style={{ marginTop: 18, fontFamily: 'var(--fuente-cuerpo)', fontWeight: 700, fontSize: 26 }}>
             Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span>
           </div>
@@ -71,7 +102,7 @@ export default function LoginPage() {
             Capacitación continua para brindar la mejor atención a nuestras personas mayores.
           </p>
         </div>
-        <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
+        <div className="login-wave-layer" style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
           <Onda alto={52} color="rgba(255,255,255,0.07)" />
         </div>
         <div style={{ position: 'absolute', bottom: 18, left: 0, right: 0, textAlign: 'center', fontSize: 12.5, color: 'rgba(255,255,255,0.45)', zIndex: 1 }}>
