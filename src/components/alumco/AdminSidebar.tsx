@@ -2,190 +2,87 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  LayoutDashboard,
-  BookOpen,
-  BarChart3,
-  Users,
-  Award,
-  Menu,
-  X,
-  UserCircle,
-  MapPin,
-} from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useState } from 'react'
+import { Menu, X } from 'lucide-react'
+import { MarcaAlumco, Avatar, Icono, type IconoNombre } from '@/components/alumco/ds'
 import { LogoutButton } from './LogoutButton'
 import { type UserRole } from '@/lib/types/database'
-import { useState } from 'react'
 
 interface AdminSidebarProps {
   fullName: string
   role: UserRole
 }
 
+interface NavItem {
+  href: string
+  label: string
+  icono: IconoNombre
+  show: boolean
+}
+
 function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClose?: () => void }) {
   const pathname = usePathname()
   const isAdmin = role === 'admin'
 
-  const navItems = [
-    {
-      href: '/admin/dashboard',
-      label: 'Dashboard',
-      icon: LayoutDashboard,
-      show: true,
-    },
-    {
-      href: '/admin/cursos',
-      label: 'Cursos',
-      icon: BookOpen,
-      show: true,
-    },
-    {
-      href: '/admin/trabajadores',
-      label: 'Trabajadores',
-      icon: Users,
-      show: isAdmin,
-    },
-    {
-      href: '/admin/sedes',
-      label: 'Sedes',
-      icon: MapPin,
-      show: isAdmin,
-    },
-    {
-      href: '/admin/reportes',
-      label: 'Reportes',
-      icon: BarChart3,
-      show: true,
-    },
-    {
-      href: '/admin/certificados',
-      label: 'Certificados',
-      icon: Award,
-      show: true,
-    },
-    {
-      href: '/admin/perfil',
-      label: 'Mi perfil',
-      icon: UserCircle,
-      show: true,
-    },
+  const gestion: NavItem[] = [
+    { href: '/admin/dashboard', label: 'Dashboard', icono: 'inicio', show: true },
+    { href: '/admin/cursos', label: 'Cursos', icono: 'cursos', show: true },
+    { href: '/admin/trabajadores', label: 'Trabajadores', icono: 'usuarios', show: isAdmin },
+    { href: '/admin/sedes', label: 'Sedes', icono: 'sede', show: isAdmin },
+    { href: '/admin/reportes', label: 'Reportes', icono: 'reportes', show: true },
+  ]
+  const cuenta: NavItem[] = [
+    { href: '/admin/certificados', label: 'Certificados', icono: 'certificado', show: true },
+    { href: '/admin/perfil', label: 'Mi perfil', icono: 'perfil', show: true },
   ]
 
-  const handleLinkClick = () => {
-    onClose?.()
-  }
+  const isActivo = (href: string) =>
+    href === '/admin/dashboard' ? pathname === '/admin/dashboard' : pathname === href || pathname.startsWith(href + '/')
+
+  const renderItem = (item: NavItem) => (
+    <Link
+      key={item.href}
+      href={item.href}
+      aria-current={isActivo(item.href) ? 'page' : undefined}
+      onClick={() => onClose?.()}
+      className={'nav-item' + (isActivo(item.href) ? ' activo' : '')}
+    >
+      <Icono n={item.icono} /> {item.label}
+    </Link>
+  )
 
   return (
     <>
-      {/* Logo */}
-      <div className="flex flex-col items-center justify-center py-6 border-b border-white/10 mb-2">
-        <svg
-          viewBox="0 0 200 64"
-          width="160"
-          height="54"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-label="KimünKo"
-          role="img"
-        >
-          <path
-            d="M22 2 C22 2 4 19 4 30 C4 41 12 49 22 49 C32 49 40 41 40 30 C40 19 22 2 22 2Z"
-            fill="#F5A623"
-          />
-          <ellipse
-            cx="16"
-            cy="26"
-            rx="4"
-            ry="7"
-            fill="white"
-            opacity="0.25"
-            transform="rotate(-20 16 26)"
-          />
-          <text
-            x="48"
-            y="36"
-            fontFamily="system-ui, -apple-system, sans-serif"
-            fontSize="24"
-            fontWeight="800"
-            letterSpacing="-0.5"
-          >
-            <tspan fill="white">Kimün</tspan><tspan fill="#F5A623">Ko</tspan>
-          </text>
-          <text
-            x="48"
-            y="52"
-            fontFamily="system-ui, -apple-system, sans-serif"
-            fontSize="8"
-            fill="rgba(255,255,255,0.4)"
-            letterSpacing="2"
-          >
-            sabiduría del agua
-          </text>
-        </svg>
+      <div style={{ padding: '22px 24px 14px' }}>
+        <MarcaAlumco />
         {role === 'profesor' && (
-          <span className="mt-1.5 text-xs font-semibold px-2 py-0.5 rounded-full bg-[#F5A623]/20 text-[#F5A623]">
+          <span
+            className="badge badge-info"
+            style={{ marginTop: 10 }}
+          >
             Profesor
           </span>
         )}
       </div>
 
-      {/* Navegación */}
-      <nav
-        aria-label="Navegación de administración"
-        className="flex-1 overflow-y-auto px-3 py-4"
-      >
-        <ul className="space-y-1" role="list">
-          {navItems
-            .filter(item => item.show)
-            .map((item) => {
-              const Icon = item.icon
-              const isActive =
-                item.href === '/admin/trabajadores'
-                  ? pathname === '/admin/trabajadores' ||
-                    pathname.startsWith('/admin/trabajadores')
-                  : pathname === item.href ||
-                    pathname.startsWith(item.href + '/')
-
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={isActive ? 'page' : undefined}
-                    onClick={handleLinkClick}
-                    className={cn(
-                      'flex items-center gap-3 rounded-xl px-3 py-2.5',
-                      'text-base font-medium transition-colors',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20',
-                      isActive
-                        ? 'bg-white/10 text-white'
-                        : 'text-white/60 hover:text-white hover:bg-white/5'
-                    )}
-                  >
-                    <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-                    {item.label}
-                  </Link>
-                </li>
-              )
-            })}
-        </ul>
+      <nav className="sidebar-nav" aria-label="Navegación de administración">
+        <div className="nav-seccion">Gestión</div>
+        {gestion.filter((i) => i.show).map(renderItem)}
+        <div className="nav-seccion">Cuenta</div>
+        {cuenta.filter((i) => i.show).map(renderItem)}
       </nav>
 
-      {/* Footer */}
-      <div className="border-t border-white/10 p-4 space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-sm">
-              {fullName.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="min-w-0">
-            <p className="text-white font-bold text-sm truncate">
+      <div style={{ padding: '14px 18px 20px', position: 'relative', zIndex: 2 }}>
+        <div className="fila" style={{ gap: 12 }}>
+          <Avatar nombre={fullName} s={40} tono="ambar" />
+          <div className="crece" style={{ lineHeight: 1.25, minWidth: 0 }}>
+            <div className="recorte" style={{ fontWeight: 600, fontSize: 14.5, color: 'var(--azul-900)' }}>
               {fullName.split(' ')[0]}
-            </p>
-            <p className="text-white/50 text-[10px] capitalize">{role}</p>
+            </div>
+            <div style={{ fontSize: 12.5, color: 'var(--tinta-3)', textTransform: 'capitalize' }}>{role}</div>
           </div>
+          <LogoutButton compact />
         </div>
-        <LogoutButton />
       </div>
     </>
   )
@@ -196,50 +93,31 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
 
   return (
     <>
-      {/* Desktop Sidebar - fijo, solo visible en lg+ */}
-      <aside className="hidden lg:block fixed left-0 top-0 h-screen w-64 flex flex-col bg-[#1A2F6B] z-40">
+      {/* Desktop Sidebar */}
+      <aside className="sidebar hidden lg:flex fixed left-0 top-0 h-screen z-40" aria-label="Navegación principal">
         <SidebarContent fullName={fullName} role={role} />
       </aside>
 
-      {/* Mobile Header - solo visible en mobile/tablet */}
-      <header className="lg:hidden sticky top-0 z-50 bg-[#1A2F6B] border-b border-white/10 px-4 py-3 flex items-center justify-between">
-        <svg
-          viewBox="0 0 200 64"
-          width="120"
-          height="41"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-label="KimünKo"
-          role="img"
-        >
-          <path
-            d="M22 2 C22 2 4 19 4 30 C4 41 12 49 22 49 C32 49 40 41 40 30 C40 19 22 2 22 2Z"
-            fill="#F5A623"
-          />
-          <ellipse
-            cx="16"
-            cy="26"
-            rx="4"
-            ry="7"
-            fill="white"
-            opacity="0.25"
-            transform="rotate(-20 16 26)"
-          />
-          <text x="48" y="36" fontFamily="system-ui, -apple-system, sans-serif" fontSize="24" fontWeight="800" letterSpacing="-0.5"><tspan fill="white">Kimün</tspan><tspan fill="#F5A623">Ko</tspan></text>
-          <text x="48" y="52" fontFamily="system-ui, -apple-system, sans-serif" fontSize="8" fill="rgba(255,255,255,0.4)" letterSpacing="2">sabiduría del agua</text>
-        </svg>
+      {/* Mobile Header */}
+      <header
+        className="lg:hidden sticky top-0 z-50 topbar"
+        style={{ justifyContent: 'space-between', padding: '12px 16px' }}
+      >
+        <MarcaAlumco compacta />
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+          className="btn btn-secondary btn-icon btn-sm"
           aria-label="Abrir menú"
         >
-          <Menu className="h-6 w-6" />
+          <Menu className="h-5 w-5" />
         </button>
       </header>
 
       {/* Mobile Drawer Overlay */}
       {isDrawerOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-50"
+          className="lg:hidden fixed inset-0 z-50"
+          style={{ background: 'rgba(15,31,77,0.4)' }}
           onClick={() => setIsDrawerOpen(false)}
           aria-hidden="true"
         />
@@ -247,28 +125,18 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
 
       {/* Mobile Drawer */}
       <aside
-        className={cn(
-          'lg:hidden fixed top-0 left-0 h-screen w-64 bg-[#1A2F6B] z-50 transform transition-transform duration-300 ease-in-out',
-          isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
-        )}
+        className={
+          'sidebar lg:hidden fixed top-0 left-0 h-screen z-50 transform transition-transform duration-300 ease-in-out ' +
+          (isDrawerOpen ? 'translate-x-0' : '-translate-x-full')
+        }
         aria-label="Menú de navegación"
       >
-        {/* Botón de cerrar */}
-        <div className="flex items-center justify-end p-4 border-b border-white/10">
-          <button
-            onClick={() => setIsDrawerOpen(false)}
-            className="p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
-            aria-label="Cerrar menú"
-          >
+        <div className="fila" style={{ justifyContent: 'flex-end', padding: 12 }}>
+          <button onClick={() => setIsDrawerOpen(false)} className="btn btn-ghost btn-icon btn-sm" aria-label="Cerrar menú">
             <X className="h-5 w-5" />
           </button>
         </div>
-
-        <SidebarContent
-          fullName={fullName}
-          role={role}
-          onClose={() => setIsDrawerOpen(false)}
-        />
+        <SidebarContent fullName={fullName} role={role} onClose={() => setIsDrawerOpen(false)} />
       </aside>
     </>
   )

@@ -52,19 +52,29 @@ export function AdminTopBar({ alerts, role }: AdminTopBarProps) {
 
   return (
     <header
-      className={`hidden lg:flex fixed top-0 left-64 right-0 items-center justify-end px-8 py-4 z-30 bg-white/90 backdrop-blur border-b border-slate-100 gap-6 transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
+      className="topbar hidden lg:flex"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 264,
+        right: 0,
+        zIndex: 30,
+        justifyContent: 'flex-end',
+        gap: 16,
+        transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.3s ease-in-out',
+      }}
     >
-      <SearchBar placeholder="Buscar personas o cursos…" className="w-64" />
-      <div className="flex items-center gap-2">
-        <NotificationBell initialAlerts={alerts} role={role} />
-        <Link
-          href="/admin/perfil"
-          aria-label="Mi perfil y configuración"
-          className="p-2 text-slate-500 hover:text-[#2B4FA0] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4FA0]/30"
-        >
-          <Settings className="h-6 w-6" aria-hidden="true" />
-        </Link>
-      </div>
+      <SearchBar placeholder="Buscar personas o cursos…" className="w-72" />
+      <NotificationBell initialAlerts={alerts} role={role} />
+      <span style={{ width: 1, height: 26, background: 'var(--borde-suave)' }} />
+      <Link
+        href="/admin/perfil"
+        aria-label="Mi perfil y configuración"
+        className="btn btn-ghost btn-icon"
+      >
+        <Settings className="h-5 w-5" aria-hidden="true" />
+      </Link>
     </header>
   )
 }

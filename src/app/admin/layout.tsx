@@ -36,16 +36,16 @@ export default async function AdminLayout({
   if (!profile || (profile.role !== 'admin' && profile.role !== 'profesor')) redirect('/inicio')
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA]">
+    <div className="min-h-screen">
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
 
-    <div className="lg:pl-64 min-h-screen flex flex-col overflow-x-hidden">
+    <div className="lg:pl-[264px] min-h-screen flex flex-col overflow-x-hidden">
       <AdminTopBar alerts={adminAlerts} role={profile.role as 'admin' | 'profesor'} />
       {/* Espaciador para el header fixed */}
       <div className="hidden lg:block h-[73px] shrink-0" aria-hidden="true" />
 
       {/* Contenido */}
-      <main className="flex-1 w-full p-4 lg:p-8">
+      <main className="flex-1 w-full mx-auto max-w-[1240px] p-4 lg:px-8 lg:py-7">
         {children}
       </main>
       </div>

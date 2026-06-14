@@ -87,8 +87,8 @@ export default function SearchBar({ placeholder, className }: SearchBarProps) {
     <div className={`relative ${className ?? ''}`} ref={containerRef}>
 
       {/* Input */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4 pointer-events-none" />
+      <div className="input-busqueda" style={{ width: '100%' }}>
+        <Search className="h-4 w-4 shrink-0" style={{ color: 'var(--tinta-3)' }} />
         <input
           ref={inputRef}
           type="text"
@@ -98,21 +98,19 @@ export default function SearchBar({ placeholder, className }: SearchBarProps) {
             if (query.trim().length >= 2) setIsOpen(true)
           }}
           placeholder={placeholder ?? 'Buscar...'}
-          className="pl-9 pr-8 py-2 bg-slate-100 rounded-full text-sm focus:ring-2 focus:ring-[#2B4FA0]/20 focus:bg-white w-full outline-none transition-all border border-transparent focus:border-[#2B4FA0]/20"
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-          {isPending ? (
-            <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
-          ) : query.length > 0 ? (
-            <button
-              onClick={handleClear}
-              className="text-slate-400 hover:text-slate-600 transition-colors"
-              aria-label="Limpiar búsqueda"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          ) : null}
-        </div>
+        {isPending ? (
+          <Loader2 className="h-4 w-4 shrink-0 animate-spin" style={{ color: 'var(--tinta-3)' }} />
+        ) : query.length > 0 ? (
+          <button
+            onClick={handleClear}
+            className="shrink-0"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--tinta-3)', display: 'flex' }}
+            aria-label="Limpiar búsqueda"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
 
       {/* Dropdown de resultados */}
