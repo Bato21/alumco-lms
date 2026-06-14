@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { completeOnboardingAction } from '@/lib/actions/trabajadores'
+import { Badge } from '@/components/alumco/ds'
 
 interface WelcomeModalProps {
   fullName: string
@@ -29,7 +30,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
   return (
     <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isLeaving ? 'opacity-0' : 'opacity-100'}`}>
 
-      <div className={`bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden transition-all duration-300 ${isLeaving ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}>
+      <div className={`card max-w-lg w-full overflow-hidden transition-all duration-300 ${isLeaving ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`} style={{ boxShadow: 'var(--sombra-3)' }}>
 
         {/* Header ámbar con decoración y grano */}
         <div className="relative bg-gradient-to-br from-[#F5A623] to-[#e0961a] px-8 pt-10 pb-16 overflow-hidden film-grain">
@@ -46,12 +47,8 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
           />
 
           {/* Saludo */}
-          <h1 className="font-display text-3xl lg:text-4xl font-medium text-white leading-[1.15] relative z-10">
-            ¡Bienvenido/a a KimünKo,<br />
-            <span className="text-white">
-              {fullName.split(' ')[0]}
-            </span>
-            !
+          <h1 className="t-display relative z-10" style={{ fontSize: 32, color: '#fff' }}>
+            ¡Bienvenido/a a KimünKo,<br />{fullName.split(' ')[0]}!
           </h1>
           <p className="text-white/70 text-sm mt-2 relative z-10">
             Tu plataforma de capacitación está lista.
@@ -94,11 +91,9 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
                 <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Tus áreas</p>
                 <div className="flex flex-wrap gap-1.5 mt-1">
                   {areas.length > 0 ? areas.map(area => (
-                    <span key={area} className="text-xs font-semibold px-2 py-0.5 bg-[#E6F1FB] text-[#2B4FA0] rounded-full">
-                      {area}
-                    </span>
+                    <Badge key={area} tono="info" punto={false}>{area}</Badge>
                   )) : (
-                    <span className="text-sm text-[#6B7280]">Sin asignar</span>
+                    <span className="silencio texto-s">Sin asignar</span>
                   )}
                 </div>
               </div>
@@ -145,7 +140,8 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
           <button
             onClick={handleStart}
             disabled={isPending}
-            className="w-full py-3.5 bg-[#2B4FA0] text-white font-bold rounded-xl hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-60 flex items-center justify-center gap-2 text-base min-h-[48px]"
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%' }}
           >
             {isPending ? (
               <>

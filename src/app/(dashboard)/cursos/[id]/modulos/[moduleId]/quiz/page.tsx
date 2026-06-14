@@ -1,6 +1,7 @@
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import QuizClient from './QuizClient'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 
@@ -97,12 +98,12 @@ export default async function QuizPage({ params }: QuizPageProps) {
           <p className="text-[#6B7280]">
             Esta evaluación pertenece a un curso que no está asignado a tu área de trabajo.
           </p>
-          <a
+          <Link
             href="/cursos"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-lg font-semibold text-sm hover:bg-[#2B4FA0]/90 transition-colors"
           >
             ← Volver a mis cursos
-          </a>
+          </Link>
         </div>
       )
     }
