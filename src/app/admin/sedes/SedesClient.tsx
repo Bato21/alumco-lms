@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { MapPin, Users, Loader2, Plus, AlertTriangle } from 'lucide-react'
+import { Loader2, AlertTriangle } from 'lucide-react'
 import { createSedeAction, toggleSedeAction } from '@/lib/actions/sedes'
+import { Icono, Badge } from '@/components/alumco/ds'
 
 interface Sede {
   id: string
@@ -60,91 +61,70 @@ export default function SedesClient({ sedes, workersPerSede }: SedesClientProps)
     <>
       {/* Modal de confirmación de desactivación */}
       {confirmSede && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
-            onClick={() => setConfirmSede(null)}
-            aria-hidden="true"
-          />
+        <div
+          onClick={() => setConfirmSede(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,31,77,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 20 }}
+        >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-title"
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+            className="card entra"
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: 420, maxWidth: '100%', padding: 28, boxShadow: 'var(--sombra-3)' }}
           >
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="shrink-0 h-10 w-10 rounded-xl bg-[#E74C3C]/10 flex items-center justify-center">
-                  <AlertTriangle className="h-5 w-5 text-[#E74C3C]" aria-hidden="true" />
-                </div>
-                <div>
-                  <h2 id="confirm-title" className="font-bold text-[#1A1A2E] text-base leading-tight">
-                    Desactivar {confirmSede.nombre}
-                  </h2>
-                  <p className="text-sm text-[#6B7280] mt-1.5 leading-snug">
-                    {(workersPerSede[confirmSede.id] ?? 0) > 0 ? (
-                      <>
-                        Los{' '}
-                        <span className="font-semibold text-[#1A1A2E]">
-                          {workersPerSede[confirmSede.id]} trabajadores
-                        </span>{' '}
-                        asignados a esta sede quedarán sin sede asignada y deberán ser reasignados manualmente.
-                      </>
-                    ) : (
-                      'Esta sede no tiene trabajadores asignados. Puedes desactivarla sin consecuencias.'
-                    )}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={() => setConfirmSede(null)}
-                  className="flex-1 h-10 rounded-xl border border-gray-200 text-sm font-semibold text-[#6B7280] hover:bg-gray-50 transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={confirmDeactivate}
-                  className="flex-1 h-10 rounded-xl bg-[#E74C3C] text-white text-sm font-bold hover:bg-[#c0392b] transition-colors"
-                >
-                  Desactivar
-                </button>
+            <div className="fila" style={{ gap: 12, alignItems: 'flex-start' }}>
+              <span style={{ width: 40, height: 40, borderRadius: 'var(--radio-m)', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--peligro-bg)', color: 'var(--peligro)' }}>
+                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h2 id="confirm-title" className="t-display" style={{ fontSize: 19 }}>Desactivar {confirmSede.nombre}</h2>
+                <p className="silencio texto-s" style={{ marginTop: 6, lineHeight: 1.4 }}>
+                  {(workersPerSede[confirmSede.id] ?? 0) > 0 ? (
+                    <>
+                      Los <strong style={{ color: 'var(--tinta)' }}>{workersPerSede[confirmSede.id]} trabajadores</strong> asignados a esta sede quedarán sin sede asignada y deberán ser reasignados manualmente.
+                    </>
+                  ) : (
+                    'Esta sede no tiene trabajadores asignados. Puedes desactivarla sin consecuencias.'
+                  )}
+                </p>
               </div>
             </div>
+            <div className="fila" style={{ gap: 10, marginTop: 20 }}>
+              <button onClick={() => setConfirmSede(null)} className="btn btn-ghost crece">Cancelar</button>
+              <button onClick={confirmDeactivate} className="btn btn-primary crece" style={{ background: 'var(--peligro)', color: '#fff' }}>
+                Desactivar
+              </button>
+            </div>
           </div>
-        </>
+        </div>
       )}
 
-      <div className="space-y-6">
+      <div className="col" style={{ gap: 22 }}>
         {/* Formulario nueva sede */}
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-          <h2 className="text-base font-bold text-[#1A1A2E] mb-4">Crear nueva sede</h2>
+        <div className="card card-pad col entra" style={{ gap: 14 }}>
+          <h2 style={{ fontSize: 16.5 }}>Crear nueva sede</h2>
           {error && (
-            <div className="mb-4 bg-red-50 border border-[#E74C3C] rounded-lg px-4 py-3 text-sm text-[#E74C3C]" role="alert">
+            <div
+              role="alert"
+              style={{ background: 'var(--peligro-bg)', border: '2px solid var(--peligro)', boxShadow: '3px 3px 0 var(--peligro)', borderRadius: 'var(--radio-m)', padding: '10px 14px', color: 'var(--peligro)', fontSize: 14, fontWeight: 600 }}
+            >
               {error}
             </div>
           )}
-          <form action={handleCreate} className="flex flex-col sm:flex-row gap-3">
+          <form action={handleCreate} className="fila" style={{ gap: 10, flexWrap: 'wrap' }}>
             <input
               type="text"
               name="nombre"
               required
               minLength={2}
-              placeholder="Nombre de la sede..."
+              placeholder="Nombre de la sede…"
               disabled={isCreating}
-              className="flex-1 h-11 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
+              className="input crece"
+              style={{ minWidth: 220 }}
             />
-            <button
-              type="submit"
-              disabled={isCreating}
-              className="inline-flex items-center justify-center gap-2 px-5 h-11 rounded-xl bg-[#2B4FA0] text-white text-sm font-bold hover:bg-[#1e3c8a] transition-colors disabled:opacity-50 whitespace-nowrap"
-            >
-              {isCreating ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <Plus className="h-4 w-4" aria-hidden="true" />
-              )}
+            <button type="submit" disabled={isCreating} className="btn btn-primary">
+              {isCreating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Icono n="mas" s={18} />}
               Crear sede
             </button>
           </form>
@@ -152,57 +132,41 @@ export default function SedesClient({ sedes, workersPerSede }: SedesClientProps)
 
         {/* Lista de sedes */}
         {sedes.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-12 lg:p-16 text-center text-[#6B7280]">
-            No hay sedes creadas. Crea la primera sede arriba.
+          <div className="card card-pad" style={{ textAlign: 'center', padding: 56 }}>
+            <p className="silencio">No hay sedes creadas. Crea la primera sede arriba.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sedes.map(sede => {
+          <div className="entra entra-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+            {sedes.map((sede) => {
               const workerCount = workersPerSede[sede.id] ?? 0
               const isToggling = togglingId === sede.id
               return (
-                <div
-                  key={sede.id}
-                  className={`bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6 flex flex-col gap-4 transition-opacity ${
-                    !sede.activa ? 'opacity-60' : ''
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-10 w-10 rounded-xl bg-[#2B4FA0]/10 flex items-center justify-center shrink-0">
-                        <MapPin className="h-5 w-5 text-[#2B4FA0]" aria-hidden="true" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-[#1A1A2E] leading-tight line-clamp-2">{sede.nombre}</p>
-                      </div>
-                    </div>
-                    <span className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                      sede.activa ? 'bg-green-50 text-[#27AE60]' : 'bg-gray-100 text-[#6B7280]'
-                    }`}>
-                      {sede.activa ? 'Activa' : 'Inactiva'}
+                <article key={sede.id} className="card card-hover card-pad col" style={{ gap: 16, opacity: sede.activa ? 1 : 0.6 }}>
+                  <div className="fila" style={{ gap: 14, alignItems: 'flex-start' }}>
+                    <span style={{ width: 46, height: 46, borderRadius: 13, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--azul-50)', color: 'var(--azul-800)' }}>
+                      <Icono n="sede" s={23} />
                     </span>
+                    <div className="crece" style={{ minWidth: 0 }}>
+                      <h3 style={{ fontSize: 17, lineHeight: 1.25 }}>{sede.nombre}</h3>
+                    </div>
+                    <Badge tono={sede.activa ? 'ok' : 'neutro'}>{sede.activa ? 'Activa' : 'Inactiva'}</Badge>
                   </div>
 
-                  <div className="flex items-center gap-2 text-sm text-[#6B7280]">
-                    <Users className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <div className="fila texto-s silencio" style={{ gap: 8 }}>
+                    <Icono n="usuarios" s={17} />
                     <span>{workerCount} trabajador{workerCount !== 1 ? 'es' : ''} activo{workerCount !== 1 ? 's' : ''}</span>
                   </div>
 
                   <button
-                    onClick={() =>
-                      sede.activa ? requestDeactivate(sede) : handleActivate(sede.id)
-                    }
+                    onClick={() => (sede.activa ? requestDeactivate(sede) : handleActivate(sede.id))}
                     disabled={isToggling}
-                    className={`w-full h-10 flex items-center justify-center gap-2 rounded-xl border font-semibold text-sm transition-colors disabled:opacity-50 min-h-[44px] ${
-                      sede.activa
-                        ? 'border-slate-200 text-[#6B7280] hover:border-[#E74C3C]/60 hover:text-[#E74C3C] hover:bg-[#E74C3C]/5'
-                        : 'border-[#27AE60] text-[#27AE60] hover:bg-[#27AE60]/5'
-                    }`}
+                    className={'btn btn-sm ' + (sede.activa ? 'btn-peligro-ghost' : 'btn-secondary')}
+                    style={{ width: '100%', marginTop: 'auto' }}
                   >
                     {isToggling && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
                     {sede.activa ? 'Desactivar sede' : 'Activar sede'}
                   </button>
-                </div>
+                </article>
               )
             })}
           </div>

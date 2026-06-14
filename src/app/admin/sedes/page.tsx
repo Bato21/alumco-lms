@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/server'
 import SedesClient from './SedesClient'
+import { EncabezadoPagina } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
   title: 'Gestión de Sedes | Alumco LMS',
@@ -32,16 +33,10 @@ export default async function SedesPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 lg:p-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-[#1A1A2E]">Sedes</h1>
-          <p className="text-[#6B7280] text-sm mt-0.5">Administra las sedes activas de la organización</p>
-        </div>
-        <span className="bg-[#2B4FA0]/10 text-[#2B4FA0] text-sm font-semibold px-4 py-2 rounded-full whitespace-nowrap">
-          {sedes.filter(s => s.activa).length} sedes activas
-        </span>
-      </div>
+    <div data-screen-label="Admin · Sedes">
+      <EncabezadoPagina titulo="Sedes" sub="Administra las sedes activas de la organización">
+        <span className="badge badge-info">{sedes.filter(s => s.activa).length} sedes activas</span>
+      </EncabezadoPagina>
 
       <SedesClient sedes={sedes} workersPerSede={workersPerSede} />
     </div>
