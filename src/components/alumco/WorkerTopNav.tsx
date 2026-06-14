@@ -98,7 +98,7 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
 
       {/* Móvil: navegación inferior */}
       <nav
-        className="lg:hidden"
+        className="flex lg:hidden"
         aria-label="Navegación inferior"
         style={{
           position: 'fixed',
@@ -106,7 +106,6 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
           left: 0,
           right: 0,
           zIndex: 40,
-          display: 'flex',
           borderTop: '2px solid var(--azul-800)',
           background: 'var(--blanco)',
           paddingBottom: 'env(safe-area-inset-bottom, 6px)',

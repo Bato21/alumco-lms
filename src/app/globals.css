@@ -4,7 +4,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 /* src/app/globals.css */
-@import "./didasko.css";
+/* didasko en @layer components: las utilidades de Tailwind (hidden, fixed,
+   flex, grid, lg:*) deben ganar a las clases didasko (.sidebar, .topbar…). */
+@import "./didasko.css" layer(components);
 
 @layer base {
   :root {
