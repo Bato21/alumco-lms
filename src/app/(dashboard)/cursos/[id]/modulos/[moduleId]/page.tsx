@@ -7,6 +7,7 @@ import { PdfViewer } from '@/components/alumco/PdfViewer'
 import { ModuleIndex } from '@/components/alumco/ModuleIndex'
 import type { Module, Course, CourseProgress } from '@/lib/types/database'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { Badge, Icono } from '@/components/alumco/ds'
 
 interface ModulePageProps {
   params: Promise<{
@@ -109,17 +110,14 @@ export default async function ModulePage({ params }: ModulePageProps) {
               <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-[#1A1A2E]">Acceso no permitido</h2>
-          <p className="text-[#6B7280]">
+          <h2 className="t-display" style={{ fontSize: 22 }}>Acceso no permitido</h2>
+          <p className="silencio">
             Este módulo pertenece a un curso que no está asignado a tu área de trabajo.
             Contacta a tu administrador si crees que es un error.
           </p>
-          <a
-            href="/cursos"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-lg font-semibold text-sm hover:bg-[#2B4FA0]/90 transition-colors"
-          >
-            ← Volver a mis cursos
-          </a>
+          <Link href="/cursos" className="btn btn-primary">
+            <Icono n="flechaIzq" s={18} /> Volver a mis cursos
+          </Link>
         </div>
       )
     }
@@ -160,7 +158,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           <span className="text-[#1A1A2E] font-medium">Módulo bloqueado</span>
         </nav>
 
-        <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-12 text-center">
+        <div className="card p-12 text-center">
           <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-slate-100 flex items-center justify-center">
             <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -207,26 +205,20 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </nav>
 
           {/* Header del módulo */}
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
-            <div className="flex items-center gap-2 flex-wrap mb-3">
-              <span className="px-2.5 py-1 bg-[#E6F1FB] text-[#2B4FA0] rounded-full text-xs font-bold uppercase tracking-wider">
-                Módulo {currentIndex + 1}
-              </span>
+          <div className="card p-5">
+            <div className="fila" style={{ gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
+              <Badge tono="neutro" punto={false}>Módulo {currentIndex + 1}</Badge>
               <ContentTypeBadge type={module.content_type} />
-              {module.is_required && (
-                <span className="px-2.5 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold uppercase tracking-wider">
-                  Obligatorio
-                </span>
-              )}
+              {module.is_required && <Badge tono="peligro" punto={false}>Obligatorio</Badge>}
             </div>
-            <h1 className="text-xl font-bold text-[#1A1A2E]">{module.title}</h1>
+            <h1 className="t-display" style={{ fontSize: 22 }}>{module.title}</h1>
             {module.description && (
-              <p className="text-[#6B7280] mt-2 text-sm leading-relaxed">{module.description}</p>
+              <p className="silencio texto-s" style={{ marginTop: 8, lineHeight: 1.5 }}>{module.description}</p>
             )}
           </div>
 
           {/* Player */}
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
+          <div className="card overflow-hidden">
             {module.content_type === 'video' && (
               <div className="p-4 md:p-6">
                 <VideoPlayer
@@ -252,59 +244,30 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </div>
 
           {/* Navegación */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="fila" style={{ justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             {prevModule ? (
-              <Link
-                href={`/cursos/${courseId}/modulos/${prevModule.id}`}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-[#2B4FA0] font-semibold text-sm hover:bg-slate-50 transition-colors min-h-[48px] justify-center sm:justify-start"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m15 18-6-6 6-6" />
-                </svg>
-                <span className="truncate max-w-[180px]">Anterior: {prevModule.title}</span>
+              <Link href={`/cursos/${courseId}/modulos/${prevModule.id}`} className="btn btn-secondary">
+                <Icono n="flechaIzq" s={17} />
+                <span className="recorte" style={{ maxWidth: 180 }}>Anterior: {prevModule.title}</span>
               </Link>
             ) : (
-              <Link
-                href={`/cursos/${courseId}`}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-[#2B4FA0] font-semibold text-sm hover:bg-slate-50 transition-colors min-h-[48px] justify-center sm:justify-start"
-              >
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
-                </svg>
-                Volver al curso
+              <Link href={`/cursos/${courseId}`} className="btn btn-secondary">
+                <Icono n="flechaIzq" s={17} /> Volver al curso
               </Link>
             )}
 
             {nextModule ? (
-              <Link
-                href={`/cursos/${courseId}/modulos/${nextModule.id}`}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#2B4FA0] text-white rounded-xl font-semibold text-sm hover:bg-[#1A2F6B] transition-colors min-h-[48px]"
-              >
-                <span className="truncate max-w-[180px]">Siguiente: {nextModule.title}</span>
-                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
+              <Link href={`/cursos/${courseId}/modulos/${nextModule.id}`} className="btn btn-primary">
+                <span className="recorte" style={{ maxWidth: 180 }}>Siguiente: {nextModule.title}</span>
+                <Icono n="chevR" s={17} />
               </Link>
             ) : isModuleCompleted ? (
-              <Link
-                href={`/cursos/${courseId}`}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#27AE60] text-white rounded-xl font-semibold text-sm hover:bg-[#1A6B3A] transition-colors min-h-[48px]"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-                  <polyline points="9,12 12,15 16,10" />
-                </svg>
-                Completar curso
+              <Link href={`/cursos/${courseId}`} className="btn btn-primary" style={{ background: 'var(--ok)', color: '#fff' }}>
+                <Icono n="check" s={17} /> Completar curso
               </Link>
             ) : (
-              <Link
-                href={`/cursos/${courseId}`}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-[#2B4FA0] font-semibold text-sm hover:bg-slate-50 transition-colors min-h-[48px]"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
-                </svg>
-                Volver al curso
+              <Link href={`/cursos/${courseId}`} className="btn btn-secondary">
+                <Icono n="flechaIzq" s={17} /> Volver al curso
               </Link>
             )}
           </div>
@@ -322,7 +285,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           />
 
           {/* Sobre este curso */}
-          <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5">
+          <div className="card p-5">
             <h4 className="font-bold text-[#1A1A2E] text-sm mb-4">Sobre este curso</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-2.5 text-sm text-[#6B7280]">
@@ -393,18 +356,12 @@ export default async function ModulePage({ params }: ModulePageProps) {
 // ─── ContentTypeBadge ────────────────────────────────────────────────────────
 
 function ContentTypeBadge({ type }: { type: string }) {
-  const config: Record<string, { label: string; className: string }> = {
-    video:  { label: 'Video',        className: 'bg-red-50 text-red-700' },
-    pdf:    { label: 'PDF',          className: 'bg-[#E6F1FB] text-[#2B4FA0]' },
-    slides: { label: 'Presentación', className: 'bg-purple-50 text-purple-700' },
-    quiz:   { label: 'Evaluación',   className: 'bg-[#FFF8EC] text-[#92600A]' },
+  const config: Record<string, { label: string; tono: 'peligro' | 'info' | 'aviso' | 'neutro' }> = {
+    video: { label: 'Video', tono: 'peligro' },
+    pdf: { label: 'PDF', tono: 'info' },
+    slides: { label: 'Presentación', tono: 'info' },
+    quiz: { label: 'Evaluación', tono: 'aviso' },
   }
-
-  const { label, className } = config[type] || { label: type, className: 'bg-slate-100 text-slate-600' }
-
-  return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${className}`}>
-      {label}
-    </span>
-  )
+  const { label, tono } = config[type] || { label: type, tono: 'neutro' as const }
+  return <Badge tono={tono} punto={false}>{label}</Badge>
 }
