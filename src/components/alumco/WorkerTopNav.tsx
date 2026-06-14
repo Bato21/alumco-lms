@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MarcaAlumco, Avatar, Icono, type IconoNombre } from '@/components/alumco/ds'
 import { NotificationBell } from './NotificationBell'
+import { LogoutButton } from './LogoutButton'
 
 interface WorkerAlertItem {
   courseId: string
@@ -87,6 +88,8 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
           )}
           <span style={{ fontWeight: 600, fontSize: 14.5 }}>{fullName.split(' ')[0]}</span>
         </Link>
+        <span style={{ width: 1, height: 26, background: 'var(--borde-suave)' }} />
+        <LogoutButton compact />
       </header>
 
       {/* Móvil: cabecera */}
@@ -94,6 +97,7 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
         <MarcaAlumco compacta />
         <div className="crece" />
         <NotificationBell initialAlerts={alerts} role="trabajador" />
+        <LogoutButton compact />
       </header>
 
       {/* Móvil: navegación inferior */}
