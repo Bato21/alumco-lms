@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
-import { Users, BookOpen, TrendingUp, Award, Medal } from 'lucide-react'
+import { Avatar, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
@@ -53,20 +53,6 @@ export default async function AdminDashboardPage() {
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
 
   const totalWorkers = workersData?.length ?? 0
-
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-  sevenDaysAgo.setHours(0, 0, 0, 0)
-  const sevenDaysAgoMs = sevenDaysAgo.getTime()
-
-  const coursesCompleted = (allProgress ?? []).filter(
-    p => p.is_completed && p.completed_at && new Date(p.completed_at).getTime() >= sevenDaysAgoMs
-  ).length
-
-  const uniqueInProgress = new Set(
-    (allProgress ?? []).filter(p => !p.is_completed).map(p => p.user_id)
-  )
-  const inProgress = uniqueInProgress.size
 
   const completedSet = new Set(
     (allProgress ?? []).filter(p => p.is_completed).map(p => `${p.user_id}:${p.course_id}`)
@@ -160,222 +146,203 @@ export default async function AdminDashboardPage() {
         name,
         action: p.is_completed ? 'completó un curso' : 'actualizó su progreso',
         time: timeAgo,
-        initials: name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase(),
       }
     })
 
-  const usersWithProgress = new Set((allProgress ?? []).map(p => p.user_id))
-  const workersWithNoProgress = (workersData ?? []).filter(w =>
-    !usersWithProgress.has(w.id)
-  ).length
+  const sedeLabel = (s: string) => (s === 'sede_1' ? 'Hualpén' : s === 'sede_2' ? 'Coyhaique' : s)
 
-  const heroBannerTitle = workersWithNoProgress > 0
-    ? `Capacita a tu equipo, ${firstName}.`
-    : 'Cuidados con empatía, equipos con propósito.'
+  // Trabajadores que requieren seguimiento (pendientes > 0), derivado de los datos ya cargados
+  const workerFollowup = (workersData ?? [])
+    .map((w) => {
+      const wAreas = (w.area_trabajo as string[]) ?? []
+      let total = 0
+      let done = 0
+      for (const c of allCourses ?? []) {
+        const tAreas = (c.target_areas as string[] | null) ?? []
+        const visible = tAreas.length === 0 || tAreas.some((a) => wAreas.includes(a))
+        if (!visible) continue
+        total++
+        if (completedSet.has(`${w.id}:${c.id}`)) done++
+      }
+      const pendientes = total - done
+      const cumplimiento = total > 0 ? Math.round((done / total) * 100) : 0
+      const estado = pendientes === 0 ? 'al-dia' : cumplimiento < 50 ? 'atrasado' : 'en-riesgo'
+      return { id: w.id, nombre: w.full_name, sede: sedeLabel(w.sede), pendientes, cumplimiento, estado }
+    })
+    .filter((w) => w.pendientes > 0)
+    .sort((a, b) => b.pendientes - a.pendientes)
+    .slice(0, 6)
+
+  const pendientesTotal = assignmentsTotal - assignmentsCompleted
+
+  const hora = new Date().getHours()
+  const saludo = hora < 12 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches'
+  const mesLabel = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
+
+  const heroStats: [string, string][] = [
+    [String(totalWorkers), 'trabajadores'],
+    [`${approvalRate}%`, 'cumplimiento'],
+    [String(publishedCourses), 'cursos activos'],
+  ]
+  const sedeRows: [string, number, number][] = [
+    ['Sede Hualpén', sede1Rate, sede1Workers.length],
+    ['Sede Coyhaique', sede2Rate, sede2Workers.length],
+  ]
 
   return (
-    <div className="bg-[#F8F9FA] min-h-screen">
+    <div className="col" style={{ gap: 20 }} data-screen-label="Admin · Dashboard">
 
-      {/* Hero Banner — tratamiento cinematográfico */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#0d1c45] to-[#2B4FA0] min-h-[12rem] lg:h-56 flex items-center px-4 sm:px-6 lg:px-10 py-8 lg:py-0 film-grain">
-        {/* Decorative circles */}
-        <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
-          <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
-          <div className="absolute right-[60px] top-[20px] w-44 h-44 rounded-full bg-[#2B4FA0] opacity-20 border-2 border-white/10" />
-        </div>
-        <div className="relative z-10 max-w-2xl w-full">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-[#F5A623]/80 mb-2 flex items-center gap-2">
-            <span aria-hidden="true">◆</span> Progreso semanal
-          </p>
-          <h1 className="font-display text-3xl sm:text-4xl font-medium text-white leading-[1.15] mb-2 [text-wrap:balance]">
-            {heroBannerTitle}
-          </h1>
-          <p className="text-white/75 text-xs sm:text-sm mb-5">
-            {totalWorkers} colaboradores activos · {coursesCompleted} cursos completados esta semana.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
-            <Link
-              href="/admin/cursos/nuevo"
-              className="px-5 py-2.5 bg-[#F5A623] text-[#1A2F6B] font-bold rounded-lg text-sm hover:bg-[#e0961a] transition-colors"
-            >
-              Nueva capacitación →
-            </Link>
-            <Link
-              href="/admin/reportes"
-              className="px-5 py-2.5 bg-white/10 text-white border border-white/20 font-semibold rounded-lg text-sm hover:bg-white/20 transition-colors"
-            >
-              Ver reportes
-            </Link>
+      {/* Hero saludo (variante B) */}
+      <div
+        className="card bloque-marca entra"
+        style={{ background: 'var(--grad-marca)', color: '#fff', border: 'none', overflow: 'hidden', position: 'relative' }}
+      >
+        <div className="fila" style={{ padding: '30px 32px 24px', gap: 24, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+          <div className="crece" style={{ minWidth: 280 }}>
+            <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>◆ {mesLabel}</span>
+            <h2 className="t-display" style={{ fontSize: 30, color: '#fff', marginTop: 8 }}>
+              {saludo}, {firstName}.<br />
+              Hay <em style={{ color: 'var(--ambar)' }}>{pendientesTotal} cursos pendientes</em> en el equipo.
+            </h2>
+            <div className="fila" style={{ gap: 12, marginTop: 18, flexWrap: 'wrap' }}>
+              <Link href="/admin/cursos/nuevo" className="btn btn-primary">
+                <Icono n="mas" s={18} /> Nueva capacitación
+              </Link>
+              <Link href="/admin/reportes" className="btn btn-secondary">Ver reportes</Link>
+            </div>
+          </div>
+          <div className="fila" style={{ gap: 28 }}>
+            {heroStats.map(([v, l]) => (
+              <div key={l} style={{ textAlign: 'center' }}>
+                <div className="t-display" style={{ fontSize: 34, color: '#fff' }}>{v}</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{l}</div>
+              </div>
+            ))}
           </div>
         </div>
+        <Onda alto={36} />
       </div>
 
-      <div className="p-4 lg:p-8 space-y-8">
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
-
-          {/* Card 1 — Blue */}
-          <div className="bg-[#2B4FA0] text-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4">
-              <Users className="w-5 h-5 text-white" aria-hidden="true" />
-            </div>
-            <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Colaboradores activos</p>
-            <p className="text-3xl font-extrabold">{totalWorkers}</p>
+      {/* Grid principal: seguimiento + columna lateral */}
+      <div className="entra entra-2 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5 items-start">
+        {/* Requieren seguimiento */}
+        <div className="card col" style={{ gap: 0 }}>
+          <div className="fila card-pad" style={{ paddingBottom: 10 }}>
+            <h3 className="crece" style={{ fontSize: 16.5 }}>Requieren seguimiento</h3>
+            <Link href="/admin/trabajadores" className="btn btn-secondary btn-sm">Ver todos</Link>
           </div>
-
-          {/* Card 2 — White */}
-          <div className="bg-white border border-slate-200 text-[#1A1A2E] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-[#E6F1FB] flex items-center justify-center mb-4">
-              <BookOpen className="w-5 h-5 text-[#2B4FA0]" aria-hidden="true" />
+          {workerFollowup.length === 0 ? (
+            <div className="card-pad"><p className="silencio texto-s">Todo el equipo está al día.</p></div>
+          ) : (
+            <div className="tabla-envoltura">
+              <table className="tabla">
+                <thead>
+                  <tr><th>Trabajador/a</th><th>Sede</th><th>Pendientes</th><th>Estado</th></tr>
+                </thead>
+                <tbody>
+                  {workerFollowup.map((t) => (
+                    <tr key={t.id}>
+                      <td>
+                        <div className="fila" style={{ gap: 10 }}>
+                          <Avatar nombre={t.nombre} s={32} />
+                          <strong style={{ fontSize: 14.5 }}>{t.nombre}</strong>
+                        </div>
+                      </td>
+                      <td className="silencio texto-s">{t.sede}</td>
+                      <td><strong>{t.pendientes}</strong> <span className="silencio-3 texto-s">cursos</span></td>
+                      <td><BadgeEstado estado={t.estado} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <p className="text-[#1A1A2E]/70 text-xs font-semibold uppercase tracking-wider mb-1">Capacitaciones publicadas</p>
-            <p className="text-3xl font-extrabold">{publishedCourses}</p>
-          </div>
-
-          {/* Card 3 — Soft green */}
-          <div className="bg-[#EDFAF3] text-[#1A6B3A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4">
-              <TrendingUp className="w-5 h-5 text-[#27AE60]" aria-hidden="true" />
-            </div>
-            <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Cumplimiento</p>
-            <p className="text-3xl font-extrabold text-[#1A6B3A]">{approvalRate}%</p>
-          </div>
-
-          {/* Card 4 — Amber tint */}
-          <div className="bg-[#FFF8EC] text-[#92600A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-[#F5A623]/20 flex items-center justify-center mb-4">
-              <Award className="w-5 h-5 text-[#F5A623]" aria-hidden="true" />
-            </div>
-            <p className="text-[#92600A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Certificados emitidos</p>
-            <p className="text-3xl font-extrabold text-[#92600A]">{totalCertificates}</p>
-          </div>
+          )}
         </div>
 
-        {/* Bottom section — 3 columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-
-          {/* Col 1: Comparativa por sede (4/10) */}
-          <div className="lg:col-span-4 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <h3 className="font-bold text-[#1A1A2E] text-base mb-6">Comparativa por sede</h3>
-            <div className="space-y-6">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[#1A1A2E]">Sede Hualpén</span>
-                  <span className="text-sm font-bold text-[#2B4FA0]">{sede1Rate}%</span>
-                </div>
-                <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#2B4FA0] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${sede1Rate}%` }}
-                  />
-                </div>
-                <p className="text-xs text-[#6B7280] mt-1">{sede1Workers.length} trabajadores</p>
-              </div>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[#1A1A2E]">Sede Coyhaique</span>
-                  <span className="text-sm font-bold text-[#F5A623]">{sede2Rate}%</span>
-                </div>
-                <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#F5A623] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${sede2Rate}%` }}
-                  />
-                </div>
-                <p className="text-xs text-[#6B7280] mt-1">{sede2Workers.length} trabajadores</p>
-              </div>
+        {/* Columna derecha */}
+        <div className="col" style={{ gap: 20 }}>
+          {/* Cumplimiento por sede */}
+          <div className="card card-pad col" style={{ gap: 16 }}>
+            <div>
+              <h3 style={{ fontSize: 16.5 }}>Cumplimiento por sede</h3>
+              <p className="texto-s silencio-3">Cursos completados por residencia</p>
             </div>
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <p className="text-xs text-[#6B7280]">
-                Meta trimestral:{' '}
-                <span className="font-bold text-[#1A1A2E]">90% de cumplimiento</span>
-              </p>
+            <div className="col" style={{ gap: 14 }}>
+              {sedeRows.map(([n, rate, count]) => (
+                <div key={n} className="col" style={{ gap: 6 }}>
+                  <div className="fila" style={{ fontSize: 14 }}>
+                    <span className="crece" style={{ fontWeight: 600 }}>{n}</span>
+                    <span style={{ fontWeight: 640, color: rate < 70 ? 'var(--peligro)' : 'var(--tinta)' }}>{rate}%</span>
+                  </div>
+                  <Progreso pct={rate} azul={rate >= 70} />
+                  <span className="texto-s silencio-3">{count} trabajadores</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Col 2: Actividad reciente (3/10) */}
-          <div className="lg:col-span-3 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <h3 className="font-bold text-[#1A1A2E] text-base mb-6">Actividad reciente</h3>
+          {/* Actividad reciente */}
+          <div className="card card-pad col" style={{ gap: 14 }}>
+            <h3 style={{ fontSize: 16.5 }}>Actividad reciente</h3>
             {recentActivity.length === 0 ? (
-              <div className="flex flex-col items-center justify-center text-center py-8 gap-3">
-                <div className="w-12 h-12 rounded-full bg-[#E6F1FB] flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-[#2B4FA0]" aria-hidden="true" />
-                </div>
-                <p className="text-sm text-[#6B7280]">Aún no hay actividad esta semana.</p>
-                <p className="text-xs text-[#6B7280]/70">
-                  Aquí verás los avances de los trabajadores en sus cursos.
-                </p>
-              </div>
+              <p className="silencio texto-s">Aún no hay actividad esta semana.</p>
             ) : (
-              <div className="space-y-4">
-                {recentActivity.map((item) => (
-                  <div key={`${item.userId}-${item.courseId}-${item.updatedAt}`} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#2B4FA0] flex items-center justify-center shrink-0">
-                      <span className="text-white text-[10px] font-bold">{item.initials}</span>
+              <div className="col" style={{ gap: 0 }}>
+                {recentActivity.map((item, i) => (
+                  <div
+                    key={`${item.userId}-${item.courseId}-${item.updatedAt}`}
+                    className="fila"
+                    style={{ gap: 12, padding: '10px 0', borderBottom: i < recentActivity.length - 1 ? '1px solid var(--borde-suave)' : 'none' }}
+                  >
+                    <Avatar nombre={item.name} s={34} />
+                    <div className="crece texto-s" style={{ lineHeight: 1.4 }}>
+                      <strong>{item.name}</strong> {item.action}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#1A1A2E] truncate">{item.name}</p>
-                      <p className="text-xs text-[#6B7280]">{item.action}</p>
-                    </div>
-                    <span className="text-[10px] text-[#6B7280] shrink-0 mt-0.5">{item.time}</span>
+                    <span className="texto-s silencio-3" style={{ whiteSpace: 'nowrap' }}>{item.time}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
-
-          {/* Col 3: Cursos + Certificados (3/10) */}
-          <div className="lg:col-span-3 space-y-6">
-
-            {/* Cursos más completados */}
-            <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-              <h3 className="font-bold text-[#1A1A2E] text-base mb-5">Cursos más completados</h3>
-              <div className="space-y-4">
-                {topCourses.length === 0 ? (
-                  <p className="text-sm text-[#6B7280]">Sin datos aún.</p>
-                ) : topCourses.map(course => (
-                  <div key={course.course_name}>
-                    <div className="flex justify-between text-xs font-bold mb-1.5">
-                      <span className="text-[#1A1A2E] truncate pr-2">{course.course_name}</span>
-                      <span className="text-[#2B4FA0] shrink-0">{course.completion_rate}%</span>
-                    </div>
-                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-[#2B4FA0] h-full rounded-full transition-all duration-500"
-                        style={{ width: `${course.completion_rate}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Certificados este mes */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#1A2F6B] to-[#2B4FA0] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-              <div className="absolute -right-6 -top-6 opacity-15 pointer-events-none">
-                <Award className="w-28 h-28 text-white" aria-hidden="true" />
-              </div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Medal className="w-4 h-4 text-[#F5A623]" aria-hidden="true" />
-                  <p className="text-white/80 text-xs font-semibold">Certificados este mes</p>
-                </div>
-                <p className="text-5xl font-black text-white mb-1">{certificatesThisMonth}</p>
-                <p className="text-white/50 text-[10px] uppercase tracking-widest mb-5">Emitidos</p>
-                <Link
-                  href="/admin/reportes"
-                  className="block w-full py-2.5 bg-[#F5A623] hover:bg-[#e0961a] text-[#1A2F6B] font-bold rounded-lg text-sm text-center transition-colors"
-                >
-                  Ver todos los certificados
-                </Link>
-              </div>
-            </div>
-          </div>
         </div>
+      </div>
 
+      {/* Fila inferior: cursos más completados + certificados */}
+      <div className="entra entra-3 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5 items-start">
+        <div className="card card-pad col" style={{ gap: 14 }}>
+          <h3 style={{ fontSize: 16.5 }}>Cursos más completados</h3>
+          {topCourses.length === 0 ? (
+            <p className="silencio texto-s">Sin datos aún.</p>
+          ) : (
+            <div className="col" style={{ gap: 12 }}>
+              {topCourses.map((c) => (
+                <div key={c.course_name} className="col" style={{ gap: 6 }}>
+                  <div className="fila texto-s">
+                    <span className="crece recorte" style={{ fontWeight: 600 }}>{c.course_name}</span>
+                    <strong>{c.completion_rate}%</strong>
+                  </div>
+                  <Progreso pct={c.completion_rate} azul />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div
+          className="card bloque-marca col"
+          style={{ background: 'var(--grad-marca)', color: '#fff', border: 'none', overflow: 'hidden' }}
+        >
+          <div className="card-pad col" style={{ gap: 4, position: 'relative', zIndex: 1 }}>
+            <div className="fila" style={{ gap: 8 }}>
+              <Icono n="certificado" s={18} />
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 600 }}>Certificados este mes</span>
+            </div>
+            <div className="t-display" style={{ fontSize: 44, color: '#fff' }}>{certificatesThisMonth}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)' }}>{totalCertificates} emitidos en total</div>
+            <Link href="/admin/certificados" className="btn btn-primary" style={{ marginTop: 12 }}>Ver certificados</Link>
+          </div>
+          <Onda alto={28} />
+        </div>
       </div>
     </div>
   )
 }
-
