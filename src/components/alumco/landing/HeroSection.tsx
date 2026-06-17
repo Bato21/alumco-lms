@@ -57,6 +57,7 @@ export default function HeroSection() {
           right: 0,
           bottom: 0,
           height: '34%',
+          zIndex: 2,
           background:
             'linear-gradient(180deg, rgba(43,52,39,0) 0%, rgba(43,52,39,0.6) 50%, rgba(43,52,39,1) 88%, rgba(43,52,39,1) 100%)',
         }}
@@ -147,7 +148,7 @@ export default function HeroSection() {
           position: 'absolute',
           left: 28,
           bottom: 28,
-          zIndex: 1,
+          zIndex: 3,
           maxWidth: 308,
           display: 'flex',
           alignItems: 'center',
