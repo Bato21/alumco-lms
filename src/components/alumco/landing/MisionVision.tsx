@@ -1,39 +1,85 @@
+import { HeartPulse, Activity, Users, Brain, Sparkles } from 'lucide-react'
+
+const AREAS = [
+  { icon: HeartPulse, label: 'Biomédica' },
+  { icon: Activity, label: 'Funcional' },
+  { icon: Users, label: 'Social' },
+  { icon: Brain, label: 'Mental' },
+  { icon: Sparkles, label: 'Espiritual' },
+]
+
 export default function MisionVision() {
   return (
-    <section id="mision-vision" style={{ padding: '96px 24px', maxWidth: 1080, margin: '0 auto' }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: 56,
-        }}
-      >
-        <div>
-          <span className="t-eyebrow">◆ Quiénes somos</span>
-          <h2 className="t-display" style={{ fontSize: 'clamp(28px, 4vw, 40px)', marginTop: 12 }}>
-            Misión
-          </h2>
-          <div style={{ width: 56, height: 3, background: 'var(--ambar)', borderRadius: 2, margin: '18px 0 22px' }} />
-          <p style={{ color: 'var(--tinta-2)', fontSize: 17, lineHeight: 1.7 }}>
-            Brindar a los y las residentes de ELEAM una atención integral, de calidad y centrada en la
-            persona desde un enfoque de derechos, considerando sus necesidades en las áreas: biomédica,
-            funcional, social, mental y espiritual con el apoyo de sus personas significativas, realizando
-            una gestión eficiente de los recursos disponibles.
+    <>
+      {/* Misión — bloque statement estilo Earthon */}
+      <section id="mision-vision" style={{ padding: '110px 24px', background: 'var(--crema)' }}>
+        <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
+          <span className="t-eyebrow">◆ Nuestra misión</span>
+          <p
+            style={{
+              marginTop: 26,
+              fontSize: 'clamp(22px, 3vw, 32px)',
+              lineHeight: 1.45,
+              color: 'var(--tinta-3)',
+              fontWeight: 400,
+            }}
+          >
+            Brindar a las personas residentes de ELEAM una{' '}
+            <span style={{ color: 'var(--tinta)', fontWeight: 500 }}>
+              atención integral, de calidad y centrada en la persona
+            </span>{' '}
+            desde un enfoque de derechos, considerando sus necesidades biomédicas, funcionales,
+            sociales, mentales y espirituales, con una gestión eficiente de los recursos.
           </p>
+
+          {/* Fila de áreas con íconos */}
+          <div
+            style={{
+              marginTop: 56,
+              paddingTop: 40,
+              borderTop: '1px solid var(--borde)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+              gap: 24,
+            }}
+          >
+            {AREAS.map(({ icon: Icon, label }) => (
+              <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                <span
+                  style={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: 14,
+                    background: 'var(--ambar-50)',
+                    color: 'var(--ambar-700)',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icon size={22} strokeWidth={1.8} />
+                </span>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--tinta-2)' }}>{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div>
+      </section>
+
+      {/* Visión — banda suave centrada */}
+      <section style={{ padding: '96px 24px', background: 'var(--arena-100)', borderBlock: '1px solid var(--borde-suave)' }}>
+        <div style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
           <span className="t-eyebrow">◆ Hacia dónde vamos</span>
-          <h2 className="t-display" style={{ fontSize: 'clamp(28px, 4vw, 40px)', marginTop: 12 }}>
-            Visión
+          <h2 className="t-display" style={{ fontSize: 'clamp(30px, 4.6vw, 48px)', marginTop: 14 }}>
+            Nuestra visión
           </h2>
-          <div style={{ width: 56, height: 3, background: 'var(--azul-700)', borderRadius: 2, margin: '18px 0 22px' }} />
-          <p style={{ color: 'var(--tinta-2)', fontSize: 17, lineHeight: 1.7 }}>
-            Ser un ELEAM de referencia a nivel nacional especializado en brindar una atención
-            transdisciplinaria dirigida a mejorar la calidad de vida de las personas mayores durante toda
-            su estadía.
+          <p style={{ color: 'var(--tinta-2)', fontSize: 'clamp(17px, 2vw, 20px)', lineHeight: 1.7, marginTop: 22 }}>
+            Ser un ELEAM de referencia a nivel nacional, especializado en brindar una atención
+            transdisciplinaria dirigida a mejorar la calidad de vida de las personas mayores durante
+            toda su estadía.
           </p>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   )
 }

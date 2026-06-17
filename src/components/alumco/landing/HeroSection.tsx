@@ -20,13 +20,13 @@ export default function HeroSection() {
       }}
     >
       <Image
-        src="/login-hero.jpg"
+        src="/hero-home.webp"
         alt=""
         fill
         priority
         sizes="100vw"
         aria-hidden="true"
-        style={{ objectFit: 'cover', transform: 'scale(1.08)', filter: 'blur(3px)' }}
+        style={{ objectFit: 'cover', transform: 'scale(1.06)', filter: 'blur(2px)' }}
       />
       {/* Velo suave — mantiene la foto luminosa (estilo Giga) */}
       <div
