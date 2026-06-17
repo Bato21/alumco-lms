@@ -695,17 +695,19 @@ section[id] { scroll-margin-top: 80px; }
    ============================================================ */
 .hero-title {
   font-family: var(--font-serif-display), "Playfair Display", Georgia, serif;
-  font-weight: 500;
-  letter-spacing: -0.005em;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
   text-transform: none;
 }
-.hero-title em { font-style: italic; font-weight: 500; color: var(--ambar); }
+.hero-title em { font-style: italic; font-weight: 400; color: var(--ambar); }
 
 .landing-page .t-display {
   font-family: var(--font-serif-display), "Playfair Display", Georgia, serif;
   text-transform: none;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 .landing-page .t-display em {
   font-style: italic;

@@ -35,7 +35,7 @@ export default function HeroSection() {
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(180deg, rgba(10,16,40,0.28) 0%, rgba(10,16,40,0.06) 30%, rgba(10,16,40,0.18) 58%, rgba(8,14,34,0.62) 86%, rgba(6,11,28,0.88) 100%)',
+            'linear-gradient(180deg, rgba(10,16,40,0.18) 0%, rgba(10,16,40,0.04) 32%, rgba(10,16,40,0.14) 58%, rgba(8,14,34,0.58) 86%, rgba(6,11,28,0.86) 100%)',
         }}
       />
       {/* Oscurecido fuerte al pie — estilo Giga (donde van card y aliados) */}
@@ -66,27 +66,28 @@ export default function HeroSection() {
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(70% 50% at 50% 112%, rgba(245,166,35,0.20) 0%, rgba(245,166,35,0.04) 46%, transparent 72%)',
+            'radial-gradient(70% 50% at 50% 112%, rgba(245,166,35,0.12) 0%, rgba(245,166,35,0.03) 46%, transparent 72%)',
         }}
       />
 
       <div className="entra" style={{ position: 'relative', zIndex: 1, maxWidth: 1040 }}>
-        {/* Eyebrow pill dark-glass (estilo Giga) */}
+        {/* Eyebrow pill dark-glass (estilo Giga: mono, uppercase) */}
         <span
           style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: 9,
-            padding: '8px 8px 8px 16px',
+            padding: '7px 7px 7px 15px',
             borderRadius: 999,
             border: '1px solid rgba(255,255,255,0.16)',
-            background: 'rgba(12,18,38,0.42)',
+            background: 'rgba(12,18,38,0.40)',
             backdropFilter: 'blur(8px)',
-            fontSize: 12,
-            fontWeight: 600,
-            letterSpacing: '0.14em',
+            fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: '0.1em',
             textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.88)',
+            color: 'rgba(255,255,255,0.86)',
           }}
         >
           <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--ambar)' }} />
@@ -108,7 +109,7 @@ export default function HeroSection() {
 
         <h1
           className="hero-title"
-          style={{ fontSize: 'clamp(38px, 6.4vw, 82px)', color: '#fff', marginTop: 26, lineHeight: 1.06 }}
+          style={{ fontSize: 'max(2.75rem, 4.6vw)', color: '#fff', marginTop: 28 }}
         >
           Nuestros cuidados son el
           <br />
@@ -117,29 +118,29 @@ export default function HeroSection() {
 
         <p
           style={{
-            color: 'rgba(255,255,255,0.78)',
-            marginTop: 24,
-            fontSize: 'clamp(15px, 1.6vw, 18px)',
-            lineHeight: 1.6,
+            color: '#fff',
+            marginTop: 12,
+            fontSize: 16,
+            lineHeight: '2rem',
           }}
         >
           Atención integral para nuestras personas mayores.
         </p>
 
         {/* Pill blanco único centrado — firma Giga */}
-        <div style={{ marginTop: 36, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
           <Link
             href="/login"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
+              height: 42,
               background: '#fff',
               color: 'var(--azul-950)',
               borderRadius: 999,
-              fontWeight: 600,
-              fontSize: 16,
-              padding: '15px 32px',
-              boxShadow: '0 6px 24px rgba(8,14,34,0.28)',
+              fontWeight: 500,
+              fontSize: 14,
+              padding: '0 20px',
             }}
           >
             Ingresar a la plataforma
