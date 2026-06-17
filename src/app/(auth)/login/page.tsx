@@ -113,6 +113,13 @@ export default function LoginPage() {
       {/* Formulario */}
       <div className="crece" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px' }}>
         <div className="col entra entra-1" style={{ width: 400, maxWidth: '100%', gap: 0 }}>
+          <Link
+            href="/"
+            className="texto-s silencio-3"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 22 }}
+          >
+            <span aria-hidden="true">←</span> Volver a la página principal
+          </Link>
           <div className="col" style={{ alignItems: 'center', gap: 6, marginBottom: 34, textAlign: 'center' }}>
             {/* Logo del cliente — ONG Alumco (marca KimünKo abajo) */}
             <Image
