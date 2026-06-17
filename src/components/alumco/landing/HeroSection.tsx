@@ -47,7 +47,8 @@ export default function HeroSection() {
           background: 'radial-gradient(56% 46% at 50% 44%, rgba(8,14,35,0.38) 0%, transparent 70%)',
         }}
       />
-      {/* Fade al pie → oliva, se funde con la sección Misión (árboles → verde, estilo Giga) */}
+      {/* Fade al pie → mismo tono oliva (alpha 0→1) que termina exacto en Misión.
+          Misma hue todo el degradado = sin banda, transición seamless (estilo Giga) */}
       <div
         aria-hidden="true"
         style={{
@@ -55,8 +56,9 @@ export default function HeroSection() {
           left: 0,
           right: 0,
           bottom: 0,
-          height: '50%',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(34,42,31,0.45) 58%, var(--oliva-900) 100%)',
+          height: '34%',
+          background:
+            'linear-gradient(180deg, rgba(43,52,39,0) 0%, rgba(43,52,39,0.6) 50%, rgba(43,52,39,1) 88%, rgba(43,52,39,1) 100%)',
         }}
       />
 
