@@ -26,7 +26,7 @@ export default function HeroSection() {
         priority
         sizes="100vw"
         aria-hidden="true"
-        style={{ objectFit: 'cover', transform: 'scale(1.06)', filter: 'blur(2px)' }}
+        style={{ objectFit: 'cover', transform: 'scale(1.04)' }}
       />
       {/* Velo suave — mantiene la foto luminosa (estilo Giga) */}
       <div
