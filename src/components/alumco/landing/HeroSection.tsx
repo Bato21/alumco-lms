@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import Image from 'next/image'
 import { HeartHandshake, ChevronRight } from 'lucide-react'
 
@@ -120,25 +119,6 @@ export default function HeroSection() {
           Atención integral para nuestras personas mayores.
         </p>
 
-        {/* Pill blanco único centrado — firma Giga */}
-        <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
-          <Link
-            href="/login"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              height: 42,
-              background: '#fff',
-              color: 'var(--azul-950)',
-              borderRadius: 999,
-              fontWeight: 500,
-              fontSize: 14,
-              padding: '0 20px',
-            }}
-          >
-            Ingresar a la plataforma
-          </Link>
-        </div>
       </div>
 
       {/* Card flotante dark-glass abajo-izquierda — firma Giga */}
