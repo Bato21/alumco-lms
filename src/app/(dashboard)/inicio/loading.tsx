@@ -1,4 +1,4 @@
-import { SkeletonHero, SkeletonStatsRow } from '@/components/alumco/Skeletons'
+import { SkeletonHero, SkeletonStatsRow } from '@/components/alumco/shared/Skeletons'
 
 export default function InicioLoading() {
   return (

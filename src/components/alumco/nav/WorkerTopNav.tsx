@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { MarcaAlumco, Avatar, Icono, type IconoNombre } from '@/components/alumco/ds'
-import { NotificationBell } from './NotificationBell'
-import { LogoutButton } from './LogoutButton'
+import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
+import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
 
 interface WorkerAlertItem {
   courseId: string

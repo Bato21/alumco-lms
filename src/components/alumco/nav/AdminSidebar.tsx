@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { MarcaAlumco, Avatar, Icono, type IconoNombre } from '@/components/alumco/ds'
-import { LogoutButton } from './LogoutButton'
+import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
 import { type UserRole } from '@/lib/types/database'
 
 interface AdminSidebarProps {

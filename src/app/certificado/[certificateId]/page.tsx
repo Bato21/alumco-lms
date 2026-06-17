@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 import { createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { DownloadCertificateButton } from '@/components/alumco/DownloadCertificateButton'
+import { DownloadCertificateButton } from '@/components/alumco/certificado/DownloadCertificateButton'
 
 export const metadata: Metadata = { title: 'Certificado | Alumco LMS' }
 

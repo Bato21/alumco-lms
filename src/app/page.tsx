@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <>
+    <div className="landing-page">
       <LandingNav />
       <main style={{ background: 'var(--crema)', color: 'var(--tinta)' }}>
         <HeroSection />
@@ -25,6 +25,6 @@ export default function LandingPage() {
         <ContactoSection />
       </main>
       <LandingFooter />
-    </>
+    </div>
   )
 }

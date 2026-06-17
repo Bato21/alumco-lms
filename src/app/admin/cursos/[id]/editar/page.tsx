@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
-import { CourseBuilder } from '@/components/alumco/CourseBuilder/CourseBuilder'
-import { type ModuleBlock } from '@/components/alumco/CourseBuilder/CourseBuilder'
+import { CourseBuilder } from '@/components/alumco/admin/CourseBuilder/CourseBuilder'
+import { type ModuleBlock } from '@/components/alumco/admin/CourseBuilder/CourseBuilder'
 import { type Question } from '@/lib/types/database'
 
 export const metadata: Metadata = { title: 'Editar curso | Alumco LMS' }

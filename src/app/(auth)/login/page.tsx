@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { LoginForm } from '@/components/alumco/LoginForm'
-import { MarcaAlumco, Onda } from '@/components/alumco/ds'
+import { LoginForm } from '@/components/alumco/auth/LoginForm'
+import { Onda } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
   title: 'Ingresar | Alumco LMS',
@@ -114,7 +114,15 @@ export default function LoginPage() {
       <div className="crece" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px' }}>
         <div className="col entra entra-1" style={{ width: 400, maxWidth: '100%', gap: 0 }}>
           <div className="col" style={{ alignItems: 'center', gap: 6, marginBottom: 34, textAlign: 'center' }}>
-            <MarcaAlumco />
+            {/* Logo del cliente — ONG Alumco (marca KimünKo abajo) */}
+            <Image
+              src="/LogoAlumco.png"
+              alt="Alumco"
+              width={176}
+              height={60}
+              priority
+              style={{ objectFit: 'contain' }}
+            />
             <p className="texto-s silencio-3" style={{ marginTop: 6 }}>
               Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · plataforma de capacitación de ONG Alumco
             </p>

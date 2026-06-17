@@ -3,8 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Settings } from 'lucide-react'
-import { NotificationBell } from '@/components/alumco/NotificationBell'
-import SearchBar from '@/components/alumco/SearchBar'
+import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
+import SearchBar from '@/components/alumco/shared/SearchBar'
 
 interface WorkerTopBarProps {
   alerts: {

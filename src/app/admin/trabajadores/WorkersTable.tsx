@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { AREAS_TRABAJO } from '@/lib/types/database'
-import { WorkerEditPanel } from '@/components/alumco/WorkerEditPanel'
+import { WorkerEditPanel } from '@/components/alumco/admin/WorkerEditPanel'
 import { Avatar, Badge, Icono } from '@/components/alumco/ds'
 
 interface Worker {
@@ -134,7 +134,7 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
         </div>
 
         {/* Tabla */}
-        <div className="card tabla-envoltura">
+        <div className="card tabla-envoltura min-w-0">
             <table className="tabla">
               <thead>
                 <tr>
@@ -227,15 +227,21 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                       </td>
                       <td>
                         <div className="fila" style={{ justifyContent: 'flex-end', gap: 8 }}>
-                          <Link href={`/admin/trabajadores/${worker.id}`} className="btn btn-ghost btn-sm">
-                            Ver detalle
+                          <Link
+                            href={`/admin/trabajadores/${worker.id}`}
+                            className="btn btn-ghost btn-sm"
+                            aria-label={`Ver detalle de ${worker.full_name}`}
+                            title="Ver detalle"
+                          >
+                            <Icono n="ojo" s={16} />
                           </Link>
                           <button
                             onClick={() => setSelectedWorker(worker)}
                             className="btn btn-secondary btn-sm"
                             aria-label={`Editar ${worker.full_name}`}
+                            title="Editar"
                           >
-                            <Icono n="editar" s={16} /> Editar
+                            <Icono n="editar" s={16} />
                           </button>
                         </div>
                       </td>

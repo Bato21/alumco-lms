@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { NotificationBell } from '@/components/alumco/NotificationBell'
-import SearchBar from '@/components/alumco/SearchBar'
+import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
+import SearchBar from '@/components/alumco/shared/SearchBar'
 import { Avatar } from '@/components/alumco/ds'
 
 interface AdminTopBarProps {

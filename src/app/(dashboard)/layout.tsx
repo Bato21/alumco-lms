@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
-import { WorkerTopNav } from '@/components/alumco/WorkerTopNav'
+import { WorkerTopNav } from '@/components/alumco/nav/WorkerTopNav'
 import { getWorkerAlerts } from '@/lib/actions/alerts'
 
 export default async function DashboardLayout({

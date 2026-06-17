@@ -1,4 +1,4 @@
-import { SkeletonCard } from '@/components/alumco/Skeletons'
+import { SkeletonCard } from '@/components/alumco/shared/Skeletons'
 
 export default function ModuloLoading() {
   return (

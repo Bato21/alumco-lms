@@ -2,10 +2,10 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
-import { DeadlineCalendar } from '@/components/alumco/DeadlineCalendar'
-import WelcomeModal from '@/components/alumco/WelcomeModal'
+import { DeadlineCalendar } from '@/components/alumco/curso/DeadlineCalendar'
+import WelcomeModal from '@/components/alumco/shared/WelcomeModal'
 import { Anillo, Onda, Icono } from '@/components/alumco/ds'
-import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/CursoCardTrab'
+import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/curso/CursoCardTrab'
 
 export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
 

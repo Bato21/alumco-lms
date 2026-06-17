@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { Vacio } from '@/components/alumco/ds'
-import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/CursoCardTrab'
+import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/curso/CursoCardTrab'
 
 export const metadata: Metadata = { title: 'Mis Cursos | Alumco LMS' }
 

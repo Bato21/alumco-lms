@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, BookOpen, User, Award, X, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { LogoutButton } from './LogoutButton'
-import { NotificationBell } from './NotificationBell'
+import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
+import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
 import { useState } from 'react'
 
 const navItems = [

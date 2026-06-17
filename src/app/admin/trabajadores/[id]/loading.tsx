@@ -1,4 +1,4 @@
-import { SkeletonCard, SkeletonStatsRow, SkeletonTable } from '@/components/alumco/Skeletons'
+import { SkeletonCard, SkeletonStatsRow, SkeletonTable } from '@/components/alumco/shared/Skeletons'
 
 export default function TrabajadorDetalleLoading() {
   return (

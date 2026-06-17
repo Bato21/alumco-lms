@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/server'
-import { ApprovalPanel } from '@/components/alumco/ApprovalPanel'
+import { ApprovalPanel } from '@/components/alumco/admin/ApprovalPanel'
 import { WorkersTable } from './WorkersTable'
 import { SuspendedTable } from './SuspendedTable'
 import Link from 'next/link'

@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
-import { AdminSidebar } from '@/components/alumco/AdminSidebar'
+import { AdminSidebar } from '@/components/alumco/nav/AdminSidebar'
 import { getAdminAlerts } from '@/lib/actions/alerts'
 import { type UserRole } from '@/lib/types/database'
 import { AdminTopBar } from './TopBar'
@@ -45,7 +45,7 @@ export default async function AdminLayout({
       <div className="hidden lg:block h-[73px] shrink-0" aria-hidden="true" />
 
       {/* Contenido */}
-      <main className="flex-1 w-full mx-auto max-w-[1240px] p-4 lg:px-8 lg:py-7">
+      <main className="flex-1 w-full min-w-0 mx-auto max-w-[1240px] p-4 lg:px-8 lg:py-7">
         {children}
       </main>
       </div>

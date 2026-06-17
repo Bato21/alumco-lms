@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { RegisterForm } from '@/components/alumco/RegisterForm'
+import { RegisterForm } from '@/components/alumco/auth/RegisterForm'
 import { MarcaAlumco } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {

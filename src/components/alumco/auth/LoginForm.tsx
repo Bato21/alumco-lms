@@ -1,24 +1,40 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useRef, useState } from 'react'
 import { loginAction, type ActionResult } from '@/lib/actions/auth'
 import { ForgotPasswordForm } from './ForgotPasswordForm'
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 const initialState: ActionResult = {}
 
+// Credenciales demo (mismas que usan las capturas de docs/flujo-plataforma)
+const DEMO = {
+  colaborador: { email: 'Baptiste@gmail.com', password: '12345678' },
+  admin: { email: 'da.ongalumco@gmail.com', password: 'alumco123' },
+} as const
+
 export function LoginForm() {
   const [showForgot, setShowForgot] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [capsLockOn, setCapsLockOn] = useState(false)
   const [state, formAction, isPending] = useActionState(loginAction, initialState)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  function loginDemo(rol: keyof typeof DEMO) {
+    const form = formRef.current
+    if (!form) return
+    const { email, password } = DEMO[rol]
+    ;(form.elements.namedItem('email') as HTMLInputElement).value = email
+    ;(form.elements.namedItem('password') as HTMLInputElement).value = password
+    form.requestSubmit()
+  }
 
   if (showForgot) {
     return <ForgotPasswordForm onBack={() => setShowForgot(false)} />
   }
 
   return (
-    <form action={formAction} className="col" style={{ gap: 18 }} noValidate>
+    <form ref={formRef} action={formAction} className="col" style={{ gap: 18 }} noValidate>
       {state.error && (
         <div
           role="alert"
@@ -124,6 +140,31 @@ export function LoginForm() {
           'Ingresar'
         )}
       </button>
+
+      {/* Accesos demo — rellenan credenciales y envían el formulario */}
+      <div className="col" style={{ gap: 8, marginTop: 4 }}>
+        <p className="texto-s silencio-3" style={{ textAlign: 'center', margin: 0 }}>
+          Acceso demo
+        </p>
+        <div className="fila" style={{ gap: 10 }}>
+          <button
+            type="button"
+            onClick={() => loginDemo('colaborador')}
+            disabled={isPending}
+            className="btn btn-secondary crece"
+          >
+            Colaborador
+          </button>
+          <button
+            type="button"
+            onClick={() => loginDemo('admin')}
+            disabled={isPending}
+            className="btn btn-secondary crece"
+          >
+            Admin
+          </button>
+        </div>
+      </div>
     </form>
   )
 }
