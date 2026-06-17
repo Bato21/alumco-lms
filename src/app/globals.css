@@ -718,7 +718,12 @@ section[id] { scroll-margin-top: 80px; }
 .landing-page .t-eyebrow {
   background: transparent !important;
   border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
   color: var(--ambar-700) !important;
   padding: 0 !important;
   letter-spacing: 0.14em;
+}
+.landing-page .t-eyebrow.claro {
+  color: var(--ambar) !important;
 }

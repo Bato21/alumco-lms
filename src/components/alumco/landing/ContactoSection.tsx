@@ -48,7 +48,7 @@ export default function ContactoSection() {
           }}
         />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 680, margin: '0 auto' }}>
-          <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>◆ Conversemos</span>
+          <span className="t-eyebrow claro">◆ Conversemos</span>
           <h2 className="t-display" style={{ fontSize: 'clamp(30px, 4.6vw, 50px)', marginTop: 14, color: '#fff' }}>
             ¿Quieres saber más de nuestro ELEAM?
           </h2>

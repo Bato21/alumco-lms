@@ -13,7 +13,7 @@ export default function ValoresSection() {
     <section id="valores" style={{ padding: '110px 24px', background: 'var(--azul-950)', color: '#fff' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
-          <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>◆ Lo que nos guía</span>
+          <span className="t-eyebrow claro">◆ Lo que nos guía</span>
           <h2 className="t-display" style={{ fontSize: 'clamp(30px, 4.6vw, 48px)', marginTop: 14, color: '#fff' }}>
             Nuestros valores
           </h2>
