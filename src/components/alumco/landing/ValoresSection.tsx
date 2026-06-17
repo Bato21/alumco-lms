@@ -10,7 +10,7 @@ const VALORES: { icon: LucideIcon; titulo: string; texto: string }[] = [
 
 export default function ValoresSection() {
   return (
-    <section id="valores" style={{ padding: '110px 24px', background: 'var(--azul-950)', color: '#fff' }}>
+    <section id="valores" style={{ padding: '110px 24px', background: 'var(--oliva-900)', color: '#fff' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
           <span className="t-eyebrow claro">◆ Lo que nos guía</span>

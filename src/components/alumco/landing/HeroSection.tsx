@@ -28,26 +28,14 @@ export default function HeroSection() {
         aria-hidden="true"
         style={{ objectFit: 'cover', transform: 'scale(1.04)' }}
       />
-      {/* Velo suave — mantiene la foto luminosa (estilo Giga) */}
+      {/* Velo superior — legibilidad del nav (solo arriba) */}
       <div
         aria-hidden="true"
         style={{
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(180deg, rgba(10,16,40,0.18) 0%, rgba(10,16,40,0.04) 32%, rgba(10,16,40,0.14) 58%, rgba(8,14,34,0.58) 86%, rgba(6,11,28,0.86) 100%)',
-        }}
-      />
-      {/* Oscurecido fuerte al pie — estilo Giga (donde van card y aliados) */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: '34%',
-          background: 'linear-gradient(180deg, transparent 0%, rgba(6,11,28,0.78) 100%)',
+            'linear-gradient(180deg, rgba(10,16,40,0.22) 0%, rgba(10,16,40,0.05) 26%, transparent 50%)',
         }}
       />
       {/* Halo de legibilidad detrás del título */}
@@ -56,17 +44,19 @@ export default function HeroSection() {
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'radial-gradient(56% 46% at 50% 44%, rgba(8,14,35,0.40) 0%, transparent 70%)',
+          background: 'radial-gradient(56% 46% at 50% 44%, rgba(8,14,35,0.38) 0%, transparent 70%)',
         }}
       />
-      {/* Resplandor ámbar — el amanecer */}
+      {/* Fade al pie → oliva, se funde con la sección Misión (árboles → verde, estilo Giga) */}
       <div
         aria-hidden="true"
         style={{
           position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(70% 50% at 50% 112%, rgba(110,139,106,0.16) 0%, rgba(110,139,106,0.04) 46%, transparent 72%)',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '50%',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(34,42,31,0.45) 58%, var(--oliva-900) 100%)',
         }}
       />
 

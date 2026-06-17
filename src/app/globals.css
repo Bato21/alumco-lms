@@ -706,6 +706,10 @@ section[id] { scroll-margin-top: 80px; }
   --borde:       #DEE5E1;
   --borde-suave: #e9efeb;
   --tinta:       #1B2233;
+  /* Oliva oscuro — secciones que reciben el fade del hero (árboles) */
+  --oliva-950:   #222a1f;
+  --oliva-900:   #2b3427;
+  --oliva-800:   #3a4636;
 }
 
 /* ============================================================

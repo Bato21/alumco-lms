@@ -11,21 +11,24 @@ const AREAS = [
 export default function MisionVision() {
   return (
     <>
-      {/* Misión — bloque statement estilo Earthon */}
-      <section id="mision-vision" style={{ padding: '110px 24px', background: 'var(--crema)' }}>
+      {/* Misión — sección oliva oscura; recibe el fade del hero (estilo Giga) */}
+      <section
+        id="mision-vision"
+        style={{ padding: '110px 24px', background: 'var(--oliva-900)', color: '#fff' }}
+      >
         <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
-          <span className="t-eyebrow">◆ Nuestra misión</span>
+          <span className="t-eyebrow claro">◆ Nuestra misión</span>
           <p
             style={{
               marginTop: 26,
               fontSize: 'clamp(22px, 3vw, 32px)',
               lineHeight: 1.45,
-              color: 'var(--tinta-3)',
+              color: 'rgba(255,255,255,0.66)',
               fontWeight: 400,
             }}
           >
             Brindar a las personas residentes de ELEAM una{' '}
-            <span style={{ color: 'var(--tinta)', fontWeight: 500 }}>
+            <span style={{ color: '#fff', fontWeight: 500 }}>
               atención integral, de calidad y centrada en la persona
             </span>{' '}
             desde un enfoque de derechos, considerando sus necesidades biomédicas, funcionales,
@@ -37,7 +40,7 @@ export default function MisionVision() {
             style={{
               marginTop: 56,
               paddingTop: 40,
-              borderTop: '1px solid var(--borde)',
+              borderTop: '1px solid rgba(255,255,255,0.14)',
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
               gap: 24,
@@ -50,8 +53,8 @@ export default function MisionVision() {
                     width: 50,
                     height: 50,
                     borderRadius: 14,
-                    background: 'var(--ambar-50)',
-                    color: 'var(--ambar-700)',
+                    background: 'var(--ambar)',
+                    color: 'var(--oliva-950)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -59,7 +62,7 @@ export default function MisionVision() {
                 >
                   <Icon size={22} strokeWidth={1.8} />
                 </span>
-                <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--tinta-2)' }}>{label}</span>
+                <span style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(255,255,255,0.82)' }}>{label}</span>
               </div>
             ))}
           </div>
