@@ -61,7 +61,20 @@ export default function LandingNav() {
               {l.label}
             </a>
           ))}
-          <Link href="/login" className="btn btn-primary" style={{ marginLeft: 8 }}>
+          <Link
+            href="/login"
+            style={{
+              marginLeft: 8,
+              display: 'inline-flex',
+              alignItems: 'center',
+              background: scrolled ? 'var(--azul-900)' : '#fff',
+              color: scrolled ? '#fff' : 'var(--azul-950)',
+              borderRadius: 999,
+              fontWeight: 600,
+              fontSize: 14.5,
+              padding: '9px 20px',
+            }}
+          >
             Ingresar
           </Link>
         </div>
