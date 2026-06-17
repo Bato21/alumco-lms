@@ -35,7 +35,19 @@ export default function HeroSection() {
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(180deg, rgba(10,16,40,0.30) 0%, rgba(10,16,40,0.08) 32%, rgba(10,16,40,0.20) 62%, rgba(8,14,34,0.52) 100%)',
+            'linear-gradient(180deg, rgba(10,16,40,0.28) 0%, rgba(10,16,40,0.06) 30%, rgba(10,16,40,0.18) 58%, rgba(8,14,34,0.62) 86%, rgba(6,11,28,0.88) 100%)',
+        }}
+      />
+      {/* Oscurecido fuerte al pie — estilo Giga (donde van card y aliados) */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '34%',
+          background: 'linear-gradient(180deg, transparent 0%, rgba(6,11,28,0.78) 100%)',
         }}
       />
       {/* Halo de legibilidad detrás del título */}

@@ -33,38 +33,41 @@ export default function LandingNav() {
     >
       <nav
         style={{
-          maxWidth: 1160,
-          margin: '0 auto',
-          padding: '14px 24px',
+          width: '100%',
+          padding: '18px 40px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
       >
-        <Link href="#inicio" aria-label="ONG Alumco — inicio" style={{ display: 'flex', alignItems: 'center' }}>
-          <Image src="/LogoAlumco.png" alt="ONG Alumco" width={132} height={44} priority style={{ objectFit: 'contain' }} />
-        </Link>
+        {/* Izquierda: logo + links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 36 }}>
+          <Link href="#inicio" aria-label="ONG Alumco — inicio" style={{ display: 'flex', alignItems: 'center' }}>
+            <Image src="/LogoAlumco.png" alt="ONG Alumco" width={128} height={42} priority style={{ objectFit: 'contain' }} />
+          </Link>
+          <div className="landing-nav-links" style={{ alignItems: 'center', gap: 26 }}>
+            {NAV_LINKS.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                style={{
+                  color: scrolled ? 'var(--tinta-2)' : 'rgba(255,255,255,0.92)',
+                  fontWeight: 500,
+                  fontSize: 15,
+                  textDecoration: 'none',
+                }}
+              >
+                {l.label}
+              </a>
+            ))}
+          </div>
+        </div>
 
-        {/* Links desktop */}
-        <div className="landing-nav-links" style={{ alignItems: 'center', gap: 28 }}>
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              style={{
-                color: scrolled ? 'var(--tinta-2)' : 'rgba(255,255,255,0.9)',
-                fontWeight: 500,
-                fontSize: 15,
-                textDecoration: 'none',
-              }}
-            >
-              {l.label}
-            </a>
-          ))}
+        {/* Derecha: pill Ingresar */}
+        <div className="landing-nav-links" style={{ alignItems: 'center' }}>
           <Link
             href="/login"
             style={{
-              marginLeft: 8,
               display: 'inline-flex',
               alignItems: 'center',
               background: scrolled ? 'var(--azul-900)' : '#fff',
@@ -72,7 +75,7 @@ export default function LandingNav() {
               borderRadius: 999,
               fontWeight: 600,
               fontSize: 14.5,
-              padding: '9px 20px',
+              padding: '9px 22px',
             }}
           >
             Ingresar
