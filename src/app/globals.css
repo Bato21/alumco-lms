@@ -689,6 +689,26 @@ section[id] { scroll-margin-top: 80px; }
 }
 
 /* ============================================================
+   Landing — paleta "Azul + salvia sereno" (scoped)
+   Azul = primario (sin cambios). El acento ámbar se reemplaza por salvia
+   y los neutros cálidos por neutros fríos limpios. Solo dentro de
+   .landing-page → la plataforma mantiene DIDASKO (ámbar).
+   ============================================================ */
+.landing-page {
+  --ambar:     #6E8B6A;
+  --ambar-600: #5f7d5b;
+  --ambar-700: #4f6a4c;
+  --ambar-100: #dde7da;
+  --ambar-50:  #eef2ec;
+  --crema:       #FAFBFA;
+  --arena-100:   #ECF0EE;
+  --arena-200:   #e1e8e3;
+  --borde:       #DEE5E1;
+  --borde-suave: #e9efeb;
+  --tinta:       #1B2233;
+}
+
+/* ============================================================
    Landing — tipografía estilo Giga (Fraunces serif, sentence-case)
    Scoped a .landing-page; la plataforma mantiene DIDASKO (Archivo).
    Reglas sin @layer → ganan al tema DIDASKO (layer components).

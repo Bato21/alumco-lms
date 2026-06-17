@@ -66,7 +66,7 @@ export default function HeroSection() {
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(70% 50% at 50% 112%, rgba(245,166,35,0.12) 0%, rgba(245,166,35,0.03) 46%, transparent 72%)',
+            'radial-gradient(70% 50% at 50% 112%, rgba(110,139,106,0.16) 0%, rgba(110,139,106,0.04) 46%, transparent 72%)',
         }}
       />
 
@@ -173,7 +173,7 @@ export default function HeroSection() {
             width: 42,
             height: 42,
             borderRadius: 12,
-            background: 'rgba(245,166,35,0.95)',
+            background: 'rgba(110,139,106,0.95)',
             color: 'var(--azul-950)',
             display: 'inline-flex',
             alignItems: 'center',
