@@ -1,5 +1,4 @@
 import Image from 'next/image'
-import { HeartHandshake } from 'lucide-react'
 
 export default function HeroSection() {
   return (
@@ -82,52 +81,6 @@ export default function HeroSection() {
         >
           Atención integral para nuestras personas mayores.
         </p>
-
-      </div>
-
-      {/* Card flotante dark-glass abajo-izquierda — firma Giga */}
-      <div
-        className="hero-float-card"
-        style={{
-          position: 'absolute',
-          left: 28,
-          bottom: 28,
-          zIndex: 3,
-          maxWidth: 308,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 13,
-          padding: '13px 16px',
-          borderRadius: 16,
-          background: 'rgba(12,18,38,0.55)',
-          border: '1px solid rgba(255,255,255,0.14)',
-          backdropFilter: 'blur(12px)',
-          textAlign: 'left',
-        }}
-      >
-        <span
-          style={{
-            width: 42,
-            height: 42,
-            borderRadius: 12,
-            background: 'rgba(110,139,106,0.95)',
-            color: 'var(--azul-950)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <HeartHandshake size={22} strokeWidth={1.9} />
-        </span>
-        <div>
-          <p style={{ color: '#fff', fontWeight: 600, fontSize: 14, lineHeight: 1.25 }}>
-            Atención centrada en la persona
-          </p>
-          <p style={{ color: 'rgba(255,255,255,0.74)', fontSize: 12.5, lineHeight: 1.3, marginTop: 2 }}>
-            Enfoque biomédico, social, mental y espiritual.
-          </p>
-        </div>
       </div>
     </section>
   )
