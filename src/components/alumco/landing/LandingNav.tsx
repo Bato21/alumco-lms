@@ -1,24 +1,7 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
 export default function LandingNav() {
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => {
-      // La barra beige aparece solo cuando el hero (imagen) ya quedó atrás.
-      const hero = document.getElementById('inicio')
-      const trigger = (hero ? hero.offsetHeight : window.innerHeight) - 72
-      setScrolled(window.scrollY > trigger)
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
   return (
     <header
       style={{
@@ -27,11 +10,6 @@ export default function LandingNav() {
         left: 0,
         right: 0,
         zIndex: 50,
-        transition: 'background 0.3s ease, border-color 0.3s ease',
-        background: 'transparent',
-        backdropFilter: scrolled ? 'saturate(160%) blur(16px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'saturate(160%) blur(16px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.18)' : '1px solid transparent',
       }}
     >
       <nav
@@ -43,12 +21,12 @@ export default function LandingNav() {
           justifyContent: 'space-between',
         }}
       >
-        {/* Logo */}
+        {/* Logo solo */}
         <Link href="#inicio" aria-label="ONG Alumco — inicio" style={{ display: 'flex', alignItems: 'center' }}>
           <Image src="/LogoAlumco.png" alt="ONG Alumco" width={128} height={42} priority style={{ objectFit: 'contain' }} />
         </Link>
 
-        {/* Ingresar — pill sutil que se complementa con la foto */}
+        {/* Ingresar — pill pequeño */}
         <Link
           href="/login"
           style={{
@@ -58,7 +36,6 @@ export default function LandingNav() {
             fontWeight: 500,
             fontSize: 14,
             padding: '9px 20px',
-            backdropFilter: 'blur(8px)',
             background: 'rgba(255,255,255,0.14)',
             border: '1px solid rgba(255,255,255,0.45)',
             color: '#fff',
