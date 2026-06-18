@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { HeartHandshake, ChevronRight } from 'lucide-react'
+import { HeartHandshake } from 'lucide-react'
 
 export default function HeroSection() {
   return (
@@ -63,45 +63,9 @@ export default function HeroSection() {
       />
 
       <div className="entra" style={{ position: 'relative', zIndex: 1, maxWidth: 1040 }}>
-        {/* Eyebrow pill dark-glass (estilo Giga: mono, uppercase) */}
-        <span
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 9,
-            padding: '7px 7px 7px 15px',
-            borderRadius: 999,
-            border: '1px solid rgba(255,255,255,0.16)',
-            background: 'rgba(12,18,38,0.40)',
-            backdropFilter: 'blur(8px)',
-            fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.86)',
-          }}
-        >
-          <span style={{ width: 6, height: 6, borderRadius: 999, background: 'var(--ambar)' }} />
-          ONG Alumco · ELEAM Hualpén
-          <span
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 22,
-              height: 22,
-              borderRadius: 999,
-              background: 'rgba(255,255,255,0.12)',
-            }}
-          >
-            <ChevronRight size={13} />
-          </span>
-        </span>
-
         <h1
           className="hero-title"
-          style={{ fontSize: 'max(2.75rem, 4.6vw)', color: '#fff', marginTop: 28 }}
+          style={{ fontSize: 'max(2.75rem, 4.6vw)', color: '#fff' }}
         >
           Nuestros cuidados son el
           <br />

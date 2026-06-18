@@ -3,12 +3,9 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Menu, X } from 'lucide-react'
-import { NAV_LINKS } from './content'
 
 export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false)
-  const [open, setOpen] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -26,7 +23,7 @@ export default function LandingNav() {
         right: 0,
         zIndex: 50,
         transition: 'background 0.25s ease, box-shadow 0.25s ease',
-        background: scrolled ? 'rgba(252,250,246,0.92)' : 'transparent',
+        background: scrolled ? 'rgba(252,251,249,0.92)' : 'transparent',
         backdropFilter: scrolled ? 'saturate(140%) blur(8px)' : 'none',
         boxShadow: scrolled ? 'var(--sombra-1)' : 'none',
       }}
@@ -40,89 +37,31 @@ export default function LandingNav() {
           justifyContent: 'space-between',
         }}
       >
-        {/* Izquierda: logo + links */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 36 }}>
-          <Link href="#inicio" aria-label="ONG Alumco — inicio" style={{ display: 'flex', alignItems: 'center' }}>
-            <Image src="/LogoAlumco.png" alt="ONG Alumco" width={128} height={42} priority style={{ objectFit: 'contain' }} />
-          </Link>
-          <div className="landing-nav-links" style={{ alignItems: 'center', gap: 26 }}>
-            {NAV_LINKS.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                style={{
-                  color: scrolled ? 'var(--tinta-2)' : 'rgba(255,255,255,0.92)',
-                  fontWeight: 500,
-                  fontSize: 15,
-                  textDecoration: 'none',
-                }}
-              >
-                {l.label}
-              </a>
-            ))}
-          </div>
-        </div>
+        {/* Logo */}
+        <Link href="#inicio" aria-label="ONG Alumco — inicio" style={{ display: 'flex', alignItems: 'center' }}>
+          <Image src="/LogoAlumco.png" alt="ONG Alumco" width={128} height={42} priority style={{ objectFit: 'contain' }} />
+        </Link>
 
-        {/* Derecha: pill Ingresar */}
-        <div className="landing-nav-links" style={{ alignItems: 'center' }}>
-          <Link
-            href="/login"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              background: scrolled ? 'var(--azul-900)' : '#fff',
-              color: scrolled ? '#fff' : 'var(--azul-950)',
-              borderRadius: 999,
-              fontWeight: 600,
-              fontSize: 14.5,
-              padding: '9px 22px',
-            }}
-          >
-            Ingresar
-          </Link>
-        </div>
-
-        {/* Toggle móvil */}
-        <button
-          type="button"
-          className="landing-nav-toggle btn-icon"
-          aria-label="Abrir menú"
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-          style={{ color: scrolled ? 'var(--tinta)' : '#fff', background: 'transparent', border: 'none' }}
-        >
-          {open ? <X size={26} /> : <Menu size={26} />}
-        </button>
-      </nav>
-
-      {/* Menú móvil desplegable */}
-      {open && (
-        <div
-          className="landing-nav-mobile"
+        {/* Ingresar — pill sutil que se complementa con la foto */}
+        <Link
+          href="/login"
           style={{
-            background: 'var(--crema)',
-            borderTop: '1px solid var(--borde-suave)',
-            padding: '12px 24px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
+            display: 'inline-flex',
+            alignItems: 'center',
+            borderRadius: 999,
+            fontWeight: 500,
+            fontSize: 14,
+            padding: '9px 20px',
+            transition: 'background 0.25s ease, color 0.25s ease, border-color 0.25s ease',
+            backdropFilter: 'blur(8px)',
+            background: scrolled ? 'transparent' : 'rgba(255,255,255,0.14)',
+            border: scrolled ? '1px solid var(--azul-800)' : '1px solid rgba(255,255,255,0.45)',
+            color: scrolled ? 'var(--azul-900)' : '#fff',
           }}
         >
-          {NAV_LINKS.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              onClick={() => setOpen(false)}
-              style={{ color: 'var(--tinta-2)', fontWeight: 500, padding: '10px 0', textDecoration: 'none' }}
-            >
-              {l.label}
-            </a>
-          ))}
-          <Link href="/login" className="btn btn-primary" style={{ marginTop: 8 }} onClick={() => setOpen(false)}>
-            Ingresar
-          </Link>
-        </div>
-      )}
+          Ingresar
+        </Link>
+      </nav>
     </header>
   )
 }
