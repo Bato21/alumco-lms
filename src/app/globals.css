@@ -751,5 +751,13 @@ section[id] { scroll-margin-top: 80px; }
   letter-spacing: 0.14em;
 }
 .landing-page .t-eyebrow.claro {
-  color: var(--ambar) !important;
+  color: #aac6a3 !important;
+}
+
+/* Color del eyebrow del landing dentro de la capa components, con selector más
+   específico que DIDASKO, para ganar la cascada de @layer (un !important en
+   capa vence a un !important sin capa). */
+@layer components {
+  body[data-tema="didasko"] .landing-page .t-eyebrow { color: var(--ambar-700) !important; }
+  body[data-tema="didasko"] .landing-page .t-eyebrow.claro { color: #aac6a3 !important; }
 }
