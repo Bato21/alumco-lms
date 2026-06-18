@@ -27,11 +27,11 @@ export default function LandingNav() {
         left: 0,
         right: 0,
         zIndex: 50,
-        transition: 'background 0.3s ease, box-shadow 0.3s ease',
-        background: scrolled ? 'rgba(18,22,17,0.45)' : 'transparent',
-        backdropFilter: scrolled ? 'saturate(180%) blur(18px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'saturate(180%) blur(18px)' : 'none',
-        boxShadow: scrolled ? 'inset 0 -1px 0 rgba(255,255,255,0.08)' : 'none',
+        transition: 'background 0.3s ease, border-color 0.3s ease',
+        background: 'transparent',
+        backdropFilter: scrolled ? 'saturate(160%) blur(16px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'saturate(160%) blur(16px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.18)' : '1px solid transparent',
       }}
     >
       <nav
