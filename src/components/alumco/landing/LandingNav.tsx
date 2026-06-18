@@ -8,7 +8,12 @@ export default function LandingNav() {
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24)
+    const onScroll = () => {
+      // La barra beige aparece solo cuando el hero (imagen) ya quedó atrás.
+      const hero = document.getElementById('inicio')
+      const trigger = (hero ? hero.offsetHeight : window.innerHeight) - 72
+      setScrolled(window.scrollY > trigger)
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -22,10 +27,11 @@ export default function LandingNav() {
         left: 0,
         right: 0,
         zIndex: 50,
-        transition: 'background 0.25s ease, box-shadow 0.25s ease',
-        background: scrolled ? 'rgba(252,251,249,0.92)' : 'transparent',
-        backdropFilter: scrolled ? 'saturate(140%) blur(8px)' : 'none',
-        boxShadow: scrolled ? 'var(--sombra-1)' : 'none',
+        transition: 'background 0.3s ease, box-shadow 0.3s ease',
+        background: scrolled ? 'rgba(18,22,17,0.45)' : 'transparent',
+        backdropFilter: scrolled ? 'saturate(180%) blur(18px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'saturate(180%) blur(18px)' : 'none',
+        boxShadow: scrolled ? 'inset 0 -1px 0 rgba(255,255,255,0.08)' : 'none',
       }}
     >
       <nav
@@ -52,11 +58,10 @@ export default function LandingNav() {
             fontWeight: 500,
             fontSize: 14,
             padding: '9px 20px',
-            transition: 'background 0.25s ease, color 0.25s ease, border-color 0.25s ease',
             backdropFilter: 'blur(8px)',
-            background: scrolled ? 'transparent' : 'rgba(255,255,255,0.14)',
-            border: scrolled ? '1px solid var(--azul-800)' : '1px solid rgba(255,255,255,0.45)',
-            color: scrolled ? 'var(--azul-900)' : '#fff',
+            background: 'rgba(255,255,255,0.14)',
+            border: '1px solid rgba(255,255,255,0.45)',
+            color: '#fff',
           }}
         >
           Ingresar
