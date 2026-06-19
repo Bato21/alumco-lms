@@ -33,7 +33,7 @@
   --borde-suave: #f0eadf;
   --tinta:     #21283b;
   --tinta-2:   #4b5268;
-  --tinta-3:   #7c8198;
+  --tinta-3:   #6e7488; /* AA: 4.6:1 sobre blanco (antes #7c8198 = 3.85:1, fallaba) */
 
   /* Estados (cálidos, armonizados) */
   --ok:       #2e7d5b;
@@ -649,7 +649,7 @@ body[data-tema="didasko"] .nav-item:hover { background: #FFF3C9; color: #152a66 
 body[data-tema="didasko"] .nav-item.activo {
   background: #1e3a8a !important;
   color: #fff !important;
-  box-shadow: 3px 3px 0 #F5A623;
+  box-shadow: 3px 3px 0 var(--ambar);
 }
 body[data-tema="didasko"] .sidebar .nav-item.activo,
 body[data-tema="didasko"] .sidebar .nav-item.activo div,
@@ -699,3 +699,156 @@ body[data-tema="didasko"] .vacio h3 { text-transform: uppercase; font-weight: 80
 
 /* Scrollbar acorde */
 body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border-color: var(--crema); }
+
+/* ============================================================
+   PALETA OLIVA — la misma del landing (.landing-page):
+   azul marino de marca + verde oliva/salvia como acento
+   (reemplaza el ámbar). Scoped a .paleta-oliva.
+   ============================================================ */
+.paleta-oliva {
+  --ambar:       #6E8B6A;
+  --ambar-600:   #5f7d5b;
+  --ambar-700:   #4f6a4c;
+  --ambar-100:   #dde7da;
+  --ambar-50:    #eef2ec;
+  /* oliva oscuro (secciones tipo landing) + sage claro (acento sobre azul) */
+  --oliva-950:   #222a1f;
+  --oliva-900:   #2b3427;
+  --oliva-800:   #3a4636;
+  --oliva-clara: #aac6a3;
+  --grad-oliva:  linear-gradient(168deg, #2b3427 0%, #3a4636 100%);
+  /* bordes neutros suaves (didasko los pone azul marino, demasiado duro) */
+  --borde:       #ded7c8;
+  --borde-suave: #ece6d9;
+}
+.paleta-oliva .acento-claro { color: var(--oliva-clara) !important; }
+
+/* ============================================================
+   ADMIN CALMO — menos brutalismo, más claridad de datos
+   (bajar carga cognitiva: PDFs usabilidad/redacción web).
+   Solo dentro de .paleta-oliva.
+   ============================================================ */
+/* Fondo liso + números tabulares (columnas de métricas no bailan) */
+.paleta-oliva { background: var(--crema); font-variant-numeric: tabular-nums; }
+
+/* Tipografía display = la del landing: serif Playfair, sentence-case
+   (mata el Archivo mayúsculas peso 800 "tipo cómic"). Cuerpo sigue Geist. */
+body[data-tema="didasko"] .paleta-oliva .t-display {
+  font-family: var(--font-serif-display), "Playfair Display", Georgia, serif;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.16;
+}
+
+/* IMPORTANTE: didasko usa selector `body[data-tema=...]` (más específico que
+   `.paleta-oliva`). Para ganar la cascada, TODO override lleva el mismo prefijo. */
+
+/* Cards: hairline casi invisible + sombra whisper. Se leen por espacio en
+   blanco, no por contorno navy (los bordes gruesos competían por atención). */
+body[data-tema="didasko"] .paleta-oliva .card {
+  border: 1px solid #ece7dd;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(20, 40, 100, 0.04), 0 1px 1px rgba(20, 40, 100, 0.03);
+}
+body[data-tema="didasko"] .paleta-oliva .card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(20, 40, 100, 0.08);
+}
+body[data-tema="didasko"] .paleta-oliva article.card:nth-of-type(6n+1),
+body[data-tema="didasko"] .paleta-oliva article.card:nth-of-type(6n+4) { background: var(--blanco); }
+
+/* Hero / bloques de marca: sin borde, esquinas suaves, sombra discreta */
+body[data-tema="didasko"] .paleta-oliva .card.bloque-marca {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(21, 42, 102, 0.14);
+}
+
+/* Eyebrow: texto plano (didasko fuerza color navy con !important → !important) */
+body[data-tema="didasko"] .paleta-oliva .t-eyebrow {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: var(--oliva-clara) !important;
+}
+
+/* "9 vencimientos": ámbar marca de texto, sin caja (didasko fuerza navy → !important) */
+body[data-tema="didasko"] .paleta-oliva .t-display em {
+  background: none !important;
+  color: #F5A623 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-style: normal !important;
+  font-weight: 600;
+}
+
+/* Botones: planos, borde hairline, sin sombra dura ni salto */
+body[data-tema="didasko"] .paleta-oliva .btn { border-width: 1px; }
+body[data-tema="didasko"] .paleta-oliva .btn-secondary { border: 1px solid var(--borde); box-shadow: none; }
+body[data-tema="didasko"] .paleta-oliva .btn-primary { box-shadow: none; }
+body[data-tema="didasko"] .paleta-oliva .btn-secondary:hover { transform: none; background: var(--ambar-50); }
+body[data-tema="didasko"] .paleta-oliva .btn-primary:hover { transform: none; }
+
+/* Badges: relleno suave, sin borde ni mayúsculas */
+body[data-tema="didasko"] .paleta-oliva .badge {
+  border: none;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+  border-radius: 999px;
+}
+
+/* Tabla / avatar / chips / inputs: bordes hairline, sin navy duro */
+body[data-tema="didasko"] .paleta-oliva .tabla th { border-bottom: 1px solid var(--borde-suave); color: var(--tinta-3); }
+body[data-tema="didasko"] .paleta-oliva .avatar { border: none; }
+body[data-tema="didasko"] .paleta-oliva .chip { border: 1px solid var(--borde); box-shadow: none; }
+body[data-tema="didasko"] .paleta-oliva .input,
+body[data-tema="didasko"] .paleta-oliva .select,
+body[data-tema="didasko"] .paleta-oliva .textarea,
+body[data-tema="didasko"] .paleta-oliva .input-busqueda { border: 1px solid var(--borde); }
+body[data-tema="didasko"] .paleta-oliva .input-busqueda:focus-within,
+body[data-tema="didasko"] .paleta-oliva .input:focus,
+body[data-tema="didasko"] .paleta-oliva .select:focus,
+body[data-tema="didasko"] .paleta-oliva .textarea:focus { border-color: var(--ambar); box-shadow: 0 0 0 3px rgba(110, 139, 106, 0.22); }
+
+/* Sidebar / topbar: separadores finos; activo sin sombra dura */
+body[data-tema="didasko"] .paleta-oliva .sidebar { border-right: 1px solid var(--borde-suave); }
+body[data-tema="didasko"] .paleta-oliva .topbar { border-bottom: 1px solid var(--borde-suave); }
+/* Activo: navy translúcido para ver la gota por detrás; pill por encima de la gota */
+body[data-tema="didasko"] .paleta-oliva .nav-item.activo {
+  box-shadow: none;
+  position: relative;
+  z-index: 1;
+  background: rgba(30, 58, 138, 0.7) !important;
+}
+
+/* Gota indicadora: se desliza al tab activo (spring) + respira (como el login).
+   reduce-motion la deja quieta (el bloque global mata animación/transición). */
+body[data-tema="didasko"] .paleta-oliva .sidebar-nav { position: relative; }
+body[data-tema="didasko"] .paleta-oliva .gota-indicador {
+  position: absolute;
+  top: 0;
+  right: 28px;
+  width: 24px;
+  height: 29px;
+  z-index: 2;
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.34, 1.5, 0.5, 1);
+  will-change: transform;
+}
+body[data-tema="didasko"] .paleta-oliva .gota-idle {
+  display: block;
+  transform-origin: 50% 88%;
+  animation: gota-respira 4.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes gota-respira {
+  0%, 100% { transform: scale(1, 1) translateY(0); }
+  35%      { transform: scale(1.12, 0.9) translateY(1px); }
+  68%      { transform: scale(0.94, 1.08) translateY(-1.5px); }
+}
+
+/* Login coherente con el admin: las gotitas del splat también en sage/oliva */
+.paleta-oliva .mascot-drips span { background: var(--oliva-clara); }

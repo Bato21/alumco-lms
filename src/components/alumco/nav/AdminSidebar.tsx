@@ -1,10 +1,11 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
-import { MarcaAlumco, Avatar, Icono, type IconoNombre } from '@/components/alumco/ds'
+import { Avatar, Icono, Gota, type IconoNombre } from '@/components/alumco/ds'
 import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
 import { type UserRole } from '@/lib/types/database'
 
@@ -39,10 +40,31 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
   const isActivo = (href: string) =>
     href === '/admin/dashboard' ? pathname === '/admin/dashboard' : pathname === href || pathname.startsWith(href + '/')
 
+  // Gota indicadora: se desliza hasta el tab activo (mide su posición en el nav)
+  const navRef = useRef<HTMLElement>(null)
+  const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
+  const [gotaY, setGotaY] = useState<number | null>(null)
+  const activeHref = [...gestion, ...cuenta].find((i) => i.show && isActivo(i.href))?.href
+
+  useEffect(() => {
+    const nav = navRef.current
+    if (!nav) return
+    const DROP_H = 29
+    const update = () => {
+      const el = activeHref ? itemRefs.current[activeHref] : null
+      if (el) setGotaY(el.offsetTop + el.offsetHeight / 2 - DROP_H / 2)
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(nav)
+    return () => ro.disconnect()
+  }, [activeHref])
+
   const renderItem = (item: NavItem) => (
     <Link
       key={item.href}
       href={item.href}
+      ref={(el) => { itemRefs.current[item.href] = el }}
       aria-current={isActivo(item.href) ? 'page' : undefined}
       onClick={() => onClose?.()}
       className={'nav-item' + (isActivo(item.href) ? ' activo' : '')}
@@ -54,7 +76,17 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
   return (
     <>
       <div style={{ padding: '22px 24px 14px' }}>
-        <MarcaAlumco />
+        <Link
+          href="/admin/dashboard"
+          aria-label="Ir al inicio"
+          onClick={() => onClose?.()}
+          style={{ display: 'inline-block', textDecoration: 'none' }}
+        >
+          <Image src="/LogoAlumco.png" alt="Alumco" width={156} height={53} priority style={{ width: 156, height: 'auto' }} />
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--tinta-3)', marginTop: 6 }}>
+            Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · capacitación
+          </div>
+        </Link>
         {role === 'profesor' && (
           <span
             className="badge badge-info"
@@ -65,7 +97,12 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
         )}
       </div>
 
-      <nav className="sidebar-nav" aria-label="Navegación de administración">
+      <nav ref={navRef} className="sidebar-nav" aria-label="Navegación de administración">
+        {gotaY !== null && (
+          <span className="gota-indicador" aria-hidden="true" style={{ transform: `translateY(${gotaY}px)` }}>
+            <span className="gota-idle"><Gota s={24} color="var(--ambar)" /></span>
+          </span>
+        )}
         <div className="nav-seccion">Gestión</div>
         {gestion.filter((i) => i.show).map(renderItem)}
         <div className="nav-seccion">Cuenta</div>
@@ -103,7 +140,9 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
         className="lg:hidden sticky top-0 z-50 topbar"
         style={{ justifyContent: 'space-between', padding: '12px 16px' }}
       >
-        <MarcaAlumco compacta />
+        <Link href="/admin/dashboard" aria-label="Ir al inicio" style={{ textDecoration: 'none' }}>
+          <Image src="/LogoAlumco.png" alt="Alumco" width={116} height={39} priority style={{ width: 116, height: 'auto' }} />
+        </Link>
         <button
           onClick={() => setIsDrawerOpen(true)}
           className="btn btn-secondary btn-icon btn-sm"
