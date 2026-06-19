@@ -576,10 +576,11 @@ main > * {
   transform: scaleY(1.4);
 }
 
-/* Splash: anillos en la superficie del agua mientras carga */
+/* Splash: anillos en la superficie del agua mientras carga.
+   Origen a los pies de la gota (base del contenedor), no a media altura. */
 .mascot-splash {
   position: absolute;
-  bottom: 64px;
+  bottom: 0;
   left: 50%;
   width: 56px;
   height: 20px;
