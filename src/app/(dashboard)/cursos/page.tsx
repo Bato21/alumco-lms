@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
+import { CourseBannerImage } from '@/components/alumco/CourseBannerImage'
 import { BookOpen } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Mis Cursos | Alumco LMS' }
@@ -185,6 +186,12 @@ export default async function CursosPage({
                   className="h-40 relative flex items-end p-5"
                   style={{ background: getCourseGradient(course.target_areas ?? []) }}
                 >
+                  {/* Imagen del banner + línea de color con el degradado de áreas */}
+                  <CourseBannerImage
+                    thumbnailUrl={course.thumbnail_url}
+                    targetAreas={course.target_areas ?? []}
+                  />
+
                   {/* Status badge */}
                   <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${config.badgeClass}`}>
                     {config.label}

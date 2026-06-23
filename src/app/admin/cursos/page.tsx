@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Plus, Calendar, BookOpen } from 'lucide-react'
 import { getCourseGradient } from '@/lib/utils'
+import { CourseBannerImage } from '@/components/alumco/CourseBannerImage'
 
 export const metadata: Metadata = {
   title: 'Gestión de Cursos | Alumco LMS',
@@ -134,6 +135,12 @@ export default async function AdminCursosPage({
                   className="h-40 relative flex items-end p-5"
                   style={{ background: getCourseGradient(course.target_areas ?? []) }}
                 >
+                  {/* Imagen del banner + línea de color con el degradado de áreas */}
+                  <CourseBannerImage
+                    thumbnailUrl={course.thumbnail_url}
+                    targetAreas={course.target_areas ?? []}
+                  />
+
                   {/* Status badge */}
                   <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                     course.is_published

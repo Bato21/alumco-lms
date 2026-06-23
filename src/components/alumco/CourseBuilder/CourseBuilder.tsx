@@ -9,6 +9,7 @@ import {
 } from '@/lib/actions/courses'
 import { BlockCanvas } from './BlockCanvas'
 import { BlockPalette } from './BlockPalette'
+import { BannerSelector } from './BannerSelector'
 import { type ContentType } from '@/lib/types/database'
 import { AREAS_TRABAJO } from '@/lib/types/database'
 import { CheckCircle2, ChevronDown, Loader2 } from 'lucide-react'
@@ -40,6 +41,7 @@ export interface CourseData {
   deadline_description: string | null
   is_published: boolean
   target_areas: string[]
+  thumbnail_url: string | null
 }
 
 interface CourseBuilderProps {
@@ -378,6 +380,14 @@ export function CourseBuilder({
               )}
             </button>
           </div>
+
+          {/* Panel banner del curso */}
+          <BannerSelector
+            courseId={course.id}
+            targetAreas={targetAreas}
+            initialThumbnailUrl={course.thumbnail_url}
+            courseTitle={course.title}
+          />
         </div>
       </div>
     </div>

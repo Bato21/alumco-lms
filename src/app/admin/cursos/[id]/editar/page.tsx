@@ -18,9 +18,9 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
   // Cargar curso
   const { data: course } = await supabase
     .from('courses')
-    .select('id, title, description, deadline, deadline_description, is_published, target_areas')
+    .select('id, title, description, deadline, deadline_description, is_published, target_areas, thumbnail_url')
     .eq('id', id)
-    .single() as { data: { id: string; title: string; description: string | null; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null } | null }
+    .single() as { data: { id: string; title: string; description: string | null; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null; thumbnail_url: string | null } | null }
 
   if (!course) notFound()
 

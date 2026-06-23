@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas, getCourseGradient } from '@/lib/utils'
 import { CertificateBadge } from '@/components/alumco/CertificateBadge'
+import { CourseBannerImage } from '@/components/alumco/CourseBannerImage'
 import Link from 'next/link'
 import type { ContentType, Course, Module, Quiz, CourseProgress } from '@/lib/types/database'
 
@@ -190,6 +191,13 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
         className="relative rounded-2xl overflow-hidden h-48 flex items-end p-6"
         style={{ background: getCourseGradient(course.target_areas ?? []) }}
       >
+        {/* Imagen del banner + línea de color con el degradado de áreas */}
+        <CourseBannerImage
+          thumbnailUrl={course.thumbnail_url}
+          targetAreas={course.target_areas ?? []}
+          lineHeight={8}
+        />
+
         {/* Decorative icon */}
         <div className="absolute top-4 left-6 opacity-10 pointer-events-none" aria-hidden="true">
           <svg className="w-24 h-24 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
