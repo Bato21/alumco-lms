@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { NotificationBell } from '@/components/alumco/NotificationBell'
-import SearchBar from '@/components/alumco/SearchBar'
+import Link from 'next/link'
+import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
+import SearchBar from '@/components/alumco/shared/SearchBar'
+import { Avatar } from '@/components/alumco/ds'
 
 interface AdminTopBarProps {
   alerts: {
@@ -19,9 +21,10 @@ interface AdminTopBarProps {
     }[]
   }
   role: 'admin' | 'profesor'
+  fullName: string
 }
 
-export function AdminTopBar({ alerts, role }: AdminTopBarProps) {
+export function AdminTopBar({ alerts, role, fullName }: AdminTopBarProps) {
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
@@ -50,18 +53,31 @@ export function AdminTopBar({ alerts, role }: AdminTopBarProps) {
 
   return (
     <header
-      className={`hidden lg:flex fixed top-0 left-64 right-0 items-center justify-end px-8 py-4 z-30 bg-white/90 backdrop-blur border-b border-slate-100 gap-6 transition-transform duration-300 ease-in-out ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}
+      className="topbar hidden lg:flex"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 264,
+        right: 0,
+        zIndex: 30,
+        gap: 16,
+        transform: isVisible ? 'translateY(0)' : 'translateY(-100%)',
+        transition: 'transform 0.3s ease-in-out',
+      }}
     >
-      <SearchBar placeholder="Buscar capacitaciones, personas..." className="w-64" />
-      <div className="flex items-center gap-2">
-        <NotificationBell initialAlerts={alerts} role={role} />
-        <button className="p-2 text-slate-500 hover:text-[#2B4FA0] transition-colors">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-        </button>
-      </div>
+      <SearchBar placeholder="Buscar cursos, trabajadores o sedes…" className="w-full max-w-[480px]" />
+      <div className="crece" />
+      <NotificationBell initialAlerts={alerts} role={role} />
+      <span style={{ width: 1, height: 26, background: 'var(--borde-suave)' }} />
+      <Link
+        href="/admin/perfil"
+        aria-label="Mi perfil"
+        className="fila"
+        style={{ gap: 10, padding: '4px 6px', borderRadius: 12, minHeight: 44 }}
+      >
+        <Avatar nombre={fullName} s={36} />
+        <span style={{ fontWeight: 600, fontSize: 14.5 }}>{fullName.split(' ')[0]}</span>
+      </Link>
     </header>
   )
 }

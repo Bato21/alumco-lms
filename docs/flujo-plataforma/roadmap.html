@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KimünKo · Roadmap del flujo (ONG Alumco)</title>
+<style>
+  :root{
+    --navy:#13224d; --azul:#2B4FA0; --ambar:#F5A623;
+    --ink:#15192b; --muted:#6b7280; --line:#dfe3ec;
+    --salmon:#d98b7d; --gray:#9aa0ad;
+    --usr:#2B4FA0; --adm:#13224d; --acc:#8a93a8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;color:var(--ink);background:#eef1f6}
+
+  /* topbar */
+  .topbar{position:fixed;top:0;left:0;right:0;height:54px;z-index:50;display:flex;align-items:center;gap:16px;
+    padding:0 18px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .topbar .brand{font-weight:800;color:var(--navy);font-size:15px;letter-spacing:-.3px}
+  .topbar .brand b{color:var(--ambar)}
+  .topbar .sep{color:var(--muted);font-size:12.5px}
+  .topbar .legend{display:flex;gap:14px;margin-left:auto;font-size:11.5px;color:var(--muted);align-items:center;flex-wrap:wrap}
+  .topbar .legend i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+  .zoom{display:flex;gap:6px;align-items:center}
+  .zoom button{width:28px;height:28px;border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;font-size:16px;font-weight:700;color:var(--navy)}
+  .zoom span{font-size:11.5px;color:var(--muted);min-width:38px;text-align:center}
+
+  /* viewport / canvas */
+  #viewport{position:absolute;top:54px;left:0;right:0;bottom:0;overflow:auto;
+    background-image:radial-gradient(#c8cedd 1.3px, transparent 1.3px);background-size:26px 26px;background-color:#eef1f6}
+  #canvas{position:relative;transform-origin:0 0}
+  svg.wires{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:1}
+
+  .band{position:absolute;border-radius:26px;z-index:0}
+  .band .btitle{position:absolute;top:-2px;left:26px;transform:translateY(-100%);
+    font-size:30px;font-weight:800;letter-spacing:-.4px;padding-bottom:8px}
+  .band .btitle small{display:block;font-size:13px;font-weight:600;letter-spacing:.02em;opacity:.7}
+
+  .node{position:absolute;z-index:2;background:#fff;border:1px solid #d9deea;border-radius:14px;
+    box-shadow:0 12px 28px -16px rgba(19,34,77,.45);overflow:hidden}
+  .node .cap{position:absolute;top:-26px;left:2px;font-size:12px;font-weight:700;color:var(--navy);
+    background:#fff;border:1px solid var(--line);border-radius:20px;padding:2px 10px;white-space:nowrap;box-shadow:0 2px 6px rgba(19,34,77,.08)}
+  .node img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+  .node.hub{border:2px solid var(--ambar);box-shadow:0 16px 34px -14px rgba(245,166,35,.5)}
+
+  .elabel{position:absolute;z-index:3;transform:translate(-50%,-50%);
+    font-size:11px;font-weight:600;color:#41464f;background:#fff;border:1px solid var(--line);
+    border-radius:6px;padding:2px 7px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+  .elabel.primary{color:#b25a47;border-color:#eccfc8}
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="brand">Kimün<b>Ko</b> · Roadmap del flujo</span>
+    <span class="sep">ONG Alumco · 65 pantallas · cada botón → su pantalla</span>
+    <div class="legend">
+      <span><i style="border-color:var(--salmon)"></i>Flujo principal</span>
+      <span><i style="border-color:var(--gray)"></i>Menú / filtros / variantes</span>
+      <span><i style="border-color:var(--gray);border-top-style:dashed"></i>Volver</span>
+    </div>
+    <div class="zoom">
+      <button id="zout">−</button><span id="zlbl">45%</span><button id="zin">+</button>
+    </div>
+  </div>
+  <div id="viewport"><div id="canvas"><svg class="wires" id="wires"></svg></div></div>
+
+<script>
+const W=520, H=263;
+// ---- NODES: id, area(folder), file, x, y ----
+const N = [
+ // ACCESO
+ {id:'register',area:'Login',file:'register',x:40,y:300},
+ {id:'login',area:'Login',file:'login',x:1480,y:300,hub:1},
+ {id:'olvido',area:'Login',file:'olvidoContraseña',x:2920,y:300},
+ // USUARIO
+ {id:'dashboardUsuario',area:'Usuario',file:'dashboardUsuario',x:40,y:980},
+ {id:'cursosUsuario',area:'Usuario',file:'cursosUsuario',x:760,y:980},
+ {id:'cursosProgreso',area:'Usuario',file:'cursosProgreso',x:1480,y:980},
+ {id:'cursosCompletados',area:'Usuario',file:'cursosCompletados',x:2200,y:980},
+ {id:'cursosSinIniciar',area:'Usuario',file:'cursosSinIniciar',x:2920,y:980},
+ {id:'iniciarCurso',area:'Usuario',file:'iniciarCurso',x:40,y:1440},
+ {id:'iniciarModulo',area:'Usuario',file:'iniciarModulo',x:760,y:1440},
+ {id:'videoTerminado',area:'Usuario',file:'videoTerminado',x:1480,y:1440},
+ {id:'siguienteModuloPdf',area:'Usuario',file:'siguienteModuloPdf',x:2200,y:1440},
+ {id:'pdfLeido',area:'Usuario',file:'pdfLeido',x:2920,y:1440},
+ {id:'descargarPdf',area:'Usuario',file:'descargarPdf',x:40,y:1900},
+ {id:'contactarAdmin',area:'Usuario',file:'contactarAdmin',x:760,y:1900},
+ {id:'comenzarQuiz',area:'Usuario',file:'comenzarQuiz',x:1480,y:1900},
+ {id:'responderQuiz',area:'Usuario',file:'responderQuiz',x:2200,y:1900},
+ {id:'cursoAprobado',area:'Usuario',file:'cursoAprobado',x:2920,y:1900},
+ {id:'reintentarQuiz',area:'Usuario',file:'reintentarQuiz',x:40,y:2360},
+ {id:'siguienteModuloQuiz',area:'Usuario',file:'siguienteModuloQuiz',x:760,y:2360},
+ {id:'cursoFinalizado',area:'Usuario',file:'cursoFinalizado',x:1480,y:2360},
+ {id:'misCertificados',area:'Usuario',file:'misCertificados',x:2200,y:2360},
+ {id:'verCertificado',area:'Usuario',file:'verCertificado',x:2920,y:2360},
+ {id:'miPerfil',area:'Usuario',file:'miPerfil',x:40,y:2820},
+ {id:'alertasUsuario',area:'Usuario',file:'alertasUsuario',x:760,y:2820},
+ {id:'busquedaUsuario',area:'Usuario',file:'busquedaUsuario',x:1480,y:2820},
+ // ADMIN
+ {id:'dashboardAdmin',area:'Admin',file:'dashboardAdmin',x:40,y:3540},
+ {id:'cursosAdmin',area:'Admin',file:'cursosAdmin',x:760,y:3540},
+ {id:'cursosPublciados',area:'Admin',file:'cursosPublciados',x:1480,y:3540},
+ {id:'cursosBorradores',area:'Admin',file:'cursosBorradores',x:2200,y:3540},
+ {id:'nuevoCurso',area:'Admin',file:'nuevoCurso',x:2920,y:3540},
+ {id:'seleccionarAreas',area:'Admin',file:'seleccionarAreas',x:40,y:4000},
+ {id:'creacionModulos',area:'Admin',file:'creacionModulos',x:760,y:4000},
+ {id:'crearVideo',area:'Admin',file:'crearVideo',x:1480,y:4000},
+ {id:'crearPdf',area:'Admin',file:'crearPdf',x:2200,y:4000},
+ {id:'crearQuiz',area:'Admin',file:'crearQuiz',x:2920,y:4000},
+ {id:'eliminarCurso',area:'Admin',file:'eliminarCurso',x:40,y:4460},
+ {id:'trabajadores',area:'Admin',file:'trabajadores',x:760,y:4460},
+ {id:'solicitudesPendientes',area:'Admin',file:'solicitudesPendientes',x:1480,y:4460},
+ {id:'detalleTrabajador',area:'Admin',file:'detalleTrabajador',x:2200,y:4460},
+ {id:'editarTrabajador',area:'Admin',file:'editarTrabajador',x:2920,y:4460},
+ {id:'suspenderTrabajador',area:'Admin',file:'suspenderTrabajador',x:40,y:4920},
+ {id:'trabajadoresSuspendidos',area:'Admin',file:'trabajadoresSuspendidos',x:760,y:4920},
+ {id:'filtroAreaTrab',area:'Admin',file:'filtroAreaTrab',x:1480,y:4920},
+ {id:'filtroSede',area:'Admin',file:'filtroSede',x:2200,y:4920},
+ {id:'sedes',area:'Admin',file:'sedes',x:2920,y:4920},
+ {id:'desactivarSede',area:'Admin',file:'desactivarSede',x:40,y:5380},
+ {id:'sedePrueba',area:'Admin',file:'sedePrueba',x:760,y:5380},
+ {id:'reportes',area:'Admin',file:'reportes',x:1480,y:5380},
+ {id:'detalleReporte',area:'Admin',file:'detalleReporte',x:2200,y:5380},
+ {id:'filtroAreaRep',area:'Admin',file:'filtroAreaRep',x:2920,y:5380},
+ {id:'filtroEstadoRep',area:'Admin',file:'filtroEstadoRep',x:40,y:5840},
+ {id:'filtroSedeRep',area:'Admin',file:'filtroSedeRep',x:760,y:5840},
+ {id:'exportarCSVRep',area:'Admin',file:'exportarCSVRep',x:1480,y:5840},
+ {id:'Certificados',area:'Admin',file:'Certificados',x:2200,y:5840},
+ {id:'verCert',area:'Admin',file:'verCert',x:2920,y:5840},
+ {id:'descargarCert',area:'Admin',file:'descargarCert',x:40,y:6300},
+ {id:'filtroNombreCert',area:'Admin',file:'filtroNombreCert',x:760,y:6300},
+ {id:'filtroInicioCert',area:'Admin',file:'filtroInicioCert',x:1480,y:6300},
+ {id:'filtroFinCert',area:'Admin',file:'filtroFinCert',x:2200,y:6300},
+ {id:'exportarCSVCert',area:'Admin',file:'exportarCSVCert',x:2920,y:6300},
+ {id:'miPerfilAdmin',area:'Admin',file:'miPerfilAdmin',x:40,y:6760},
+ {id:'subirFirma',area:'Admin',file:'subirFirma',x:760,y:6760},
+ {id:'alertas',area:'Admin',file:'alertas',x:1480,y:6760},
+ {id:'busqueda',area:'Admin',file:'busqueda',x:2200,y:6760},
+];
+const cap = {
+ register:'03 · Solicitar acceso', login:'01 · Login', olvido:'02 · Recuperar clave',
+ dashboardUsuario:'Inicio', cursosUsuario:'Mis cursos', cursosProgreso:'· En progreso', cursosCompletados:'· Completados', cursosSinIniciar:'· Sin iniciar',
+ iniciarCurso:'Detalle de curso', iniciarModulo:'Módulo', videoTerminado:'Video completado', siguienteModuloPdf:'Siguiente módulo', pdfLeido:'Módulo PDF',
+ descargarPdf:'Descargar PDF', contactarAdmin:'Contactar admin', comenzarQuiz:'Quiz · intro', responderQuiz:'Quiz · preguntas', cursoAprobado:'Quiz aprobado',
+ reintentarQuiz:'Quiz reprobado', siguienteModuloQuiz:'Siguiente', cursoFinalizado:'Curso finalizado', misCertificados:'Mis certificados', verCertificado:'Ver certificado',
+ miPerfil:'Mi perfil', alertasUsuario:'Alertas', busquedaUsuario:'Búsqueda',
+ dashboardAdmin:'Dashboard', cursosAdmin:'Gestión de cursos', cursosPublciados:'· Publicados', cursosBorradores:'· Borradores', nuevoCurso:'Crear curso',
+ seleccionarAreas:'Seleccionar áreas', creacionModulos:'Constructor', crearVideo:'Bloque video', crearPdf:'Bloque PDF', crearQuiz:'Bloque evaluación',
+ eliminarCurso:'Eliminar curso', trabajadores:'Trabajadores', solicitudesPendientes:'Solicitudes', detalleTrabajador:'Detalle trabajador', editarTrabajador:'Editar',
+ suspenderTrabajador:'Suspender', trabajadoresSuspendidos:'Suspendidos', filtroAreaTrab:'Filtro área', filtroSede:'Filtro sede', sedes:'Sedes',
+ desactivarSede:'Desactivar sede', sedePrueba:'Crear sede', reportes:'Reportes', detalleReporte:'Detalle reporte', filtroAreaRep:'Filtro área',
+ filtroEstadoRep:'Filtro estado', filtroSedeRep:'Filtro sede', exportarCSVRep:'Exportar CSV', Certificados:'Certificados', verCert:'Ver certificado',
+ descargarCert:'Descargar', filtroNombreCert:'Filtro nombre', filtroInicioCert:'Filtro desde', filtroFinCert:'Filtro hasta', exportarCSVCert:'Exportar CSV',
+ miPerfilAdmin:'Mi perfil + firma', subirFirma:'Subir firma', alertas:'Alertas', busqueda:'Búsqueda',
+};
+// ---- EDGES: from, to, label, kind(primary|sub|back) ----
+const E = [
+ // acceso
+ ['login','register','Solicitar acceso a la administración','primary'],
+ ['login','olvido','¿Olvidó su clave?','primary'],
+ ['login','dashboardUsuario','Entrar como usuario','primary'],
+ ['login','dashboardAdmin','Entrar como admin','primary'],
+ ['register','login','Ingresar','back'],
+ ['olvido','login','Volver al inicio','back'],
+ // usuario
+ ['dashboardUsuario','cursosUsuario','Ver mis cursos','primary'],
+ ['dashboardUsuario','misCertificados','Certificados','sub'],
+ ['dashboardUsuario','miPerfil','Mi perfil','sub'],
+ ['dashboardUsuario','alertasUsuario','Campana','sub'],
+ ['dashboardUsuario','busquedaUsuario','Buscar','sub'],
+ ['cursosUsuario','cursosProgreso','En progreso','sub'],
+ ['cursosUsuario','cursosCompletados','Completados','sub'],
+ ['cursosUsuario','cursosSinIniciar','Sin iniciar','sub'],
+ ['cursosUsuario','iniciarCurso','Abrir curso','primary'],
+ ['iniciarCurso','iniciarModulo','Abrir módulo','primary'],
+ ['iniciarModulo','videoTerminado','Completar video','primary'],
+ ['iniciarModulo','contactarAdmin','Contactar admin','sub'],
+ ['videoTerminado','siguienteModuloPdf','Siguiente','primary'],
+ ['siguienteModuloPdf','pdfLeido','Módulo PDF','primary'],
+ ['pdfLeido','descargarPdf','Descargar PDF','sub'],
+ ['pdfLeido','comenzarQuiz','Siguiente (evaluación)','primary'],
+ ['comenzarQuiz','responderQuiz','Comenzar evaluación','primary'],
+ ['responderQuiz','cursoAprobado','Aprobado','primary'],
+ ['responderQuiz','reintentarQuiz','Reprobado','sub'],
+ ['reintentarQuiz','comenzarQuiz','Reintentar','back'],
+ ['cursoAprobado','siguienteModuloQuiz','Siguiente módulo','primary'],
+ ['siguienteModuloQuiz','cursoFinalizado','Último módulo','primary'],
+ ['cursoFinalizado','misCertificados','Ver certificado','primary'],
+ ['misCertificados','verCertificado','Ver','primary'],
+ // admin
+ ['dashboardAdmin','cursosAdmin','Cursos','primary'],
+ ['dashboardAdmin','trabajadores','Trabajadores','primary'],
+ ['dashboardAdmin','sedes','Sedes','sub'],
+ ['dashboardAdmin','reportes','Ver reportes','primary'],
+ ['dashboardAdmin','Certificados','Certificados','sub'],
+ ['dashboardAdmin','miPerfilAdmin','Mi perfil','sub'],
+ ['dashboardAdmin','alertas','Campana','sub'],
+ ['dashboardAdmin','busqueda','Buscar','sub'],
+ ['cursosAdmin','cursosPublciados','Publicados','sub'],
+ ['cursosAdmin','cursosBorradores','Borradores','sub'],
+ ['cursosAdmin','nuevoCurso','Nueva capacitación','primary'],
+ ['cursosAdmin','eliminarCurso','Eliminar','sub'],
+ ['nuevoCurso','seleccionarAreas','Seleccionar áreas','primary'],
+ ['seleccionarAreas','creacionModulos','Crear y agregar módulos','primary'],
+ ['creacionModulos','crearVideo','Agregar video','sub'],
+ ['creacionModulos','crearPdf','Agregar PDF','sub'],
+ ['creacionModulos','crearQuiz','Agregar evaluación','sub'],
+ ['trabajadores','solicitudesPendientes','Solicitudes','sub'],
+ ['trabajadores','trabajadoresSuspendidos','Suspendidos','sub'],
+ ['trabajadores','filtroAreaTrab','Filtrar área','sub'],
+ ['trabajadores','filtroSede','Filtrar sede','sub'],
+ ['trabajadores','detalleTrabajador','Ver','primary'],
+ ['detalleTrabajador','editarTrabajador','Editar','sub'],
+ ['detalleTrabajador','suspenderTrabajador','Suspender','sub'],
+ ['sedes','desactivarSede','Desactivar','sub'],
+ ['sedes','sedePrueba','Crear sede','sub'],
+ ['reportes','detalleReporte','Detalle','primary'],
+ ['reportes','filtroAreaRep','Filtrar área','sub'],
+ ['reportes','filtroEstadoRep','Filtrar estado','sub'],
+ ['reportes','filtroSedeRep','Filtrar sede','sub'],
+ ['reportes','exportarCSVRep','Exportar CSV','sub'],
+ ['Certificados','verCert','Ver','primary'],
+ ['verCert','descargarCert','Descargar','sub'],
+ ['Certificados','filtroNombreCert','Filtrar nombre','sub'],
+ ['Certificados','filtroInicioCert','Filtro desde','sub'],
+ ['Certificados','filtroFinCert','Filtro hasta','sub'],
+ ['Certificados','exportarCSVCert','Exportar CSV','sub'],
+ ['miPerfilAdmin','subirFirma','Subir firma digital','sub'],
+];
+
+// ---- build ----
+const map={}; N.forEach(n=>map[n.id]=n);
+const canvas=document.getElementById('canvas');
+const svg=document.getElementById('wires');
+
+// bands
+const bands=[
+ {name:'Acceso', sub:'Públicas · sin sesión', color:'var(--acc)', fill:'rgba(138,147,168,.10)', ids:['register','login','olvido']},
+ {name:'Área Trabajador', sub:'Colaborador', color:'var(--usr)', fill:'rgba(43,79,160,.07)', ids:N.filter(n=>n.area==='Usuario').map(n=>n.id)},
+ {name:'Área Administrador', sub:'Gestión', color:'var(--adm)', fill:'rgba(19,34,77,.06)', ids:N.filter(n=>n.area==='Admin').map(n=>n.id)},
+];
+let maxX=0,maxY=0;
+bands.forEach(b=>{
+  let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+  b.ids.forEach(id=>{const n=map[id];x0=Math.min(x0,n.x);y0=Math.min(y0,n.y);x1=Math.max(x1,n.x+W);y1=Math.max(y1,n.y+H);});
+  const pad=70;
+  const d=document.createElement('div');d.className='band';
+  d.style.left=(x0-pad)+'px';d.style.top=(y0-pad)+'px';
+  d.style.width=(x1-x0+pad*2)+'px';d.style.height=(y1-y0+pad*2)+'px';
+  d.style.background=b.fill;d.style.border='1px dashed '+b.color;
+  d.innerHTML='<div class="btitle" style="color:'+b.color+'">'+b.name+'<small>'+b.sub+'</small></div>';
+  canvas.appendChild(d);
+  maxX=Math.max(maxX,x1+pad);maxY=Math.max(maxY,y1+pad);
+});
+
+// nodes
+N.forEach(n=>{
+  const d=document.createElement('div');d.className='node'+(n.hub?' hub':'');
+  d.style.left=n.x+'px';d.style.top=n.y+'px';d.style.width=W+'px';d.style.height=H+'px';
+  const src='capturas/'+n.area+'/'+n.file+'.png';
+  d.innerHTML='<div class="cap">'+(cap[n.id]||n.id)+'</div><img loading="lazy" src="'+src+'" alt="'+n.id+'">';
+  canvas.appendChild(d);
+});
+
+// sizing
+canvas.style.width=(maxX+80)+'px';
+canvas.style.height=(maxY+80)+'px';
+svg.setAttribute('width',maxX+80);
+svg.setAttribute('height',maxY+80);
+
+// arrow markers
+const colors={primary:'#d98b7d',sub:'#9aa0ad',back:'#9aa0ad'};
+let defs='<defs>';
+for(const k in colors){defs+='<marker id="ah-'+k+'" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 z" fill="'+colors[k]+'"/></marker>';}
+defs+='</defs>';
+svg.innerHTML=defs;
+
+function anchors(a,b){
+  const acx=a.x+W/2, acy=a.y+H/2, bcx=b.x+W/2, bcy=b.y+H/2;
+  const dx=bcx-acx, dy=bcy-acy; let p1,p2,horiz;
+  if(Math.abs(dx)>=Math.abs(dy)*1.1){ horiz=true;
+    if(dx>=0){p1={x:a.x+W,y:acy};p2={x:b.x,y:bcy};}else{p1={x:a.x,y:acy};p2={x:b.x+W,y:bcy};}
+  }else{ horiz=false;
+    if(dy>=0){p1={x:acx,y:a.y+H};p2={x:bcx,y:b.y};}else{p1={x:acx,y:a.y};p2={x:bcx,y:b.y+H};}
+  }
+  return {p1,p2,horiz};
+}
+E.forEach(e=>{
+  const a=map[e[0]],b=map[e[1]];if(!a||!b)return;
+  const {p1,p2,horiz}=anchors(a,b);
+  const col=colors[e[3]||'sub'];
+  let c1,c2;
+  if(horiz){const mx=(p1.x+p2.x)/2;c1=mx+','+p1.y;c2=mx+','+p2.y;}
+  else{const my=(p1.y+p2.y)/2;c1=p1.x+','+my;c2=p2.x+','+my;}
+  const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d','M'+p1.x+','+p1.y+' C'+c1+' '+c2+' '+p2.x+','+p2.y);
+  path.setAttribute('fill','none');path.setAttribute('stroke',col);
+  path.setAttribute('stroke-width','2.4');
+  if((e[3]||'')==='back')path.setAttribute('stroke-dasharray','7 6');
+  path.setAttribute('marker-end','url(#ah-'+(e[3]||'sub')+')');
+  svg.appendChild(path);
+  // label
+  const lab=document.createElement('div');lab.className='elabel'+((e[3]==='primary')?' primary':'');
+  lab.textContent=e[2];
+  const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+  const ddx=p2.x-p1.x, ddy=p2.y-p1.y, len=Math.hypot(ddx,ddy)||1;
+  let px=-ddy/len, py=ddx/len;
+  if(py>0){px=-px;py=-py;}            // canonical perpendicular (points up)
+  const sgn=(e[3]==='back')?-1:1, off=22;
+  lab.style.left=(mx+px*off*sgn)+'px';lab.style.top=(my+py*off*sgn)+'px';
+  canvas.appendChild(lab);
+});
+
+// zoom
+let z=0.45;const vp=document.getElementById('viewport');const zlbl=document.getElementById('zlbl');
+function applyZoom(){canvas.style.transform='scale('+z+')';zlbl.textContent=Math.round(z*100)+'%';}
+document.getElementById('zin').onclick=()=>{z=Math.min(1.5,z+0.1);applyZoom();};
+document.getElementById('zout').onclick=()=>{z=Math.max(0.2,z-0.1);applyZoom();};
+applyZoom();
+</script>
+</body>
+</html>

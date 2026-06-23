@@ -8,22 +8,30 @@ export const dynamic = 'force-dynamic'
 export default async function ReportesPage() {
   const adminClient = await createAdminClient()
 
-  const { data: workersRaw } = await adminClient
-    .from('profiles')
-    .select('id, full_name, sede, area_trabajo')
-    .eq('role', 'trabajador')
-    .eq('status', 'activo')
-    .order('full_name') as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }
+  const [{ data: workersRaw }, { data: courses }, { data: progressRaw }] = await Promise.all([
+    adminClient
+      .from('profiles')
+      .select('id, full_name, sede, area_trabajo')
+      .eq('role', 'trabajador')
+      .eq('status', 'activo')
+      .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }>,
+    adminClient
+      .from('courses')
+      .select('id, title, target_areas')
+      .eq('is_published', true)
+      .order('order_index') as unknown as Promise<{ data: { id: string; title: string; target_areas: string[] | null }[] | null }>,
+    adminClient
+      .from('course_progress')
+      .select('user_id, course_id, is_completed') as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean }[] | null }>,
+  ])
 
-  const { data: courses } = await adminClient
-    .from('courses')
-    .select('id, title, target_areas')
-    .eq('is_published', true)
-    .order('order_index') as { data: { id: string; title: string; target_areas: string[] | null }[] | null }
-
-  const { data: progressRaw } = await adminClient
-    .from('course_progress')
-    .select('user_id, course_id, is_completed') as { data: { user_id: string; course_id: string; is_completed: boolean }[] | null }
+  // Índice por trabajador para evitar recorrer todo el progreso por cada uno
+  const progressByUser = new Map<string, { user_id: string; course_id: string; is_completed: boolean }[]>()
+  for (const p of progressRaw ?? []) {
+    const list = progressByUser.get(p.user_id)
+    if (list) list.push(p)
+    else progressByUser.set(p.user_id, [p])
+  }
 
   // Construir datos por trabajador, respetando target_areas por curso
   const workers = (workersRaw ?? []).map(worker => {
@@ -34,7 +42,7 @@ export default async function ReportesPage() {
       return targetAreas.length === 0 || targetAreas.some(a => workerAreas.includes(a))
     })
 
-    const workerProgress = (progressRaw ?? []).filter(p => p.user_id === worker.id)
+    const workerProgress = progressByUser.get(worker.id) ?? []
     const completedIds = new Set(workerProgress.filter(p => p.is_completed).map(p => p.course_id))
 
     const totalCourses = relevantCourses.length

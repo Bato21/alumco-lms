@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
-import { WorkerEditPanel } from '@/components/alumco/WorkerEditPanel'
+import { WorkerEditPanel } from '@/components/alumco/admin/WorkerEditPanel'
 import { suspendWorkerAction, reactivateWorkerAction } from '@/lib/actions/trabajadores'
 
 interface WorkerActionsProps {

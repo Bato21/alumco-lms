@@ -379,10 +379,7 @@ const handleContinue = async () => {
         )}
 
         {/* Botón comenzar */}
-        <button
-          onClick={() => setQuizState('taking-quiz')}
-          className="w-full py-4 bg-[#2B4FA0] text-white font-semibold rounded-xl hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
-        >
+        <button onClick={() => setQuizState('taking-quiz')} className="btn btn-primary btn-lg" style={{ width: '100%' }}>
           <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polygon points="5,3 19,12 5,21" />
           </svg>
@@ -448,7 +445,8 @@ const handleContinue = async () => {
           <button
             onClick={handleSubmit}
             disabled={isSubmitting || Object.keys(answers).length < questions.length}
-            className="w-full py-3 bg-[#2B4FA0] text-white font-semibold rounded-lg hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 min-h-[48px]"
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%' }}
           >
             {isSubmitting ? (
               <>
@@ -785,54 +783,84 @@ function QuestionCard({
   const options = question.options as QuestionOption[]
 
   return (
-    <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-6">
-      <div className="flex items-start gap-4">
-        <div className="w-8 h-8 rounded-lg bg-[var(--md-primary-container)] text-[var(--md-on-primary-container)] flex items-center justify-center font-bold text-sm shrink-0">
+    <div className="card card-pad">
+      <div className="fila" style={{ alignItems: 'flex-start', gap: 16 }}>
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 'var(--radio-s)',
+            background: 'var(--azul-800)',
+            color: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 700,
+            fontSize: 14,
+            flex: 'none',
+          }}
+        >
           {index + 1}
         </div>
-        <div className="flex-1">
-          <p className="text-[var(--md-on-surface)] font-medium mb-4">{question.question_text}</p>
+        <div className="crece">
+          <p style={{ fontWeight: 600, fontSize: 16, marginBottom: 16, lineHeight: 1.35 }}>{question.question_text}</p>
 
-          <div className="space-y-2">
-            {options.map((option) => (
-              <label
-                key={option.id}
-                className={`
-                  flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all min-h-[48px]
-                  ${selectedAnswer === option.id
-                    ? 'bg-[var(--md-primary-container)] border-2 border-[var(--md-primary)]'
-                    : 'bg-[var(--md-surface-container-low)] border-2 border-transparent hover:bg-[var(--md-surface-container)]'
-                  }
-                `}
-              >
-                <input
-                  type="radio"
-                  name={question.id}
-                  value={option.id}
-                  checked={selectedAnswer === option.id}
-                  onChange={() => onSelect(option.id)}
-                  className="sr-only"
-                />
-                <span className={`
-                  w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0
-                  ${selectedAnswer === option.id
-                    ? 'bg-[var(--md-primary)] border-[var(--md-primary)] text-white'
-                    : 'border-[var(--md-outline)]'
-                  }
-                `}
+          <div className="col" style={{ gap: 10 }}>
+            {options.map((option) => {
+              const sel = selectedAnswer === option.id
+              return (
+                <label
+                  key={option.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 14,
+                    padding: '14px 16px',
+                    minHeight: 56,
+                    borderRadius: 14,
+                    cursor: 'pointer',
+                    fontSize: 15.5,
+                    fontWeight: 500,
+                    border: '2px solid ' + (sel ? 'var(--ambar)' : 'var(--borde)'),
+                    background: sel ? 'var(--ambar-50)' : 'var(--blanco)',
+                    transition: 'border-color 0.15s ease, background-color 0.15s ease',
+                  }}
                 >
-                  {selectedAnswer === option.id && (
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20,6 9,17 4,12" />
-                    </svg>
-                  )}
-                </span>
-                <div className="flex-1">
-                  <span className="font-semibold text-sm text-[var(--md-on-surface)]">{option.id.toUpperCase()}){' '}</span>
-                  <span className="text-[var(--md-on-surface)]">{option.text}</span>
-                </div>
-              </label>
-            ))}
+                  <input
+                    type="radio"
+                    name={question.id}
+                    value={option.id}
+                    checked={sel}
+                    onChange={() => onSelect(option.id)}
+                    className="sr-only"
+                  />
+                  <span
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: '50%',
+                      flex: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid ' + (sel ? 'var(--ambar-600)' : 'var(--borde)'),
+                      background: sel ? 'var(--ambar)' : 'transparent',
+                      color: '#0f172a',
+                    }}
+                  >
+                    {sel && (
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <polyline points="20,6 9,17 4,12" />
+                      </svg>
+                    )}
+                  </span>
+                  <div className="crece">
+                    <span style={{ fontWeight: 700 }}>{option.id.toUpperCase()}) </span>
+                    <span>{option.text}</span>
+                  </div>
+                </label>
+              )
+            })}
           </div>
         </div>
       </div>

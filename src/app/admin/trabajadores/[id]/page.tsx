@@ -2,17 +2,21 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, Award, BookOpen, CheckCircle2, Clock } from 'lucide-react'
+import { cache } from 'react'
 import { getWorkerDetailAction } from '@/lib/actions/trabajadores'
 import { createAdminClient } from '@/lib/supabase/server'
 import WorkerActions from './WorkerActions'
 
 export const dynamic = 'force-dynamic'
 
+// generateMetadata y la página comparten el mismo fetch dentro del request
+const getWorkerDetail = cache(getWorkerDetailAction)
+
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
 ): Promise<Metadata> {
   const { id } = await params
-  const result = await getWorkerDetailAction(id)
+  const result = await getWorkerDetail(id)
   if ('error' in result) return { title: 'Trabajador | Alumco LMS' }
   return { title: `${result.worker.full_name} | Alumco LMS` }
 }
@@ -37,16 +41,19 @@ export default async function WorkerDetailPage(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const result = await getWorkerDetailAction(id)
+  const adminClient = await createAdminClient()
+
+  const [result, { data: sedesData }] = await Promise.all([
+    getWorkerDetail(id),
+    adminClient
+      .from('sedes')
+      .select('id, nombre')
+      .eq('activa', true)
+      .order('created_at', { ascending: true }) as unknown as Promise<{ data: { id: string; nombre: string }[] | null }>,
+  ])
 
   if ('error' in result) notFound()
 
-  const adminClient = await createAdminClient()
-  const { data: sedesData } = await adminClient
-    .from('sedes')
-    .select('id, nombre')
-    .eq('activa', true)
-    .order('created_at', { ascending: true }) as { data: { id: string; nombre: string }[] | null }
   const sedes = sedesData ?? []
 
   const { worker, progress, certificates } = result

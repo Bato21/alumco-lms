@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Manual de uso · KimünKo — ONG Alumco</title>
+<style>
+  :root{ --navy:#13224d; --azul:#2B4FA0; --ambar:#F5A623; --ink:#1d2233; --muted:#5b6173; --line:#e4e8f0; --soft:#f4f6fb; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+  .page{ width:210mm; min-height:297mm; padding:18mm 17mm 16mm; page-break-after:always; position:relative; display:flex; flex-direction:column; }
+  .page:last-child{page-break-after:auto}
+
+  /* ---- COVER ---- */
+  .cover{justify-content:center;align-items:center;text-align:center;background:linear-gradient(160deg,#13224d, #21346e 70%, #2B4FA0);color:#fff}
+  .cover .drop{font-size:64px;line-height:1;margin-bottom:10px}
+  .cover h1{font-size:46px;font-weight:800;letter-spacing:-1px}
+  .cover h1 b{color:var(--ambar)}
+  .cover .tag{font-size:16px;letter-spacing:.32em;text-transform:uppercase;color:#a9b6dd;margin:18px 0 26px}
+  .cover .sub{font-size:18px;color:#dfe6f7;max-width:120mm;line-height:1.6}
+  .cover .meta{margin-top:46px;font-size:13.5px;color:#9fb0da;line-height:1.9}
+  .cover .chip{display:inline-block;border:1px solid rgba(255,255,255,.3);border-radius:30px;padding:7px 18px;color:#fff;font-size:13px;margin-top:8px}
+
+  /* ---- SECTION DIVIDER ---- */
+  .divider{justify-content:center}
+  .divider .kicker{font-size:14px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--azul)}
+  .divider h2{font-size:40px;font-weight:800;letter-spacing:-.6px;margin:10px 0 16px;color:var(--navy)}
+  .divider p{font-size:17px;color:var(--muted);max-width:140mm;line-height:1.65}
+  .divider .rule{width:60px;height:6px;border-radius:6px;background:var(--ambar);margin-top:24px}
+  .divider .num{position:absolute;right:17mm;bottom:16mm;font-size:140px;font-weight:800;color:var(--soft)}
+
+  /* ---- STEP PAGE ---- */
+  .step .top{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .step .badge{background:var(--ambar);color:var(--navy);font-weight:800;font-size:13px;border-radius:30px;padding:5px 14px;white-space:nowrap}
+  .step .part{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .step h3{font-size:27px;font-weight:800;letter-spacing:-.4px;color:var(--navy);margin-bottom:14px;line-height:1.15}
+  .shot{width:100%;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 26px -16px rgba(19,34,77,.4);overflow:hidden;background:#0e1a3d}
+  .shot img{display:block;width:100%;height:auto;max-height:128mm;object-fit:contain;background:#fff}
+  .info{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+  .what{font-size:15.5px;color:var(--ink);line-height:1.55}
+  .what b{color:var(--navy)}
+  .dos{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .dos h4{font-size:12.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--azul);margin-bottom:8px}
+  .dos ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+  .dos li{font-size:14px;color:var(--ink);line-height:1.45;padding-left:22px;position:relative}
+  .dos li::before{content:"";position:absolute;left:2px;top:7px;width:9px;height:9px;border-radius:3px;background:var(--ambar)}
+  .dos li .b{font-weight:700;color:var(--navy)}
+  .foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
+  .foot b{color:var(--navy)}
+  .foot b span{color:var(--ambar)}
+
+  @page{ size:A4; margin:0; }
+</style>
+</head>
+<body>
+<div id="doc"></div>
+<script>
+const PARTS = {
+  Login:    {part:'Parte 1 · Acceso', title:'Acceso a la plataforma', desc:'Cómo entrar, recuperar la contraseña y solicitar una cuenta. Es la puerta de entrada tanto para trabajadores como para administradores.'},
+  Usuario:  {part:'Parte 2 · Trabajador', title:'Vista del trabajador', desc:'Lo que ve y hace un colaborador: revisar sus cursos asignados, ver el contenido, rendir las evaluaciones y obtener sus certificados.'},
+  Admin:    {part:'Parte 3 · Administrador', title:'Vista del administrador', desc:'Lo que ve y hace quien gestiona la plataforma: crear cursos, administrar personas y sedes, y revisar reportes y certificados.'},
+};
+// area, file, title, what, dos[]
+const S = [
+['Login','login','Iniciar sesión','Es la primera pantalla. Aquí cada persona entra con su correo y contraseña.',
+  ['Escribe tu correo y contraseña y pulsa <span class="b">Ingresar</span>.','Si eres trabajador entras a tu inicio; si eres administrador, al panel de gestión.','<span class="b">¿Olvidó su clave?</span> recupera la contraseña · <span class="b">Solicitar acceso</span> crea una cuenta nueva.']],
+['Login','register','Crear una cuenta','Cuando alguien aún no tiene cuenta, la solicita aquí.',
+  ['Completa nombre, RUT, correo y contraseña.','Pulsa <span class="b">Enviar solicitud</span>.','Un administrador revisa y aprueba la cuenta; la persona recibe un aviso por correo.']],
+['Login','olvidoContraseña','Recuperar contraseña','Para cuando alguien olvidó su clave.',
+  ['Escribe tu correo y pulsa <span class="b">Enviar enlace de recuperación</span>.','Llega un correo con un enlace para crear una nueva contraseña.','<span class="b">Volver</span> regresa al inicio de sesión.']],
+
+['Usuario','dashboardUsuario','Inicio del trabajador','La página principal del colaborador al entrar.',
+  ['Muestra cuántos cursos tiene al día, en progreso o vencidos.','El calendario muestra los plazos de cada curso.','Botón <span class="b">Ver mis cursos</span> lleva al listado de cursos.']],
+['Usuario','cursosUsuario','Mis cursos','El listado de cursos asignados a la persona según su área.',
+  ['Cada tarjeta es un curso, con su avance.','Pulsa un curso para abrirlo y empezarlo.','Arriba hay pestañas para filtrar por estado.']],
+['Usuario','cursosProgreso','Cursos en progreso','Filtro que muestra solo los cursos empezados pero no terminados.',
+  ['Útil para retomar lo que quedó a medias.']],
+['Usuario','cursosCompletados','Cursos completados','Filtro que muestra los cursos ya aprobados.',
+  ['Sirve para ver de un vistazo lo que ya está listo.']],
+['Usuario','cursosSinIniciar','Cursos sin iniciar','Filtro que muestra los cursos que todavía no comienza.',
+  ['Ayuda a saber qué falta por hacer.']],
+['Usuario','iniciarCurso','Detalle de un curso','Al abrir un curso se ven todos sus módulos y el avance.',
+  ['Muestra el progreso (ej.: 2 de 3 módulos).','Pulsa un módulo para verlo.','Los módulos se desbloquean en orden.']],
+['Usuario','iniciarModulo','Dentro de un módulo','Aquí está el contenido a estudiar: un video o un documento.',
+  ['Mira el video o lee el documento.','Al terminarlo, el módulo se marca como completado.','Botones para ir al módulo anterior o siguiente.']],
+['Usuario','videoTerminado','Video completado','Cuando se termina de ver el video del módulo.',
+  ['El módulo queda marcado como visto.','Se habilita continuar al siguiente.']],
+['Usuario','siguienteModuloPdf','Pasar al siguiente módulo','Botón para avanzar dentro del curso.',
+  ['Lleva al próximo módulo de la lista.']],
+['Usuario','pdfLeido','Documento revisado','Cuando el módulo es un documento (PDF) y ya se leyó.',
+  ['El módulo se marca como completado.','Permite seguir con el siguiente paso.']],
+['Usuario','descargarPdf','Descargar el documento','Opción para guardar el PDF del módulo.',
+  ['Pulsa para descargarlo y leerlo cuando quieras, incluso sin internet.']],
+['Usuario','contactarAdmin','Pedir ayuda','Si hay dudas sobre el contenido del módulo.',
+  ['Botón <span class="b">Contactar administrador</span> abre un correo para escribirle.']],
+['Usuario','comenzarQuiz','Evaluación: empezar','Antes de una prueba se ve un resumen.',
+  ['Muestra cuántas preguntas tiene y el puntaje mínimo para aprobar.','Pulsa <span class="b">Comenzar evaluación</span> para iniciar.']],
+['Usuario','responderQuiz','Responder la evaluación','La prueba con las preguntas del módulo.',
+  ['Marca una respuesta por pregunta.','Al terminar, pulsa <span class="b">Enviar evaluación</span>.']],
+['Usuario','cursoAprobado','¡Evaluación aprobada!','Cuando se alcanza el puntaje mínimo.',
+  ['La prueba queda aprobada.','Botón para continuar al siguiente módulo.']],
+['Usuario','reintentarQuiz','Evaluación reprobada','Cuando no se alcanza el puntaje.',
+  ['Se puede intentar de nuevo (según los intentos disponibles).','Botón <span class="b">Reintentar</span>.']],
+['Usuario','siguienteModuloQuiz','Continuar tras aprobar','Después de aprobar la evaluación.',
+  ['Avanza al siguiente módulo del curso.']],
+['Usuario','cursoFinalizado','Curso finalizado','Cuando se completan todos los módulos.',
+  ['El curso queda aprobado.','Habilita obtener el certificado.']],
+['Usuario','misCertificados','Mis certificados','Los certificados ganados al aprobar cursos.',
+  ['Cada tarjeta es un certificado con su fecha.','Botón <span class="b">Ver</span> abre el certificado.']],
+['Usuario','verCertificado','Ver y descargar el certificado','El certificado en formato PDF.',
+  ['Se puede ver en pantalla o descargar para imprimir.']],
+['Usuario','miPerfil','Mi perfil','Los datos personales del trabajador.',
+  ['Muestra correo, RUT, sede y área de trabajo.','Algunos datos se pueden editar y guardar.']],
+['Usuario','alertasUsuario','Notificaciones','La campana de avisos.',
+  ['Muestra recordatorios, por ejemplo cursos por vencer.']],
+['Usuario','busquedaUsuario','Buscar','El buscador de la barra superior.',
+  ['Permite encontrar un curso rápido por su nombre.']],
+
+['Admin','dashboardAdmin','Panel del administrador','La vista general de quien gestiona la plataforma.',
+  ['Muestra colaboradores activos, cumplimiento y certificados.','Compara el avance por sede.','Desde aquí se llega a todas las secciones.']],
+['Admin','cursosAdmin','Gestión de cursos','El listado de todas las capacitaciones.',
+  ['Botón <span class="b">Nueva capacitación</span> crea un curso.','En cada curso: <span class="b">Editar</span> o <span class="b">Ver reporte</span>.']],
+['Admin','cursosPublciados','Cursos publicados','Filtro de los cursos visibles para los trabajadores.',
+  ['Son los que el personal ya puede hacer.']],
+['Admin','cursosBorradores','Cursos en borrador','Filtro de los cursos aún no publicados.',
+  ['Se siguen editando antes de mostrarlos.']],
+['Admin','nuevoCurso','Crear un curso · Paso 1','Los datos básicos del nuevo curso.',
+  ['Pones título, descripción y fecha límite.','Eliges a qué áreas va dirigido.','Botón <span class="b">Crear y agregar módulos</span> sigue al paso 2.']],
+['Admin','seleccionarAreas','Elegir áreas','A qué áreas de trabajo se asigna el curso.',
+  ['Marca una o varias áreas (ej.: Enfermería).','Solo esas áreas verán el curso.']],
+['Admin','creacionModulos','Armar el curso · Paso 2','El constructor del curso.',
+  ['Agregas bloques: <span class="b">Video</span>, <span class="b">PDF</span> o <span class="b">Evaluación</span>.','Se ordenan arrastrando.','Cuando está listo, se publica.']],
+['Admin','crearVideo','Agregar un video','Un módulo de tipo video.',
+  ['Se pega el enlace del video (YouTube).']],
+['Admin','crearPdf','Agregar un documento','Un módulo con un PDF.',
+  ['Se sube el documento que leerán los trabajadores.']],
+['Admin','crearQuiz','Agregar una evaluación','La prueba del módulo.',
+  ['Se escriben las preguntas y respuestas.','Se define el puntaje mínimo para aprobar.']],
+['Admin','eliminarCurso','Eliminar un curso','Para borrar una capacitación.',
+  ['Pide confirmación antes de eliminar.']],
+['Admin','trabajadores','Trabajadores','El listado del personal de la organización.',
+  ['Ver cada persona con <span class="b">Ver</span>.','Aprobar solicitudes nuevas.','Filtrar por sede o área.']],
+['Admin','solicitudesPendientes','Solicitudes de acceso','Las personas que pidieron una cuenta y esperan aprobación.',
+  ['Aquí se <span class="b">aprueba</span> o <span class="b">rechaza</span> cada solicitud.']],
+['Admin','detalleTrabajador','Ficha de un trabajador','Toda la información de una persona.',
+  ['Muestra sus datos y su avance en cada curso.','Botones para editarla o suspenderla.']],
+['Admin','editarTrabajador','Editar trabajador','Para cambiar los datos de una persona.',
+  ['Se actualizan sus datos o sus áreas de trabajo.']],
+['Admin','suspenderTrabajador','Suspender trabajador','Para desactivar temporalmente una cuenta.',
+  ['La persona deja de tener acceso hasta reactivarla.']],
+['Admin','trabajadoresSuspendidos','Trabajadores suspendidos','El listado de cuentas desactivadas.',
+  ['Desde aquí se pueden reactivar.']],
+['Admin','filtroAreaTrab','Filtrar por área','Muestra solo los trabajadores de un área.',
+  ['Útil para revisar un equipo específico.']],
+['Admin','filtroSede','Filtrar por sede','Muestra solo los trabajadores de una sede.',
+  ['Útil para ver una residencia en particular.']],
+['Admin','sedes','Sedes','Las residencias o sedes de la organización.',
+  ['Botón para <span class="b">crear</span> una sede.','Cada sede se puede <span class="b">activar</span> o <span class="b">desactivar</span>.']],
+['Admin','desactivarSede','Desactivar una sede','Para marcar una sede como inactiva.',
+  ['Deja de aparecer como activa en la organización.']],
+['Admin','sedePrueba','Crear una sede','Para agregar una sede nueva.',
+  ['Se escribe el nombre y se pulsa <span class="b">Crear sede</span>.']],
+['Admin','reportes','Reportes','El cumplimiento de capacitación de todo el personal.',
+  ['Muestra el % de avance por trabajador.','Se puede filtrar por sede, área o curso.']],
+['Admin','detalleReporte','Detalle de reporte','El avance en profundidad.',
+  ['Muestra quién completó qué y cuándo.']],
+['Admin','filtroAreaRep','Reporte filtrado por área','Acota el reporte a un área de trabajo.',['Solo aparece el personal de esa área.']],
+['Admin','filtroEstadoRep','Reporte filtrado por estado','Acota por estado (al día, pendiente, etc.).',['Ayuda a ubicar a quién le falta.']],
+['Admin','filtroSedeRep','Reporte filtrado por sede','Acota el reporte a una sede.',['Solo aparece el personal de esa sede.']],
+['Admin','exportarCSVRep','Exportar el reporte','Para descargar el reporte.',
+  ['Botón <span class="b">Exportar CSV</span> baja un archivo que se abre en Excel.']],
+['Admin','Certificados','Certificados emitidos','Todos los certificados que ha entregado la plataforma.',
+  ['Lista con la persona, el curso y la fecha.','Se pueden ver, descargar o filtrar.']],
+['Admin','verCert','Ver un certificado','El certificado de una persona.',
+  ['Se abre para revisarlo.']],
+['Admin','descargarCert','Descargar certificado','Para guardar el certificado en PDF.',
+  ['Listo para imprimir o enviar.']],
+['Admin','filtroNombreCert','Filtrar por nombre','Busca certificados de una persona.',['Se escribe el nombre.']],
+['Admin','filtroInicioCert','Filtrar desde una fecha','Muestra certificados emitidos a partir de una fecha.',['Se elige la fecha de inicio.']],
+['Admin','filtroFinCert','Filtrar hasta una fecha','Muestra certificados emitidos hasta una fecha.',['Se elige la fecha de término.']],
+['Admin','exportarCSVCert','Exportar certificados','Para descargar la lista de certificados.',
+  ['Botón <span class="b">Exportar CSV</span> baja un archivo para Excel.']],
+['Admin','miPerfilAdmin','Perfil del administrador','Los datos de quien gestiona, y su firma.',
+  ['Muestra sus datos personales.','Incluye la firma digital que va en los certificados.']],
+['Admin','subirFirma','Subir la firma','Para cargar la firma del administrador.',
+  ['Se sube una imagen de la firma.','Esa firma se estampa automáticamente en los certificados.']],
+['Admin','alertas','Notificaciones del administrador','La campana de avisos del panel.',
+  ['Muestra solicitudes y avisos importantes.']],
+['Admin','busqueda','Buscar (administrador)','El buscador del panel.',
+  ['Encuentra cursos o personas rápidamente.']],
+];
+
+const doc = document.getElementById('doc');
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+
+// cover
+doc.appendChild(el(`<section class="page cover">
+  <div class="drop">💧</div>
+  <h1>Kimün<b>Ko</b></h1>
+  <div class="tag">Manual de uso</div>
+  <div class="sub">Guía paso a paso de la plataforma de capacitación de <b>ONG Alumco</b>. Pensada para usarse sin conocimientos técnicos: una pantalla por página, con qué es y qué se puede hacer.</div>
+  <div class="meta">Plataforma: alumco-lms.vercel.app<br>Junio 2026</div>
+  <div><span class="chip">${S.length} pantallas · 3 partes</span></div>
+</section>`));
+
+let order = ['Login','Usuario','Admin'];
+let n = 0;
+let partNumber = 0;
+order.forEach(area=>{
+  partNumber++;
+  const P = PARTS[area];
+  doc.appendChild(el(`<section class="page divider">
+    <div class="kicker">${P.part}</div>
+    <h2>${P.title}</h2>
+    <p>${P.desc}</p>
+    <div class="rule"></div>
+    <div class="num">${partNumber}</div>
+  </section>`));
+  S.filter(s=>s[0]===area).forEach(s=>{
+    n++;
+    const [ar,file,title,what,dos]=s;
+    const src='capturas/'+ar+'/'+file+'.png';
+    const lis = dos.map(d=>`<li>${d}</li>`).join('');
+    doc.appendChild(el(`<section class="page step">
+      <div class="top"><span class="badge">Paso ${n}</span><span class="part">${P.part}</span></div>
+      <h3>${title}</h3>
+      <div class="shot"><img src="${src}" alt="${title}"></div>
+      <div class="info">
+        <div class="what">${what}</div>
+        <div class="dos"><h4>¿Qué puedes hacer aquí?</h4><ul>${lis}</ul></div>
+      </div>
+      <div class="foot"><b>Kimün<span>Ko</span> · ONG Alumco</b><span>Paso ${n} de ${S.length}</span></div>
+    </section>`));
+  });
+});
+</script>
+</body>
+</html>

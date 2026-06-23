@@ -1,4 +1,4 @@
-import { SkeletonStatsRow, SkeletonTable } from '@/components/alumco/Skeletons'
+import { SkeletonStatsRow, SkeletonTable } from '@/components/alumco/shared/Skeletons'
 
 export default function ReportesLoading() {
   return (

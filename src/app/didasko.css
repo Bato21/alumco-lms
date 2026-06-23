@@ -1,0 +1,854 @@
+/* ============================================================
+   DIDASKO theme — portado tal cual del diseño "Amanecer sobre agua"
+   Fuente: Rediseño web.zip (alumco.css + tema-didasko.css)
+   data-tema="didasko" siempre activo (ver layout.tsx)
+   ============================================================ */
+
+/* ============================================================
+   ALUMCO LMS — Sistema "Amanecer sobre agua"
+   Tokens + componentes base. Fraunces (display) + Geist (cuerpo)
+   ============================================================ */
+
+:root {
+  /* Marca */
+  --azul-950: #0f1f4d;
+  --azul-900: #152a66;
+  --azul-800: #1e3a8a;
+  --azul-700: #2c4a9e;
+  --azul-100: #dde6f5;
+  --azul-50:  #eef3fb;
+
+  --ambar:      #F5A623;
+  --ambar-600:  #e08e0b;
+  --ambar-700:  #b45309;
+  --ambar-100:  #fdebc8;
+  --ambar-50:   #fdf6e7;
+
+  /* Neutrales cálidos */
+  --crema:     #FCFAF6;
+  --blanco:    #ffffff;
+  --arena-100: #f4efe6;
+  --arena-200: #ece5d8;
+  --borde:     #e8e1d4;
+  --borde-suave: #f0eadf;
+  --tinta:     #21283b;
+  --tinta-2:   #4b5268;
+  --tinta-3:   #6e7488; /* AA: 4.6:1 sobre blanco (antes #7c8198 = 3.85:1, fallaba) */
+
+  /* Estados (cálidos, armonizados) */
+  --ok:       #2e7d5b;
+  --ok-bg:    #e5f2ec;
+  --peligro:  #bb3a2e;
+  --peligro-bg: #faeae7;
+  --aviso:    #b45309;
+  --aviso-bg: #fdf0d8;
+  --info:     #2c4a9e;
+  --info-bg:  #e7edf9;
+
+  --grad-marca: linear-gradient(168deg, #152a66 0%, #1e3a8a 100%);
+
+  --sombra-1: 0 1px 2px rgba(21, 42, 102, 0.06), 0 1px 6px rgba(21, 42, 102, 0.05);
+  --sombra-2: 0 4px 14px rgba(21, 42, 102, 0.10), 0 1px 4px rgba(21, 42, 102, 0.06);
+  --sombra-3: 0 14px 40px rgba(21, 42, 102, 0.16);
+
+  --radio-s: 8px;
+  --radio-m: 12px;
+  --radio-l: 18px;
+
+  --fuente-display: var(--font-display), "Fraunces", Georgia, serif;
+  --fuente-cuerpo: var(--font-sans), "Geist", -apple-system, "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--crema);
+  color: var(--tinta);
+  font-family: var(--fuente-cuerpo);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 600; text-wrap: balance; }
+p { margin: 0; text-wrap: pretty; }
+a { color: var(--ambar-700); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; }
+
+::selection { background: var(--ambar-100); }
+
+:focus-visible {
+  outline: 3px solid var(--ambar);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---------- Tipografía display ---------- */
+.t-display {
+  font-family: var(--fuente-display);
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+}
+.t-display em {
+  font-style: italic;
+  color: var(--ambar-700);
+}
+.t-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ambar-700);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radio-m);
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 11px 20px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+.btn:active { transform: translateY(1px); }
+
+.btn-primary {
+  background: var(--ambar);
+  color: #0f172a;
+  box-shadow: var(--sombra-1);
+}
+.btn-primary:hover { background: var(--ambar-600); box-shadow: var(--sombra-2); }
+
+.btn-secondary {
+  background: var(--blanco);
+  color: var(--azul-800);
+  border-color: var(--borde);
+}
+.btn-secondary:hover { border-color: var(--azul-700); background: var(--azul-50); }
+
+.btn-marca {
+  background: var(--grad-marca);
+  color: #fff;
+}
+.btn-marca:hover { opacity: 0.92; box-shadow: var(--sombra-2); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--tinta-2);
+}
+.btn-ghost:hover { background: var(--arena-100); color: var(--tinta); }
+
+.btn-peligro-ghost { background: transparent; color: var(--peligro); }
+.btn-peligro-ghost:hover { background: var(--peligro-bg); }
+
+.btn-sm { padding: 7px 14px; min-height: 36px; font-size: 14px; border-radius: 10px; }
+.btn-lg { padding: 14px 26px; min-height: 52px; font-size: 16px; border-radius: 14px; }
+.btn-icon { padding: 0; width: 44px; min-width: 44px; }
+.btn-icon.btn-sm { width: 36px; min-width: 36px; }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--blanco);
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio-l);
+  box-shadow: var(--sombra-1);
+}
+.card-hover { transition: transform 0.15s ease, box-shadow 0.2s ease; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: var(--sombra-2); }
+.card-pad { padding: 22px; }
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.badge-ok      { background: var(--ok-bg);      color: var(--ok); }
+.badge-peligro { background: var(--peligro-bg); color: var(--peligro); }
+.badge-aviso   { background: var(--aviso-bg);   color: var(--aviso); }
+.badge-info    { background: var(--info-bg);    color: var(--info); }
+.badge-neutro  { background: var(--arena-100);  color: var(--tinta-2); }
+
+/* ---------- Formularios ---------- */
+.campo { display: flex; flex-direction: column; gap: 7px; }
+.campo label { font-size: 14px; font-weight: 600; color: var(--tinta); }
+.campo .ayuda { font-size: 13px; color: var(--tinta-3); }
+
+.input, .select, .textarea {
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--tinta);
+  background: var(--blanco);
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-m);
+  padding: 11px 14px;
+  min-height: 46px;
+  width: 100%;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
+.input:hover, .select:hover, .textarea:hover { border-color: #d5cdbd; }
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--ambar);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.22);
+}
+.input::placeholder, .textarea::placeholder { color: var(--tinta-3); }
+
+.input-busqueda {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--blanco);
+  border: 1.5px solid var(--borde);
+  border-radius: 999px;
+  padding: 0 16px;
+  min-height: 44px;
+  color: var(--tinta-3);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-busqueda:focus-within {
+  border-color: var(--ambar);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.22);
+}
+.input-busqueda input {
+  border: none; outline: none; background: transparent;
+  font: inherit; font-size: 15px; color: var(--tinta); width: 100%;
+}
+
+/* ---------- Tabla ---------- */
+.tabla-envoltura { overflow-x: auto; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.tabla th {
+  text-align: left;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--borde);
+  white-space: nowrap;
+}
+.tabla td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borde-suave);
+  vertical-align: middle;
+}
+.tabla tbody tr { transition: background-color 0.12s ease; }
+.tabla tbody tr:hover { background: var(--ambar-50); }
+.tabla tbody tr:last-child td { border-bottom: none; }
+.densidad-compacta .tabla td { padding: 9px 14px; }
+.densidad-compacta .tabla th { padding: 9px 14px; }
+.densidad-compacta .card-pad { padding: 16px; }
+
+/* ---------- Avatar ---------- */
+.avatar {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: var(--azul-100);
+  color: var(--azul-800);
+  font-weight: 600;
+  flex: none;
+}
+
+/* ---------- Progreso ---------- */
+.progreso {
+  height: 8px; border-radius: 999px;
+  background: var(--arena-200);
+  overflow: hidden;
+}
+.progreso > div {
+  height: 100%; border-radius: 999px;
+  background: var(--ambar);
+  transform-origin: left center;
+  transition: width 0.4s ease;
+}
+.progreso-azul > div { background: var(--azul-700); }
+
+/* ---------- Skeleton (pulso de opacidad: solo opacity) ---------- */
+.skeleton {
+  background: var(--arena-200);
+  border-radius: 8px;
+  animation: pulso-skeleton 1.4s ease-in-out infinite;
+}
+@keyframes pulso-skeleton {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* ---------- Empty state ---------- */
+.vacio {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 56px 32px;
+  gap: 6px;
+}
+.vacio .vacio-icono {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: var(--ambar-50);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ambar-700);
+  margin-bottom: 12px;
+}
+.vacio h3 { font-family: var(--fuente-display); font-size: 21px; font-weight: 560; }
+.vacio p { color: var(--tinta-2); font-size: 14.5px; max-width: 360px; }
+
+/* ---------- Sidebar admin ---------- */
+.sidebar {
+  width: 264px;
+  flex: none;
+  background: var(--grad-marca);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+.sidebar::after {
+  /* onda sutil al pie */
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 130px;
+  background:
+    radial-gradient(120% 70% at 50% 130%, rgba(245, 166, 35, 0.14) 0%, transparent 60%);
+  pointer-events: none;
+}
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  min-height: 44px;
+  border-radius: var(--radio-m);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.nav-item.activo {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  box-shadow: inset 3px 0 0 var(--ambar);
+}
+.nav-item svg { flex: none; opacity: 0.9; }
+.nav-seccion {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+  padding: 18px 14px 6px;
+}
+
+/* ---------- Topbar ---------- */
+.topbar {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 28px;
+  background: rgba(252, 250, 246, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--borde-suave);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* ---------- Chips / pestañas filtro ---------- */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1.5px solid var(--borde);
+  background: var(--blanco);
+  color: var(--tinta-2);
+  font-size: 14.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.chip:hover { border-color: var(--ambar); color: var(--tinta); }
+.chip.activo {
+  background: var(--azul-800);
+  border-color: var(--azul-800);
+  color: #fff;
+}
+.chip .conteo {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 1px 8px;
+  font-weight: 600;
+}
+.chip:not(.activo) .conteo { background: var(--arena-100); color: var(--tinta-3); }
+
+/* ---------- Animaciones de entrada ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .entra { animation: entra-suave 0.35s ease; }
+  .entra-1 { animation-delay: 0.04s; animation-fill-mode: backwards; }
+  .entra-2 { animation-delay: 0.08s; animation-fill-mode: backwards; }
+  .entra-3 { animation-delay: 0.12s; animation-fill-mode: backwards; }
+  .entra-4 { animation-delay: 0.16s; animation-fill-mode: backwards; }
+}
+@keyframes entra-suave {
+  from { transform: translateY(10px); }
+  to   { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Utilidades ---------- */
+.fila { display: flex; align-items: center; gap: 12px; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.crece { flex: 1; min-width: 0; }
+.silencio { color: var(--tinta-2); }
+.silencio-3 { color: var(--tinta-3); }
+.texto-s { font-size: 13.5px; }
+.recorte { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Scrollbar sutil ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: var(--arena-200); border-radius: 999px; border: 2px solid var(--crema); }
+::-webkit-scrollbar-track { background: transparent; }
+
+
+/* ============================================================
+   TEMA "DIDASKO" — estructura neo-brutalista de la referencia,
+   pero con la PALETA ALUMCO (azul marino + ámbar).
+   Activo cuando <body data-tema="didasko">. Solo overrides.
+   ============================================================ */
+
+body[data-tema="didasko"] {
+  /* Neutrales: crema con retícula de puntos */
+  --crema: #FAF6ED;
+  --blanco: #FFFDF6;
+  --arena-100: #F3ECDC;
+  --arena-200: #E9E0CA;
+  --borde: #1e3a8a;
+  --borde-suave: #E5DCC4;
+
+  /* Sombras duras en azul marca */
+  --sombra-1: 3px 3px 0 rgba(30, 58, 138, 0.9);
+  --sombra-2: 5px 5px 0 rgba(30, 58, 138, 0.9);
+  --sombra-3: 9px 9px 0 rgba(30, 58, 138, 0.9);
+
+  --radio-s: 6px;
+  --radio-m: 9px;
+  --radio-l: 12px;
+
+  --fuente-display: var(--font-archivo), "Archivo", "Geist", sans-serif;
+
+  background-color: var(--crema);
+  background-image: radial-gradient(#E0D6BA 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+
+/* ---------- Tipografía ---------- */
+body[data-tema="didasko"] .t-display {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  line-height: 1.08;
+}
+body[data-tema="didasko"] .t-display em {
+  font-style: normal;
+  color: var(--azul-900);
+  background: var(--ambar);
+  box-shadow: 0 0 0 3px var(--ambar);
+  border-radius: 2px;
+}
+/* En bloques azules el resaltado mantiene legibilidad */
+body[data-tema="didasko"] .t-display em[style] {
+  color: var(--azul-900) !important;
+}
+body[data-tema="didasko"] .t-eyebrow {
+  background: var(--ambar);
+  border: 1.5px solid var(--azul-800);
+  border-radius: 6px;
+  padding: 3px 10px;
+  color: #152a66 !important;
+  box-shadow: 2px 2px 0 var(--azul-800);
+  font-size: 11px;
+  display: inline-block;
+  line-height: 1.6;
+  max-width: 100%;
+}
+body[data-tema="didasko"] a {
+  color: var(--azul-800);
+  text-decoration: underline;
+  text-decoration-color: var(--ambar);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+/* ---------- Cards ---------- */
+body[data-tema="didasko"] .card {
+  border: 2px solid var(--azul-800);
+  box-shadow: 4px 4px 0 var(--azul-800);
+}
+body[data-tema="didasko"] .card-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--azul-800);
+}
+
+/* ---------- Botones ---------- */
+body[data-tema="didasko"] .btn {
+  border: 2px solid var(--azul-800);
+  font-weight: 700;
+}
+body[data-tema="didasko"] .btn-primary {
+  background: var(--ambar);
+  color: var(--azul-950);
+  box-shadow: 3px 3px 0 var(--azul-800);
+}
+body[data-tema="didasko"] .btn-primary:hover {
+  background: var(--ambar-600);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--azul-800);
+}
+body[data-tema="didasko"] .btn-secondary {
+  background: var(--blanco);
+  color: var(--azul-800);
+  box-shadow: 3px 3px 0 var(--azul-800);
+}
+body[data-tema="didasko"] .btn-secondary:hover {
+  background: var(--ambar-50);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--azul-800);
+}
+body[data-tema="didasko"] .btn-marca {
+  background: var(--azul-800);
+  color: #fff;
+  box-shadow: 3px 3px 0 var(--ambar);
+}
+body[data-tema="didasko"] .btn-ghost,
+body[data-tema="didasko"] .btn-peligro-ghost {
+  border-color: transparent;
+  font-weight: 600;
+}
+body[data-tema="didasko"] .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--azul-800); }
+body[data-tema="didasko"] .btn-ghost:active,
+body[data-tema="didasko"] .btn-peligro-ghost:active { box-shadow: none; }
+
+/* Botones dentro de bloques azules: borde ámbar para no perderse */
+body[data-tema="didasko"] .bloque-marca .btn-primary {
+  border-color: var(--azul-950);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- Badges / chips ---------- */
+body[data-tema="didasko"] .badge {
+  border: 1.5px solid currentColor;
+  border-radius: 6px;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+body[data-tema="didasko"] .chip {
+  border: 2px solid var(--azul-800);
+  border-radius: 8px;
+  background: var(--blanco);
+  color: var(--azul-900);
+  font-weight: 600;
+  box-shadow: 2px 2px 0 var(--azul-800);
+}
+body[data-tema="didasko"] .chip:hover { background: var(--ambar-50); }
+body[data-tema="didasko"] .chip.activo {
+  background: var(--azul-800);
+  color: #fff;
+}
+
+/* ---------- Formularios ---------- */
+body[data-tema="didasko"] .input,
+body[data-tema="didasko"] .select,
+body[data-tema="didasko"] .textarea,
+body[data-tema="didasko"] .input-busqueda {
+  border: 2px solid var(--azul-800);
+  background: var(--blanco);
+}
+body[data-tema="didasko"] .input-busqueda { border-radius: 10px; }
+body[data-tema="didasko"] .input:focus,
+body[data-tema="didasko"] .select:focus,
+body[data-tema="didasko"] .textarea:focus,
+body[data-tema="didasko"] .input-busqueda:focus-within {
+  border-color: var(--azul-800);
+  box-shadow: 3px 3px 0 var(--ambar);
+}
+
+/* ---------- Progreso ---------- */
+body[data-tema="didasko"] .progreso {
+  border: 1.5px solid var(--azul-800);
+  background: var(--blanco);
+}
+body[data-tema="didasko"] .progreso > div { background: var(--ambar); }
+body[data-tema="didasko"] .progreso-azul > div { background: var(--azul-800); }
+/* Dentro de bloques azules el riel necesita contraste */
+body[data-tema="didasko"] .bloque-marca .progreso {
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ---------- Tabla ---------- */
+body[data-tema="didasko"] .tabla th {
+  color: var(--azul-900);
+  border-bottom: 2px solid var(--azul-800);
+}
+body[data-tema="didasko"] .tabla tbody tr:hover { background: var(--ambar-50); }
+
+/* ---------- Avatares ---------- */
+body[data-tema="didasko"] .avatar {
+  border: 2px solid var(--azul-800);
+  background: var(--ambar-100);
+  color: var(--azul-900);
+}
+
+/* ---------- Topbar ---------- */
+body[data-tema="didasko"] .topbar {
+  background: rgba(250, 246, 237, 0.95);
+  border-bottom: 2px solid var(--azul-800);
+}
+
+/* ---------- Sidebar: blanco con pill azul (estructura Didasko, color Alumco) ---------- */
+body[data-tema="didasko"] .sidebar {
+  background: var(--blanco);
+  border-right: 2px solid var(--azul-800);
+}
+body[data-tema="didasko"] .sidebar::after { display: none; }
+body[data-tema="didasko"] .sidebar div,
+body[data-tema="didasko"] .sidebar span {
+  color: var(--azul-900);
+}
+body[data-tema="didasko"] .nav-seccion { color: var(--tinta-3) !important; }
+body[data-tema="didasko"] .nav-item { color: #152a66 !important; font-weight: 600; }
+body[data-tema="didasko"] .nav-item:hover { background: #FFF3C9; color: #152a66 !important; }
+body[data-tema="didasko"] .nav-item.activo {
+  background: #1e3a8a !important;
+  color: #fff !important;
+  box-shadow: 3px 3px 0 var(--ambar);
+}
+body[data-tema="didasko"] .sidebar .nav-item.activo,
+body[data-tema="didasko"] .sidebar .nav-item.activo div,
+body[data-tema="didasko"] .sidebar .nav-item.activo span { color: #fff !important; }
+body[data-tema="didasko"] .sidebar .btn-icon {
+  background: var(--blanco) !important;
+  border: 2px solid var(--azul-800);
+  color: var(--azul-800) !important;
+}
+/* Onda del sidebar no aplica sobre fondo blanco */
+body[data-tema="didasko"] .sidebar .onda { display: none; }
+
+/* ---------- Bloques azules de marca (heros, cabeceras) ----------
+   Mantienen el azul Alumco; solo ganan borde y sombra dura. */
+body[data-tema="didasko"] .card.bloque-marca {
+  border: 2px solid var(--azul-950) !important;
+  box-shadow: 4px 4px 0 var(--ambar);
+}
+body[data-tema="didasko"] .card.bloque-marca .t-display { color: #fff; }
+
+/* ---------- Mezcla de esquinas: rectas + redondeadas ----------
+   Como la referencia: algunos bloques de esquinas rectas conviven
+   con las tarjetas redondeadas para dar ritmo y no saturar. */
+
+/* Bloques protagonistas (heros azules): rectos */
+body[data-tema="didasko"] .card.bloque-marca { border-radius: 0; }
+
+/* Tarjetas-fila (stats, alertas, perfil): rectas */
+body[data-tema="didasko"] .card.fila { border-radius: 0; }
+
+/* En grillas de tarjetas, alternar: impares rectas, pares redondeadas */
+body[data-tema="didasko"] article.card:nth-of-type(odd) { border-radius: 0; }
+
+/* Rellenos pastel ocasionales (paleta Alumco, nunca dos seguidos) */
+body[data-tema="didasko"] article.card:nth-of-type(6n+1) { background: var(--ambar-50); }
+body[data-tema="didasko"] article.card:nth-of-type(6n+4) { background: var(--azul-50); }
+body[data-tema="didasko"] .fila.card:nth-child(3n+2) { background: var(--ambar-50); }
+
+/* ---------- Skeleton / vacíos ---------- */
+body[data-tema="didasko"] .skeleton { background: var(--arena-200); }
+body[data-tema="didasko"] .vacio .vacio-icono {
+  border: 2px solid var(--azul-800);
+  background: var(--ambar);
+  color: var(--azul-900);
+}
+body[data-tema="didasko"] .vacio h3 { text-transform: uppercase; font-weight: 800; }
+
+/* Scrollbar acorde */
+body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border-color: var(--crema); }
+
+/* ============================================================
+   PALETA OLIVA — la misma del landing (.landing-page):
+   azul marino de marca + verde oliva/salvia como acento
+   (reemplaza el ámbar). Scoped a .paleta-oliva.
+   ============================================================ */
+.paleta-oliva {
+  --ambar:       #6E8B6A;
+  --ambar-600:   #5f7d5b;
+  --ambar-700:   #4f6a4c;
+  --ambar-100:   #dde7da;
+  --ambar-50:    #eef2ec;
+  /* oliva oscuro (secciones tipo landing) + sage claro (acento sobre azul) */
+  --oliva-950:   #222a1f;
+  --oliva-900:   #2b3427;
+  --oliva-800:   #3a4636;
+  --oliva-clara: #aac6a3;
+  --grad-oliva:  linear-gradient(168deg, #2b3427 0%, #3a4636 100%);
+  /* bordes neutros suaves (didasko los pone azul marino, demasiado duro) */
+  --borde:       #ded7c8;
+  --borde-suave: #ece6d9;
+}
+.paleta-oliva .acento-claro { color: var(--oliva-clara) !important; }
+
+/* ============================================================
+   ADMIN CALMO — menos brutalismo, más claridad de datos
+   (bajar carga cognitiva: PDFs usabilidad/redacción web).
+   Solo dentro de .paleta-oliva.
+   ============================================================ */
+/* Fondo liso + números tabulares (columnas de métricas no bailan) */
+.paleta-oliva { background: var(--crema); font-variant-numeric: tabular-nums; }
+
+/* Tipografía display = la del landing: serif Playfair, sentence-case
+   (mata el Archivo mayúsculas peso 800 "tipo cómic"). Cuerpo sigue Geist. */
+body[data-tema="didasko"] .paleta-oliva .t-display {
+  font-family: var(--font-serif-display), "Playfair Display", Georgia, serif;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.16;
+}
+
+/* IMPORTANTE: didasko usa selector `body[data-tema=...]` (más específico que
+   `.paleta-oliva`). Para ganar la cascada, TODO override lleva el mismo prefijo. */
+
+/* Cards: hairline casi invisible + sombra whisper. Se leen por espacio en
+   blanco, no por contorno navy (los bordes gruesos competían por atención). */
+body[data-tema="didasko"] .paleta-oliva .card {
+  border: 1px solid #ece7dd;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(20, 40, 100, 0.04), 0 1px 1px rgba(20, 40, 100, 0.03);
+}
+body[data-tema="didasko"] .paleta-oliva .card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(20, 40, 100, 0.08);
+}
+body[data-tema="didasko"] .paleta-oliva article.card:nth-of-type(6n+1),
+body[data-tema="didasko"] .paleta-oliva article.card:nth-of-type(6n+4) { background: var(--blanco); }
+
+/* Hero / bloques de marca: sin borde, esquinas suaves, sombra discreta */
+body[data-tema="didasko"] .paleta-oliva .card.bloque-marca {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(21, 42, 102, 0.14);
+}
+
+/* Eyebrow: texto plano (didasko fuerza color navy con !important → !important) */
+body[data-tema="didasko"] .paleta-oliva .t-eyebrow {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: var(--oliva-clara) !important;
+}
+
+/* "9 vencimientos": ámbar marca de texto, sin caja (didasko fuerza navy → !important) */
+body[data-tema="didasko"] .paleta-oliva .t-display em {
+  background: none !important;
+  color: #F5A623 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-style: normal !important;
+  font-weight: 600;
+}
+
+/* Botones: planos, borde hairline, sin sombra dura ni salto */
+body[data-tema="didasko"] .paleta-oliva .btn { border-width: 1px; }
+body[data-tema="didasko"] .paleta-oliva .btn-secondary { border: 1px solid var(--borde); box-shadow: none; }
+body[data-tema="didasko"] .paleta-oliva .btn-primary { box-shadow: none; }
+body[data-tema="didasko"] .paleta-oliva .btn-secondary:hover { transform: none; background: var(--ambar-50); }
+body[data-tema="didasko"] .paleta-oliva .btn-primary:hover { transform: none; }
+
+/* Badges: relleno suave, sin borde ni mayúsculas */
+body[data-tema="didasko"] .paleta-oliva .badge {
+  border: none;
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+  border-radius: 999px;
+}
+
+/* Tabla / avatar / chips / inputs: bordes hairline, sin navy duro */
+body[data-tema="didasko"] .paleta-oliva .tabla th { border-bottom: 1px solid var(--borde-suave); color: var(--tinta-3); }
+body[data-tema="didasko"] .paleta-oliva .avatar { border: none; }
+body[data-tema="didasko"] .paleta-oliva .chip { border: 1px solid var(--borde); box-shadow: none; }
+body[data-tema="didasko"] .paleta-oliva .input,
+body[data-tema="didasko"] .paleta-oliva .select,
+body[data-tema="didasko"] .paleta-oliva .textarea,
+body[data-tema="didasko"] .paleta-oliva .input-busqueda { border: 1px solid var(--borde); }
+body[data-tema="didasko"] .paleta-oliva .input-busqueda:focus-within,
+body[data-tema="didasko"] .paleta-oliva .input:focus,
+body[data-tema="didasko"] .paleta-oliva .select:focus,
+body[data-tema="didasko"] .paleta-oliva .textarea:focus { border-color: var(--ambar); box-shadow: 0 0 0 3px rgba(110, 139, 106, 0.22); }
+
+/* Sidebar / topbar: separadores finos; activo sin sombra dura */
+body[data-tema="didasko"] .paleta-oliva .sidebar { border-right: 1px solid var(--borde-suave); }
+body[data-tema="didasko"] .paleta-oliva .topbar { border-bottom: 1px solid var(--borde-suave); }
+/* Activo: navy translúcido para ver la gota por detrás; pill por encima de la gota */
+body[data-tema="didasko"] .paleta-oliva .nav-item.activo {
+  box-shadow: none;
+  position: relative;
+  z-index: 1;
+  background: rgba(30, 58, 138, 0.7) !important;
+}
+
+/* Gota indicadora: se desliza al tab activo (spring) + respira (como el login).
+   reduce-motion la deja quieta (el bloque global mata animación/transición). */
+body[data-tema="didasko"] .paleta-oliva .sidebar-nav { position: relative; }
+body[data-tema="didasko"] .paleta-oliva .gota-indicador {
+  position: absolute;
+  top: 0;
+  right: 28px;
+  width: 24px;
+  height: 29px;
+  z-index: 2;
+  pointer-events: none;
+  transition: transform 0.6s cubic-bezier(0.34, 1.5, 0.5, 1);
+  will-change: transform;
+}
+body[data-tema="didasko"] .paleta-oliva .gota-idle {
+  display: block;
+  transform-origin: 50% 88%;
+  animation: gota-respira 4.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes gota-respira {
+  0%, 100% { transform: scale(1, 1) translateY(0); }
+  35%      { transform: scale(1.12, 0.9) translateY(1px); }
+  68%      { transform: scale(0.94, 1.08) translateY(-1.5px); }
+}
+
+/* Login coherente con el admin: las gotitas del splat también en sage/oliva */
+.paleta-oliva .mascot-drips span { background: var(--oliva-clara); }

@@ -1,4 +1,4 @@
-import { SkeletonCourseCard } from '@/components/alumco/Skeletons'
+import { SkeletonCourseCard } from '@/components/alumco/shared/Skeletons'
 
 export default function CursosAdminLoading() {
   return (

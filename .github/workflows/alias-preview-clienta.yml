@@ -1,0 +1,62 @@
+name: Alias alumcotest → andydidankolanding
+
+on:
+  push:
+    branches:
+      - andydidankolanding
+
+jobs:
+  set-alias:
+    name: Apuntar alumcotest.vercel.app al último deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Esperar deployment listo en Vercel
+        id: get-url
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          BRANCH="andydidankolanding"
+          PROJECT_ID="prj_4LNh8pQ4tVGuQ9Y2KcP9fPkU6n1A"
+          TEAM_ID="team_e8Mp8Neu7Io8PNRuhjeMpy8X"
+          COMMIT_SHA="${{ github.sha }}"
+
+          echo "Buscando deployment de commit $COMMIT_SHA en rama $BRANCH..."
+
+          for i in $(seq 1 36); do
+            RESPONSE=$(curl -s \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v6/deployments?projectId=$PROJECT_ID&teamId=$TEAM_ID&meta-githubCommitSha=$COMMIT_SHA&limit=5")
+
+            READY_STATE=$(echo "$RESPONSE" | jq -r '.deployments[0].readyState // empty')
+            DEPLOY_URL=$(echo "$RESPONSE" | jq -r '.deployments[0].url // empty')
+
+            echo "Intento $i/36 — estado: ${READY_STATE:-sin datos}"
+
+            if [ "$READY_STATE" = "READY" ] && [ -n "$DEPLOY_URL" ]; then
+              echo "✓ Deployment listo: https://$DEPLOY_URL"
+              echo "url=https://$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [ "$READY_STATE" = "ERROR" ] || [ "$READY_STATE" = "CANCELED" ]; then
+              echo "✗ Deployment falló con estado: $READY_STATE"
+              exit 1
+            fi
+
+            sleep 10
+          done
+
+          echo "✗ Timeout: el deployment no estuvo listo en 6 minutos"
+          exit 1
+
+      - name: Asignar alias alumcotest.vercel.app
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npm install -g vercel --silent
+          vercel alias set "${{ steps.get-url.outputs.url }}" alumcotest.vercel.app \
+            --token "$VERCEL_TOKEN" \
+            --scope team_e8Mp8Neu7Io8PNRuhjeMpy8X
+          echo "✓ alumcotest.vercel.app apunta a ${{ steps.get-url.outputs.url }}"

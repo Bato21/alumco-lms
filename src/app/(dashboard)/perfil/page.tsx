@@ -1,13 +1,13 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { ProfileClient } from './ProfileClient'
 
 export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
 export default async function PerfilPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
 
   if (!user) redirect('/login')
 
@@ -44,12 +44,27 @@ export default async function PerfilPage() {
     const createdCourseIds = (createdCourses ?? []).map(c => c.id)
     totalCreated = createdCourseIds.length
 
-    const { data: progressOnCourses } = (createdCourseIds.length > 0
-      ? await adminClient
-          .from('course_progress')
-          .select('user_id, is_completed, course_id')
-          .in('course_id', createdCourseIds) as { data: { user_id: string; is_completed: boolean; course_id: string }[] | null }
-      : { data: [] as { user_id: string; is_completed: boolean; course_id: string }[] })
+    const [{ data: progressOnCourses }, { data: certsOnCourses }, { data: quizzesOnCourses }] =
+      createdCourseIds.length > 0
+        ? await Promise.all([
+            adminClient
+              .from('course_progress')
+              .select('user_id, is_completed, course_id')
+              .in('course_id', createdCourseIds) as unknown as Promise<{ data: { user_id: string; is_completed: boolean; course_id: string }[] | null }>,
+            adminClient
+              .from('certificates')
+              .select('id')
+              .in('course_id', createdCourseIds) as unknown as Promise<{ data: { id: string }[] | null }>,
+            adminClient
+              .from('quizzes')
+              .select('id, modules!inner(course_id)')
+              .in('modules.course_id', createdCourseIds) as unknown as Promise<{ data: { id: string }[] | null }>,
+          ])
+        : [{ data: [] }, { data: [] }, { data: [] }] as [
+            { data: { user_id: string; is_completed: boolean; course_id: string }[] },
+            { data: { id: string }[] },
+            { data: { id: string }[] },
+          ]
 
     capacitatedWorkers = new Set(
       (progressOnCourses ?? [])
@@ -57,21 +72,7 @@ export default async function PerfilPage() {
         .map(p => p.user_id)
     ).size
 
-    const { data: certsOnCourses } = (createdCourseIds.length > 0
-      ? await adminClient
-          .from('certificates')
-          .select('id')
-          .in('course_id', createdCourseIds) as { data: { id: string }[] | null }
-      : { data: [] as { id: string }[] })
-
     totalCerts = certsOnCourses?.length ?? 0
-
-    const { data: quizzesOnCourses } = createdCourseIds.length > 0
-      ? await adminClient
-          .from('quizzes')
-          .select('id, modules!inner(course_id)')
-          .in('modules.course_id', createdCourseIds) as { data: { id: string }[] | null }
-      : { data: [] as { id: string }[] }
 
     const quizIds = (quizzesOnCourses ?? []).map(q => q.id)
 
@@ -90,20 +91,20 @@ export default async function PerfilPage() {
       ? Math.round((approvedAttempts / totalAttempts) * 100)
       : 0
   } else {
-    const { data: progress } = await supabase
-      .from('course_progress')
-      .select('course_id, is_completed, completed_modules')
-      .eq('user_id', user!.id) as { data: { course_id: string; is_completed: boolean; completed_modules: string[] | null }[] | null }
-
-    const { data: certs } = await supabase
-      .from('certificates')
-      .select('id')
-      .eq('user_id', user!.id) as { data: { id: string }[] | null }
-
-    const { data: allCourses } = await supabase
-      .from('courses')
-      .select('id, target_areas')
-      .eq('is_published', true) as { data: { id: string; target_areas: string[] | null }[] | null }
+    const [{ data: progress }, { data: certs }, { data: allCourses }] = await Promise.all([
+      supabase
+        .from('course_progress')
+        .select('course_id, is_completed, completed_modules')
+        .eq('user_id', user!.id) as unknown as Promise<{ data: { course_id: string; is_completed: boolean; completed_modules: string[] | null }[] | null }>,
+      supabase
+        .from('certificates')
+        .select('id')
+        .eq('user_id', user!.id) as unknown as Promise<{ data: { id: string }[] | null }>,
+      supabase
+        .from('courses')
+        .select('id, target_areas')
+        .eq('is_published', true) as unknown as Promise<{ data: { id: string; target_areas: string[] | null }[] | null }>,
+    ])
 
     const workerAreas = (profile?.area_trabajo as string[]) ?? []
     const visibleCourseIds = new Set(
@@ -129,10 +130,10 @@ export default async function PerfilPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-2xl font-bold text-[#1A1A2E]">Mi perfil</h1>
-        <p className="text-[#6B7280] text-sm mt-0.5">Gestiona tu información personal</p>
+    <div className="col max-w-4xl mx-auto" style={{ gap: 22 }} data-screen-label="Trabajador · Perfil">
+      <div className="entra">
+        <h1 className="t-display" style={{ fontSize: 32 }}>Mi perfil</h1>
+        <p className="silencio" style={{ marginTop: 4, fontSize: 15 }}>Gestiona tu información personal</p>
       </div>
 
       <ProfileClient
