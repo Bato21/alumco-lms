@@ -129,7 +129,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
       {/* Hero del curso */}
       <div
         className="card bloque-marca entra entra-1"
-        style={{ background: 'var(--grad-marca)', border: 'none', color: '#fff', overflow: 'hidden' }}
+        style={{ background: 'var(--grad-marca)', border: 'none', color: '#fff', overflow: 'hidden', position: 'relative' }}
       >
         {/* Imagen del banner detrás del contenido (si hay foto) */}
         <CourseBannerImage
