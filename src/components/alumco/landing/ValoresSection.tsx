@@ -1,4 +1,5 @@
 import { ShieldCheck, RefreshCw, HeartHandshake, Users, Award, type LucideIcon } from 'lucide-react'
+import { ValoresFondo } from './ValoresFondo'
 
 interface Valor {
   icon: LucideIcon
@@ -28,19 +29,10 @@ export default function ValoresSection() {
         background: 'linear-gradient(180deg, #0f1f4d 0%, #11244f 52%, #0e1e48 100%)',
       }}
     >
-      {/* Degradado/brillo sutil para profundidad (sin cambiar la identidad) */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          background:
-            'radial-gradient(58% 48% at 50% 40%, rgba(245,166,35,0.08) 0%, transparent 70%)',
-        }}
-      />
+      {/* Círculos ámbar que siguen el cursor, al fondo de la sección */}
+      <ValoresFondo />
 
-      <div style={{ position: 'relative', maxWidth: 1140, margin: '0 auto' }}>
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 1140, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
           <span className="t-eyebrow claro">◆ Lo que nos guía</span>
           <h2 className="t-display" style={{ fontSize: 'clamp(30px, 4.6vw, 48px)', marginTop: 14, color: '#fff' }}>
@@ -54,7 +46,6 @@ export default function ValoresSection() {
         <div className="valores-grid" style={{ marginTop: 56 }}>
           {/* Tarjeta central destacada — Empatía */}
           <article className="valor-card featured" style={{ gridArea: 'c' }}>
-            <span className="valor-pill">Valor central</span>
             <span className="valor-badge" aria-hidden="true">
               <HeartHandshake size={30} strokeWidth={1.8} />
             </span>
@@ -133,19 +124,6 @@ export default function ValoresSection() {
           transform: translateY(-4px);
           border-color: rgba(245,166,35,0.7);
         }
-        .valor-pill {
-          align-self: flex-start;
-          font-size: 10.5px;
-          font-weight: 700;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #F5C26B;
-          background: rgba(245,166,35,0.14);
-          border: 1px solid rgba(245,166,35,0.3);
-          padding: 5px 11px;
-          border-radius: 999px;
-          margin-bottom: 18px;
-        }
         .valor-badge {
           width: 54px;
           height: 54px;
@@ -176,7 +154,6 @@ export default function ValoresSection() {
               "d e";
           }
           .valor-card.featured { text-align: center; align-items: center; }
-          .valor-card.featured .valor-pill { align-self: center; }
         }
         @media (max-width: 540px) {
           .valores-grid {
