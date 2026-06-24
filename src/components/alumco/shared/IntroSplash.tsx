@@ -6,17 +6,18 @@ const STORAGE_KEY = 'alumco-intro-visto'
 
 /**
  * Intro de carga: reproduce el video del armado del logo Alumco a pantalla
- * completa (sin sonido) y, al terminar, se desvanece para revelar la página.
- * Se muestra una sola vez por sesión.
+ * completa (sin sonido) y, al terminar, se disuelve con un leve zoom para
+ * revelar la página. Se muestra una sola vez por sesión.
  */
 export function IntroSplash() {
   const [visible, setVisible] = useState(true)
   const [fade, setFade] = useState(false)
+  const [showSkip, setShowSkip] = useState(false)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   const cerrar = useCallback(() => {
     setFade(true)
-    setTimeout(() => setVisible(false), 650)
+    setTimeout(() => setVisible(false), 850)
   }, [])
 
   // Decide si mostrarlo (solo 1 vez por sesión; nunca con reduce-motion).
@@ -24,15 +25,19 @@ export function IntroSplash() {
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
     const yaVisto = sessionStorage.getItem(STORAGE_KEY) === '1'
     if (reduce || yaVisto) {
-      // Diferido para no llamar setState de forma síncrona dentro del efecto.
       queueMicrotask(() => setVisible(false))
       return
     }
     sessionStorage.setItem(STORAGE_KEY, '1')
 
+    // El botón "Saltar" aparece discreto tras un momento.
+    const skipTimer = setTimeout(() => setShowSkip(true), 1600)
     // Red de seguridad: si el video no dispara 'ended', cerrar igual.
     const fallback = setTimeout(() => cerrar(), 12000)
-    return () => clearTimeout(fallback)
+    return () => {
+      clearTimeout(skipTimer)
+      clearTimeout(fallback)
+    }
   }, [cerrar])
 
   // Bloquea el scroll del fondo mientras el intro está visible.
@@ -58,7 +63,8 @@ export function IntroSplash() {
         alignItems: 'center',
         justifyContent: 'center',
         opacity: fade ? 0 : 1,
-        transition: 'opacity 0.6s ease',
+        transform: fade ? 'scale(1.06)' : 'scale(1)',
+        transition: 'opacity 0.85s ease, transform 0.85s ease',
       }}
     >
       <video
@@ -67,37 +73,41 @@ export function IntroSplash() {
         autoPlay
         muted
         playsInline
+        preload="auto"
         onEnded={cerrar}
         onError={cerrar}
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'contain',
+          objectFit: 'cover',
         }}
       />
 
-      {/* Saltar intro */}
+      {/* Saltar intro — aparece discreto */}
       <button
         type="button"
         onClick={cerrar}
         style={{
           position: 'absolute',
-          bottom: 28,
-          right: 28,
+          bottom: 26,
+          right: 26,
           minWidth: 0,
           minHeight: 0,
-          padding: '8px 16px',
+          padding: '7px 14px',
           borderRadius: 999,
-          border: '1px solid rgba(255,255,255,0.35)',
-          background: 'rgba(255,255,255,0.12)',
-          color: '#fff',
-          fontSize: 13,
+          border: '1px solid rgba(255,255,255,0.22)',
+          background: 'rgba(255,255,255,0.06)',
+          color: 'rgba(255,255,255,0.75)',
+          fontSize: 12,
           fontWeight: 600,
+          letterSpacing: '0.02em',
           cursor: 'pointer',
           backdropFilter: 'blur(4px)',
+          opacity: showSkip && !fade ? 1 : 0,
+          transition: 'opacity 0.6s ease',
         }}
       >
-        Saltar intro
+        Saltar
       </button>
     </div>
   )
