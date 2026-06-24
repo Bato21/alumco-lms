@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { WorkerTopNav } from '@/components/alumco/nav/WorkerTopNav'
+import { CursorBlobs } from '@/components/alumco/shared/CursorBlobs'
 import { getWorkerAlerts } from '@/lib/actions/alerts'
 
 export default async function DashboardLayout({
@@ -30,6 +31,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
+      <CursorBlobs />
       <WorkerTopNav
         fullName={profile.full_name ?? 'Usuario'}
         avatarUrl={profile.avatar_url}
@@ -37,7 +39,7 @@ export default async function DashboardLayout({
       />
       <main
         id="main-content"
-        className="flex-1 w-full mx-auto max-w-[1080px] px-5 pt-7 pb-24 lg:pb-16"
+        className="relative z-10 flex-1 w-full mx-auto max-w-[1080px] px-5 pt-7 pb-24 lg:pb-16"
       >
         {children}
       </main>
