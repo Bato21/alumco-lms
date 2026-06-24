@@ -14,59 +14,94 @@ export default function MisionVision() {
       {/* Misión — sección azul Alumco; recibe el fade del hero sin corte */}
       <section
         id="mision-vision"
-        style={{ padding: '110px 24px', background: 'var(--oliva-900)', color: '#fff' }}
+        style={{
+          padding: '132px 24px',
+          background: 'linear-gradient(180deg, #0f1f4d 0%, #0e1d46 100%)',
+          color: '#fff',
+        }}
       >
-        <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
-          <span className="t-eyebrow claro">◆ Nuestra misión</span>
+        <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
+          <span
+            style={{
+              display: 'inline-block',
+              fontSize: 12,
+              fontWeight: 600,
+              letterSpacing: '0.3em',
+              textTransform: 'uppercase',
+              color: '#E2B673',
+            }}
+          >
+            Nuestra misión
+          </span>
+
           <p
             style={{
-              marginTop: 26,
-              fontSize: 'clamp(22px, 3vw, 32px)',
-              lineHeight: 1.45,
-              color: 'rgba(255,255,255,0.66)',
+              marginTop: 30,
+              fontFamily: 'var(--font-serif-display), Georgia, "Times New Roman", serif',
+              fontSize: 'clamp(22px, 2.9vw, 31px)',
+              lineHeight: 1.56,
+              letterSpacing: '-0.01em',
               fontWeight: 400,
+              color: 'rgba(255,255,255,0.70)',
             }}
           >
             Brindar a las personas residentes de ELEAM una{' '}
-            <span style={{ color: '#fff', fontWeight: 500 }}>
+            <span style={{ color: '#ffffff', fontWeight: 500 }}>
               atención integral, de calidad y centrada en la persona
             </span>{' '}
             desde un enfoque de derechos, considerando sus necesidades biomédicas, funcionales,
             sociales, mentales y espirituales, con una gestión eficiente de los recursos.
           </p>
 
-          {/* Fila de áreas con íconos */}
+          {/* Separador fino que divide la misión de las categorías */}
           <div
-            style={{
-              marginTop: 56,
-              paddingTop: 40,
-              borderTop: '1px solid rgba(255,255,255,0.14)',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
-              gap: 24,
-            }}
-          >
+            aria-hidden="true"
+            style={{ width: 72, height: 1, background: 'rgba(255,255,255,0.16)', margin: '54px auto 0' }}
+          />
+
+          {/* Categorías de atención */}
+          <div className="mision-cats">
             {AREAS.map(({ icon: Icon, label }) => (
-              <div key={label} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <span
-                  style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 14,
-                    background: 'var(--ambar)',
-                    color: 'var(--oliva-950)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Icon size={22} strokeWidth={1.8} />
-                </span>
-                <span style={{ fontSize: 13.5, fontWeight: 600, color: 'rgba(255,255,255,0.82)' }}>{label}</span>
+              <div key={label} className="mision-cat">
+                <Icon size={26} strokeWidth={1.4} color="#E2B673" aria-hidden="true" />
+                <span className="mision-cat-label">{label}</span>
               </div>
             ))}
           </div>
         </div>
+
+        <style>{`
+          .mision-cats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 46px;
+          }
+          .mision-cat {
+            flex: 1 1 132px;
+            max-width: 166px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 13px;
+            padding: 24px 16px;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.025);
+            transition: border-color .25s ease, background .25s ease;
+          }
+          .mision-cat:hover {
+            border-color: rgba(226,182,115,0.42);
+            background: rgba(255,255,255,0.045);
+          }
+          .mision-cat-label {
+            font-size: 13.5px;
+            font-weight: 500;
+            letter-spacing: 0.015em;
+            color: rgba(255,255,255,0.82);
+          }
+        `}</style>
       </section>
 
       {/* Visión — banda suave centrada */}
