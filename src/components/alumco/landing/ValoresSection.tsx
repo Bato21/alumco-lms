@@ -141,7 +141,7 @@ export default function ValoresSection() {
           background: linear-gradient(135deg, #F5A623 0%, #e0961a 100%);
           color: #0f1f4d;
           border: none;
-          box-shadow: 0 12px 28px rgba(245,166,35,0.42);
+          box-shadow: none;
         }
         @media (max-width: 860px) {
           .valores-grid {
