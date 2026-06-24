@@ -111,7 +111,7 @@ export default function HeroSection() {
         >
           Nuestros cuidados son el
           <br />
-          reflejo de la <em style={{ color: 'var(--ambar)', fontStyle: 'italic' }}>empatía</em>.
+          reflejo de la <em style={{ color: '#fff', fontStyle: 'italic', fontSize: '1.18em' }}>empatía</em>.
         </h1>
 
         <p
