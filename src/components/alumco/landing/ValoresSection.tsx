@@ -1,5 +1,5 @@
 import { ShieldCheck, RefreshCw, HeartHandshake, Users, Award, type LucideIcon } from 'lucide-react'
-import { ValoresFondo } from './ValoresFondo'
+import { CursorGlow } from './CursorGlow'
 
 interface Valor {
   icon: LucideIcon
@@ -30,7 +30,7 @@ export default function ValoresSection() {
       }}
     >
       {/* Círculos ámbar que siguen el cursor, al fondo de la sección */}
-      <ValoresFondo />
+      <CursorGlow />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1140, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>

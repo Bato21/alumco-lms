@@ -1,4 +1,5 @@
 import { HeartPulse, Activity, Users, Brain, Sparkles } from 'lucide-react'
+import { CursorGlow } from './CursorGlow'
 
 const AREAS = [
   { icon: HeartPulse, label: 'Biomédica' },
@@ -18,9 +19,14 @@ export default function MisionVision() {
           padding: '132px 24px',
           background: 'linear-gradient(180deg, #0f1f4d 0%, #0e1d46 100%)',
           color: '#fff',
+          position: 'relative',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
+        {/* Círculos ámbar que siguen el cursor, al fondo */}
+        <CursorGlow />
+
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
           <span
             style={{
               display: 'inline-block',

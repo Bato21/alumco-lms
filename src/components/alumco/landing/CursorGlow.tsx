@@ -10,7 +10,7 @@ const BLOBS = [
   { size: 460, lag: 0.03, color: 'rgba(245,166,35,0.12)' },
 ]
 
-export function ValoresFondo() {
+export function CursorGlow() {
   const wrapRef = useRef<HTMLDivElement>(null)
   const refs = useRef<(HTMLDivElement | null)[]>([])
 
