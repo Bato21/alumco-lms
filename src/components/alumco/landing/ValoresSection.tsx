@@ -113,16 +113,14 @@ export default function ValoresSection() {
           flex-direction: column;
           justify-content: center;
           padding: 38px 32px;
-          border-color: rgba(245,166,35,0.5);
-          background: linear-gradient(180deg, rgba(245,166,35,0.10) 0%, rgba(255,255,255,0.05) 100%);
-          box-shadow:
-            0 0 0 1px rgba(245,166,35,0.22),
-            0 24px 64px rgba(245,166,35,0.16),
-            0 16px 44px rgba(0,0,0,0.32);
+          border-color: rgba(245,166,35,0.38);
+          background: linear-gradient(180deg, rgba(245,166,35,0.07) 0%, rgba(255,255,255,0.05) 100%);
+          box-shadow: 0 16px 44px rgba(0,0,0,0.3);
         }
         .valor-card.featured:hover {
           transform: translateY(-4px);
-          border-color: rgba(245,166,35,0.7);
+          border-color: rgba(245,166,35,0.55);
+          box-shadow: 0 22px 52px rgba(0,0,0,0.34);
         }
         .valor-badge {
           width: 54px;
