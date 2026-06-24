@@ -63,7 +63,7 @@ export default function HeroSection() {
             fill
             priority={i === 0}
             sizes="100vw"
-            style={{ objectFit: 'cover', transform: 'scale(1.04)' }}
+            style={{ objectFit: 'cover', transform: 'scale(1.08)', filter: 'blur(4px)' }}
           />
         </div>
       ))}
