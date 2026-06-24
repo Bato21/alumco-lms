@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
-import { CourseBuilder } from '@/components/alumco/CourseBuilder/CourseBuilder'
-import { type ModuleBlock } from '@/components/alumco/CourseBuilder/CourseBuilder'
+import { CourseBuilder } from '@/components/alumco/admin/CourseBuilder/CourseBuilder'
+import { type ModuleBlock } from '@/components/alumco/admin/CourseBuilder/CourseBuilder'
 import { type Question } from '@/lib/types/database'
 
 export const metadata: Metadata = { title: 'Editar curso | Alumco LMS' }
@@ -15,17 +15,15 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
   const { id } = await params
   const supabase = await createAdminClient()
 
-  // Cargar curso
-  const { data: course } = await supabase
+  // Curso y módulos en paralelo
+  const coursePromise = supabase
     .from('courses')
-    .select('id, title, description, deadline, deadline_description, is_published, target_areas')
+    .select('id, title, description, deadline, deadline_description, is_published, target_areas, thumbnail_url')
     .eq('id', id)
-    .single() as { data: { id: string; title: string; description: string | null; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null } | null }
-
-  if (!course) notFound()
+    .single() as unknown as Promise<{ data: { id: string; title: string; description: string | null; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null; thumbnail_url: string | null } | null }>
 
   // Cargar módulos ordenados con sus quizzes y preguntas
-  const { data: modules } = await supabase
+  const modulesPromise = supabase
     .from('modules')
     .select(`
       id,
@@ -51,7 +49,11 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       )
     `)
     .eq('course_id', id)
-    .order('order_index') as { data: { id: string; title: string; content_type: string; content_url: string | null; order_index: number; duration_mins: number | null; is_required: boolean; quizzes: { id: string; passing_score: number; max_attempts: number; questions: import('@/lib/types/database').Question[] }[] }[] | null }
+    .order('order_index') as unknown as Promise<{ data: { id: string; title: string; content_type: string; content_url: string | null; order_index: number; duration_mins: number | null; is_required: boolean; quizzes: { id: string; passing_score: number; max_attempts: number; questions: import('@/lib/types/database').Question[] }[] }[] | null }>
+
+  const [{ data: course }, { data: modules }] = await Promise.all([coursePromise, modulesPromise])
+
+  if (!course) notFound()
 
   const initialModules: ModuleBlock[] = (modules ?? []).map((m) => ({
     id: m.id,

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Propuesta de features — KimünKo</title>
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .page {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 18mm 16mm;
+    page-break-after: always;
+  }
+  .page:last-child { page-break-after: avoid; }
+
+  header {
+    border-bottom: 4px solid #F5A623;
+    padding-bottom: 14px;
+    margin-bottom: 24px;
+  }
+  .brand { font-size: 12px; font-weight: 700; color: #2B4FA0; letter-spacing: 1.5px; text-transform: uppercase; }
+  h1 { font-size: 26px; color: #2B4FA0; margin-top: 6px; line-height: 1.2; }
+  .subtitle { color: #64748b; margin-top: 6px; font-size: 14px; }
+
+  h2 {
+    font-size: 16px; color: #2B4FA0; margin: 26px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  h2::before { content: ""; width: 6px; height: 18px; background: #F5A623; border-radius: 2px; display: inline-block; }
+
+  p { margin-bottom: 8px; }
+
+  .pains { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .pain {
+    background: #f1f5f9; border-left: 4px solid #2B4FA0;
+    border-radius: 6px; padding: 10px 12px;
+  }
+  .pain b { color: #2B4FA0; display: block; margin-bottom: 2px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th {
+    background: #2B4FA0; color: #fff; text-align: left;
+    padding: 8px 10px; font-size: 12px;
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .feat { font-weight: 700; color: #1e293b; white-space: nowrap; }
+  .tag {
+    display: inline-block; background: #FEF3C7; color: #92400E;
+    border-radius: 99px; padding: 1px 8px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .dias { white-space: nowrap; color: #2B4FA0; font-weight: 700; }
+
+  .pitch {
+    background: linear-gradient(135deg, #2B4FA0, #1e3a78);
+    color: #fff; border-radius: 10px; padding: 16px 18px; margin-top: 12px;
+    font-size: 14px; font-style: italic;
+  }
+  .pitch b { color: #F5A623; font-style: normal; }
+
+  ul { margin: 6px 0 0 18px; }
+  li { margin-bottom: 5px; }
+
+  .descartado { color: #64748b; font-size: 12px; }
+
+  footer {
+    margin-top: 28px; padding-top: 10px; border-top: 1px solid #e2e8f0;
+    color: #94a3b8; font-size: 11px; display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brand">KimünKo · Plataforma de capacitación para ONG Alumco</div>
+    <h1>Propuesta: 4 features para ganar la competencia</h1>
+    <div class="subtitle">Brief para discusión de equipo · Junio 2026 · Plazo disponible: 1–2 semanas</div>
+  </header>
+
+  <h2>El contexto</h2>
+  <p>La ONG Alumco (el cliente) elige la plataforma ganadora. <b>Decide quien mejor resuelva sus problemas reales</b>, no quien tenga más tecnología. Alumco opera ELEAMs (residencias de adultos mayores) en Chile y capacita a sus trabajadores.</p>
+
+  <h2>Sus 4 dolores reales</h2>
+  <div class="pains">
+    <div class="pain"><b>1 · Fiscalización</b>Demostrar ante SENAMA/Seremi que el personal está capacitado y vigente. Hoy: papeleo manual.</div>
+    <div class="pain"><b>2 · Rotación alta</b>Personal entra y sale constantemente; re-capacitar y saber quién está al día es un caos.</div>
+    <div class="pain"><b>3 · Personal poco digital</b>Cuidadoras que no leen email, viven en WhatsApp y abandonan los cursos.</div>
+    <div class="pain"><b>4 · Admin sobrecargado</b>Pocas personas persiguiendo gente, armando reportes y creando contenido a mano.</div>
+  </div>
+
+  <h2>Las 4 features propuestas</h2>
+  <table>
+    <tr><th>Feature</th><th>Qué hace</th><th>Dolor</th><th>Esfuerzo</th></tr>
+    <tr>
+      <td class="feat">📁 Carpeta de Fiscalización<br>en 1 clic</td>
+      <td>Botón en admin genera el pack completo para auditoría: matriz de cumplimiento por sede, certificados vigentes e historial inmutable de evaluaciones.</td>
+      <td><span class="tag">Fiscalización</span></td>
+      <td class="dias">~3 días</td>
+    </tr>
+    <tr>
+      <td class="feat">🔍 QR en certificados</td>
+      <td>Cada certificado PDF lleva un código QR: el fiscalizador escanea y verifica la autenticidad online al instante.</td>
+      <td><span class="tag">Fiscalización</span></td>
+      <td class="dias">~1 día</td>
+    </tr>
+    <tr>
+      <td class="feat">💬 Recordatorios por<br>WhatsApp</td>
+      <td>Cursos por vencer → recordatorio automático por WhatsApp con link directo al curso. No más emails que nadie lee.</td>
+      <td><span class="tag">Poco digital</span></td>
+      <td class="dias">~3 días</td>
+    </tr>
+    <tr>
+      <td class="feat">🤖 Generador de cursos<br>con IA</td>
+      <td>El admin sube un protocolo PDF y la IA genera módulos + quiz listos para editar y publicar. <i>"Tu protocolo se convierte en curso en 30 segundos".</i></td>
+      <td><span class="tag">Admin sobrecargado</span></td>
+      <td class="dias">~5 días</td>
+    </tr>
+  </table>
+
+  <div class="pitch">
+    "KimünKo no es un LMS genérico — está construido para la realidad de un ELEAM chileno: <b>fiscalización, rotación y cuidadoras que viven en WhatsApp</b>."
+  </div>
+
+  <h2>A discutir en equipo</h2>
+  <ul>
+    <li><b>¿Las 4 caben en el plazo?</b> Orden de sacrificio si hay que cortar: Generador IA → WhatsApp. La Carpeta de Fiscalización y el QR son intocables: atacan el dolor #1 del cliente.</li>
+    <li><b>Generador IA</b> requiere API key de Claude (costo bajo, dependencia externa). Alternativa segura: ruta de inducción automática para trabajadores nuevos (~2 días, ataca rotación).</li>
+    <li><b>Reparto:</b> Carpeta + QR van juntas (mismo dominio: certificados/compliance).</li>
+  </ul>
+
+  <p class="descartado" style="margin-top:14px"><b>Descartado a propósito:</b> modo offline (PWA compleja para el plazo), chatbot tutor IA (riesgo de respuestas erróneas frente al cliente), gamificación (genérica, no resuelve un dolor del cliente).</p>
+
+  <footer>
+    <span>KimünKo · Propuesta interna de equipo</span>
+    <span>Base: docs/equipo/GUIA-EQUIPO.md + estado actual del código</span>
+  </footer>
+</div>
+</body>
+</html>

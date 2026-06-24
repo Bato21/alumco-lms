@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateCertificateAction } from './certificates'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
@@ -16,31 +16,32 @@ async function validateModuleAccess(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = await createClient()
 
-  const { data: moduleCheck } = await supabase
-    .from('modules')
-    .select('id')
-    .eq('id', moduleId)
-    .eq('course_id', courseId)
-    .maybeSingle() as { data: { id: string } | null }
+  // Las tres validaciones son independientes — una sola ronda de red.
+  const [{ data: moduleCheck }, { data: callerProfile }, { data: course }] = await Promise.all([
+    supabase
+      .from('modules')
+      .select('id')
+      .eq('id', moduleId)
+      .eq('course_id', courseId)
+      .maybeSingle() as unknown as Promise<{ data: { id: string } | null }>,
+    supabase
+      .from('profiles')
+      .select('role, area_trabajo')
+      .eq('id', userId)
+      .single() as unknown as Promise<{ data: { role: string; area_trabajo: string[] | null } | null }>,
+    supabase
+      .from('courses')
+      .select('target_areas, is_published')
+      .eq('id', courseId)
+      .eq('is_published', true)
+      .maybeSingle() as unknown as Promise<{ data: { target_areas: string[] | null; is_published: boolean } | null }>,
+  ])
 
   if (!moduleCheck) {
     return { ok: false, error: 'Módulo no pertenece al curso indicado' }
   }
 
-  const { data: callerProfile } = await supabase
-    .from('profiles')
-    .select('role, area_trabajo')
-    .eq('id', userId)
-    .single() as { data: { role: string; area_trabajo: string[] | null } | null }
-
   if (callerProfile?.role === 'trabajador') {
-    const { data: course } = await supabase
-      .from('courses')
-      .select('target_areas, is_published')
-      .eq('id', courseId)
-      .eq('is_published', true)
-      .maybeSingle() as { data: { target_areas: string[] | null; is_published: boolean } | null }
-
     if (!course) return { ok: false, error: 'Curso no disponible' }
 
     const hasAccess = filterCoursesByWorkerAreas(
@@ -66,19 +67,30 @@ export async function markModuleCompleteAction(
     const supabase = await createClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sp = supabase as any
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCachedUser()
     if (!user) return { success: false, error: 'Usuario no autenticado' }
 
-    const access = await validateModuleAccess(user.id, moduleId, courseId)
-    if (!access.ok) return { success: false, error: access.error }
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
 
-    // Usar el cliente del usuario — RLS garantiza que solo escribe su propio progreso
-    const { data: progress } = await sp
-      .from('course_progress')
-      .select('id, completed_modules, is_completed, completed_at')
-      .eq('user_id', user.id)
-      .eq('course_id', courseId)
-      .maybeSingle() as { data: { id: string; completed_modules: string[] | null; is_completed: boolean; completed_at: string | null } | null }
+    // Validación, progreso actual y lista de módulos en paralelo;
+    // las lecturas son inofensivas si la validación falla (RLS protege escrituras).
+    const [access, { data: progress }, { data: allModules }] = await Promise.all([
+      validateModuleAccess(user.id, moduleId, courseId),
+      sp
+        .from('course_progress')
+        .select('id, completed_modules, is_completed, completed_at')
+        .eq('user_id', user.id)
+        .eq('course_id', courseId)
+        .maybeSingle() as Promise<{ data: { id: string; completed_modules: string[] | null; is_completed: boolean; completed_at: string | null } | null }>,
+      ac
+        .from('modules')
+        .select('id, content_type')
+        .eq('course_id', courseId) as Promise<{ data: { id: string; content_type: string }[] | null }>,
+    ])
+
+    if (!access.ok) return { success: false, error: access.error }
 
     let completedModules: string[]
 
@@ -121,14 +133,6 @@ export async function markModuleCompleteAction(
     }
 
     // Verificar si todos los módulos del curso están completos
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: allModules } = await ac
-      .from('modules')
-      .select('id, content_type')
-      .eq('course_id', courseId) as { data: { id: string; content_type: string }[] | null }
-
     let courseCompleted = false
     if (allModules && allModules.length > 0) {
       courseCompleted = allModules.every((m: { id: string }) =>

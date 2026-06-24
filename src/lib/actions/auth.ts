@@ -119,8 +119,12 @@ export async function loginAction(
 export async function logoutAction(): Promise<void> {
   const supabase = await createClient()
   await supabase.auth.signOut()
-  revalidatePath('/', 'layout')
-  redirect('/login')
+  // Nota: no usar revalidatePath('/', 'layout') aquí. Revalidar el layout
+  // mientras la sesión ya fue borrada re-renderiza el árbol protegido actual,
+  // que dispara su propio redirect('/login') → choca con este redirect y
+  // produce un error intermitente al cerrar sesión. El redirect navega a una
+  // ruta pública con datos frescos, así que la revalidación no es necesaria.
+  redirect('/')
 }
 
 // ── Registro (usado por admin para crear trabajadores) ─────

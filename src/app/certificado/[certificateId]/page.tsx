@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { DownloadCertificateButton } from '@/components/alumco/DownloadCertificateButton'
+import { DownloadCertificateButton } from '@/components/alumco/certificado/DownloadCertificateButton'
 
 export const metadata: Metadata = { title: 'Certificado | Alumco LMS' }
 
@@ -12,35 +12,35 @@ interface CertificadoPageProps {
 
 export default async function CertificadoPage({ params }: CertificadoPageProps) {
   const { certificateId } = await params
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
   if (!user) redirect('/login')
 
   const adminClient = await createAdminClient()
 
-  const { data: certificate } = await adminClient
-    .from('certificates')
-    .select(`
-      id,
-      issued_at,
-      pdf_url,
-      user_id,
-      course_id,
-      courses (
-        title,
-        description
-      )
-    `)
-    .eq('id', certificateId)
-    .single() as { data: { id: string; issued_at: string; pdf_url: string | null; user_id: string; course_id: string; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null } | null }
+  const [{ data: certificate }, { data: profile }] = await Promise.all([
+    adminClient
+      .from('certificates')
+      .select(`
+        id,
+        issued_at,
+        pdf_url,
+        user_id,
+        course_id,
+        courses (
+          title,
+          description
+        )
+      `)
+      .eq('id', certificateId)
+      .single() as unknown as Promise<{ data: { id: string; issued_at: string; pdf_url: string | null; user_id: string; course_id: string; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null } | null }>,
+    adminClient
+      .from('profiles')
+      .select('full_name, role, sede, area_trabajo')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null } | null }>,
+  ])
 
   if (!certificate) notFound()
-
-  const { data: profile } = await adminClient
-    .from('profiles')
-    .select('full_name, role, sede, area_trabajo')
-    .eq('id', user.id)
-    .single() as { data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null } | null }
 
   if (
     certificate.user_id !== user.id &&

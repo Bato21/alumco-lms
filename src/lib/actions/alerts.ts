@@ -1,6 +1,6 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 interface AdminAlert {
@@ -34,22 +34,22 @@ export async function getAdminAlerts(): Promise<{
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const { data: courses } = await adminClient
-      .from('courses')
-      .select('id, title, deadline, target_areas')
-      .eq('is_published', true)
-      .not('deadline', 'is', null)
-      .order('deadline', { ascending: true }) as { data: { id: string; title: string; deadline: string | null; target_areas: string[] | null }[] | null }
-
-    const { data: workers } = await adminClient
-      .from('profiles')
-      .select('id, area_trabajo')
-      .eq('role', 'trabajador')
-      .eq('status', 'activo') as { data: { id: string; area_trabajo: string[] | null }[] | null }
-
-    const { data: allProgress } = await adminClient
-      .from('course_progress')
-      .select('course_id, user_id, is_completed') as { data: { course_id: string; user_id: string; is_completed: boolean }[] | null }
+    const [{ data: courses }, { data: workers }, { data: allProgress }] = await Promise.all([
+      adminClient
+        .from('courses')
+        .select('id, title, deadline, target_areas')
+        .eq('is_published', true)
+        .not('deadline', 'is', null)
+        .order('deadline', { ascending: true }) as unknown as Promise<{ data: { id: string; title: string; deadline: string | null; target_areas: string[] | null }[] | null }>,
+      adminClient
+        .from('profiles')
+        .select('id, area_trabajo')
+        .eq('role', 'trabajador')
+        .eq('status', 'activo') as unknown as Promise<{ data: { id: string; area_trabajo: string[] | null }[] | null }>,
+      adminClient
+        .from('course_progress')
+        .select('course_id, user_id, is_completed') as unknown as Promise<{ data: { course_id: string; user_id: string; is_completed: boolean }[] | null }>,
+    ])
 
     const alerts: AdminAlert[] = (courses ?? [])
       .flatMap(course => {
@@ -110,30 +110,30 @@ export async function getWorkerAlerts(): Promise<{
 }> {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getCachedUser()
     if (!user) return { count: 0, alerts: [] }
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('area_trabajo')
-      .eq('id', user.id)
-      .single() as { data: { area_trabajo: string[] | null } | null }
+    const [{ data: profile }, { data: courses }, { data: progress }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('area_trabajo')
+        .eq('id', user.id)
+        .single() as unknown as Promise<{ data: { area_trabajo: string[] | null } | null }>,
+      supabase
+        .from('courses')
+        .select('id, title, deadline, target_areas')
+        .eq('is_published', true)
+        .not('deadline', 'is', null) as unknown as Promise<{ data: { id: string; title: string; deadline: string | null; target_areas: string[] | null }[] | null }>,
+      supabase
+        .from('course_progress')
+        .select('course_id, is_completed')
+        .eq('user_id', user.id) as unknown as Promise<{ data: { course_id: string; is_completed: boolean }[] | null }>,
+    ])
 
     const workerAreas: string[] = profile?.area_trabajo ?? []
-
-    const { data: courses } = await supabase
-      .from('courses')
-      .select('id, title, deadline, target_areas')
-      .eq('is_published', true)
-      .not('deadline', 'is', null) as { data: { id: string; title: string; deadline: string | null; target_areas: string[] | null }[] | null }
-
-    const { data: progress } = await supabase
-      .from('course_progress')
-      .select('course_id, is_completed')
-      .eq('user_id', user.id) as { data: { course_id: string; is_completed: boolean }[] | null }
 
     const completedIds = new Set(
       progress?.filter(p => p.is_completed).map(p => p.course_id) ?? []

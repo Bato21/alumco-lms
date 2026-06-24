@@ -1,11 +1,33 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
-import { Geist } from 'next/font/google'
+import { Geist, Fraunces, Archivo, Playfair_Display } from 'next/font/google'
 import './globals.css'
 
 const geist = Geist({
   subsets: ['latin'],
   variable: '--font-sans',
+})
+
+// Serif Didone alto-contraste para el hero de la landing (look estilo Giga).
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif-display',
+})
+
+// Serif display para titulares grandes (login, heros "agua"). Cuerpo sigue en Geist.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  variable: '--font-display',
+})
+
+// Display del tema DIDASKO: Archivo (mayúsculas, peso alto).
+const archivo = Archivo({
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+  weight: ['500', '600', '700', '800', '900'],
+  variable: '--font-archivo',
 })
 
 export const metadata: Metadata = {
@@ -30,7 +52,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={`${geist.variable} font-sans antialiased`}>
+      <body
+        data-tema="didasko"
+        className={`${geist.variable} ${fraunces.variable} ${archivo.variable} ${playfair.variable} font-sans antialiased`}
+      >
         {children}
       </body>
     </html>

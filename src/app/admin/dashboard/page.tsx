@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { Users, BookOpen, TrendingUp, Award, Medal } from 'lucide-react'
+import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
+import { getAdminAlerts } from '@/lib/actions/alerts'
+import { Avatar, Badge, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
+import type { IconoNombre } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
@@ -16,71 +18,69 @@ interface CourseCompletion {
 
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCachedUser()
+  const adminClient = await createAdminClient()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user!.id)
-    .single() as { data: { full_name: string } | null }
+  // 6 queries en paralelo; el resto de las métricas se derivan en memoria.
+  const [
+    { data: profile },
+    { data: workersData },
+    { data: allCourses },
+    { data: allProgress },
+    { data: allCertificates },
+    { count: pendingApprovals },
+  ] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user!.id)
+      .single() as unknown as Promise<{ data: { full_name: string } | null }>,
+    adminClient
+      .from('profiles')
+      .select('id, full_name, sede, area_trabajo')
+      .eq('role', 'trabajador')
+      .eq('status', 'activo')
+      .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }>,
+    adminClient
+      .from('courses')
+      .select('id, title, target_areas')
+      .eq('is_published', true) as unknown as Promise<{ data: { id: string; title: string; target_areas: string[] | null }[] | null }>,
+    adminClient
+      .from('course_progress')
+      .select('user_id, course_id, is_completed, completed_at, updated_at') as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }>,
+    adminClient
+      .from('certificates')
+      .select('user_id, issued_at') as unknown as Promise<{ data: { user_id: string; issued_at: string }[] | null }>,
+    // Aprobaciones pendientes: trabajadores esperando acceso (solo conteo)
+    adminClient
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'trabajador')
+      .eq('status', 'pendiente') as unknown as Promise<{ count: number | null }>,
+  ])
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
 
-  const adminClient = await createAdminClient()
-  const { data: activeWorkers } = await adminClient
-    .from('profiles')
-    .select('id')
-    .eq('role', 'trabajador')
-    .eq('status', 'activo') as { data: { id: string }[] | null }
+  const totalWorkers = workersData?.length ?? 0
 
-  const totalWorkers = activeWorkers?.length ?? 0
-
-  const sevenDaysAgo = new Date()
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-  sevenDaysAgo.setHours(0, 0, 0, 0)
-
-  const { data: weekCompletions } = await adminClient
-    .from('course_progress')
-    .select('id')
-    .eq('is_completed', true)
-    .gte('completed_at', sevenDaysAgo.toISOString()) as { data: { id: string }[] | null }
-
-  const coursesCompleted = weekCompletions?.length ?? 0
-
-  const { data: inProgressData } = await supabase
-    .from('course_progress')
-    .select('user_id')
-    .eq('is_completed', false) as { data: { user_id: string }[] | null }
-
-  const uniqueInProgress = new Set(inProgressData?.map(p => p.user_id) ?? [])
-  const inProgress = uniqueInProgress.size
-
-  const { data: coursesForCompliance } = await adminClient
-    .from('courses')
-    .select('id, target_areas')
-    .eq('is_published', true) as { data: { id: string; target_areas: string[] | null }[] | null }
-
-  const { data: workersForCompliance } = await adminClient
-    .from('profiles')
-    .select('id, area_trabajo')
-    .eq('role', 'trabajador')
-    .eq('status', 'activo') as { data: { id: string; area_trabajo: string[] | null }[] | null }
-
-  const { data: completedProgress } = await adminClient
-    .from('course_progress')
-    .select('user_id, course_id')
-    .eq('is_completed', true) as { data: { user_id: string; course_id: string }[] | null }
+  const completedSet = new Set(
+    (allProgress ?? []).filter(p => p.is_completed).map(p => `${p.user_id}:${p.course_id}`)
+  )
+  // Cualquier fila de progreso = el curso fue iniciado (aunque no completado).
+  const startedSet = new Set(
+    (allProgress ?? []).map(p => `${p.user_id}:${p.course_id}`)
+  )
 
   let assignmentsTotal = 0
   let assignmentsCompleted = 0
-  for (const w of workersForCompliance ?? []) {
+  for (const w of workersData ?? []) {
     const wAreas = (w.area_trabajo as string[]) ?? []
-    for (const c of coursesForCompliance ?? []) {
+    for (const c of allCourses ?? []) {
       const tAreas = (c.target_areas as string[] | null) ?? []
       const visible = tAreas.length === 0 || tAreas.some(a => wAreas.includes(a))
       if (!visible) continue
       assignmentsTotal++
-      if (completedProgress?.some(p => p.user_id === w.id && p.course_id === c.id)) {
+      if (completedSet.has(`${w.id}:${c.id}`)) {
         assignmentsCompleted++
       }
     }
@@ -89,39 +89,19 @@ export default async function AdminDashboardPage() {
     ? Math.round((assignmentsCompleted / assignmentsTotal) * 100)
     : 0
 
-  const { data: workersData } = await adminClient
-    .from('profiles')
-    .select('id, full_name, sede, area_trabajo')
-    .eq('role', 'trabajador')
-    .eq('status', 'activo')
-    .order('full_name') as { data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }
+  const completedByCourse = new Map<string, number>()
+  for (const p of allProgress ?? []) {
+    if (p.is_completed) {
+      completedByCourse.set(p.course_id, (completedByCourse.get(p.course_id) ?? 0) + 1)
+    }
+  }
 
-  const { data: allProgress } = await adminClient
-    .from('course_progress')
-    .select('user_id, course_id, is_completed, completed_at, updated_at') as { data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }
-
-  const { data: allCertificates } = await adminClient
-    .from('certificates')
-    .select('user_id, issued_at') as { data: { user_id: string; issued_at: string }[] | null }
-
-  const { data: allCourses } = await adminClient
-    .from('courses')
-    .select('id, title')
-    .eq('is_published', true) as { data: { id: string; title: string }[] | null }
-
-  const { data: allCourseProgress } = await adminClient
-    .from('course_progress')
-    .select('course_id, is_completed, user_id') as { data: { course_id: string; is_completed: boolean; user_id: string }[] | null }
-
-  const topCourses: CourseCompletion[] = (allCourses ?? [])
+  // Pirámide invertida: mostrar lo accionable (peor cumplimiento), no el logro.
+  const worstCourses: CourseCompletion[] = (allCourses ?? [])
     .map((course) => {
-      const courseProgressList = allCourseProgress?.filter(
-        p => p.course_id === course.id
-      ) ?? []
-      const completedCount = courseProgressList.filter(p => p.is_completed).length
-      const totalWorkerCount = activeWorkers?.length ?? 1
-      const completion_rate = totalWorkerCount > 0
-        ? Math.round((completedCount / totalWorkerCount) * 100)
+      const completedCount = completedByCourse.get(course.id) ?? 0
+      const completion_rate = totalWorkers > 0
+        ? Math.round((completedCount / totalWorkers) * 100)
         : 0
 
       return {
@@ -129,19 +109,18 @@ export default async function AdminDashboardPage() {
         completion_rate,
       }
     })
-    .sort((a, b) => b.completion_rate - a.completion_rate)
+    .filter((c) => c.completion_rate < 100)
+    .sort((a, b) => a.completion_rate - b.completion_rate)
     .slice(0, 3)
 
   const startOfMonth = new Date()
   startOfMonth.setDate(1)
   startOfMonth.setHours(0, 0, 0, 0)
+  const startOfMonthMs = startOfMonth.getTime()
 
-  const { data: monthCertificates } = await adminClient
-    .from('certificates')
-    .select('id')
-    .gte('issued_at', startOfMonth.toISOString()) as { data: { id: string }[] | null }
-
-  const certificatesThisMonth = monthCertificates?.length ?? 0
+  const certificatesThisMonth = (allCertificates ?? []).filter(
+    c => new Date(c.issued_at).getTime() >= startOfMonthMs
+  ).length
 
   // Derived stats (no new queries)
   const publishedCourses = allCourses?.length ?? 0
@@ -153,7 +132,7 @@ export default async function AdminDashboardPage() {
   const getSedeRate = (sedeWorkers: { id: string }[]) => {
     if (sedeWorkers.length === 0) return 0
     const ids = new Set(sedeWorkers.map(w => w.id))
-    const rel = allCourseProgress?.filter(p => ids.has(p.user_id)) ?? []
+    const rel = allProgress?.filter(p => ids.has(p.user_id)) ?? []
     if (rel.length === 0) return 0
     return Math.round((rel.filter(p => p.is_completed).length / rel.length) * 100)
   }
@@ -161,235 +140,310 @@ export default async function AdminDashboardPage() {
   const sede1Rate = getSedeRate(sede1Workers)
   const sede2Rate = getSedeRate(sede2Workers)
 
-  const recentActivity = (allProgress ?? [])
-    .map(p => ({
-      ...p,
-      worker: workersData?.find(w => w.id === p.user_id),
-    }))
-    .filter(p => p.worker && p.updated_at)
-    .sort((a, b) => new Date(b.updated_at!).getTime() - new Date(a.updated_at!).getTime())
-    .slice(0, 5)
-    .map(p => {
-      const diff = Math.floor((Date.now() - new Date(p.updated_at!).getTime()) / (1000 * 60 * 60 * 24))
-      const timeAgo = diff === 0 ? 'Hoy' : diff === 1 ? 'Ayer' : `Hace ${diff} días`
-      const name = p.worker!.full_name
-      return {
-        userId: p.user_id as string,
-        courseId: p.course_id as string,
-        updatedAt: p.updated_at as string,
-        name,
-        action: p.is_completed ? 'completó un curso' : 'actualizó su progreso',
-        time: timeAgo,
-        initials: name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase(),
+  const sedeLabel = (s: string) => (s === 'sede_1' ? 'Hualpén' : s === 'sede_2' ? 'Coyhaique' : s)
+
+  // Trabajadores que requieren seguimiento (pendientes > 0), derivado de los datos ya cargados
+  const workerFollowupAll = (workersData ?? [])
+    .map((w) => {
+      const wAreas = (w.area_trabajo as string[]) ?? []
+      let total = 0
+      let done = 0
+      let started = 0
+      for (const c of allCourses ?? []) {
+        const tAreas = (c.target_areas as string[] | null) ?? []
+        const visible = tAreas.length === 0 || tAreas.some((a) => wAreas.includes(a))
+        if (!visible) continue
+        total++
+        const key = `${w.id}:${c.id}`
+        if (completedSet.has(key)) done++
+        else if (startedSet.has(key)) started++
       }
+      const pendientes = total - done
+      // sin iniciar = pendientes que ni siquiera se abrieron (acción = recordatorio)
+      const sinIniciar = pendientes - started
+      const cumplimiento = total > 0 ? Math.round((done / total) * 100) : 0
+      const estado = pendientes === 0 ? 'al-dia' : cumplimiento < 50 ? 'atrasado' : 'en-riesgo'
+      return { id: w.id, nombre: w.full_name, sede: sedeLabel(w.sede), pendientes, sinIniciar, cumplimiento, estado }
     })
+    .filter((w) => w.pendientes > 0)
+    .sort((a, b) => b.pendientes - a.pendientes)
 
-  const workersWithNoProgress = (workersData ?? []).filter(w =>
-    !allProgress?.some(p => p.user_id === w.id)
-  ).length
+  const atrasadosCount = workerFollowupAll.filter((w) => w.estado === 'atrasado').length
+  const workerFollowup = workerFollowupAll.slice(0, 6)
 
-  const heroBannerTitle = workersWithNoProgress > 0
-    ? `Capacita a tu equipo, ${firstName}.`
-    : 'Cuidados con empatía, equipos con propósito.'
+  const adminAlerts = await getAdminAlerts()
+  // Vencidos (plazo ya pasado) separados de próximos: incumplimiento real vs aviso.
+  const overdueAlerts = adminAlerts.alerts.filter((a) => a.urgency === 'overdue')
+  const upcomingAlerts = adminAlerts.alerts.filter((a) => a.urgency !== 'overdue')
+  const overdueCount = overdueAlerts.length
+  const vencimientos = upcomingAlerts.slice(0, 3)
+
+  const plazoLabel = (daysLeft: number, urgency: string): [string, 'peligro' | 'aviso'] => {
+    if (urgency === 'overdue' || daysLeft < 0) return ['Vencido', 'peligro']
+    if (daysLeft <= 14) return [`En ${daysLeft} día${daysLeft !== 1 ? 's' : ''}`, 'aviso']
+    return [`En ${Math.ceil(daysLeft / 7)} semanas`, 'aviso']
+  }
+
+  const hora = new Date().getHours()
+  const saludo = hora < 12 ? 'Buenos días' : hora < 20 ? 'Buenas tardes' : 'Buenas noches'
+  const mesLabel = new Date().toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
+
+  // Pirámide invertida: el KPI de salud (cumplimiento) va primero (patrón F, izquierda).
+  const heroStats: [string, string][] = [
+    [`${approvalRate}%`, 'cumplimiento'],
+    [String(totalWorkers), 'trabajadores'],
+    [String(publishedCourses), 'cursos activos'],
+  ]
+  const sedeRows: [string, number, number][] = [
+    ['Sede Hualpén', sede1Rate, sede1Workers.length],
+    ['Sede Coyhaique', sede2Rate, sede2Workers.length],
+  ]
+
+  // Acciones del día: lo que el admin debe resolver, primero (pirámide invertida).
+  const acciones: { href: string; icono: IconoNombre; valor: number; etiqueta: string; detalle: string; tono: 'peligro' | 'ambar' }[] = [
+    { href: '/admin/reportes', icono: 'alerta', valor: overdueCount, etiqueta: 'Cursos vencidos', detalle: 'fuera de plazo, sin completar', tono: 'peligro' },
+    { href: '/admin/trabajadores?tab=solicitudes', icono: 'usuarios', valor: pendingApprovals ?? 0, etiqueta: 'Aprobaciones pendientes', detalle: 'esperan acceso al sistema', tono: 'ambar' },
+    { href: '/admin/trabajadores', icono: 'reportes', valor: atrasadosCount, etiqueta: 'Trabajadores atrasados', detalle: 'bajo 50% de avance', tono: 'ambar' },
+  ]
 
   return (
-    <div className="bg-[#F8F9FA] min-h-screen">
+    <div className="col" style={{ gap: 20 }} data-screen-label="Admin · Dashboard">
 
-      {/* Hero Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#1A2F6B] to-[#2B4FA0] min-h-[12rem] lg:h-56 flex items-center px-4 sm:px-6 lg:px-10 py-8 lg:py-0">
-        {/* Decorative circles */}
-        <div className="absolute right-0 top-0 w-full h-full pointer-events-none">
-          <div className="absolute right-[-60px] top-[-60px] w-64 h-64 rounded-full bg-[#F5A623] opacity-10" />
-          <div className="absolute right-[60px] top-[20px] w-44 h-44 rounded-full bg-[#2B4FA0] opacity-20 border-2 border-white/10" />
-          <div className="absolute right-[20px] bottom-[-40px] w-48 h-48 rounded-full bg-[#E74C3C] opacity-10" />
-        </div>
-        <div className="relative z-10 max-w-2xl w-full">
-          <p className="text-white/60 text-[10px] uppercase tracking-widest font-semibold mb-2">Progreso semanal</p>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight mb-2">
-            {heroBannerTitle}
-          </h1>
-          <p className="text-white/75 text-xs sm:text-sm mb-5">
-            {totalWorkers} colaboradores activos · {coursesCompleted} cursos completados esta semana.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
-            <Link
-              href="/admin/cursos/nuevo"
-              className="px-5 py-2.5 bg-[#F5A623] text-[#1A2F6B] font-bold rounded-lg text-sm hover:bg-[#e0961a] transition-colors"
-            >
-              Nueva capacitación →
-            </Link>
-            <Link
-              href="/admin/reportes"
-              className="px-5 py-2.5 bg-white/10 text-white border border-white/20 font-semibold rounded-lg text-sm hover:bg-white/20 transition-colors"
-            >
-              Ver reportes
-            </Link>
+      {/* Hero saludo (variante B) */}
+      <div
+        className="card bloque-marca entra"
+        style={{ background: 'var(--grad-marca)', color: '#fff', border: 'none', overflow: 'hidden', position: 'relative' }}
+      >
+        <div className="fila" style={{ padding: '30px 32px 24px', gap: 24, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+          <div className="crece" style={{ minWidth: 280 }}>
+            <span className="t-eyebrow" style={{ color: 'var(--oliva-clara, var(--ambar))' }}>◆ {mesLabel}</span>
+            <h1 className="t-display" style={{ fontSize: 30, color: '#fff', marginTop: 8 }}>
+              {saludo}, {firstName}.<br />
+              Hay <em style={{ color: 'var(--oliva-clara, var(--ambar))' }}>{adminAlerts.count} vencimiento{adminAlerts.count !== 1 ? 's' : ''}</em> este mes.
+            </h1>
+          </div>
+          <div className="fila" style={{ gap: 28 }}>
+            {heroStats.map(([v, l]) => (
+              <div key={l} style={{ textAlign: 'center' }}>
+                <div className="t-display" style={{ fontSize: 34, color: '#fff' }}>{v}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{l}</div>
+              </div>
+            ))}
           </div>
         </div>
+        <Onda alto={36} />
       </div>
 
-      <div className="p-4 lg:p-8 space-y-8">
-
-        <div className="flex items-center justify-end gap-4 flex-wrap">
-          <p className="text-[#6B7280] text-xs">Actualizado hace 0 minutos</p>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
-
-          {/* Card 1 — Blue */}
-          <div className="bg-[#2B4FA0] text-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mb-4">
-              <Users className="w-5 h-5 text-white" aria-hidden="true" />
-            </div>
-            <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">Colaboradores activos</p>
-            <p className="text-3xl font-extrabold">{totalWorkers}</p>
-          </div>
-
-          {/* Card 2 — White */}
-          <div className="bg-white border border-slate-200 text-[#1A1A2E] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-[#E6F1FB] flex items-center justify-center mb-4">
-              <BookOpen className="w-5 h-5 text-[#2B4FA0]" aria-hidden="true" />
-            </div>
-            <p className="text-[#1A1A2E]/70 text-xs font-semibold uppercase tracking-wider mb-1">Capacitaciones publicadas</p>
-            <p className="text-3xl font-extrabold">{publishedCourses}</p>
-          </div>
-
-          {/* Card 3 — Soft green */}
-          <div className="bg-[#EDFAF3] text-[#1A6B3A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-[#27AE60]/10 flex items-center justify-center mb-4">
-              <TrendingUp className="w-5 h-5 text-[#27AE60]" aria-hidden="true" />
-            </div>
-            <p className="text-[#1A6B3A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Cumplimiento</p>
-            <p className="text-3xl font-extrabold text-[#1A6B3A]">{approvalRate}%</p>
-          </div>
-
-          {/* Card 4 — Amber tint */}
-          <div className="bg-[#FFF8EC] text-[#92600A] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <div className="w-10 h-10 rounded-full bg-[#F5A623]/20 flex items-center justify-center mb-4">
-              <Award className="w-5 h-5 text-[#F5A623]" aria-hidden="true" />
-            </div>
-            <p className="text-[#92600A]/70 text-xs font-semibold uppercase tracking-wider mb-1">Certificados emitidos</p>
-            <p className="text-3xl font-extrabold text-[#92600A]">{totalCertificates}</p>
-          </div>
-        </div>
-
-        {/* Bottom section — 3 columns */}
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
-
-          {/* Col 1: Comparativa por sede (4/10) */}
-          <div className="lg:col-span-4 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <h3 className="font-bold text-[#1A1A2E] text-base mb-6">Comparativa por sede</h3>
-            <div className="space-y-6">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[#1A1A2E]">Sede Hualpén</span>
-                  <span className="text-sm font-bold text-[#2B4FA0]">{sede1Rate}%</span>
-                </div>
-                <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#2B4FA0] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${sede1Rate}%` }}
-                  />
-                </div>
-                <p className="text-xs text-[#6B7280] mt-1">{sede1Workers.length} trabajadores</p>
+      {/* Acciones del día — lo accionable arriba (pirámide invertida + patrón F) */}
+      <div className="entra entra-1 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {acciones.map((a) => {
+          const cero = a.valor === 0
+          const col = cero ? 'var(--ok)' : a.tono === 'peligro' ? 'var(--peligro)' : 'var(--ambar-700)'
+          const bg = cero ? 'var(--ok-bg)' : a.tono === 'peligro' ? 'var(--peligro-bg)' : 'var(--ambar-50)'
+          return (
+            <Link
+              key={a.etiqueta}
+              href={a.href}
+              aria-label={`${a.etiqueta}: ${a.valor}. ${cero ? 'todo al día' : a.detalle}`}
+              className="card card-pad card-hover fila"
+              style={{ gap: 14, alignItems: 'flex-start', textDecoration: 'none', color: 'inherit' }}
+            >
+              <span
+                aria-hidden="true"
+                style={{ width: 44, height: 44, borderRadius: 12, flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: bg, color: col }}
+              >
+                <Icono n={cero ? 'check' : a.icono} s={22} />
+              </span>
+              <div className="crece" style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--tinta-2)' }}>{a.etiqueta}</div>
+                <div className="t-display" style={{ fontSize: 30, lineHeight: 1.15, color: cero ? 'var(--tinta)' : col }}>{a.valor}</div>
+                <div className="texto-s silencio-3">{cero ? 'todo al día' : a.detalle}</div>
               </div>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-semibold text-[#1A1A2E]">Sede Coyhaique</span>
-                  <span className="text-sm font-bold text-[#F5A623]">{sede2Rate}%</span>
-                </div>
-                <div className="w-full bg-gray-100 h-3 rounded-full overflow-hidden">
-                  <div
-                    className="bg-[#F5A623] h-full rounded-full transition-all duration-500"
-                    style={{ width: `${sede2Rate}%` }}
-                  />
-                </div>
-                <p className="text-xs text-[#6B7280] mt-1">{sede2Workers.length} trabajadores</p>
-              </div>
-            </div>
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <p className="text-xs text-[#6B7280]">
-                Meta trimestral:{' '}
-                <span className="font-bold text-[#1A1A2E]">90% de cumplimiento</span>
-              </p>
-            </div>
-          </div>
+            </Link>
+          )
+        })}
+      </div>
 
-          {/* Col 2: Actividad reciente (3/10) */}
-          <div className="lg:col-span-3 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-            <h3 className="font-bold text-[#1A1A2E] text-base mb-6">Actividad reciente</h3>
-            {recentActivity.length === 0 ? (
-              <p className="text-sm text-[#6B7280]">Sin actividad reciente.</p>
-            ) : (
-              <div className="space-y-4">
-                {recentActivity.map((item) => (
-                  <div key={`${item.userId}-${item.courseId}-${item.updatedAt}`} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#2B4FA0] flex items-center justify-center shrink-0">
-                      <span className="text-white text-[10px] font-bold">{item.initials}</span>
+      {/* Grid principal: seguimiento + columna lateral */}
+      <div className="entra entra-2 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5 items-start">
+        {/* Requieren seguimiento */}
+        <div className="card col" style={{ gap: 0 }}>
+          <div className="fila card-pad" style={{ paddingBottom: 10 }}>
+            <h2 className="crece" style={{ fontSize: 16.5 }}>Requieren seguimiento</h2>
+            <Link href="/admin/trabajadores" className="btn btn-secondary btn-sm">Ver todos</Link>
+          </div>
+          {workerFollowup.length === 0 ? (
+            <div className="card-pad"><p className="silencio texto-s">Todo el equipo está al día.</p></div>
+          ) : (
+            <>
+              {/* Desktop: tabla */}
+              <div className="tabla-envoltura hidden lg:block">
+                <table className="tabla">
+                  <caption className="sr-only">Trabajadores con cursos obligatorios pendientes</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Trabajador/a</th>
+                      <th scope="col">Sede</th>
+                      <th scope="col" style={{ textAlign: 'right' }}>Pendientes</th>
+                      <th scope="col">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {workerFollowup.map((t) => (
+                      <tr key={t.id}>
+                        <td>
+                          <div className="fila" style={{ gap: 10 }}>
+                            <Avatar nombre={t.nombre} s={32} />
+                            <strong style={{ fontSize: 14.5 }}>{t.nombre}</strong>
+                          </div>
+                        </td>
+                        <td className="silencio texto-s">{t.sede}</td>
+                        <td style={{ textAlign: 'right' }}>
+                          <strong>{t.pendientes}</strong> <span className="silencio-3 texto-s">cursos</span>
+                          {t.sinIniciar > 0 && (
+                            <div className="texto-s silencio-3">{t.sinIniciar} sin iniciar</div>
+                          )}
+                        </td>
+                        <td><BadgeEstado estado={t.estado} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Móvil: tarjetas apiladas (sin scroll horizontal — PDF accesibilidad) */}
+              <ul className="lg:hidden" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                {workerFollowup.map((t) => (
+                  <li
+                    key={t.id}
+                    className="fila"
+                    style={{ gap: 12, padding: '12px 18px', borderTop: '1px solid var(--borde-suave)' }}
+                  >
+                    <Avatar nombre={t.nombre} s={38} />
+                    <div className="crece" style={{ minWidth: 0 }}>
+                      <div className="recorte" style={{ fontWeight: 600, fontSize: 14.5 }}>{t.nombre}</div>
+                      <div className="texto-s silencio-3">
+                        {t.sede} · {t.pendientes} pend.{t.sinIniciar > 0 ? ` · ${t.sinIniciar} sin iniciar` : ''}
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#1A1A2E] truncate">{item.name}</p>
-                      <p className="text-xs text-[#6B7280]">{item.action}</p>
-                    </div>
-                    <span className="text-[10px] text-[#6B7280] shrink-0 mt-0.5">{item.time}</span>
-                  </div>
+                    <BadgeEstado estado={t.estado} />
+                  </li>
                 ))}
+              </ul>
+            </>
+          )}
+        </div>
+
+        {/* Columna derecha */}
+        <div className="col" style={{ gap: 20 }}>
+          {/* Vencimientos próximos */}
+          <div className="card card-pad col" style={{ gap: 14 }}>
+            <div className="fila">
+              <h2 className="crece" style={{ fontSize: 16.5 }}>Vencimientos próximos</h2>
+              <Link href="/admin/reportes" style={{ fontSize: 14, fontWeight: 600 }}>Ver reportes</Link>
+            </div>
+            {vencimientos.length === 0 ? (
+              <p className="silencio texto-s">
+                {overdueCount > 0
+                  ? `Sin próximos a vencer. Hay ${overdueCount} ya vencido${overdueCount !== 1 ? 's' : ''} (arriba).`
+                  : 'No hay vencimientos próximos.'}
+              </p>
+            ) : (
+              <div className="col" style={{ gap: 10 }}>
+                {vencimientos.map((a) => {
+                  const [texto, tono] = plazoLabel(a.daysLeft, a.urgency)
+                  return (
+                    <div
+                      key={a.courseId}
+                      className="fila"
+                      style={{ gap: 12, padding: '10px 12px', borderRadius: 12, background: 'var(--crema)', border: '1px solid var(--borde-suave)' }}
+                    >
+                      <span style={{ color: tono === 'peligro' ? 'var(--peligro)' : 'var(--aviso)' }}>
+                        <Icono n={tono === 'peligro' ? 'alerta' : 'reloj'} s={19} />
+                      </span>
+                      <div className="crece" style={{ lineHeight: 1.3, minWidth: 0 }}>
+                        <div className="recorte" style={{ fontWeight: 600, fontSize: 14.5 }}>{a.courseTitle}</div>
+                        <div className="texto-s silencio-3">{a.pendingWorkers ?? 0} personas</div>
+                      </div>
+                      <Badge tono={tono} punto={false}>{texto}</Badge>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
 
-          {/* Col 3: Cursos + Certificados (3/10) */}
-          <div className="lg:col-span-3 space-y-6">
-
-            {/* Cursos más completados */}
-            <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-              <h3 className="font-bold text-[#1A1A2E] text-base mb-5">Cursos más completados</h3>
-              <div className="space-y-4">
-                {topCourses.length === 0 ? (
-                  <p className="text-sm text-[#6B7280]">Sin datos aún.</p>
-                ) : topCourses.map(course => (
-                  <div key={course.course_name}>
-                    <div className="flex justify-between text-xs font-bold mb-1.5">
-                      <span className="text-[#1A1A2E] truncate pr-2">{course.course_name}</span>
-                      <span className="text-[#2B4FA0] shrink-0">{course.completion_rate}%</span>
-                    </div>
-                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-[#2B4FA0] h-full rounded-full transition-all duration-500"
-                        style={{ width: `${course.completion_rate}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+          {/* Cumplimiento por sede */}
+          <div className="card card-pad col" style={{ gap: 16 }}>
+            <div className="fila">
+              <div className="crece">
+                <h2 style={{ fontSize: 16.5 }}>Cumplimiento por sede</h2>
+                <p className="texto-s silencio-3">Cursos obligatorios al día, por residencia</p>
               </div>
+              <Link href="/admin/reportes" style={{ fontSize: 14, fontWeight: 600 }}>Detalle por sede</Link>
             </div>
-
-            {/* Certificados este mes */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#1A2F6B] to-[#2B4FA0] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-5 lg:p-6">
-              <div className="absolute -right-6 -top-6 opacity-15 pointer-events-none">
-                <Award className="w-28 h-28 text-white" aria-hidden="true" />
-              </div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-2">
-                  <Medal className="w-4 h-4 text-[#F5A623]" aria-hidden="true" />
-                  <p className="text-white/80 text-xs font-semibold">Certificados este mes</p>
+            <div className="col" style={{ gap: 14 }}>
+              {sedeRows.map(([n, rate, count]) => (
+                <div key={n} className="col" style={{ gap: 6 }}>
+                  <div className="fila" style={{ fontSize: 14 }}>
+                    <span className="crece" style={{ fontWeight: 600 }}>{n}</span>
+                    {/* Estado por icono + texto, no solo color (accesibilidad daltónica) */}
+                    <span className="fila" style={{ gap: 5, fontWeight: 640, color: rate < 70 ? 'var(--peligro)' : 'var(--ok)' }}>
+                      <Icono n={rate < 70 ? 'alerta' : 'check'} s={14} />
+                      {rate}%
+                    </span>
+                  </div>
+                  <Progreso pct={rate} azul={rate >= 70} />
+                  <span className="texto-s silencio-3">{count} trabajadores</span>
                 </div>
-                <p className="text-5xl font-black text-white mb-1">{certificatesThisMonth}</p>
-                <p className="text-white/50 text-[10px] uppercase tracking-widest mb-5">Emitidos</p>
-                <Link
-                  href="/admin/reportes"
-                  className="block w-full py-2.5 bg-[#F5A623] hover:bg-[#e0961a] text-[#1A2F6B] font-bold rounded-lg text-sm text-center transition-colors"
-                >
-                  Ver todos los certificados
-                </Link>
-              </div>
+              ))}
             </div>
           </div>
         </div>
+      </div>
 
+      {/* Fila inferior: cursos más completados + certificados */}
+      <div className="entra entra-3 grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5 items-start">
+        <div className="card card-pad col" style={{ gap: 14 }}>
+          <div className="crece">
+            <h2 style={{ fontSize: 16.5 }}>Cursos con menor cumplimiento</h2>
+            <p className="texto-s silencio-3">Dónde enfocar el seguimiento esta semana</p>
+          </div>
+          {worstCourses.length === 0 ? (
+            <p className="silencio texto-s">Todos los cursos están al 100%.</p>
+          ) : (
+            <div className="col" style={{ gap: 12 }}>
+              {worstCourses.map((c) => {
+                const color = c.completion_rate < 50 ? 'var(--peligro)' : c.completion_rate < 80 ? 'var(--aviso)' : 'var(--tinta)'
+                return (
+                  <div key={c.course_name} className="col" style={{ gap: 6 }}>
+                    <div className="fila texto-s">
+                      <span className="crece recorte" style={{ fontWeight: 600 }}>{c.course_name}</span>
+                      <strong style={{ color }}>{c.completion_rate}%</strong>
+                    </div>
+                    <Progreso pct={c.completion_rate} azul />
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+        <div
+          className="card bloque-marca col"
+          style={{ background: 'var(--grad-oliva, var(--grad-marca))', color: '#fff', border: 'none', overflow: 'hidden' }}
+        >
+          <div className="card-pad col" style={{ gap: 4, position: 'relative', zIndex: 1 }}>
+            <div className="fila" style={{ gap: 8 }}>
+              <Icono n="certificado" s={18} />
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)', fontWeight: 600 }}>Certificados este mes</span>
+            </div>
+            <div className="t-display" style={{ fontSize: 44, color: '#fff' }}>{certificatesThisMonth}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.78)' }}>{totalCertificates} emitidos en total</div>
+            <Link href="/admin/certificados" className="btn btn-primary" style={{ marginTop: 12 }}>Ver certificados</Link>
+          </div>
+          <Onda alto={28} />
+        </div>
       </div>
     </div>
   )
 }
-

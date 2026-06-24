@@ -1,4 +1,4 @@
-import { SkeletonProfileCard, SkeletonStatsRow } from '@/components/alumco/Skeletons'
+import { SkeletonProfileCard, SkeletonStatsRow } from '@/components/alumco/shared/Skeletons'
 
 export default function PerfilLoading() {
   return (

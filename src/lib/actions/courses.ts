@@ -55,7 +55,12 @@ export interface ActionResult {
   success?: boolean
   id?: string
   quizId?: string
+  url?: string
 }
+
+const BANNER_BUCKET = 'course-banners'
+const MAX_BANNER_BYTES = 5 * 1024 * 1024 // 5 MB
+const ALLOWED_BANNER_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 
 // ── Crear curso ────────────────────────────────────────────
 
@@ -157,6 +162,82 @@ export async function updateCourseAction(
   revalidatePath('/admin/cursos')
   revalidatePath(`/admin/cursos/${courseId}/editar`)
   return { success: true }
+}
+
+// ── Banner del curso ───────────────────────────────────────
+
+/**
+ * Persiste la imagen de banner del curso (URL de la galería o de Storage).
+ * Pasar `null` quita la imagen y el curso vuelve a mostrar solo el degradado.
+ */
+export async function updateCourseBannerAction(
+  courseId: string,
+  thumbnailUrl: string | null
+): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
+  const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (adminClient as any)
+    .from('courses')
+    .update({ thumbnail_url: thumbnailUrl } as unknown as never)
+    .eq('id', courseId)
+
+  if (error) {
+    return { error: 'Error al guardar el banner del curso.' }
+  }
+
+  revalidatePath('/admin/cursos')
+  revalidatePath(`/admin/cursos/${courseId}/editar`)
+  revalidatePath('/cursos')
+  revalidatePath(`/cursos/${courseId}`)
+  return { success: true }
+}
+
+/**
+ * Sube una imagen al bucket `course-banners`, la asocia al curso y
+ * devuelve la URL pública.
+ */
+export async function uploadCourseBannerAction(
+  courseId: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
+  const file = formData.get('file')
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: 'No se recibió ninguna imagen.' }
+  }
+  if (file.size > MAX_BANNER_BYTES) {
+    return { error: 'La imagen supera el máximo de 5 MB.' }
+  }
+  if (!ALLOWED_BANNER_TYPES.includes(file.type)) {
+    return { error: 'Formato no válido. Usa PNG, JPG o WebP.' }
+  }
+
+  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+  const path = `${courseId}/${Date.now()}.${ext}`
+
+  const adminClient = await createAdminClient()
+  const { error: uploadError } = await adminClient.storage
+    .from(BANNER_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: true })
+
+  if (uploadError) {
+    return { error: 'Error al subir la imagen. Intenta nuevamente.' }
+  }
+
+  const { data: publicData } = adminClient.storage
+    .from(BANNER_BUCKET)
+    .getPublicUrl(path)
+  const publicUrl = publicData.publicUrl
+
+  const result = await updateCourseBannerAction(courseId, publicUrl)
+  if (result.error) return result
+
+  return { success: true, url: publicUrl }
 }
 
 // ── Publicar / despublicar curso ───────────────────────────
