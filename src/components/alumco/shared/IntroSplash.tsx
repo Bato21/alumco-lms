@@ -96,15 +96,6 @@ export function IntroSplash() {
           .alm-pieza, .alm-word { animation: none; }
         }
       `}</style>
-
-      <button type="button" onClick={cerrar} style={{
-        position: 'absolute', bottom: 26, right: 26, minWidth: 0, minHeight: 0,
-        padding: '7px 14px', borderRadius: 999, border: '1px solid rgba(0,0,0,0.18)',
-        background: 'rgba(0,0,0,0.04)', color: 'rgba(40,49,64,0.7)', fontSize: 12, fontWeight: 600,
-        cursor: 'pointer',
-      }}>
-        Saltar
-      </button>
     </div>
   )
 }
