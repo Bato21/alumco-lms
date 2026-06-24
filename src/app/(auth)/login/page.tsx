@@ -20,7 +20,7 @@ function GotaMascota({ size = 56 }: { size?: number }) {
 
 export default function LoginPage() {
   return (
-    <div className="login-shell paleta-oliva flex flex-col md:flex-row" style={{ minHeight: '100vh' }}>
+    <div className="login-shell paleta-azul flex flex-col md:flex-row" style={{ minHeight: '100vh' }}>
 
       {/* Panel de marca — "Amanecer sobre agua" */}
       <div
@@ -61,7 +61,7 @@ export default function LoginPage() {
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'radial-gradient(90% 60% at 50% 115%, rgba(170,198,163,0.20) 0%, rgba(170,198,163,0.05) 45%, transparent 70%)',
+            background: 'radial-gradient(90% 60% at 50% 115%, rgba(245,166,35,0.22) 0%, rgba(245,166,35,0.06) 45%, transparent 70%)',
           }}
         />
         <div className="col entra" style={{ alignItems: 'center', textAlign: 'center', gap: 0, position: 'relative', zIndex: 1, maxWidth: 420 }}>

@@ -724,6 +724,28 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
 .paleta-oliva .acento-claro { color: var(--oliva-clara) !important; }
 
 /* ============================================================
+   PALETA AZUL — misma estructura que .paleta-oliva pero con el
+   azul Alumco + acento ámbar (sin verde). Scoped a .paleta-azul.
+   ============================================================ */
+.paleta-azul {
+  --ambar:       #F5A623;
+  --ambar-600:   #e0961a;
+  --ambar-700:   #b9740f;
+  --ambar-100:   #fdeccc;
+  --ambar-50:    #fef6e6;
+  /* azul oscuro de marca (secciones tipo landing) + ámbar claro (acento) */
+  --oliva-950:   #0b1838;
+  --oliva-900:   #0f1f4d;
+  --oliva-800:   #152a66;
+  --oliva-clara: #F5C26B;
+  --grad-oliva:  linear-gradient(168deg, #0f1f4d 0%, #152a66 100%);
+  /* bordes neutros fríos */
+  --borde:       #DCE2EC;
+  --borde-suave: #E8EDF4;
+}
+.paleta-azul .acento-claro { color: var(--oliva-clara) !important; }
+
+/* ============================================================
    ADMIN CALMO — menos brutalismo, más claridad de datos
    (bajar carga cognitiva: PDFs usabilidad/redacción web).
    Solo dentro de .paleta-oliva.
