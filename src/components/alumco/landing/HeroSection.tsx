@@ -100,7 +100,7 @@ export default function HeroSection() {
           height: '34%',
           zIndex: 2,
           background:
-            'linear-gradient(180deg, rgba(43,52,39,0) 0%, rgba(43,52,39,0.6) 50%, rgba(43,52,39,1) 88%, rgba(43,52,39,1) 100%)',
+            'linear-gradient(180deg, rgba(43,79,160,0) 0%, rgba(43,79,160,0.6) 50%, rgba(43,79,160,1) 88%, rgba(43,79,160,1) 100%)',
         }}
       />
 
@@ -111,7 +111,7 @@ export default function HeroSection() {
         >
           Nuestros cuidados son el
           <br />
-          reflejo de la <em style={{ color: '#fff', fontStyle: 'italic', fontSize: '1.18em' }}>empatía</em>.
+          reflejo de la <em style={{ color: '#fff', fontStyle: 'italic', fontSize: '1.18em' }}>EMPATÍA</em>.
         </h1>
 
         <p
@@ -147,13 +147,13 @@ export default function HeroSection() {
             aria-label={`Ver imagen ${i + 1}`}
             aria-current={i === actual}
             style={{
-              width: i === actual ? 26 : 9,
-              height: 9,
+              width: i === actual ? 14 : 5,
+              height: 5,
               borderRadius: 999,
               border: 'none',
               cursor: 'pointer',
               padding: 0,
-              background: i === actual ? '#fff' : 'rgba(255,255,255,0.5)',
+              background: i === actual ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)',
               transition: 'width 0.3s ease, background 0.3s ease',
             }}
           />

@@ -11,10 +11,10 @@ const AREAS = [
 export default function MisionVision() {
   return (
     <>
-      {/* Misión — sección oliva oscura; recibe el fade del hero (estilo Giga) */}
+      {/* Misión — sección azul Alumco; recibe el fade del hero sin corte */}
       <section
         id="mision-vision"
-        style={{ padding: '110px 24px', background: 'var(--oliva-900)', color: '#fff' }}
+        style={{ padding: '110px 24px', background: '#2B4FA0', color: '#fff' }}
       >
         <div style={{ maxWidth: 880, margin: '0 auto', textAlign: 'center' }}>
           <span className="t-eyebrow claro">◆ Nuestra misión</span>
