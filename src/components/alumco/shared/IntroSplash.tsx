@@ -24,7 +24,8 @@ export function IntroSplash() {
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
     const yaVisto = sessionStorage.getItem(STORAGE_KEY) === '1'
     if (reduce || yaVisto) {
-      setVisible(false)
+      // Diferido para no llamar setState de forma síncrona dentro del efecto.
+      queueMicrotask(() => setVisible(false))
       return
     }
     sessionStorage.setItem(STORAGE_KEY, '1')
