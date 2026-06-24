@@ -100,7 +100,7 @@ export default function HeroSection() {
           height: '34%',
           zIndex: 2,
           background:
-            'linear-gradient(180deg, rgba(43,79,160,0) 0%, rgba(43,79,160,0.6) 50%, rgba(43,79,160,1) 88%, rgba(43,79,160,1) 100%)',
+            'linear-gradient(180deg, rgba(15,31,77,0) 0%, rgba(15,31,77,0.6) 50%, rgba(15,31,77,1) 88%, rgba(15,31,77,1) 100%)',
         }}
       />
 

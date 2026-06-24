@@ -696,21 +696,23 @@ section[id] { scroll-margin-top: 80px; }
    .landing-page → la plataforma mantiene DIDASKO (ámbar).
    ============================================================ */
 .landing-page {
-  --ambar:     #6E8B6A;
-  --ambar-600: #5f7d5b;
-  --ambar-700: #4f6a4c;
-  --ambar-100: #dde7da;
-  --ambar-50:  #eef2ec;
-  --crema:       #FAFBFA;
-  --arena-100:   #ECF0EE;
-  --arena-200:   #e1e8e3;
-  --borde:       #DEE5E1;
-  --borde-suave: #e9efeb;
+  /* Acento ámbar Alumco (reemplaza el verde salvia) */
+  --ambar:     #F5A623;
+  --ambar-600: #e0961a;
+  --ambar-700: #b9740f;
+  --ambar-100: #fdeccc;
+  --ambar-50:  #fef6e6;
+  /* Neutros fríos con leve tinte azul (sin verde) */
+  --crema:       #FAFBFC;
+  --arena-100:   #EEF1F6;
+  --arena-200:   #E2E7F0;
+  --borde:       #DCE2EC;
+  --borde-suave: #E8EDF4;
   --tinta:       #1B2233;
-  /* Oliva oscuro — secciones que reciben el fade del hero (árboles) */
-  --oliva-950:   #222a1f;
-  --oliva-900:   #2b3427;
-  --oliva-800:   #3a4636;
+  /* Secciones oscuras → azul Alumco del footer (antes oliva) */
+  --oliva-950:   #0b1838;
+  --oliva-900:   #0f1f4d;
+  --oliva-800:   #152a66;
 }
 
 /* ============================================================
@@ -752,7 +754,7 @@ section[id] { scroll-margin-top: 80px; }
   letter-spacing: 0.14em;
 }
 .landing-page .t-eyebrow.claro {
-  color: #aac6a3 !important;
+  color: #F5C26B !important;
 }
 
 /* Color del eyebrow del landing dentro de la capa components, con selector más
@@ -760,5 +762,5 @@ section[id] { scroll-margin-top: 80px; }
    capa vence a un !important sin capa). */
 @layer components {
   body[data-tema="didasko"] .landing-page .t-eyebrow { color: var(--ambar-700) !important; }
-  body[data-tema="didasko"] .landing-page .t-eyebrow.claro { color: #aac6a3 !important; }
+  body[data-tema="didasko"] .landing-page .t-eyebrow.claro { color: #F5C26B !important; }
 }
