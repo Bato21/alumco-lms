@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 const STORAGE_KEY = 'alumco-intro-visto'
 
@@ -13,6 +13,11 @@ export function IntroSplash() {
   const [visible, setVisible] = useState(true)
   const [fade, setFade] = useState(false)
   const videoRef = useRef<HTMLVideoElement | null>(null)
+
+  const cerrar = useCallback(() => {
+    setFade(true)
+    setTimeout(() => setVisible(false), 650)
+  }, [])
 
   // Decide si mostrarlo (solo 1 vez por sesión; nunca con reduce-motion).
   useEffect(() => {
@@ -27,7 +32,7 @@ export function IntroSplash() {
     // Red de seguridad: si el video no dispara 'ended', cerrar igual.
     const fallback = setTimeout(() => cerrar(), 12000)
     return () => clearTimeout(fallback)
-  }, [])
+  }, [cerrar])
 
   // Bloquea el scroll del fondo mientras el intro está visible.
   useEffect(() => {
@@ -38,11 +43,6 @@ export function IntroSplash() {
       document.body.style.overflow = prev
     }
   }, [visible])
-
-  function cerrar() {
-    setFade(true)
-    setTimeout(() => setVisible(false), 650)
-  }
 
   if (!visible) return null
 
