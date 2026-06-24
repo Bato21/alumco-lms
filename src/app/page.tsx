@@ -6,6 +6,7 @@ import ValoresSection from '@/components/alumco/landing/ValoresSection'
 import MemoriasSection from '@/components/alumco/landing/MemoriasSection'
 import ContactoSection from '@/components/alumco/landing/ContactoSection'
 import LandingFooter from '@/components/alumco/landing/LandingFooter'
+import { IntroSplash } from '@/components/alumco/shared/IntroSplash'
 
 export const metadata: Metadata = {
   title: 'ONG Alumco — Cuidado con empatía para personas mayores',
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <div className="landing-page">
+      <IntroSplash />
       <LandingNav />
       <main style={{ background: 'var(--crema)', color: 'var(--tinta)' }}>
         <HeroSection />
