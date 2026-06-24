@@ -147,13 +147,15 @@ export default function HeroSection() {
             aria-label={`Ver imagen ${i + 1}`}
             aria-current={i === actual}
             style={{
-              width: i === actual ? 14 : 5,
-              height: 5,
+              width: i === actual ? 18 : 7,
+              height: 7,
+              minWidth: 0,
+              minHeight: 0,
               borderRadius: 999,
               border: 'none',
               cursor: 'pointer',
               padding: 0,
-              background: i === actual ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.3)',
+              background: i === actual ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.32)',
               transition: 'width 0.3s ease, background 0.3s ease',
             }}
           />
