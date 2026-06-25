@@ -49,7 +49,7 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
       {/* Desktop: topbar horizontal */}
       <header className="topbar hidden lg:flex" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
         <Link href="/inicio" aria-label="Inicio">
-          <MarcaAlumco compacta />
+          <MarcaAlumco />
         </Link>
         <nav className="fila" style={{ gap: 4, marginLeft: 18 }} aria-label="Navegación">
           {NAV.map((it) => {
