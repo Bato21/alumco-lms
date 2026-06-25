@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { MarcaAlumco, Avatar, Icono, type IconoNombre } from '@/components/alumco/ds'
+import { Avatar, Icono, type IconoNombre } from '@/components/alumco/ds'
 import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
 import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
 
@@ -48,8 +49,11 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
     <>
       {/* Desktop: topbar horizontal */}
       <header className="topbar hidden lg:flex" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
-        <Link href="/inicio" aria-label="Inicio">
-          <MarcaAlumco />
+        <Link href="/inicio" aria-label="Inicio" style={{ textDecoration: 'none' }}>
+          <Image src="/LogoAlumco.png" alt="Alumco" width={132} height={45} priority style={{ width: 132, height: 'auto' }} />
+          <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--tinta-3)', marginTop: 4 }}>
+            Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · capacitación
+          </div>
         </Link>
         <nav className="fila" style={{ gap: 4, marginLeft: 18 }} aria-label="Navegación">
           {NAV.map((it) => {
@@ -94,7 +98,9 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
 
       {/* Móvil: cabecera */}
       <header className="topbar lg:hidden" style={{ position: 'sticky', top: 0, zIndex: 30, padding: '10px 16px' }}>
-        <MarcaAlumco compacta />
+        <Link href="/inicio" aria-label="Inicio" style={{ textDecoration: 'none' }}>
+          <Image src="/LogoAlumco.png" alt="Alumco" width={108} height={37} priority style={{ width: 108, height: 'auto' }} />
+        </Link>
         <div className="crece" />
         <NotificationBell initialAlerts={alerts} role="trabajador" />
         <LogoutButton compact />
