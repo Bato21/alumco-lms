@@ -168,7 +168,7 @@ export function ProfileClient({
                 unoptimized
               />
             ) : (
-              <div className="h-24 w-24 rounded-full bg-[#2B4FA0]/10 text-[#2B4FA0] text-3xl font-bold flex items-center justify-center">
+              <div className="h-24 w-24 rounded-full bg-[var(--ambar-50)] text-[var(--ambar)] text-3xl font-bold flex items-center justify-center">
                 {initial2}
               </div>
             )}
@@ -183,39 +183,39 @@ export function ProfileClient({
           <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-[var(--tinta-3)] uppercase tracking-wider flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5" aria-hidden="true" />
                 Correo electrónico
               </p>
-              <p className="text-sm font-medium text-[#1A1A2E] break-all">{email}</p>
+              <p className="text-sm font-medium text-[var(--tinta)] break-all">{email}</p>
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-[var(--tinta-3)] uppercase tracking-wider flex items-center gap-1.5">
                 <CreditCard className="w-3.5 h-3.5" aria-hidden="true" />
                 RUT
               </p>
-              <p className="text-sm font-medium text-[#1A1A2E]">
-                {rut ?? <span className="text-[#6B7280] italic">No registrado</span>}
+              <p className="text-sm font-medium text-[var(--tinta)]">
+                {rut ?? <span className="text-[var(--tinta-3)] italic">No registrado</span>}
               </p>
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-[var(--tinta-3)] uppercase tracking-wider flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5" aria-hidden="true" />
                 Sede
               </p>
-              <p className="text-sm font-medium text-[#1A1A2E]">
+              <p className="text-sm font-medium text-[var(--tinta)]">
                 {sedeLabel[sede] ?? sede}
               </p>
             </div>
 
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-[var(--tinta-3)] uppercase tracking-wider flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
                 Fecha de ingreso
               </p>
-              <p className="text-sm font-medium text-[#1A1A2E]">
+              <p className="text-sm font-medium text-[var(--tinta)]">
                 {createdAt ? formatDate(createdAt) : '—'}
               </p>
             </div>
@@ -226,8 +226,8 @@ export function ProfileClient({
       {/* ── Áreas de trabajo ────────────────────────────────── */}
       <div className="card card-pad space-y-3">
         <div>
-          <h2 className="text-base font-bold text-[#1A1A2E]">Áreas de trabajo asignadas</h2>
-          <p className="text-xs text-[#6B7280] mt-0.5">Asignado por tu administrador</p>
+          <h2 className="text-base font-bold text-[var(--tinta)]">Áreas de trabajo asignadas</h2>
+          <p className="text-xs text-[var(--tinta-3)] mt-0.5">Asignado por tu administrador</p>
         </div>
 
         {areas.length === 0 ? (
@@ -240,17 +240,17 @@ export function ProfileClient({
           </div>
         )}
 
-        <p className="text-xs text-[#6B7280]">
+        <p className="text-xs text-[var(--tinta-3)]">
           Para modificar tus áreas de trabajo, contacta a tu administrador.
         </p>
       </div>
 
       {/* ── Formulario editable ─────────────────────────────── */}
       <div className="card card-pad space-y-4">
-        <h2 className="text-base font-bold text-[#1A1A2E]">Información personal editable</h2>
+        <h2 className="text-base font-bold text-[var(--tinta)]">Información personal editable</h2>
 
         <div className="space-y-1.5">
-          <label htmlFor="fecha_nacimiento" className="block text-xs font-semibold text-[#6B7280] uppercase tracking-wider">
+          <label htmlFor="fecha_nacimiento" className="block text-xs font-semibold text-[var(--tinta-3)] uppercase tracking-wider">
             Fecha de nacimiento
           </label>
           <input
@@ -276,8 +276,8 @@ export function ProfileClient({
       {(role === 'admin' || role === 'profesor') && (
         <div className="card card-pad space-y-4">
           <div>
-            <h2 className="font-bold text-[#1A1A2E]">Firma digital</h2>
-            <p className="text-sm text-[#6B7280] mt-1">
+            <h2 className="font-bold text-[var(--tinta)]">Firma digital</h2>
+            <p className="text-sm text-[var(--tinta-3)] mt-1">
               Tu firma se incluirá automáticamente en los certificados
               de los cursos que has creado.
             </p>
@@ -285,7 +285,7 @@ export function ProfileClient({
 
           {firmaPreview ? (
             <div className="space-y-3">
-              <div className="border-2 border-dashed border-slate-200 rounded-xl p-4 flex items-center justify-center bg-slate-50 min-h-[120px]">
+              <div className="border-2 border-dashed border-[var(--borde)] rounded-xl p-4 flex items-center justify-center bg-[var(--arena-100)] min-h-[120px]">
                 <Image
                   src={firmaPreview}
                   alt="Tu firma digital"
@@ -306,23 +306,23 @@ export function ProfileClient({
               </div>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-slate-200 rounded-xl p-8 cursor-pointer hover:border-[#2B4FA0] hover:bg-[#F0F4FF]/50 transition-colors min-h-[140px]">
+            <label className="flex flex-col items-center justify-center gap-3 border-2 border-dashed border-[var(--borde)] rounded-xl p-8 cursor-pointer hover:border-[var(--ambar)] hover:bg-[var(--ambar-50)] transition-colors min-h-[140px]">
               <input
                 type="file"
                 accept="image/png,image/jpeg"
                 className="hidden"
                 onChange={handleFirmaChange}
               />
-              <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
-                <svg className="h-5 w-5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <div className="h-10 w-10 rounded-full bg-[var(--arena-100)] flex items-center justify-center">
+                <svg className="h-5 w-5 text-[var(--tinta-3)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="17 8 12 3 7 8"/>
                   <line x1="12" y1="3" x2="12" y2="15"/>
                 </svg>
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-[#1A1A2E]">Subir firma digital</p>
-                <p className="text-xs text-[#6B7280] mt-1">PNG o JPG · Fondo transparente recomendado · Máx 2MB</p>
+                <p className="text-sm font-semibold text-[var(--tinta)]">Subir firma digital</p>
+                <p className="text-xs text-[var(--tinta-3)] mt-1">PNG o JPG · Fondo transparente recomendado · Máx 2MB</p>
               </div>
             </label>
           )}

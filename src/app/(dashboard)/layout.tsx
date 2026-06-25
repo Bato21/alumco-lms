@@ -30,7 +30,7 @@ export default async function DashboardLayout({
   if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col paleta-oliva">
       <CursorBlobs />
       <WorkerTopNav
         fullName={profile.full_name ?? 'Usuario'}

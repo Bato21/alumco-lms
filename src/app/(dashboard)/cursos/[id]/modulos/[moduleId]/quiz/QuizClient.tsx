@@ -125,7 +125,7 @@ const handleContinue = async () => {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="flex items-center gap-3">
-          <svg className="w-6 h-6 animate-spin text-[#2B4FA0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 animate-spin text-[var(--ambar)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
@@ -141,7 +141,7 @@ const handleContinue = async () => {
       return (
         <div className="min-h-[400px] flex items-center justify-center">
           <div className="flex items-center gap-3">
-            <svg className="w-6 h-6 animate-spin text-[#2B4FA0]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 animate-spin text-[var(--ambar)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
@@ -169,7 +169,7 @@ const handleContinue = async () => {
             <button
               onClick={handleResetProgress}
               disabled={isPending}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50 min-h-[48px]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--ambar)] text-white rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors disabled:opacity-50 min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
@@ -206,11 +206,11 @@ const handleContinue = async () => {
           </p>
 
           {attempts.length > 0 && (
-            <div className="bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden mb-6 text-left">
-              <div className="px-5 py-3 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-[#1A1A2E]">Historial de intentos</h3>
+            <div className="card overflow-hidden mb-6 text-left">
+              <div className="px-5 py-3 border-b border-[var(--borde-suave)]">
+                <h3 className="text-sm font-bold text-[var(--tinta)]">Historial de intentos</h3>
               </div>
-              <div className="divide-y divide-slate-50">
+              <div className="divide-y divide-[var(--borde-suave)]">
                 {attempts.map(attempt => {
                   const isPassed = attempt.status === 'aprobado'
                   const date = new Intl.DateTimeFormat('es-CL', {
@@ -218,11 +218,11 @@ const handleContinue = async () => {
                   }).format(new Date(attempt.completed_at))
                   return (
                     <div key={attempt.id} className="flex items-center gap-4 px-5 py-3">
-                      <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                        <span className="text-xs font-bold text-[#6B7280]">{attempt.attempt_number}</span>
+                      <div className="h-8 w-8 rounded-full bg-[var(--arena-100)] flex items-center justify-center shrink-0">
+                        <span className="text-xs font-bold text-[var(--tinta-3)]">{attempt.attempt_number}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-[#6B7280]">{date}</p>
+                        <p className="text-xs text-[var(--tinta-3)]">{date}</p>
                       </div>
                       <span className={`text-sm font-extrabold ${isPassed ? 'text-[#27AE60]' : 'text-[#E74C3C]'}`}>
                         {attempt.score}%
@@ -287,7 +287,7 @@ const handleContinue = async () => {
               inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium
               ${quizStatus.attemptsUsed > 0
                 ? 'bg-[#F5A623]/10 text-[#F5A623]'
-                : 'bg-[#2B4FA0]/10 text-[#2B4FA0]'
+                : 'bg-[var(--ambar-50)] text-[var(--ambar)]'
               }
             `}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -299,7 +299,7 @@ const handleContinue = async () => {
             <div className="relative group">
               <button
                 type="button"
-                className="p-1 text-slate-400 hover:text-[#2B4FA0] transition-colors rounded-full"
+                className="p-1 text-[var(--tinta-3)] hover:text-[var(--ambar)] transition-colors rounded-full"
                 aria-label="Información sobre intentos"
               >
                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -309,7 +309,7 @@ const handleContinue = async () => {
                 </svg>
               </button>
 
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[#1A1A2E] text-white text-xs rounded-xl p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[var(--tinta)] text-white text-xs rounded-xl p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                 <p className="font-semibold mb-1">Sistema de intentos</p>
                 <ul className="space-y-1 text-white/80">
                   <li>• Tienes {maxAttempts} intentos por evaluación</li>
@@ -317,7 +317,7 @@ const handleContinue = async () => {
                   <li>• Tu mejor puntaje queda registrado</li>
                   <li>• El administrador puede habilitar nuevos intentos</li>
                 </ul>
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1A1A2E]" />
+                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--tinta)]" />
               </div>
             </div>
 
@@ -347,11 +347,11 @@ const handleContinue = async () => {
 
         {/* Historial de intentos */}
         {attempts.length > 0 && (
-          <div className="bg-white rounded-xl border border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100">
-              <h3 className="text-sm font-bold text-[#1A1A2E]">Historial de intentos</h3>
+          <div className="card overflow-hidden">
+            <div className="px-5 py-3 border-b border-[var(--borde-suave)]">
+              <h3 className="text-sm font-bold text-[var(--tinta)]">Historial de intentos</h3>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-[var(--borde-suave)]">
               {attempts.map(attempt => {
                 const isPassed = attempt.status === 'aprobado'
                 const date = new Intl.DateTimeFormat('es-CL', {
@@ -359,11 +359,11 @@ const handleContinue = async () => {
                 }).format(new Date(attempt.completed_at))
                 return (
                   <div key={attempt.id} className="flex items-center gap-4 px-5 py-3">
-                    <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-[#6B7280]">{attempt.attempt_number}</span>
+                    <div className="h-8 w-8 rounded-full bg-[var(--arena-100)] flex items-center justify-center shrink-0">
+                      <span className="text-xs font-bold text-[var(--tinta-3)]">{attempt.attempt_number}</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-[#6B7280]">{date}</p>
+                      <p className="text-xs text-[var(--tinta-3)]">{date}</p>
                     </div>
                     <span className={`text-sm font-extrabold ${isPassed ? 'text-[#27AE60]' : 'text-[#E74C3C]'}`}>
                       {attempt.score}%
@@ -517,7 +517,7 @@ const handleContinue = async () => {
 
         {/* Resumen por pregunta */}
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-[#1A1A2E] px-1">Revisión de respuestas</h3>
+          <h3 className="text-sm font-bold text-[var(--tinta)] px-1">Revisión de respuestas</h3>
           {questions.map((question, index) => {
             const isCorrect = questionResults[question.id] ?? false
             const userAnswer = answers[question.id]
@@ -549,8 +549,8 @@ const handleContinue = async () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-[#6B7280] mb-1">Pregunta {index + 1}</p>
-                    <p className="text-sm font-medium text-[#1A1A2E] mb-2">{question.question_text}</p>
+                    <p className="text-xs font-semibold text-[var(--tinta-3)] mb-1">Pregunta {index + 1}</p>
+                    <p className="text-sm font-medium text-[var(--tinta)] mb-2">{question.question_text}</p>
                     <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
                       isCorrect
                         ? 'bg-[#27AE60]/10 text-[#27500A]'
@@ -560,7 +560,7 @@ const handleContinue = async () => {
                       {selectedOption?.text ?? 'Sin respuesta'}
                     </div>
                     {!isCorrect && (
-                      <p className="text-xs text-[#6B7280] mt-1.5">
+                      <p className="text-xs text-[var(--tinta-3)] mt-1.5">
                         Revisa el contenido del módulo para encontrar la respuesta correcta.
                       </p>
                     )}
@@ -579,7 +579,7 @@ const handleContinue = async () => {
               passed
                 ? 'bg-[#27AE60] hover:bg-[#27AE60]/90'
                 : quizResult.attemptsRemaining > 0
-                  ? 'bg-[#2B4FA0] hover:bg-[#2B4FA0]/90'
+                  ? 'bg-[var(--ambar)] hover:bg-[var(--ambar-600)]'
                   : 'bg-[#E74C3C] hover:bg-[#E74C3C]/90'
             }`}
           >
@@ -593,7 +593,7 @@ const handleContinue = async () => {
           {!passed && (
             <Link
               href={`/cursos/${courseId}/modulos/${moduleId}`}
-              className="w-full py-3.5 font-semibold rounded-xl border-2 border-slate-200 text-[#1A1A2E] hover:border-[#2B4FA0] transition-colors min-h-[48px] flex items-center justify-center gap-2 text-sm"
+              className="w-full py-3.5 font-semibold rounded-xl border-2 border-[var(--borde)] text-[var(--tinta)] hover:border-[var(--ambar)] transition-colors min-h-[48px] flex items-center justify-center gap-2 text-sm"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -692,7 +692,7 @@ const handleContinue = async () => {
           <div className="flex flex-col gap-3">
             <button
               onClick={handleRetry}
-              className="w-full py-4 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
+              className="w-full py-4 bg-[var(--ambar)] text-white rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
@@ -744,7 +744,7 @@ const handleContinue = async () => {
           <button
             onClick={handleResetProgress}
             disabled={isPending}
-            className="w-full py-4 bg-[#2B4FA0] text-white rounded-lg font-semibold hover:bg-[#2B4FA0]/90 transition-colors flex items-center justify-center gap-2 text-lg disabled:opacity-50 min-h-[48px]"
+            className="w-full py-4 bg-[var(--ambar)] text-white rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg disabled:opacity-50 min-h-[48px]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M1 4v6h6" />

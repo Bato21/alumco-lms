@@ -45,15 +45,15 @@ export default function LoginPage() {
           priority
           sizes="(min-width: 768px) 44vw, 0px"
           aria-hidden="true"
-          style={{ objectFit: 'cover', transform: 'scale(1.08)', filter: 'blur(3px)' }}
+          style={{ objectFit: 'cover', transform: 'scale(1.08)', filter: 'blur(2px)' }}
         />
-        {/* Tinte navy de marca para legibilidad */}
+        {/* Tinte navy de marca para legibilidad (suave: deja ver la foto) */}
         <div
           aria-hidden="true"
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(168deg, rgba(13,28,69,0.85) 0%, rgba(21,42,102,0.88) 55%, rgba(10,22,56,0.94) 100%)',
+            background: 'linear-gradient(168deg, rgba(13,28,69,0.55) 0%, rgba(21,42,102,0.6) 55%, rgba(10,22,56,0.72) 100%)',
           }}
         />
         {/* Resplandor ámbar — el amanecer */}
@@ -111,7 +111,7 @@ export default function LoginPage() {
       </div>
 
       {/* Formulario */}
-      <div className="crece" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px' }}>
+      <div className="crece" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px', background: 'var(--crema)', backgroundImage: 'none' }}>
         <div className="col entra entra-1" style={{ width: 430, maxWidth: '100%', gap: 0 }}>
           <Link
             href="/"

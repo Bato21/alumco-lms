@@ -62,8 +62,9 @@ export default function HeroSection() {
             alt=""
             fill
             priority={i === 0}
+            quality={90}
             sizes="100vw"
-            style={{ objectFit: 'cover', transform: 'scale(1.08)', filter: 'blur(4px)' }}
+            style={{ objectFit: 'cover', transform: 'scale(1.03)', filter: 'blur(2px)' }}
           />
         </div>
       ))}
