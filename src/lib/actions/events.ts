@@ -216,3 +216,205 @@ export async function deleteEventAction(
     return { error: 'Error inesperado al eliminar el evento' }
   }
 }
+
+// ── Roles: jefes y delegados ───────────────────────────────
+
+const RoleSchema = z.object({
+  user_id: z.string().uuid('Selecciona un trabajador'),
+  role: z.enum(['jefe', 'delegado']),
+  area: AREA_ENUM,
+})
+
+export async function setEventRoleAction(
+  eventId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+    if (caller.role !== 'admin') return { error: 'No autorizado' }
+
+    const parsed = RoleSchema.safeParse({
+      user_id: formData.get('user_id'),
+      role: formData.get('role'),
+      area: formData.get('area'),
+    })
+    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac
+      .from('event_roles')
+      .insert({ event_id: eventId, ...parsed.data }) as { error: { message: string; code?: string } | null }
+
+    if (error) {
+      if (error.code === '23505') {
+        return { error: 'Esa persona ya tiene rol en el evento, o el área ya tiene jefe.' }
+      }
+      return { error: error.message }
+    }
+    revalidateEventos(eventId)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al asignar el rol' }
+  }
+}
+
+export async function removeEventRoleAction(
+  roleId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+    if (caller.role !== 'admin') return { error: 'No autorizado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: role } = await ac
+      .from('event_roles').select('event_id').eq('id', roleId).single() as { data: { event_id: string } | null }
+    const { error } = await ac.from('event_roles').delete().eq('id', roleId) as { error: { message: string } | null }
+
+    if (error) return { error: error.message }
+    revalidateEventos(role?.event_id)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al quitar el rol' }
+  }
+}
+
+// ── Tareas ─────────────────────────────────────────────────
+
+const TaskSchema = z.object({
+  title: z.string().min(3, 'La tarea debe tener al menos 3 caracteres'),
+  area: AREA_ENUM,
+  assigned_to: z.string().uuid().optional().nullable(),
+})
+
+export async function createTaskAction(
+  eventId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const parsed = TaskSchema.safeParse({
+      title: formData.get('title'),
+      area: formData.get('area'),
+      assigned_to: formData.get('assigned_to') || null,
+    })
+    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+
+    // Admin crea en cualquier área; jefe solo en la(s) suya(s)
+    const perms = await getEventPermissions(eventId, caller.userId, caller.role)
+    if (!perms.isAdmin && !perms.jefeAreas.includes(parsed.data.area)) {
+      return { error: 'Solo puedes crear tareas de tu área' }
+    }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+
+    const { data: maxRow } = await ac
+      .from('event_tasks')
+      .select('order_index')
+      .eq('event_id', eventId)
+      .order('order_index', { ascending: false })
+      .limit(1)
+      .maybeSingle() as { data: { order_index: number } | null }
+
+    const { error } = await ac.from('event_tasks').insert({
+      event_id: eventId,
+      title: parsed.data.title,
+      area: parsed.data.area,
+      assigned_to: parsed.data.assigned_to ?? null,
+      is_done: false,
+      done_by: null,
+      done_at: null,
+      order_index: (maxRow?.order_index ?? -1) + 1,
+      created_by: caller.userId,
+    }) as { error: { message: string } | null }
+
+    if (error) return { error: error.message }
+    revalidateEventos(eventId)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al crear la tarea' }
+  }
+}
+
+export async function toggleTaskAction(
+  taskId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: task } = await ac
+      .from('event_tasks')
+      .select('event_id, area, assigned_to, is_done')
+      .eq('id', taskId)
+      .single() as { data: { event_id: string; area: string; assigned_to: string | null; is_done: boolean } | null }
+
+    if (!task) return { error: 'Tarea no encontrada' }
+
+    const perms = await getEventPermissions(task.event_id, caller.userId, caller.role)
+    const canToggle = perms.isAdmin
+      || perms.jefeAreas.includes(task.area)
+      || task.assigned_to === caller.userId
+    if (!canToggle) return { error: 'No puedes modificar esta tarea' }
+
+    const nowDone = !task.is_done
+    const { error } = await ac
+      .from('event_tasks')
+      .update({
+        is_done: nowDone,
+        done_by: nowDone ? caller.userId : null,
+        done_at: nowDone ? new Date().toISOString() : null,
+      })
+      .eq('id', taskId) as { error: { message: string } | null }
+
+    if (error) return { error: error.message }
+    revalidateEventos(task.event_id)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al actualizar la tarea' }
+  }
+}
+
+export async function deleteTaskAction(
+  taskId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: task } = await ac
+      .from('event_tasks')
+      .select('event_id, area')
+      .eq('id', taskId)
+      .single() as { data: { event_id: string; area: string } | null }
+
+    if (!task) return { error: 'Tarea no encontrada' }
+
+    const perms = await getEventPermissions(task.event_id, caller.userId, caller.role)
+    if (!perms.isAdmin && !perms.jefeAreas.includes(task.area)) {
+      return { error: 'No puedes eliminar esta tarea' }
+    }
+
+    const { error } = await ac.from('event_tasks').delete().eq('id', taskId) as { error: { message: string } | null }
+    if (error) return { error: error.message }
+    revalidateEventos(task.event_id)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al eliminar la tarea' }
+  }
+}
