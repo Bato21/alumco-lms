@@ -418,3 +418,213 @@ export async function deleteTaskAction(
     return { error: 'Error inesperado al eliminar la tarea' }
   }
 }
+
+// ── Documentos (bucket privado event-docs) ─────────────────
+
+const DOC_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+const DOC_MAX = 10 * 1024 * 1024
+
+export async function uploadEventDocAction(
+  eventId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+    if (caller.role !== 'admin') return { error: 'No autorizado' }
+
+    const file = formData.get('file') as File
+    if (!file || file.size === 0) return { error: 'No se seleccionó archivo' }
+    if (!DOC_TYPES.includes(file.type)) return { error: 'Solo se permiten PDF, Excel o Word' }
+    if (file.size > DOC_MAX) return { error: 'El documento no puede superar 10MB' }
+
+    const docType = formData.get('doc_type') === 'dificultades_alimenticias'
+      ? 'dificultades_alimenticias' : 'otro'
+    const name = (formData.get('name') as string) || file.name
+
+    const adminClient = await createAdminClient()
+    const path = `${eventId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
+
+    const { error: uploadError } = await adminClient.storage
+      .from('event-docs')
+      .upload(path, file, { contentType: file.type })
+    if (uploadError) return { error: 'Error al subir el archivo' }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac.from('event_documents').insert({
+      event_id: eventId,
+      name,
+      file_path: path,
+      doc_type: docType,
+      uploaded_by: caller.userId,
+    }) as { error: { message: string } | null }
+
+    if (error) {
+      await adminClient.storage.from('event-docs').remove([path])
+      return { error: error.message }
+    }
+    revalidateEventos(eventId)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al subir el documento' }
+  }
+}
+
+export async function deleteEventDocAction(
+  docId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+    if (caller.role !== 'admin') return { error: 'No autorizado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: doc } = await ac
+      .from('event_documents')
+      .select('event_id, file_path, doc_type')
+      .eq('id', docId)
+      .single() as { data: { event_id: string; file_path: string; doc_type: string } | null }
+
+    if (!doc) return { error: 'Documento no encontrado' }
+
+    // No dejar un evento activo sin su doc de dificultades alimenticias
+    if (doc.doc_type === 'dificultades_alimenticias') {
+      const [{ data: event }, { data: others }] = await Promise.all([
+        ac.from('events').select('status').eq('id', doc.event_id).single() as Promise<{ data: { status: string } | null }>,
+        ac.from('event_documents').select('id').eq('event_id', doc.event_id).eq('doc_type', 'dificultades_alimenticias').neq('id', docId) as Promise<{ data: { id: string }[] | null }>,
+      ])
+      if (event?.status === 'activo' && (others ?? []).length === 0) {
+        return { error: 'Un evento activo no puede quedar sin el documento de dificultades alimenticias. Sube otro primero.' }
+      }
+    }
+
+    const { error } = await ac.from('event_documents').delete().eq('id', docId) as { error: { message: string } | null }
+    if (error) return { error: error.message }
+
+    await adminClient.storage.from('event-docs').remove([doc.file_path])
+    revalidateEventos(doc.event_id)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al eliminar el documento' }
+  }
+}
+
+export async function getEventDocUrlAction(
+  docId: string,
+): Promise<{ url?: string; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: doc } = await ac
+      .from('event_documents').select('file_path').eq('id', docId).single() as { data: { file_path: string } | null }
+    if (!doc) return { error: 'Documento no encontrado' }
+
+    const { data, error } = await adminClient.storage
+      .from('event-docs')
+      .createSignedUrl(doc.file_path, 3600)
+    if (error || !data) return { error: 'No se pudo generar el enlace' }
+    return { url: data.signedUrl }
+  } catch {
+    return { error: 'Error inesperado al obtener el documento' }
+  }
+}
+
+// ── Fotos (bucket público event-photos) ────────────────────
+
+const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const PHOTO_MAX = 5 * 1024 * 1024
+
+export async function uploadEventPhotoAction(
+  eventId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const perms = await getEventPermissions(eventId, caller.userId, caller.role)
+    if (!perms.isParticipant) return { error: 'Solo quienes participan del evento pueden subir fotos' }
+
+    const file = formData.get('file') as File
+    if (!file || file.size === 0) return { error: 'No se seleccionó archivo' }
+    if (!PHOTO_TYPES.includes(file.type)) return { error: 'Solo se permiten imágenes JPG, PNG o WebP' }
+    if (file.size > PHOTO_MAX) return { error: 'La foto no puede superar 5MB' }
+
+    const caption = ((formData.get('caption') as string) || '').slice(0, 200) || null
+
+    const adminClient = await createAdminClient()
+    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
+    const path = `${eventId}/${crypto.randomUUID()}.${ext}`
+
+    const { error: uploadError } = await adminClient.storage
+      .from('event-photos')
+      .upload(path, file, { contentType: file.type })
+    if (uploadError) return { error: 'Error al subir la foto' }
+
+    const { data: { publicUrl } } = adminClient.storage
+      .from('event-photos')
+      .getPublicUrl(path)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac.from('event_photos').insert({
+      event_id: eventId,
+      image_url: publicUrl,
+      caption,
+      uploaded_by: caller.userId,
+    }) as { error: { message: string } | null }
+
+    if (error) {
+      await adminClient.storage.from('event-photos').remove([path])
+      return { error: error.message }
+    }
+    revalidateEventos(eventId)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al subir la foto' }
+  }
+}
+
+export async function deleteEventPhotoAction(
+  photoId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: photo } = await ac
+      .from('event_photos')
+      .select('event_id, image_url, uploaded_by')
+      .eq('id', photoId)
+      .single() as { data: { event_id: string; image_url: string; uploaded_by: string } | null }
+
+    if (!photo) return { error: 'Foto no encontrada' }
+    if (caller.role !== 'admin' && photo.uploaded_by !== caller.userId) {
+      return { error: 'Solo puedes eliminar tus propias fotos' }
+    }
+
+    const { error } = await ac.from('event_photos').delete().eq('id', photoId) as { error: { message: string } | null }
+    if (error) return { error: error.message }
+
+    // Derivar el path desde la URL pública: .../event-photos/<path>
+    const marker = '/event-photos/'
+    const idx = photo.image_url.indexOf(marker)
+    if (idx !== -1) {
+      await adminClient.storage.from('event-photos').remove([photo.image_url.slice(idx + marker.length)])
+    }
+    revalidateEventos(photo.event_id)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al eliminar la foto' }
+  }
+}
