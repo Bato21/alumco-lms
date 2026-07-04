@@ -149,13 +149,17 @@ export async function publishEventAction(
       return { error: 'Falta el documento de dificultades alimenticias. Súbelo antes de publicar.' }
     }
 
-    const { error } = await ac
+    const { data: updated, error } = await ac
       .from('events')
       .update({ status: 'activo', updated_at: new Date().toISOString() })
       .eq('id', eventId)
-      .eq('status', 'planificacion') as { error: { message: string } | null }
+      .eq('status', 'planificacion')
+      .select('id') as { data: { id: string }[] | null; error: { message: string } | null }
 
     if (error) return { error: error.message }
+    if (!updated || updated.length === 0) {
+      return { error: 'El evento no está en planificación — no se puede publicar.' }
+    }
     revalidateEventos(eventId)
     return { success: true }
   } catch {
@@ -174,12 +178,17 @@ export async function finalizeEventAction(
     const adminClient = await createAdminClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
-    const { error } = await ac
+    const { data: updated, error } = await ac
       .from('events')
       .update({ status: 'finalizado', updated_at: new Date().toISOString() })
-      .eq('id', eventId) as { error: { message: string } | null }
+      .eq('id', eventId)
+      .eq('status', 'activo')
+      .select('id') as { data: { id: string }[] | null; error: { message: string } | null }
 
     if (error) return { error: error.message }
+    if (!updated || updated.length === 0) {
+      return { error: 'Solo un evento activo se puede finalizar.' }
+    }
     revalidateEventos(eventId)
     return { success: true }
   } catch {
@@ -201,7 +210,7 @@ export async function deleteEventAction(
     const { error } = await ac.from('events').delete().eq('id', eventId) as { error: { message: string } | null }
 
     if (error) return { error: error.message }
-    revalidateEventos()
+    revalidateEventos(eventId)
     return { success: true }
   } catch {
     return { error: 'Error inesperado al eliminar el evento' }
