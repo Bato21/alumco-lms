@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { EncabezadoPagina, Progreso } from '@/components/alumco/ds'
 import { RolesEditor } from '@/components/alumco/eventos/RolesEditor'
 import { TareasEditor } from '@/components/alumco/eventos/TareasEditor'
@@ -21,6 +22,8 @@ export const dynamic = 'force-dynamic'
 
 export default async function EventoDetalleAdmin(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params
+  const auth = await requireAdmin()
+  const isAdmin = auth.ok && auth.role === 'admin'
   const adminClient = await createAdminClient()
 
   const [{ data: event }, { data: roles }, { data: tasks }, { data: docs }, { data: workers }] = await Promise.all([
@@ -47,7 +50,7 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
         titulo={event.title}
         sub={`${EVENT_TYPE_LABELS[event.event_type]} · ${new Date(event.event_date + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`}
       >
-        <PublicarButton eventId={event.id} status={event.status} hasDocAlimentacion={hasDocAlimentacion} />
+        {isAdmin && <PublicarButton eventId={event.id} status={event.status} hasDocAlimentacion={hasDocAlimentacion} />}
       </EncabezadoPagina>
 
       <p className="silencio" style={{ maxWidth: 640, fontSize: 15 }}>{event.description}</p>
@@ -59,9 +62,9 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
         </div>
       )}
 
-      <RolesEditor eventId={event.id} roles={rolesConNombre} workers={workers ?? []} />
-      <TareasEditor eventId={event.id} tasks={tasksConNombre} workers={workers ?? []} jefeAreas={[]} isAdmin />
-      <DocsPanel eventId={event.id} docs={docs ?? []} canManage />
+      {isAdmin && <RolesEditor eventId={event.id} roles={rolesConNombre} workers={workers ?? []} />}
+      <TareasEditor eventId={event.id} tasks={tasksConNombre} workers={workers ?? []} jefeAreas={[]} isAdmin={isAdmin} />
+      <DocsPanel eventId={event.id} docs={docs ?? []} canManage={isAdmin} />
       {/* Task 9: <GaleriaFotos eventId={event.id} photos={photos ?? []} canUpload isAdmin currentUserId="" /> */}
     </div>
   )
