@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { GraduationCap, LayoutDashboard, Users, BarChart, LogOut, UserPlus } from 'lucide-react'
+import { GraduationCap, LayoutDashboard, Users, BarChart, LogOut, UserPlus, PartyPopper } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface NavLinkProps {
@@ -61,6 +61,7 @@ export default function AdminNav({
         <nav className="space-y-1">
           <NavLink href="/admin/dashboard" icon={LayoutDashboard} label="Dashboard" />
           <NavLink href="/admin/cursos" icon={GraduationCap} label="Cursos" />
+          <NavLink href="/admin/eventos" icon={PartyPopper} label="Eventos" />
           <NavLink href="/admin/trabajadores/solicitudes" icon={UserPlus} label="Solicitudes" />
           <NavLink href="/admin/trabajadores" icon={Users} label="Trabajadores" />
           <NavLink href="/admin/reportes" icon={BarChart} label="Reportes" />

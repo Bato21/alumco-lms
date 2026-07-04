@@ -23,12 +23,14 @@ interface WorkerTopNavProps {
 const NAV: { href: string; label: string; icono: IconoNombre; exact?: boolean }[] = [
   { href: '/inicio', label: 'Inicio', icono: 'inicio' },
   { href: '/cursos', label: 'Mis cursos', icono: 'cursos', exact: true },
+  { href: '/eventos', label: 'Eventos', icono: 'calendario' },
   { href: '/mis-certificados', label: 'Certificados', icono: 'certificado' },
 ]
 
 const TABS: { href: string; label: string; icono: IconoNombre; exact?: boolean }[] = [
   { href: '/inicio', label: 'Inicio', icono: 'inicio' },
   { href: '/cursos', label: 'Cursos', icono: 'cursos', exact: true },
+  { href: '/eventos', label: 'Eventos', icono: 'calendario' },
   { href: '/mis-certificados', label: 'Certificados', icono: 'certificado' },
   { href: '/perfil', label: 'Perfil', icono: 'perfil' },
 ]
