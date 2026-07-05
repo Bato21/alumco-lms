@@ -268,6 +268,17 @@ export interface EventDocument {
   created_at: string
 }
 
+// Galería de fotos — tabla PROPUESTA, aún no existe en la DB viva.
+// Ver supabase/propuestas/event-photos.sql (pendiente de que Bato la corra).
+export interface EventPhoto {
+  id: string
+  event_id: string
+  image_url: string
+  caption: string | null
+  uploaded_by: string
+  created_at: string
+}
+
 // ── Payload del wizard de creación de eventos ──────────────
 // Los archivos 'use server' solo pueden exportar funciones async, así que
 // este tipo vive acá (no en events.ts) y se importa donde se necesite.
@@ -366,6 +377,13 @@ export interface Database {
       event_documents: {
         Row: EventDocument
         Insert: Omit<EventDocument, 'id' | 'created_at'>
+        Update: Record<string, never>
+        Relationships: []
+      }
+      // Pendiente: tabla propuesta, ver supabase/propuestas/event-photos.sql
+      event_photos: {
+        Row: EventPhoto
+        Insert: Omit<EventPhoto, 'id' | 'created_at'>
         Update: Record<string, never>
         Relationships: []
       }

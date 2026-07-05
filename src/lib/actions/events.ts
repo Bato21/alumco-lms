@@ -715,3 +715,165 @@ export async function getDocumentSignedUrlAction(
     return { error: 'Error inesperado al obtener el documento' }
   }
 }
+
+// ── Galería de fotos (bucket público event-photos) ──────────
+// La tabla `event_photos` y el bucket son una PROPUESTA todavía no aplicada
+// por Bato (ver supabase/propuestas/event-photos.sql). Estas actions quedan
+// listas pero fallarán en runtime con el mensaje de abajo hasta que la
+// migración se corra — nada las consume todavía (GaleriaFotos.tsx no está
+// montado en ninguna página).
+
+const PHOTO_TYPES: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+}
+const PHOTO_MAX = 5 * 1024 * 1024
+const PHOTO_BUCKET = 'event-photos'
+
+// Detecta que la tabla o el bucket de fotos todavía no existen en la DB
+// (feature no habilitada por Bato), para mostrar un mensaje amigable en vez
+// del error crudo de Postgres/Storage.
+function isGaleriaNoHabilitada(message?: string | null, code?: string | null): boolean {
+  if (code === '42P01') return true
+  if (!message) return false
+  return /does not exist|bucket not found/i.test(message)
+}
+
+async function isEventMember(eventId: string, userId: string): Promise<boolean> {
+  const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+  const { data: sections } = await ac
+    .from('event_sections')
+    .select('id')
+    .eq('event_id', eventId) as { data: { id: string }[] | null }
+
+  const sectionIds = (sections ?? []).map((s: { id: string }) => s.id)
+  if (sectionIds.length === 0) return false
+
+  const { data: membership } = await ac
+    .from('event_section_members')
+    .select('user_id')
+    .in('section_id', sectionIds)
+    .eq('user_id', userId)
+    .limit(1)
+    .maybeSingle() as { data: { user_id: string } | null }
+
+  return !!membership
+}
+
+// Deriva el path dentro del bucket desde la URL pública guardada en
+// image_url, buscando el marcador '/event-photos/'.
+function pathFromPublicUrl(url: string): string | null {
+  const marker = '/event-photos/'
+  const idx = url.indexOf(marker)
+  if (idx === -1) return null
+  return url.slice(idx + marker.length)
+}
+
+export async function uploadEventPhotoAction(
+  eventId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    if (caller.role !== 'admin') {
+      const member = await isEventMember(eventId, caller.userId)
+      if (!member) return { error: 'No autorizado' }
+    }
+
+    const file = formData.get('file') as File
+    if (!file || file.size === 0) return { error: 'No se seleccionó archivo' }
+    const ext = PHOTO_TYPES[file.type]
+    if (!ext) return { error: 'Solo se permiten imágenes JPG, PNG o WEBP' }
+    if (file.size > PHOTO_MAX) return { error: 'La foto no puede superar 5MB' }
+
+    const caption = ((formData.get('caption') as string) || '').trim().slice(0, 200) || null
+
+    const adminClient = await createAdminClient()
+    const path = `${eventId}/${crypto.randomUUID()}.${ext}`
+
+    const { error: uploadError } = await adminClient.storage
+      .from(PHOTO_BUCKET)
+      .upload(path, file, { contentType: file.type })
+    if (uploadError) {
+      return {
+        error: isGaleriaNoHabilitada(uploadError.message)
+          ? 'La galería aún no está habilitada'
+          : 'Error al subir el archivo',
+      }
+    }
+
+    const { data: publicUrlData } = adminClient.storage.from(PHOTO_BUCKET).getPublicUrl(path)
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac.from('event_photos').insert({
+      event_id: eventId,
+      image_url: publicUrlData.publicUrl,
+      caption,
+      uploaded_by: caller.userId,
+    }) as { error: { message: string; code?: string } | null }
+
+    if (error) {
+      await adminClient.storage.from(PHOTO_BUCKET).remove([path])
+      return {
+        error: isGaleriaNoHabilitada(error.message, error.code)
+          ? 'La galería aún no está habilitada'
+          : error.message,
+      }
+    }
+
+    revalidateEventos(eventId)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al subir la foto' }
+  }
+}
+
+export async function deleteEventPhotoAction(
+  photoId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: photo, error: fetchError } = await ac
+      .from('event_photos')
+      .select('image_url, uploaded_by, event_id')
+      .eq('id', photoId)
+      .maybeSingle() as {
+        data: { image_url: string; uploaded_by: string; event_id: string } | null
+        error: { message: string; code?: string } | null
+      }
+
+    if (fetchError) {
+      return {
+        error: isGaleriaNoHabilitada(fetchError.message, fetchError.code)
+          ? 'La galería aún no está habilitada'
+          : fetchError.message,
+      }
+    }
+    if (!photo) return { error: 'Foto no encontrada' }
+    if (caller.role !== 'admin' && photo.uploaded_by !== caller.userId) {
+      return { error: 'No puedes eliminar esta foto' }
+    }
+
+    const { error } = await ac.from('event_photos').delete().eq('id', photoId) as { error: { message: string } | null }
+    if (error) return { error: error.message }
+
+    const path = pathFromPublicUrl(photo.image_url)
+    if (path) await adminClient.storage.from(PHOTO_BUCKET).remove([path])
+
+    revalidateEventos(photo.event_id)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al eliminar la foto' }
+  }
+}
