@@ -1,3 +1,13 @@
+-- OBSOLETO — NO APLICAR.
+-- Este era el schema v1 de eventos (roles jefe/delegado por área, tareas
+-- planas, doc bloqueante, fotos con bucket público). La DB viva fue
+-- migrada por Bato con OTRO schema: secciones custom por evento con
+-- miembros encargado/colaborador, tareas por sección con 3 estados,
+-- eventos por sede, doc de alimentación como advertencia no bloqueante.
+-- Ver docs/superpowers/plans/2026-07-04-eventos-v2-schema-bato.md para
+-- el schema real y las decisiones de producto. Se conserva este archivo
+-- solo como referencia histórica del diseño original.
+--
 -- Eventos institucionales: 18 de septiembre, Navidad, Año Nuevo
 -- Pegar completo en el SQL Editor del dashboard de Supabase.
 

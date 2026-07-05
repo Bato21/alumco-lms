@@ -192,16 +192,27 @@ export interface ReporteAvance {
 }
 
 // ── Eventos institucionales ────────────────────────────────
+// Schema real migrado por Bato en la DB viva (no el v1 original de este
+// repo). Secciones custom por evento con miembros encargado/colaborador,
+// tareas por sección con 3 estados, eventos por sede, doc de alimentación
+// como advertencia (no bloqueante). Ver docs/superpowers/plans/2026-07-04-eventos-v2-schema-bato.md.
 
 export type EventType = 'dieciocho' | 'navidad' | 'ano_nuevo'
 export type EventStatus = 'planificacion' | 'activo' | 'finalizado'
-export type EventRoleType = 'jefe' | 'delegado'
-export type EventDocType = 'dificultades_alimenticias' | 'otro'
+export type EventSectionMemberRole = 'encargado' | 'colaborador'
+export type EventTaskStatus = 'pendiente' | 'en_progreso' | 'completada'
+export type EventDocType = 'dificultades_alimenticias' | 'general'
 
 export const EVENT_TYPE_LABELS: Record<EventType, string> = {
   dieciocho: '18 de septiembre',
   navidad: 'Navidad',
   ano_nuevo: 'Año Nuevo',
+}
+
+export const EVENT_TYPE_EMOJI: Record<EventType, string> = {
+  dieciocho: '🎉',
+  navidad: '🎄',
+  ano_nuevo: '🎆',
 }
 
 export interface EventRecord {
@@ -212,51 +223,66 @@ export interface EventRecord {
   event_date: string
   status: EventStatus
   cover_image_url: string | null
+  sede_id: string
   created_by: string
   created_at: string
   updated_at: string
 }
 
-export interface EventRole {
+export interface EventSection {
   id: string
   event_id: string
+  name: string
+  description: string | null
+  order_index: number
+}
+
+// PK compuesta (section_id, user_id) — sin id propio.
+export interface EventSectionMember {
+  section_id: string
   user_id: string
-  role: EventRoleType
-  area: AreaTrabajo
-  created_at: string
+  member_role: EventSectionMemberRole
 }
 
 export interface EventTask {
   id: string
-  event_id: string
+  section_id: string
   title: string
-  area: AreaTrabajo
-  assigned_to: string | null
-  is_done: boolean
-  done_by: string | null
-  done_at: string | null
+  description: string | null
+  status: EventTaskStatus
+  due_date: string | null
   order_index: number
+  completed_at: string | null
+  completed_by: string | null
   created_by: string
-  created_at: string
+  updated_at: string
 }
 
 export interface EventDocument {
   id: string
   event_id: string
-  name: string
-  file_path: string
   doc_type: EventDocType
+  title: string
+  file_url: string
   uploaded_by: string
   created_at: string
 }
 
-export interface EventPhoto {
-  id: string
-  event_id: string
-  image_url: string
-  caption: string | null
-  uploaded_by: string
-  created_at: string
+// ── Payload del wizard de creación de eventos ──────────────
+// Los archivos 'use server' solo pueden exportar funciones async, así que
+// este tipo vive acá (no en events.ts) y se importa donde se necesite.
+export interface CreateEventPayload {
+  title: string
+  event_type: EventType
+  sede_id: string
+  event_date: string
+  description: string
+  sections: {
+    name: string
+    description?: string
+    members: { user_id: string; member_role: EventSectionMemberRole }[]
+    tasks: { title: string; description?: string; due_date?: string | null }[]
+  }[]
 }
 
 // ── Tipo principal de la DB para el cliente Supabase ───────
@@ -319,27 +345,27 @@ export interface Database {
         Update: Partial<Omit<EventRecord, 'id' | 'created_at' | 'created_by'>>
         Relationships: []
       }
-      event_roles: {
-        Row: EventRole
-        Insert: Omit<EventRole, 'id' | 'created_at'>
-        Update: Partial<Pick<EventRole, 'role' | 'area'>>
+      event_sections: {
+        Row: EventSection
+        Insert: Omit<EventSection, 'id'>
+        Update: Partial<Omit<EventSection, 'id' | 'event_id'>>
+        Relationships: []
+      }
+      event_section_members: {
+        Row: EventSectionMember
+        Insert: EventSectionMember
+        Update: Partial<Pick<EventSectionMember, 'member_role'>>
         Relationships: []
       }
       event_tasks: {
         Row: EventTask
-        Insert: Omit<EventTask, 'id' | 'created_at'>
-        Update: Partial<Omit<EventTask, 'id' | 'event_id' | 'created_at' | 'created_by'>>
+        Insert: Omit<EventTask, 'id' | 'updated_at' | 'completed_at' | 'completed_by'>
+        Update: Partial<Omit<EventTask, 'id' | 'section_id' | 'created_by'>>
         Relationships: []
       }
       event_documents: {
         Row: EventDocument
         Insert: Omit<EventDocument, 'id' | 'created_at'>
-        Update: Record<string, never>
-        Relationships: []
-      }
-      event_photos: {
-        Row: EventPhoto
-        Insert: Omit<EventPhoto, 'id' | 'created_at'>
         Update: Record<string, never>
         Relationships: []
       }
