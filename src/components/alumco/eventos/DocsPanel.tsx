@@ -104,9 +104,9 @@ export function DocsPanel({ eventId, docs, canManage }: {
             className="texto-s"
             aria-label="Archivo"
           />
-          <select name="doc_type" disabled={pending} className="select" aria-label="Tipo de documento" defaultValue="dificultades_alimenticias">
-            <option value="dificultades_alimenticias">Dificultades alimenticias</option>
+          <select name="doc_type" disabled={pending} className="select" aria-label="Tipo de documento" defaultValue="otro">
             <option value="otro">Otro</option>
+            <option value="dificultades_alimenticias">Dificultades alimenticias</option>
           </select>
           <button type="submit" disabled={pending} className="btn btn-primary">
             {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}

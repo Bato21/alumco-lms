@@ -317,6 +317,20 @@ export async function createTaskAction(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 
+    // Jefe (no admin) solo puede asignar a participantes del evento o a sí mismo
+    if (!perms.isAdmin && parsed.data.assigned_to && parsed.data.assigned_to !== caller.userId) {
+      const { data: assigneeRole } = await ac
+        .from('event_roles')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', parsed.data.assigned_to)
+        .limit(1)
+        .maybeSingle() as { data: { id: string } | null }
+      if (!assigneeRole) {
+        return { error: 'Solo puedes asignar tareas a participantes del evento' }
+      }
+    }
+
     const { data: maxRow } = await ac
       .from('event_tasks')
       .select('order_index')
@@ -523,8 +537,16 @@ export async function getEventDocUrlAction(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { data: doc } = await ac
-      .from('event_documents').select('file_path').eq('id', docId).single() as { data: { file_path: string } | null }
+      .from('event_documents').select('file_path, event_id').eq('id', docId).single() as { data: { file_path: string; event_id: string } | null }
     if (!doc) return { error: 'Documento no encontrado' }
+
+    const [{ data: event }, perms] = await Promise.all([
+      ac.from('events').select('status').eq('id', doc.event_id).single() as Promise<{ data: { status: string } | null }>,
+      getEventPermissions(doc.event_id, caller.userId, caller.role),
+    ])
+
+    const autorizado = perms.isAdmin || perms.isParticipant || event?.status === 'activo'
+    if (!autorizado) return { error: 'No autorizado' }
 
     const { data, error } = await adminClient.storage
       .from('event-docs')
