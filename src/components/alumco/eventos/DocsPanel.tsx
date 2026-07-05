@@ -2,9 +2,18 @@
 
 import { useState, useTransition } from 'react'
 import { AlertCircle, Loader2 } from 'lucide-react'
-import { uploadEventDocAction, deleteEventDocAction, getEventDocUrlAction } from '@/lib/actions/events'
+import {
+  uploadEventDocumentAction,
+  deleteEventDocumentAction,
+  getDocumentSignedUrlAction,
+} from '@/lib/actions/events'
 import { Badge, Icono } from '@/components/alumco/ds'
-import type { EventDocument } from '@/lib/types/database'
+import type { EventDocument, EventDocType } from '@/lib/types/database'
+
+const DOC_TYPE_LABELS: Record<EventDocType, string> = {
+  dificultades_alimenticias: 'Dificultades alimenticias',
+  general: 'General',
+}
 
 export function DocsPanel({ eventId, docs, canManage }: {
   eventId: string
@@ -21,16 +30,17 @@ export function DocsPanel({ eventId, docs, canManage }: {
     const formData = new FormData(form)
     setError(null)
     startTransition(async () => {
-      const res = await uploadEventDocAction(eventId, formData)
+      const res = await uploadEventDocumentAction(eventId, formData)
       if (res.error) setError(res.error)
       else form.reset()
     })
   }
 
-  function onDelete(docId: string) {
+  function onDelete(docId: string, title: string) {
+    if (!window.confirm(`¿Eliminar el documento "${title}"?`)) return
     setError(null)
     startTransition(async () => {
-      const res = await deleteEventDocAction(docId)
+      const res = await deleteEventDocumentAction(docId)
       if (res.error) setError(res.error)
     })
   }
@@ -39,7 +49,7 @@ export function DocsPanel({ eventId, docs, canManage }: {
     setError(null)
     setOpeningId(docId)
     startTransition(async () => {
-      const res = await getEventDocUrlAction(docId)
+      const res = await getDocumentSignedUrlAction(docId)
       if (res.error || !res.url) {
         setError(res.error ?? 'No se pudo abrir el documento')
       } else {
@@ -53,7 +63,8 @@ export function DocsPanel({ eventId, docs, canManage }: {
     <section className="card card-pad col entra" style={{ gap: 16 }}>
       <h2 style={{ fontSize: 16.5 }}>Documentos</h2>
       <p className="texto-s silencio">
-        La lista de <strong>dificultades alimenticias</strong> es obligatoria para publicar el evento.
+        La lista de <strong>dificultades alimenticias</strong> es una advertencia — no bloquea la creación
+        ni el avance del evento, pero conviene subirla cuanto antes.
       </p>
 
       <ul className="col" style={{ gap: 8 }}>
@@ -69,7 +80,7 @@ export function DocsPanel({ eventId, docs, canManage }: {
               style={{ textAlign: 'left', textDecoration: 'underline', textUnderlineOffset: 2, background: 'none', border: 'none', padding: 0, font: 'inherit', cursor: 'pointer', color: 'inherit' }}
               aria-busy={pending && openingId === d.id}
             >
-              {d.name}
+              {d.title}
             </button>
             {d.doc_type === 'dificultades_alimenticias' && (
               <Badge tono="aviso" punto={false}>Alimentación</Badge>
@@ -77,10 +88,10 @@ export function DocsPanel({ eventId, docs, canManage }: {
             {canManage && (
               <button
                 type="button"
-                onClick={() => onDelete(d.id)}
+                onClick={() => onDelete(d.id, d.title)}
                 disabled={pending}
                 className="btn btn-ghost btn-sm btn-icon"
-                aria-label={`Eliminar ${d.name}`}
+                aria-label={`Eliminar ${d.title}`}
               >
                 <Icono n="basura" s={16} />
               </button>
@@ -104,9 +115,9 @@ export function DocsPanel({ eventId, docs, canManage }: {
             className="texto-s"
             aria-label="Archivo"
           />
-          <select name="doc_type" disabled={pending} className="select" aria-label="Tipo de documento" defaultValue="otro">
-            <option value="otro">Otro</option>
-            <option value="dificultades_alimenticias">Dificultades alimenticias</option>
+          <select name="doc_type" disabled={pending} className="select" aria-label="Tipo de documento" defaultValue="general">
+            <option value="general">{DOC_TYPE_LABELS.general}</option>
+            <option value="dificultades_alimenticias">{DOC_TYPE_LABELS.dificultades_alimenticias}</option>
           </select>
           <button type="submit" disabled={pending} className="btn btn-primary">
             {pending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}

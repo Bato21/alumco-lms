@@ -2,47 +2,51 @@
 
 import { useState, useTransition } from 'react'
 import { AlertCircle } from 'lucide-react'
-import { createTaskAction, toggleTaskAction, deleteTaskAction } from '@/lib/actions/events'
+import { upsertTaskAction, toggleTaskStatusAction, deleteTaskAction } from '@/lib/actions/events'
 import { Icono, Progreso } from '@/components/alumco/ds'
-import { AREAS_TRABAJO, type EventTask } from '@/lib/types/database'
+import type { EventTask } from '@/lib/types/database'
 
-type TaskRow = EventTask & { assigned_name: string | null }
-type Worker = { id: string; full_name: string; area_trabajo: string[] }
+interface SectionTasks {
+  id: string
+  name: string
+  tasks: EventTask[]
+}
 
-export function TareasEditor({ eventId, tasks, workers, jefeAreas, isAdmin }: {
-  eventId: string
-  tasks: TaskRow[]
-  workers: Worker[]
-  jefeAreas: string[]
+// Tareas agrupadas por sección. El status real tiene 3 valores
+// ('pendiente'|'en_progreso'|'completada') pero la UI v2 usa un checkbox
+// binario: marcar = 'completada', desmarcar = 'pendiente' (nunca vuelve a
+// 'en_progreso' desde acá). Editar título inline queda fuera de alcance
+// (YAGNI) — solo crear, marcar y eliminar.
+export function TareasEditor({ sections, isAdmin }: {
+  sections: SectionTasks[]
   isAdmin: boolean
 }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
-  const areasDisponibles = isAdmin ? AREAS_TRABAJO : AREAS_TRABAJO.filter(a => jefeAreas.includes(a))
-  const done = tasks.filter(t => t.is_done).length
-
-  function onAdd(e: React.FormEvent<HTMLFormElement>) {
+  function onAdd(sectionId: string, e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const form = e.currentTarget
     const formData = new FormData(form)
     setError(null)
     startTransition(async () => {
-      const res = await createTaskAction(eventId, formData)
+      const res = await upsertTaskAction(sectionId, formData)
       if (res.error) setError(res.error)
       else form.reset()
     })
   }
 
-  function onToggle(taskId: string) {
+  function onToggle(taskId: string, currentStatus: EventTask['status']) {
+    const next = currentStatus === 'completada' ? 'pendiente' : 'completada'
     setError(null)
     startTransition(async () => {
-      const res = await toggleTaskAction(taskId)
+      const res = await toggleTaskStatusAction(taskId, next)
       if (res.error) setError(res.error)
     })
   }
 
-  function onDelete(taskId: string) {
+  function onDelete(taskId: string, title: string) {
+    if (!window.confirm(`¿Eliminar la tarea "${title}"?`)) return
     setError(null)
     startTransition(async () => {
       const res = await deleteTaskAction(taskId)
@@ -50,82 +54,104 @@ export function TareasEditor({ eventId, tasks, workers, jefeAreas, isAdmin }: {
     })
   }
 
+  const totalTareas = sections.reduce((acc, s) => acc + s.tasks.length, 0)
+
   return (
-    <section className="card card-pad col entra" style={{ gap: 16 }}>
-      <div className="fila" style={{ justifyContent: 'space-between' }}>
-        <h2 style={{ fontSize: 16.5 }}>To-do list</h2>
-        {tasks.length > 0 && (
-          <span className="texto-s silencio-3">{done} de {tasks.length} listas</span>
-        )}
-      </div>
+    <section className="card card-pad col entra" style={{ gap: 20 }}>
+      <h2 style={{ fontSize: 16.5 }}>Tareas por sección</h2>
 
-      {tasks.length > 0 && (
-        <Progreso pct={Math.round((done / tasks.length) * 100)} />
-      )}
+      {sections.length === 0 && <p className="silencio texto-s">Aún no hay secciones para asignar tareas.</p>}
+      {sections.length > 0 && totalTareas === 0 && <p className="silencio texto-s">Sin tareas todavía.</p>}
 
-      {tasks.length === 0 && <p className="silencio texto-s">Sin tareas todavía.</p>}
-
-      <ul className="col" style={{ gap: 8 }}>
-        {tasks.map(t => {
-          const puedeGestionar = isAdmin || jefeAreas.includes(t.area)
+      <ul className="col" style={{ gap: 18 }}>
+        {sections.map(s => {
+          const done = s.tasks.filter(t => t.status === 'completada').length
           return (
-            <li key={t.id} className="fila" style={{ gap: 10 }}>
-              <input
-                type="checkbox"
-                checked={t.is_done}
-                onChange={() => onToggle(t.id)}
-                disabled={pending}
-                style={{ width: 18, height: 18, accentColor: 'var(--ambar)' }}
-                aria-label={`Marcar ${t.title}`}
-              />
-              <span className={t.is_done ? 'silencio-3' : ''} style={t.is_done ? { textDecoration: 'line-through' } : undefined}>
-                {t.title}
-              </span>
-              <span className="texto-s silencio-3" style={{ marginLeft: 'auto' }}>
-                {t.area}{t.assigned_name ? ` · ${t.assigned_name}` : ''}
-              </span>
-              {puedeGestionar && (
-                <button
-                  type="button"
-                  onClick={() => onDelete(t.id)}
-                  disabled={pending}
-                  className="btn btn-ghost btn-sm btn-icon"
-                  aria-label={`Eliminar ${t.title}`}
+            <li
+              key={s.id}
+              className="col"
+              style={{ gap: 10, border: '1px solid var(--arena-200)', borderRadius: 'var(--radio-m)', padding: 14 }}
+            >
+              <div className="fila" style={{ justifyContent: 'space-between' }}>
+                <p style={{ fontWeight: 600 }}>{s.name}</p>
+                {s.tasks.length > 0 && (
+                  <span className="texto-s silencio-3">{done}/{s.tasks.length}</span>
+                )}
+              </div>
+
+              {s.tasks.length > 0 && <Progreso pct={Math.round((done / s.tasks.length) * 100)} alto={6} />}
+
+              {s.tasks.length === 0 ? (
+                <p className="texto-s silencio-3">Sin tareas en esta sección.</p>
+              ) : (
+                <ul className="col" style={{ gap: 8 }}>
+                  {s.tasks.map(t => (
+                    <li key={t.id} className="fila" style={{ gap: 10 }}>
+                      <input
+                        type="checkbox"
+                        checked={t.status === 'completada'}
+                        onChange={() => onToggle(t.id, t.status)}
+                        disabled={pending || !isAdmin}
+                        style={{ width: 18, height: 18, accentColor: 'var(--ambar)' }}
+                        aria-label={`Marcar ${t.title}`}
+                      />
+                      <span
+                        className={'crece' + (t.status === 'completada' ? ' silencio-3' : '')}
+                        style={t.status === 'completada' ? { textDecoration: 'line-through' } : undefined}
+                      >
+                        {t.title}
+                      </span>
+                      {t.due_date && (
+                        <span className="texto-s silencio-3">
+                          {new Date(t.due_date + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
+                        </span>
+                      )}
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(t.id, t.title)}
+                          disabled={pending}
+                          className="btn btn-ghost btn-sm btn-icon"
+                          aria-label={`Eliminar ${t.title}`}
+                        >
+                          <Icono n="basura" s={16} />
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {isAdmin && (
+                <form
+                  onSubmit={e => onAdd(s.id, e)}
+                  className="fila"
+                  style={{ gap: 10, flexWrap: 'wrap', borderTop: '1px solid var(--arena-200)', paddingTop: 12 }}
                 >
-                  <Icono n="basura" s={16} />
-                </button>
+                  <input
+                    name="title"
+                    required
+                    minLength={3}
+                    disabled={pending}
+                    placeholder="Nueva tarea…"
+                    className="input crece"
+                    style={{ minWidth: 160 }}
+                    aria-label={`Título de la tarea para ${s.name}`}
+                  />
+                  <input
+                    type="date"
+                    name="due_date"
+                    disabled={pending}
+                    className="input"
+                    aria-label={`Fecha límite para tarea de ${s.name}`}
+                  />
+                  <button type="submit" disabled={pending} className="btn btn-primary btn-sm">Agregar</button>
+                </form>
               )}
             </li>
           )
         })}
       </ul>
-
-      {areasDisponibles.length > 0 && (
-        <form
-          onSubmit={onAdd}
-          className="fila"
-          style={{ gap: 10, flexWrap: 'wrap', borderTop: '1px solid var(--arena-200)', paddingTop: 16 }}
-        >
-          <input
-            name="title"
-            required
-            minLength={3}
-            disabled={pending}
-            placeholder="Nueva tarea…"
-            className="input crece"
-            style={{ minWidth: 200 }}
-            aria-label="Título de la tarea"
-          />
-          <select name="area" required disabled={pending} className="select" aria-label="Área" defaultValue={areasDisponibles[0]}>
-            {areasDisponibles.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-          <select name="assigned_to" disabled={pending} className="select" aria-label="Asignar a" defaultValue="">
-            <option value="">Sin asignar</option>
-            {workers.map(w => <option key={w.id} value={w.id}>{w.full_name}</option>)}
-          </select>
-          <button type="submit" disabled={pending} className="btn btn-primary">Agregar</button>
-        </form>
-      )}
 
       {error && (
         <div
