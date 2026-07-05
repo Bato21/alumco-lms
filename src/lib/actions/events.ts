@@ -29,6 +29,11 @@ function isRlsDenied(message?: string | null): boolean {
   return /row-level security|permission denied/i.test(message)
 }
 
+// Error con mensaje seguro para mostrar al usuario. Se usa para los throw
+// manuales dentro de bloques try/catch (p.ej. createEventAction), de modo
+// que el catch pueda distinguirlos de errores crudos de Postgres.
+class FriendlyError extends Error {}
+
 async function getEventIdForSection(sectionId: string): Promise<string | null> {
   const adminClient = await createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -77,12 +82,15 @@ const CreateEventSchema = z.object({
 export async function createEventAction(
   payload: CreateEventPayload,
 ): Promise<{ success?: boolean; eventId?: string; error?: string }> {
-  const adminClient = await createAdminClient()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ac = adminClient as any
   let createdEventId: string | null = null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let ac: any = null
 
   try {
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ac = adminClient as any
+
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
     if (caller.role !== 'admin') return { error: 'No autorizado' }
@@ -121,9 +129,12 @@ export async function createEventAction(
           order_index: i,
         })
         .select('id')
-        .single() as { data: { id: string } | null; error: { message: string } | null }
+        .single() as { data: { id: string } | null; error: { message: string; code?: string } | null }
 
       if (sectionError || !sectionRow) {
+        if (sectionError?.code === '23505') {
+          throw new FriendlyError('Ya existe una sección con ese nombre en el evento')
+        }
         throw new Error(sectionError?.message ?? `No se pudo crear la sección "${section.name}"`)
       }
 
@@ -159,10 +170,10 @@ export async function createEventAction(
   } catch (err) {
     // Rollback manual: el evento creado se borra y el cascade limpia
     // secciones/miembros/tareas ya insertados en este intento.
-    if (createdEventId) {
+    if (createdEventId && ac) {
       await ac.from('events').delete().eq('id', createdEventId)
     }
-    return { error: err instanceof Error ? err.message : 'Error inesperado al crear el evento' }
+    return { error: err instanceof FriendlyError ? err.message : 'Error inesperado al crear el evento' }
   }
 }
 
@@ -201,6 +212,25 @@ export async function updateEventAction(
     const adminClient = await createAdminClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
+
+    if (parsed.data.status) {
+      const { data: current } = await ac
+        .from('events')
+        .select('status')
+        .eq('id', eventId)
+        .maybeSingle() as { data: { status: string } | null }
+
+      const validTransitions: Record<string, string[]> = {
+        planificacion: ['planificacion', 'activo'],
+        activo: ['activo', 'finalizado'],
+        finalizado: ['finalizado'],
+      }
+
+      if (!current || !(validTransitions[current.status] ?? []).includes(parsed.data.status)) {
+        return { error: 'Transición de estado inválida' }
+      }
+    }
+
     const { error } = await ac
       .from('events')
       .update({ ...parsed.data, updated_at: new Date().toISOString() })
@@ -307,10 +337,12 @@ export async function removeSectionAction(
     const { data: section } = await ac
       .from('event_sections').select('event_id').eq('id', sectionId).single() as { data: { event_id: string } | null }
 
+    if (!section) return { error: 'Sección no encontrada' }
+
     const { error } = await ac.from('event_sections').delete().eq('id', sectionId) as { error: { message: string } | null }
     if (error) return { error: error.message }
 
-    revalidateEventos(section?.event_id)
+    revalidateEventos(section.event_id)
     return { success: true }
   } catch {
     return { error: 'Error inesperado al eliminar la sección' }
@@ -425,6 +457,7 @@ export async function upsertTaskAction(
           title: parsed.data.title,
           description: parsed.data.description ?? null,
           due_date: parsed.data.due_date ?? null,
+          updated_at: new Date().toISOString(),
         })
         .eq('id', taskId)
         .select('id, section_id') as { data: { id: string; section_id: string }[] | null; error: { message: string } | null }
@@ -489,8 +522,8 @@ export async function toggleTaskStatusAction(
 
     const isCompleting = nextStatus === 'completada'
     const update = isCompleting
-      ? { status: 'completada', completed_at: new Date().toISOString(), completed_by: caller.userId }
-      : { status: nextStatus, completed_at: null, completed_by: null }
+      ? { status: 'completada', completed_at: new Date().toISOString(), completed_by: caller.userId, updated_at: new Date().toISOString() }
+      : { status: nextStatus, completed_at: null, completed_by: null, updated_at: new Date().toISOString() }
 
     const { data: updated, error } = await sc
       .from('event_tasks')
@@ -512,6 +545,10 @@ export async function toggleTaskStatusAction(
   }
 }
 
+// La policy RLS de DELETE para encargados no está confirmada en la base de
+// datos viva, así que acá se usa el cliente admin con un chequeo manual de
+// permiso (admin o encargado de la sección de la tarea), en vez de confiar
+// en que RLS rechace correctamente.
 export async function deleteTaskAction(
   taskId: string,
 ): Promise<{ success?: boolean; error?: string }> {
@@ -519,24 +556,39 @@ export async function deleteTaskAction(
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
 
-    const supabase = await createClient()
+    const adminClient = await createAdminClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sc = supabase as any
+    const ac = adminClient as any
 
-    const { data: deleted, error } = await sc
+    const { data: task } = await ac
+      .from('event_tasks')
+      .select('id, section_id')
+      .eq('id', taskId)
+      .maybeSingle() as { data: { id: string; section_id: string } | null }
+
+    if (!task) return { error: 'No tienes permisos para eliminar esta tarea, o ya no existe' }
+
+    if (caller.role !== 'admin') {
+      const { data: membership } = await ac
+        .from('event_section_members')
+        .select('member_role')
+        .eq('section_id', task.section_id)
+        .eq('user_id', caller.userId)
+        .maybeSingle() as { data: { member_role: string } | null }
+
+      if (!membership || membership.member_role !== 'encargado') {
+        return { error: 'No puedes eliminar tareas de esta sección' }
+      }
+    }
+
+    const { error } = await ac
       .from('event_tasks')
       .delete()
-      .eq('id', taskId)
-      .select('id, section_id') as { data: { id: string; section_id: string }[] | null; error: { message: string } | null }
+      .eq('id', taskId) as { error: { message: string } | null }
 
-    if (error) {
-      return { error: isRlsDenied(error.message) ? 'No tienes permisos para eliminar esta tarea (solo el encargado de la sección o un admin)' : error.message }
-    }
-    if (!deleted || deleted.length === 0) {
-      return { error: 'No tienes permisos para eliminar esta tarea, o ya no existe' }
-    }
+    if (error) return { error: error.message }
 
-    revalidateEventos(await getEventIdForSection(deleted[0].section_id))
+    revalidateEventos(await getEventIdForSection(task.section_id))
     return { success: true }
   } catch {
     return { error: 'Error inesperado al eliminar la tarea' }
