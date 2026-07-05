@@ -3,16 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
-import { AREAS_TRABAJO, type AreaTrabajo } from '@/lib/types/database'
-
-const AREA_ENUM = z.enum(AREAS_TRABAJO as [AreaTrabajo, ...AreaTrabajo[]])
-
-const EventSchema = z.object({
-  title: z.string().min(3, 'El título debe tener al menos 3 caracteres'),
-  event_type: z.enum(['dieciocho', 'navidad', 'ano_nuevo']),
-  description: z.string().min(10, 'Describe el evento (mínimo 10 caracteres)'),
-  event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida'),
-})
+import {
+  type CreateEventPayload,
+  type EventDocType,
+  type EventTaskStatus,
+} from '@/lib/types/database'
 
 // ── Helpers internos ───────────────────────────────────────
 
@@ -26,27 +21,27 @@ async function getCaller(): Promise<{ userId: string; role: string } | null> {
   return { userId: user.id, role: profile.role }
 }
 
-type EventPerms = {
-  isAdmin: boolean
-  jefeAreas: string[]
-  isParticipant: boolean // admin, tiene rol en el evento, o tiene tarea asignada
+// Distingue un rechazo de RLS de un error genérico de base de datos, para
+// dar un mensaje claro cuando una acción con cliente de usuario es
+// rechazada por permisos (encargado de sección / admin).
+function isRlsDenied(message?: string | null): boolean {
+  if (!message) return false
+  return /row-level security|permission denied/i.test(message)
 }
 
-async function getEventPermissions(eventId: string, userId: string, role: string): Promise<EventPerms> {
-  if (role === 'admin') return { isAdmin: true, jefeAreas: [], isParticipant: true }
+async function getEventIdForSection(sectionId: string): Promise<string | null> {
   const adminClient = await createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ac = adminClient as any
-  const [{ data: roles }, { data: tasks }] = await Promise.all([
-    ac.from('event_roles').select('role, area').eq('event_id', eventId).eq('user_id', userId) as Promise<{ data: { role: string; area: string }[] | null }>,
-    ac.from('event_tasks').select('id').eq('event_id', eventId).eq('assigned_to', userId).limit(1) as Promise<{ data: { id: string }[] | null }>,
-  ])
-  const jefeAreas = (roles ?? []).filter(r => r.role === 'jefe').map(r => r.area)
-  const isParticipant = (roles ?? []).length > 0 || (tasks ?? []).length > 0
-  return { isAdmin: false, jefeAreas, isParticipant }
+  const { data } = await ac
+    .from('event_sections')
+    .select('event_id')
+    .eq('id', sectionId)
+    .maybeSingle() as { data: { event_id: string } | null }
+  return data?.event_id ?? null
 }
 
-function revalidateEventos(eventId?: string) {
+function revalidateEventos(eventId?: string | null) {
   revalidatePath('/admin/eventos')
   revalidatePath('/eventos')
   revalidatePath('/inicio')
@@ -58,40 +53,132 @@ function revalidateEventos(eventId?: string) {
 
 // ── CRUD de eventos (solo admin) ───────────────────────────
 
+const CreateEventSchema = z.object({
+  title: z.string().min(3, 'El título debe tener al menos 3 caracteres'),
+  event_type: z.enum(['dieciocho', 'navidad', 'ano_nuevo']),
+  sede_id: z.string().min(1, 'Selecciona una sede'),
+  event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida'),
+  description: z.string().min(10, 'Describe el evento (mínimo 10 caracteres)'),
+  sections: z.array(z.object({
+    name: z.string().min(2, 'El nombre de la sección debe tener al menos 2 caracteres'),
+    description: z.string().optional(),
+    members: z.array(z.object({
+      user_id: z.string().uuid('Selecciona un trabajador'),
+      member_role: z.enum(['encargado', 'colaborador']),
+    })),
+    tasks: z.array(z.object({
+      title: z.string().min(3, 'La tarea debe tener al menos 3 caracteres'),
+      description: z.string().optional(),
+      due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+    })),
+  })),
+})
+
 export async function createEventAction(
-  formData: FormData,
+  payload: CreateEventPayload,
 ): Promise<{ success?: boolean; eventId?: string; error?: string }> {
+  const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+  let createdEventId: string | null = null
+
   try {
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
     if (caller.role !== 'admin') return { error: 'No autorizado' }
 
-    const parsed = EventSchema.safeParse({
-      title: formData.get('title'),
-      event_type: formData.get('event_type'),
-      description: formData.get('description'),
-      event_date: formData.get('event_date'),
-    })
+    const parsed = CreateEventSchema.safeParse(payload)
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    const data = parsed.data
 
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data, error } = await ac
+    const { data: eventRow, error: eventError } = await ac
       .from('events')
-      .insert({ ...parsed.data, status: 'planificacion', cover_image_url: null, created_by: caller.userId })
+      .insert({
+        title: data.title,
+        event_type: data.event_type,
+        sede_id: data.sede_id,
+        event_date: data.event_date,
+        description: data.description,
+        status: 'planificacion',
+        cover_image_url: null,
+        created_by: caller.userId,
+      })
       .select('id')
       .single() as { data: { id: string } | null; error: { message: string } | null }
 
-    if (error || !data) return { error: error?.message ?? 'No se pudo crear el evento' }
+    if (eventError || !eventRow) return { error: eventError?.message ?? 'No se pudo crear el evento' }
+    createdEventId = eventRow.id
+
+    for (let i = 0; i < data.sections.length; i++) {
+      const section = data.sections[i]
+
+      const { data: sectionRow, error: sectionError } = await ac
+        .from('event_sections')
+        .insert({
+          event_id: createdEventId,
+          name: section.name,
+          description: section.description ?? null,
+          order_index: i,
+        })
+        .select('id')
+        .single() as { data: { id: string } | null; error: { message: string } | null }
+
+      if (sectionError || !sectionRow) {
+        throw new Error(sectionError?.message ?? `No se pudo crear la sección "${section.name}"`)
+      }
+
+      if (section.members.length > 0) {
+        const { error: membersError } = await ac
+          .from('event_section_members')
+          .insert(section.members.map(m => ({
+            section_id: sectionRow.id,
+            user_id: m.user_id,
+            member_role: m.member_role,
+          }))) as { error: { message: string } | null }
+        if (membersError) throw new Error(membersError.message)
+      }
+
+      if (section.tasks.length > 0) {
+        const { error: tasksError } = await ac
+          .from('event_tasks')
+          .insert(section.tasks.map((t, idx) => ({
+            section_id: sectionRow.id,
+            title: t.title,
+            description: t.description ?? null,
+            status: 'pendiente',
+            due_date: t.due_date ?? null,
+            order_index: idx,
+            created_by: caller.userId,
+          }))) as { error: { message: string } | null }
+        if (tasksError) throw new Error(tasksError.message)
+      }
+    }
 
     revalidateEventos()
-    return { success: true, eventId: data.id }
-  } catch {
-    return { error: 'Error inesperado al crear el evento' }
+    return { success: true, eventId: createdEventId }
+  } catch (err) {
+    // Rollback manual: el evento creado se borra y el cascade limpia
+    // secciones/miembros/tareas ya insertados en este intento.
+    if (createdEventId) {
+      await ac.from('events').delete().eq('id', createdEventId)
+    }
+    return { error: err instanceof Error ? err.message : 'Error inesperado al crear el evento' }
   }
 }
 
+const UpdateEventSchema = z.object({
+  title: z.string().min(3, 'El título debe tener al menos 3 caracteres').optional(),
+  event_type: z.enum(['dieciocho', 'navidad', 'ano_nuevo']).optional(),
+  sede_id: z.string().min(1, 'Selecciona una sede').optional(),
+  event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida').optional(),
+  description: z.string().min(10, 'Describe el evento (mínimo 10 caracteres)').optional(),
+  status: z.enum(['planificacion', 'activo', 'finalizado']).optional(),
+})
+
+// Acepta actualizaciones parciales: sirve tanto para el formulario de
+// edición completo como para un cambio de solo el status (sin la regla
+// bloqueante de doc de dificultades alimenticias — esa es solo una
+// advertencia visual en la UI, ver Task 4).
 export async function updateEventAction(
   eventId: string,
   formData: FormData,
@@ -101,13 +188,15 @@ export async function updateEventAction(
     if (!caller) return { error: 'No autenticado' }
     if (caller.role !== 'admin') return { error: 'No autorizado' }
 
-    const parsed = EventSchema.safeParse({
-      title: formData.get('title'),
-      event_type: formData.get('event_type'),
-      description: formData.get('description'),
-      event_date: formData.get('event_date'),
-    })
+    const raw: Record<string, unknown> = {}
+    for (const key of ['title', 'event_type', 'sede_id', 'event_date', 'description', 'status'] as const) {
+      const value = formData.get(key)
+      if (value !== null) raw[key] = value
+    }
+
+    const parsed = UpdateEventSchema.safeParse(raw)
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+    if (Object.keys(parsed.data).length === 0) return { error: 'No hay cambios para guardar' }
 
     const adminClient = await createAdminClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -122,77 +211,6 @@ export async function updateEventAction(
     return { success: true }
   } catch {
     return { error: 'Error inesperado al actualizar el evento' }
-  }
-}
-
-export async function publishEventAction(
-  eventId: string,
-): Promise<{ success?: boolean; error?: string }> {
-  try {
-    const caller = await getCaller()
-    if (!caller) return { error: 'No autenticado' }
-    if (caller.role !== 'admin') return { error: 'No autorizado' }
-
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-
-    // Regla dura: sin doc de dificultades alimenticias no se publica
-    const { data: docs } = await ac
-      .from('event_documents')
-      .select('id')
-      .eq('event_id', eventId)
-      .eq('doc_type', 'dificultades_alimenticias')
-      .limit(1) as { data: { id: string }[] | null }
-
-    if (!docs || docs.length === 0) {
-      return { error: 'Falta el documento de dificultades alimenticias. Súbelo antes de publicar.' }
-    }
-
-    const { data: updated, error } = await ac
-      .from('events')
-      .update({ status: 'activo', updated_at: new Date().toISOString() })
-      .eq('id', eventId)
-      .eq('status', 'planificacion')
-      .select('id') as { data: { id: string }[] | null; error: { message: string } | null }
-
-    if (error) return { error: error.message }
-    if (!updated || updated.length === 0) {
-      return { error: 'El evento no está en planificación — no se puede publicar.' }
-    }
-    revalidateEventos(eventId)
-    return { success: true }
-  } catch {
-    return { error: 'Error inesperado al publicar el evento' }
-  }
-}
-
-export async function finalizeEventAction(
-  eventId: string,
-): Promise<{ success?: boolean; error?: string }> {
-  try {
-    const caller = await getCaller()
-    if (!caller) return { error: 'No autenticado' }
-    if (caller.role !== 'admin') return { error: 'No autorizado' }
-
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: updated, error } = await ac
-      .from('events')
-      .update({ status: 'finalizado', updated_at: new Date().toISOString() })
-      .eq('id', eventId)
-      .eq('status', 'activo')
-      .select('id') as { data: { id: string }[] | null; error: { message: string } | null }
-
-    if (error) return { error: error.message }
-    if (!updated || updated.length === 0) {
-      return { error: 'Solo un evento activo se puede finalizar.' }
-    }
-    revalidateEventos(eventId)
-    return { success: true }
-  } catch {
-    return { error: 'Error inesperado al finalizar el evento' }
   }
 }
 
@@ -217,184 +235,277 @@ export async function deleteEventAction(
   }
 }
 
-// ── Roles: jefes y delegados ───────────────────────────────
+// ── Secciones (solo admin) ──────────────────────────────────
 
-const RoleSchema = z.object({
-  user_id: z.string().uuid('Selecciona un trabajador'),
-  role: z.enum(['jefe', 'delegado']),
-  area: AREA_ENUM,
+const SectionSchema = z.object({
+  name: z.string().min(2, 'El nombre de la sección debe tener al menos 2 caracteres'),
+  description: z.string().optional().nullable(),
 })
 
-export async function setEventRoleAction(
+export async function addSectionAction(
   eventId: string,
   formData: FormData,
-): Promise<{ success?: boolean; error?: string }> {
+): Promise<{ success?: boolean; sectionId?: string; error?: string }> {
   try {
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
     if (caller.role !== 'admin') return { error: 'No autorizado' }
 
-    const parsed = RoleSchema.safeParse({
-      user_id: formData.get('user_id'),
-      role: formData.get('role'),
-      area: formData.get('area'),
+    const parsed = SectionSchema.safeParse({
+      name: formData.get('name'),
+      description: formData.get('description') || null,
     })
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
 
     const adminClient = await createAdminClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
-    const { error } = await ac
-      .from('event_roles')
-      .insert({ event_id: eventId, ...parsed.data }) as { error: { message: string; code?: string } | null }
-
-    if (error) {
-      if (error.code === '23505') {
-        return { error: 'Esa persona ya tiene rol en el evento, o el área ya tiene jefe.' }
-      }
-      return { error: error.message }
-    }
-    revalidateEventos(eventId)
-    return { success: true }
-  } catch {
-    return { error: 'Error inesperado al asignar el rol' }
-  }
-}
-
-export async function removeEventRoleAction(
-  roleId: string,
-): Promise<{ success?: boolean; error?: string }> {
-  try {
-    const caller = await getCaller()
-    if (!caller) return { error: 'No autenticado' }
-    if (caller.role !== 'admin') return { error: 'No autorizado' }
-
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: role } = await ac
-      .from('event_roles').select('event_id').eq('id', roleId).single() as { data: { event_id: string } | null }
-    const { error } = await ac.from('event_roles').delete().eq('id', roleId) as { error: { message: string } | null }
-
-    if (error) return { error: error.message }
-    revalidateEventos(role?.event_id)
-    return { success: true }
-  } catch {
-    return { error: 'Error inesperado al quitar el rol' }
-  }
-}
-
-// ── Tareas ─────────────────────────────────────────────────
-
-const TaskSchema = z.object({
-  title: z.string().min(3, 'La tarea debe tener al menos 3 caracteres'),
-  area: AREA_ENUM,
-  assigned_to: z.string().uuid().optional().nullable(),
-})
-
-export async function createTaskAction(
-  eventId: string,
-  formData: FormData,
-): Promise<{ success?: boolean; error?: string }> {
-  try {
-    const caller = await getCaller()
-    if (!caller) return { error: 'No autenticado' }
-
-    const parsed = TaskSchema.safeParse({
-      title: formData.get('title'),
-      area: formData.get('area'),
-      assigned_to: formData.get('assigned_to') || null,
-    })
-    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
-
-    // Admin crea en cualquier área; jefe solo en la(s) suya(s)
-    const perms = await getEventPermissions(eventId, caller.userId, caller.role)
-    if (!perms.isAdmin && !perms.jefeAreas.includes(parsed.data.area)) {
-      return { error: 'Solo puedes crear tareas de tu área' }
-    }
-
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-
-    // Jefe (no admin) solo puede asignar a participantes del evento o a sí mismo
-    if (!perms.isAdmin && parsed.data.assigned_to && parsed.data.assigned_to !== caller.userId) {
-      const { data: assigneeRole } = await ac
-        .from('event_roles')
-        .select('id')
-        .eq('event_id', eventId)
-        .eq('user_id', parsed.data.assigned_to)
-        .limit(1)
-        .maybeSingle() as { data: { id: string } | null }
-      if (!assigneeRole) {
-        return { error: 'Solo puedes asignar tareas a participantes del evento' }
-      }
-    }
 
     const { data: maxRow } = await ac
-      .from('event_tasks')
+      .from('event_sections')
       .select('order_index')
       .eq('event_id', eventId)
       .order('order_index', { ascending: false })
       .limit(1)
       .maybeSingle() as { data: { order_index: number } | null }
 
-    const { error } = await ac.from('event_tasks').insert({
-      event_id: eventId,
-      title: parsed.data.title,
-      area: parsed.data.area,
-      assigned_to: parsed.data.assigned_to ?? null,
-      is_done: false,
-      done_by: null,
-      done_at: null,
-      order_index: (maxRow?.order_index ?? -1) + 1,
-      created_by: caller.userId,
-    }) as { error: { message: string } | null }
+    const { data, error } = await ac
+      .from('event_sections')
+      .insert({
+        event_id: eventId,
+        name: parsed.data.name,
+        description: parsed.data.description ?? null,
+        order_index: (maxRow?.order_index ?? -1) + 1,
+      })
+      .select('id')
+      .single() as { data: { id: string } | null; error: { message: string; code?: string } | null }
 
-    if (error) return { error: error.message }
+    if (error) {
+      if (error.code === '23505') return { error: 'Ya existe una sección con ese nombre en este evento' }
+      return { error: error.message }
+    }
+    if (!data) return { error: 'No se pudo crear la sección' }
+
     revalidateEventos(eventId)
-    return { success: true }
+    return { success: true, sectionId: data.id }
   } catch {
-    return { error: 'Error inesperado al crear la tarea' }
+    return { error: 'Error inesperado al crear la sección' }
   }
 }
 
-export async function toggleTaskAction(
-  taskId: string,
+export async function removeSectionAction(
+  sectionId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+    if (caller.role !== 'admin') return { error: 'No autorizado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { data: section } = await ac
+      .from('event_sections').select('event_id').eq('id', sectionId).single() as { data: { event_id: string } | null }
+
+    const { error } = await ac.from('event_sections').delete().eq('id', sectionId) as { error: { message: string } | null }
+    if (error) return { error: error.message }
+
+    revalidateEventos(section?.event_id)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al eliminar la sección' }
+  }
+}
+
+// ── Miembros de sección (solo admin) ────────────────────────
+
+const MemberSchema = z.object({
+  user_id: z.string().uuid('Selecciona un trabajador'),
+  member_role: z.enum(['encargado', 'colaborador']),
+})
+
+export async function addMemberAction(
+  sectionId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+    if (caller.role !== 'admin') return { error: 'No autorizado' }
+
+    const parsed = MemberSchema.safeParse({
+      user_id: formData.get('user_id'),
+      member_role: formData.get('member_role'),
+    })
+    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac
+      .from('event_section_members')
+      .insert({ section_id: sectionId, ...parsed.data }) as { error: { message: string; code?: string } | null }
+
+    if (error) {
+      if (error.code === '23505') return { error: 'Esa persona ya es miembro de esta sección' }
+      return { error: error.message }
+    }
+
+    const eventId = await getEventIdForSection(sectionId)
+    revalidateEventos(eventId)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al agregar el miembro' }
+  }
+}
+
+export async function removeMemberAction(
+  sectionId: string,
+  userId: string,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+    if (caller.role !== 'admin') return { error: 'No autorizado' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+    const { error } = await ac
+      .from('event_section_members')
+      .delete()
+      .eq('section_id', sectionId)
+      .eq('user_id', userId) as { error: { message: string } | null }
+
+    if (error) return { error: error.message }
+
+    const eventId = await getEventIdForSection(sectionId)
+    revalidateEventos(eventId)
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al quitar el miembro' }
+  }
+}
+
+// ── Tareas por sección ──────────────────────────────────────
+// Permisos: admin o encargado de la sección. Se usa el cliente de USUARIO
+// para que RLS decida — si la política rechaza, se traduce a un mensaje
+// claro en vez del error crudo de Postgres.
+
+const UpsertTaskSchema = z.object({
+  title: z.string().min(3, 'La tarea debe tener al menos 3 caracteres'),
+  description: z.string().optional().nullable(),
+  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida').optional().nullable(),
+})
+
+export async function upsertTaskAction(
+  sectionId: string,
+  formData: FormData,
 ): Promise<{ success?: boolean; error?: string }> {
   try {
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
 
-    const adminClient = await createAdminClient()
+    const taskId = (formData.get('taskId') as string | null) || null
+    const parsed = UpsertTaskSchema.safeParse({
+      title: formData.get('title'),
+      description: formData.get('description') || null,
+      due_date: formData.get('due_date') || null,
+    })
+    if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+
+    const supabase = await createClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: task } = await ac
+    const sc = supabase as any
+
+    if (taskId) {
+      const { data: updated, error } = await sc
+        .from('event_tasks')
+        .update({
+          title: parsed.data.title,
+          description: parsed.data.description ?? null,
+          due_date: parsed.data.due_date ?? null,
+        })
+        .eq('id', taskId)
+        .select('id, section_id') as { data: { id: string; section_id: string }[] | null; error: { message: string } | null }
+
+      if (error) {
+        return { error: isRlsDenied(error.message) ? 'No tienes permisos para editar esta tarea (solo el encargado de la sección o un admin)' : error.message }
+      }
+      if (!updated || updated.length === 0) {
+        return { error: 'No tienes permisos para editar esta tarea (solo el encargado de la sección o un admin)' }
+      }
+
+      revalidateEventos(await getEventIdForSection(updated[0].section_id))
+      return { success: true }
+    }
+
+    const { data: maxRow } = await sc
       .from('event_tasks')
-      .select('event_id, area, assigned_to, is_done')
-      .eq('id', taskId)
-      .single() as { data: { event_id: string; area: string; assigned_to: string | null; is_done: boolean } | null }
+      .select('order_index')
+      .eq('section_id', sectionId)
+      .order('order_index', { ascending: false })
+      .limit(1)
+      .maybeSingle() as { data: { order_index: number } | null }
 
-    if (!task) return { error: 'Tarea no encontrada' }
-
-    const perms = await getEventPermissions(task.event_id, caller.userId, caller.role)
-    const canToggle = perms.isAdmin
-      || perms.jefeAreas.includes(task.area)
-      || task.assigned_to === caller.userId
-    if (!canToggle) return { error: 'No puedes modificar esta tarea' }
-
-    const nowDone = !task.is_done
-    const { error } = await ac
+    const { data: inserted, error } = await sc
       .from('event_tasks')
-      .update({
-        is_done: nowDone,
-        done_by: nowDone ? caller.userId : null,
-        done_at: nowDone ? new Date().toISOString() : null,
+      .insert({
+        section_id: sectionId,
+        title: parsed.data.title,
+        description: parsed.data.description ?? null,
+        status: 'pendiente',
+        due_date: parsed.data.due_date ?? null,
+        order_index: (maxRow?.order_index ?? -1) + 1,
+        created_by: caller.userId,
       })
-      .eq('id', taskId) as { error: { message: string } | null }
+      .select('id') as { data: { id: string }[] | null; error: { message: string } | null }
 
-    if (error) return { error: error.message }
-    revalidateEventos(task.event_id)
+    if (error) {
+      return { error: isRlsDenied(error.message) ? 'No tienes permisos para crear tareas en esta sección (solo el encargado o un admin)' : error.message }
+    }
+    if (!inserted || inserted.length === 0) {
+      return { error: 'No tienes permisos para crear tareas en esta sección (solo el encargado o un admin)' }
+    }
+
+    revalidateEventos(await getEventIdForSection(sectionId))
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al guardar la tarea' }
+  }
+}
+
+export async function toggleTaskStatusAction(
+  taskId: string,
+  nextStatus: EventTaskStatus,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const supabase = await createClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sc = supabase as any
+
+    const isCompleting = nextStatus === 'completada'
+    const update = isCompleting
+      ? { status: 'completada', completed_at: new Date().toISOString(), completed_by: caller.userId }
+      : { status: nextStatus, completed_at: null, completed_by: null }
+
+    const { data: updated, error } = await sc
+      .from('event_tasks')
+      .update(update)
+      .eq('id', taskId)
+      .select('id, section_id') as { data: { id: string; section_id: string }[] | null; error: { message: string } | null }
+
+    if (error) {
+      return { error: isRlsDenied(error.message) ? 'No tienes permisos para modificar esta tarea (solo el encargado de la sección o un admin)' : error.message }
+    }
+    if (!updated || updated.length === 0) {
+      return { error: 'No tienes permisos para modificar esta tarea (solo el encargado de la sección o un admin)' }
+    }
+
+    revalidateEventos(await getEventIdForSection(updated[0].section_id))
     return { success: true }
   } catch {
     return { error: 'Error inesperado al actualizar la tarea' }
@@ -408,37 +519,43 @@ export async function deleteTaskAction(
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
 
-    const adminClient = await createAdminClient()
+    const supabase = await createClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: task } = await ac
+    const sc = supabase as any
+
+    const { data: deleted, error } = await sc
       .from('event_tasks')
-      .select('event_id, area')
+      .delete()
       .eq('id', taskId)
-      .single() as { data: { event_id: string; area: string } | null }
+      .select('id, section_id') as { data: { id: string; section_id: string }[] | null; error: { message: string } | null }
 
-    if (!task) return { error: 'Tarea no encontrada' }
-
-    const perms = await getEventPermissions(task.event_id, caller.userId, caller.role)
-    if (!perms.isAdmin && !perms.jefeAreas.includes(task.area)) {
-      return { error: 'No puedes eliminar esta tarea' }
+    if (error) {
+      return { error: isRlsDenied(error.message) ? 'No tienes permisos para eliminar esta tarea (solo el encargado de la sección o un admin)' : error.message }
+    }
+    if (!deleted || deleted.length === 0) {
+      return { error: 'No tienes permisos para eliminar esta tarea, o ya no existe' }
     }
 
-    const { error } = await ac.from('event_tasks').delete().eq('id', taskId) as { error: { message: string } | null }
-    if (error) return { error: error.message }
-    revalidateEventos(task.event_id)
+    revalidateEventos(await getEventIdForSection(deleted[0].section_id))
     return { success: true }
   } catch {
     return { error: 'Error inesperado al eliminar la tarea' }
   }
 }
 
-// ── Documentos (bucket privado event-docs) ─────────────────
+// ── Documentos (bucket privado event-documents) ─────────────
+// Doc de dificultades alimenticias = advertencia persistente en la UI,
+// NO bloquea creación, publicación ni eliminación de documentos.
 
-const DOC_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+const DOC_TYPES = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
 const DOC_MAX = 10 * 1024 * 1024
+const DOC_BUCKET = 'event-documents'
 
-export async function uploadEventDocAction(
+export async function uploadEventDocumentAction(
   eventId: string,
   formData: FormData,
 ): Promise<{ success?: boolean; error?: string }> {
@@ -452,15 +569,15 @@ export async function uploadEventDocAction(
     if (!DOC_TYPES.includes(file.type)) return { error: 'Solo se permiten PDF, Excel o Word' }
     if (file.size > DOC_MAX) return { error: 'El documento no puede superar 10MB' }
 
-    const docType = formData.get('doc_type') === 'dificultades_alimenticias'
-      ? 'dificultades_alimenticias' : 'otro'
-    const name = (formData.get('name') as string) || file.name
+    const docType: EventDocType = formData.get('doc_type') === 'dificultades_alimenticias'
+      ? 'dificultades_alimenticias' : 'general'
+    const title = ((formData.get('title') as string) || file.name).slice(0, 200)
 
     const adminClient = await createAdminClient()
     const path = `${eventId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
 
     const { error: uploadError } = await adminClient.storage
-      .from('event-docs')
+      .from(DOC_BUCKET)
       .upload(path, file, { contentType: file.type })
     if (uploadError) return { error: 'Error al subir el archivo' }
 
@@ -468,14 +585,14 @@ export async function uploadEventDocAction(
     const ac = adminClient as any
     const { error } = await ac.from('event_documents').insert({
       event_id: eventId,
-      name,
-      file_path: path,
       doc_type: docType,
+      title,
+      file_url: path,
       uploaded_by: caller.userId,
     }) as { error: { message: string } | null }
 
     if (error) {
-      await adminClient.storage.from('event-docs').remove([path])
+      await adminClient.storage.from(DOC_BUCKET).remove([path])
       return { error: error.message }
     }
     revalidateEventos(eventId)
@@ -485,7 +602,7 @@ export async function uploadEventDocAction(
   }
 }
 
-export async function deleteEventDocAction(
+export async function deleteEventDocumentAction(
   docId: string,
 ): Promise<{ success?: boolean; error?: string }> {
   try {
@@ -498,27 +615,16 @@ export async function deleteEventDocAction(
     const ac = adminClient as any
     const { data: doc } = await ac
       .from('event_documents')
-      .select('event_id, file_path, doc_type')
+      .select('event_id, file_url')
       .eq('id', docId)
-      .single() as { data: { event_id: string; file_path: string; doc_type: string } | null }
+      .single() as { data: { event_id: string; file_url: string } | null }
 
     if (!doc) return { error: 'Documento no encontrado' }
-
-    // No dejar un evento activo sin su doc de dificultades alimenticias
-    if (doc.doc_type === 'dificultades_alimenticias') {
-      const [{ data: event }, { data: others }] = await Promise.all([
-        ac.from('events').select('status').eq('id', doc.event_id).single() as Promise<{ data: { status: string } | null }>,
-        ac.from('event_documents').select('id').eq('event_id', doc.event_id).eq('doc_type', 'dificultades_alimenticias').neq('id', docId) as Promise<{ data: { id: string }[] | null }>,
-      ])
-      if (event?.status === 'activo' && (others ?? []).length === 0) {
-        return { error: 'Un evento activo no puede quedar sin el documento de dificultades alimenticias. Sube otro primero.' }
-      }
-    }
 
     const { error } = await ac.from('event_documents').delete().eq('id', docId) as { error: { message: string } | null }
     if (error) return { error: error.message }
 
-    await adminClient.storage.from('event-docs').remove([doc.file_path])
+    await adminClient.storage.from(DOC_BUCKET).remove([doc.file_url])
     revalidateEventos(doc.event_id)
     return { success: true }
   } catch {
@@ -526,127 +632,34 @@ export async function deleteEventDocAction(
   }
 }
 
-export async function getEventDocUrlAction(
+export async function getDocumentSignedUrlAction(
   docId: string,
 ): Promise<{ url?: string; error?: string }> {
   try {
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
 
-    const adminClient = await createAdminClient()
+    // Autorización primero con cliente de USUARIO: RLS solo deja ver el
+    // documento a admin o miembros de alguna sección del evento. Si no lo
+    // ve, no se firma nada.
+    const supabase = await createClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: doc } = await ac
-      .from('event_documents').select('file_path, event_id').eq('id', docId).single() as { data: { file_path: string; event_id: string } | null }
-    if (!doc) return { error: 'Documento no encontrado' }
+    const sc = supabase as any
+    const { data: doc } = await sc
+      .from('event_documents')
+      .select('file_url')
+      .eq('id', docId)
+      .maybeSingle() as { data: { file_url: string } | null }
 
-    const [{ data: event }, perms] = await Promise.all([
-      ac.from('events').select('status').eq('id', doc.event_id).single() as Promise<{ data: { status: string } | null }>,
-      getEventPermissions(doc.event_id, caller.userId, caller.role),
-    ])
+    if (!doc) return { error: 'No autorizado' }
 
-    const autorizado = perms.isAdmin || perms.isParticipant || event?.status === 'activo'
-    if (!autorizado) return { error: 'No autorizado' }
-
+    const adminClient = await createAdminClient()
     const { data, error } = await adminClient.storage
-      .from('event-docs')
-      .createSignedUrl(doc.file_path, 3600)
+      .from(DOC_BUCKET)
+      .createSignedUrl(doc.file_url, 60)
     if (error || !data) return { error: 'No se pudo generar el enlace' }
     return { url: data.signedUrl }
   } catch {
     return { error: 'Error inesperado al obtener el documento' }
-  }
-}
-
-// ── Fotos (bucket público event-photos) ────────────────────
-
-const PHOTO_TYPES = ['image/jpeg', 'image/png', 'image/webp']
-const PHOTO_MAX = 5 * 1024 * 1024
-
-export async function uploadEventPhotoAction(
-  eventId: string,
-  formData: FormData,
-): Promise<{ success?: boolean; error?: string }> {
-  try {
-    const caller = await getCaller()
-    if (!caller) return { error: 'No autenticado' }
-
-    const perms = await getEventPermissions(eventId, caller.userId, caller.role)
-    if (!perms.isParticipant) return { error: 'Solo quienes participan del evento pueden subir fotos' }
-
-    const file = formData.get('file') as File
-    if (!file || file.size === 0) return { error: 'No se seleccionó archivo' }
-    if (!PHOTO_TYPES.includes(file.type)) return { error: 'Solo se permiten imágenes JPG, PNG o WebP' }
-    if (file.size > PHOTO_MAX) return { error: 'La foto no puede superar 5MB' }
-
-    const caption = ((formData.get('caption') as string) || '').slice(0, 200) || null
-
-    const adminClient = await createAdminClient()
-    const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
-    const path = `${eventId}/${crypto.randomUUID()}.${ext}`
-
-    const { error: uploadError } = await adminClient.storage
-      .from('event-photos')
-      .upload(path, file, { contentType: file.type })
-    if (uploadError) return { error: 'Error al subir la foto' }
-
-    const { data: { publicUrl } } = adminClient.storage
-      .from('event-photos')
-      .getPublicUrl(path)
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { error } = await ac.from('event_photos').insert({
-      event_id: eventId,
-      image_url: publicUrl,
-      caption,
-      uploaded_by: caller.userId,
-    }) as { error: { message: string } | null }
-
-    if (error) {
-      await adminClient.storage.from('event-photos').remove([path])
-      return { error: error.message }
-    }
-    revalidateEventos(eventId)
-    return { success: true }
-  } catch {
-    return { error: 'Error inesperado al subir la foto' }
-  }
-}
-
-export async function deleteEventPhotoAction(
-  photoId: string,
-): Promise<{ success?: boolean; error?: string }> {
-  try {
-    const caller = await getCaller()
-    if (!caller) return { error: 'No autenticado' }
-
-    const adminClient = await createAdminClient()
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: photo } = await ac
-      .from('event_photos')
-      .select('event_id, image_url, uploaded_by')
-      .eq('id', photoId)
-      .single() as { data: { event_id: string; image_url: string; uploaded_by: string } | null }
-
-    if (!photo) return { error: 'Foto no encontrada' }
-    if (caller.role !== 'admin' && photo.uploaded_by !== caller.userId) {
-      return { error: 'Solo puedes eliminar tus propias fotos' }
-    }
-
-    const { error } = await ac.from('event_photos').delete().eq('id', photoId) as { error: { message: string } | null }
-    if (error) return { error: error.message }
-
-    // Derivar el path desde la URL pública: .../event-photos/<path>
-    const marker = '/event-photos/'
-    const idx = photo.image_url.indexOf(marker)
-    if (idx !== -1) {
-      await adminClient.storage.from('event-photos').remove([photo.image_url.slice(idx + marker.length)])
-    }
-    revalidateEventos(photo.event_id)
-    return { success: true }
-  } catch {
-    return { error: 'Error inesperado al eliminar la foto' }
   }
 }
