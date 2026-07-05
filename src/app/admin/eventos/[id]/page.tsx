@@ -7,14 +7,14 @@ import { RolesEditor } from '@/components/alumco/eventos/RolesEditor'
 import { TareasEditor } from '@/components/alumco/eventos/TareasEditor'
 import { DocsPanel } from '@/components/alumco/eventos/DocsPanel'
 import { PublicarButton } from '@/components/alumco/eventos/PublicarButton'
-// Task 9: import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
+import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
 import {
   EVENT_TYPE_LABELS,
   type EventRecord,
   type EventRole,
   type EventTask,
   type EventDocument,
-  // Task 9: type EventPhoto,
+  type EventPhoto,
 } from '@/lib/types/database'
 
 export const metadata: Metadata = { title: 'Detalle del evento | Alumco LMS' }
@@ -24,14 +24,15 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
   const { id } = await props.params
   const auth = await requireAdmin()
   const isAdmin = auth.ok && auth.role === 'admin'
+  const currentUserId = auth.ok ? auth.userId : ''
   const adminClient = await createAdminClient()
 
-  const [{ data: event }, { data: roles }, { data: tasks }, { data: docs }, { data: workers }] = await Promise.all([
+  const [{ data: event }, { data: roles }, { data: tasks }, { data: docs }, { data: photos }, { data: workers }] = await Promise.all([
     adminClient.from('events').select('*').eq('id', id).single() as unknown as Promise<{ data: EventRecord | null }>,
     adminClient.from('event_roles').select('*').eq('event_id', id) as unknown as Promise<{ data: EventRole[] | null }>,
     adminClient.from('event_tasks').select('*').eq('event_id', id).order('order_index') as unknown as Promise<{ data: EventTask[] | null }>,
     adminClient.from('event_documents').select('*').eq('event_id', id).order('created_at') as unknown as Promise<{ data: EventDocument[] | null }>,
-    // Task 9: photos query se agrega acá
+    adminClient.from('event_photos').select('*').eq('event_id', id).order('created_at', { ascending: false }) as unknown as Promise<{ data: EventPhoto[] | null }>,
     adminClient.from('profiles').select('id, full_name, area_trabajo').eq('status', 'activo').order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; area_trabajo: string[] }[] | null }>,
   ])
 
@@ -65,7 +66,13 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
       {isAdmin && <RolesEditor eventId={event.id} roles={rolesConNombre} workers={workers ?? []} />}
       <TareasEditor eventId={event.id} tasks={tasksConNombre} workers={workers ?? []} jefeAreas={[]} isAdmin={isAdmin} />
       <DocsPanel eventId={event.id} docs={docs ?? []} canManage={isAdmin} />
-      {/* Task 9: <GaleriaFotos eventId={event.id} photos={photos ?? []} canUpload isAdmin currentUserId="" /> */}
+      <GaleriaFotos
+        eventId={event.id}
+        photos={photos ?? []}
+        canUpload
+        isAdmin={isAdmin}
+        currentUserId={currentUserId}
+      />
     </div>
   )
 }
