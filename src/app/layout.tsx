@@ -36,7 +36,14 @@ export const metadata: Metadata = {
     template: '%s | Alumco LMS',
   },
   description: 'Plataforma de capacitación continua para trabajadores ELEAM',
-  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    title: 'Alumco',
+    statusBarStyle: 'default',
+  },
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
