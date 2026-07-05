@@ -22,6 +22,12 @@ interface WorkerAlert {
   urgency: 'overdue' | 'critical' | 'warning'
 }
 
+// Las alertas admin son globales (mismas para todo admin) y alimentan solo el
+// badge de la campana: 60s de staleness es aceptable y evita recalcular 3
+// queries de tablas completas en cada navegación del panel.
+let adminAlertsCache: { data: { count: number; alerts: AdminAlert[] }; ts: number } | null = null
+const ADMIN_ALERTS_TTL_MS = 60_000
+
 export async function getAdminAlerts(): Promise<{
   count: number
   alerts: AdminAlert[]
@@ -29,6 +35,10 @@ export async function getAdminAlerts(): Promise<{
   try {
     const auth = await requireAdmin()
     if (!auth.ok) return { count: 0, alerts: [] }
+
+    if (adminAlertsCache && Date.now() - adminAlertsCache.ts < ADMIN_ALERTS_TTL_MS) {
+      return adminAlertsCache.data
+    }
 
     const adminClient = await createAdminClient()
     const today = new Date()
@@ -98,7 +108,9 @@ export async function getAdminAlerts(): Promise<{
         }]
       })
 
-    return { count: alerts.length, alerts }
+    const result = { count: alerts.length, alerts }
+    adminAlertsCache = { data: result, ts: Date.now() }
+    return result
   } catch {
     return { count: 0, alerts: [] }
   }

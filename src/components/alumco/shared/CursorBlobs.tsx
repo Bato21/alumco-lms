@@ -21,27 +21,46 @@ export function CursorBlobs() {
     const target = { x: cx, y: cy }
     const pos = BLOBS.map(() => ({ x: cx, y: cy }))
 
-    const onMove = (e: MouseEvent) => {
-      target.x = e.clientX
-      target.y = e.clientY
-    }
-    window.addEventListener('mousemove', onMove)
-
     let raf = 0
+    let running = false
+
+    // El loop duerme cuando los blobs ya convergieron al cursor: sin esto,
+    // el rAF corre (y repinta capas gigantes) para siempre aunque el mouse
+    // esté quieto.
     const tick = () => {
+      let settled = true
       BLOBS.forEach((b, i) => {
         const p = pos[i]
         const k = reduce ? 1 : b.lag
         p.x += (target.x - p.x) * k
         p.y += (target.y - p.y) * k
+        if (Math.abs(target.x - p.x) > 0.5 || Math.abs(target.y - p.y) > 0.5) settled = false
         const el = refs.current[i]
         if (el) {
           el.style.transform = `translate3d(${p.x - b.size / 2}px, ${p.y - b.size / 2}px, 0)`
         }
       })
+      if (settled) {
+        running = false
+        return
+      }
       raf = requestAnimationFrame(tick)
     }
-    raf = requestAnimationFrame(tick)
+
+    const wake = () => {
+      if (!running) {
+        running = true
+        raf = requestAnimationFrame(tick)
+      }
+    }
+
+    const onMove = (e: MouseEvent) => {
+      target.x = e.clientX
+      target.y = e.clientY
+      wake()
+    }
+    window.addEventListener('mousemove', onMove, { passive: true })
+    wake()
 
     return () => {
       window.removeEventListener('mousemove', onMove)
@@ -73,8 +92,9 @@ export function CursorBlobs() {
             width: b.size,
             height: b.size,
             borderRadius: '50%',
-            background: `radial-gradient(circle, ${b.color} 0%, transparent 70%)`,
-            filter: 'blur(44px)',
+            // Sin filter:blur — el gradiente radial ya es difuso y el blur
+            // forzaba re-rasterizado GPU de capas de +600px en cada frame.
+            background: `radial-gradient(circle, ${b.color} 0%, transparent 68%)`,
             willChange: 'transform',
           }}
         />

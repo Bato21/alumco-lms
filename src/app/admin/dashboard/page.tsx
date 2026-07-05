@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { getAdminAlerts } from '@/lib/actions/alerts'
@@ -210,7 +211,10 @@ export default async function AdminDashboardPage() {
   return (
     <div className="col" style={{ gap: 20 }} data-screen-label="Admin · Dashboard">
 
-      <EventoDashboardCard userId={user!.id} isAdmin />
+      {/* Streamea aparte: su cascada de queries no bloquea el resto del dashboard */}
+      <Suspense fallback={<div className="card card-pad"><div className="skeleton" style={{ height: 120 }} /></div>}>
+        <EventoDashboardCard userId={user!.id} isAdmin />
+      </Suspense>
 
       {/* Hero saludo (variante B) */}
       <div

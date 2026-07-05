@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { ApprovalPanel } from '@/components/alumco/admin/ApprovalPanel'
 import { WorkersTable } from './WorkersTable'
 import { SuspendedTable } from './SuspendedTable'
-import Link from 'next/link'
+import { TabsTrabajadores } from './TabsTrabajadores'
 import { EncabezadoPagina, Avatar } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
@@ -80,31 +80,8 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     })
   )
 
-  const tabs = [
-    { key: 'activos', label: 'Trabajadores activos', count: activos.length },
-    { key: 'suspendidos', label: 'Suspendidos', count: suspendidos.length },
-    { key: 'solicitudes', label: 'Solicitudes pendientes', count: pendingCount },
-  ]
-
-  return (
-    <div data-screen-label="Admin · Trabajadores">
-      <EncabezadoPagina titulo="Trabajadores" sub="Gestión centralizada de personal y accesos a la plataforma">
-        <span className="badge badge-info">{activos.length} colaboradores activos</span>
-      </EncabezadoPagina>
-
-      {/* Tabs — chips didasko */}
-      <div className="chips entra entra-1" style={{ marginBottom: 22 }}>
-        {tabs.map((t) => (
-          <Link key={t.key} href={`?tab=${t.key}`} className={'chip' + (activeTab === t.key ? ' activo' : '')}>
-            {t.label}
-            {t.count > 0 && <span className="conteo">{t.count}</span>}
-          </Link>
-        ))}
-      </div>
-
-      {/* Content */}
-      {activeTab === 'solicitudes' ? (
-        <div className="card entra entra-2 tabla-envoltura">
+  const solicitudesContent = (
+    <div className="card entra entra-2 tabla-envoltura">
           <table className="tabla">
             <thead>
               <tr>
@@ -168,11 +145,22 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
             </tbody>
           </table>
         </div>
-      ) : activeTab === 'suspendidos' ? (
-        <SuspendedTable workers={suspendidos} />
-      ) : (
-        <WorkersTable workers={activos} sedes={sedes} />
-      )}
+  )
+
+  return (
+    <div data-screen-label="Admin · Trabajadores">
+      <EncabezadoPagina titulo="Trabajadores" sub="Gestión centralizada de personal y accesos a la plataforma">
+        <span className="badge badge-info">{activos.length} colaboradores activos</span>
+      </EncabezadoPagina>
+
+      <TabsTrabajadores
+        initialTab={activeTab}
+        tabs={[
+          { key: 'activos', label: 'Trabajadores activos', count: activos.length, content: <WorkersTable workers={activos} sedes={sedes} /> },
+          { key: 'suspendidos', label: 'Suspendidos', count: suspendidos.length, content: <SuspendedTable workers={suspendidos} /> },
+          { key: 'solicitudes', label: 'Solicitudes pendientes', count: pendingCount, content: solicitudesContent },
+        ]}
+      />
     </div>
   )
 }
