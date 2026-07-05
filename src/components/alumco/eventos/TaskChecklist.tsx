@@ -1,13 +1,30 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { toggleTaskAction } from '@/lib/actions/events'
+import { toggleTaskStatusAction } from '@/lib/actions/events'
+import type { EventTaskStatus } from '@/lib/types/database'
 
-type Task = { id: string; title: string; area: string; is_done: boolean }
+interface ChecklistTask {
+  id: string
+  title: string
+  status: EventTaskStatus
+  // Habilitado solo si el usuario es encargado de la sección de esta tarea
+  // (o admin) — lo decide el llamador, este componente solo respeta la prop.
+  canToggle: boolean
+}
 
-export function TaskChecklist({ tasks }: { tasks: Task[] }) {
+export function TaskChecklist({ tasks }: { tasks: ChecklistTask[] }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+
+  function onToggle(task: ChecklistTask) {
+    const next: EventTaskStatus = task.status === 'completada' ? 'pendiente' : 'completada'
+    setError(null)
+    startTransition(async () => {
+      const res = await toggleTaskStatusAction(task.id, next)
+      if (res.error) setError(res.error)
+    })
+  }
 
   return (
     <div className="col" style={{ gap: 10 }}>
@@ -16,25 +33,18 @@ export function TaskChecklist({ tasks }: { tasks: Task[] }) {
           <li key={t.id} className="fila" style={{ gap: 12 }}>
             <input
               type="checkbox"
-              checked={t.is_done}
-              disabled={pending}
-              onChange={() => {
-                setError(null)
-                startTransition(async () => {
-                  const res = await toggleTaskAction(t.id)
-                  if (res.error) setError(res.error)
-                })
-              }}
+              checked={t.status === 'completada'}
+              disabled={pending || !t.canToggle}
+              onChange={() => onToggle(t)}
               aria-label={`Marcar ${t.title}`}
               style={{ width: 18, height: 18, accentColor: 'var(--ambar)', flex: 'none' }}
             />
             <span
               className="texto-s crece"
-              style={t.is_done ? { textDecoration: 'line-through', opacity: 0.5 } : undefined}
+              style={t.status === 'completada' ? { textDecoration: 'line-through', opacity: 0.5 } : undefined}
             >
               {t.title}
             </span>
-            <span className="texto-s silencio-3">{t.area}</span>
           </li>
         ))}
       </ul>

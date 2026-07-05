@@ -4,6 +4,7 @@ import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/s
 import { getAdminAlerts } from '@/lib/actions/alerts'
 import { Avatar, Badge, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
 import type { IconoNombre } from '@/components/alumco/ds'
+import { EventoDashboardCard } from '@/components/alumco/eventos/EventoDashboardCard'
 
 export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
@@ -208,6 +209,8 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="col" style={{ gap: 20 }} data-screen-label="Admin · Dashboard">
+
+      <EventoDashboardCard userId={user!.id} isAdmin />
 
       {/* Hero saludo (variante B) */}
       <div

@@ -3,12 +3,15 @@ import { notFound } from 'next/navigation'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { EncabezadoPagina, Badge } from '@/components/alumco/ds'
 import { TaskChecklist } from '@/components/alumco/eventos/TaskChecklist'
-import { TareasEditor } from '@/components/alumco/eventos/TareasEditor'
-import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
 import { DocsPanel } from '@/components/alumco/eventos/DocsPanel'
 import {
   EVENT_TYPE_LABELS,
-  type EventRecord, type EventRole, type EventTask, type EventDocument, type EventPhoto,
+  EVENT_TYPE_EMOJI,
+  type EventRecord,
+  type EventSection,
+  type EventSectionMember,
+  type EventTask,
+  type EventDocument,
 } from '@/lib/types/database'
 
 export const metadata: Metadata = { title: 'Evento | Alumco LMS' }
@@ -18,113 +21,121 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
   const { id } = await props.params
   const supabase = await createClient()
   const user = await getCachedUser()
+  const userId = user!.id
 
-  const [{ data: event }, { data: roles }, { data: tasks }, { data: docs }, { data: photos }] = await Promise.all([
-    supabase.from('events').select('*').eq('id', id).single() as unknown as Promise<{ data: EventRecord | null }>,
-    supabase.from('event_roles').select('*').eq('event_id', id) as unknown as Promise<{ data: EventRole[] | null }>,
-    supabase.from('event_tasks').select('*').eq('event_id', id).order('order_index') as unknown as Promise<{ data: EventTask[] | null }>,
+  // Cliente de usuario para todo lo relacionado al evento: RLS ya filtra
+  // por sede (eventos/secciones/tareas) y por membresía (documentos — solo
+  // ve algo si es admin o miembro de alguna sección del evento).
+  const [{ data: event }, { data: sectionsRaw }, { data: docs }] = await Promise.all([
+    supabase.from('events').select('*').eq('id', id).maybeSingle() as unknown as Promise<{ data: EventRecord | null }>,
+    supabase.from('event_sections').select('*').eq('event_id', id).order('order_index') as unknown as Promise<{ data: EventSection[] | null }>,
     supabase.from('event_documents').select('*').eq('event_id', id).order('created_at') as unknown as Promise<{ data: EventDocument[] | null }>,
-    supabase.from('event_photos').select('*').eq('event_id', id).order('created_at', { ascending: false }) as unknown as Promise<{ data: EventPhoto[] | null }>,
   ])
 
+  // notFound también si el evento está en planificación (todavía no visible
+  // para colaboradores) — guard explícito aunque RLS ya debería filtrar por
+  // sede antes de llegar acá.
   if (!event || event.status === 'planificacion') notFound()
 
-  const userId = user!.id
-  const myRoles = (roles ?? []).filter(r => r.user_id === userId)
-  const myTasksAll = (tasks ?? []).filter(t => t.assigned_to === userId)
-  const jefeAreas = myRoles.filter(r => r.role === 'jefe').map(r => r.area)
-  const isParticipant = myRoles.length > 0 || myTasksAll.length > 0
+  const sections = sectionsRaw ?? []
+  const sectionIds = sections.map(s => s.id)
 
-  // Jefe activo: gestiona sus tareas desde el editor (crea/asigna/elimina).
-  const esJefeActivo = jefeAreas.length > 0 && event.status === 'activo'
+  const { data: myMemberships } = sectionIds.length > 0
+    ? await (supabase
+        .from('event_section_members')
+        .select('section_id, member_role')
+        .eq('user_id', userId)
+        .in('section_id', sectionIds) as unknown as Promise<{ data: Pick<EventSectionMember, 'section_id' | 'member_role'>[] | null }>)
+    : { data: [] as Pick<EventSectionMember, 'section_id' | 'member_role'>[] }
 
-  // "Tus tareas" solo muestra tareas propias fuera de sus áreas de jefatura,
-  // para no duplicar con lo que ya aparece en el editor de tareas del área.
-  const myTasks = esJefeActivo
-    ? myTasksAll.filter(t => !jefeAreas.includes(t.area))
-    : myTasksAll
+  const mySectionIds = (myMemberships ?? []).map(m => m.section_id)
+  const myRoleBySection = new Map((myMemberships ?? []).map(m => [m.section_id, m.member_role]))
+  const misSecciones = sections.filter(s => mySectionIds.includes(s.id))
 
-  // Vista de solo lectura (evento finalizado, o delegado sin editor)
-  const areaTasks = (tasks ?? []).filter(t => jefeAreas.includes(t.area) && t.assigned_to !== userId)
+  const [{ data: tasks }, { data: allMembers }] = await Promise.all([
+    mySectionIds.length > 0
+      ? supabase.from('event_tasks').select('*').in('section_id', mySectionIds).order('order_index') as unknown as Promise<{ data: EventTask[] | null }>
+      : Promise.resolve({ data: [] as EventTask[] }),
+    mySectionIds.length > 0
+      ? supabase.from('event_section_members').select('*').in('section_id', mySectionIds) as unknown as Promise<{ data: EventSectionMember[] | null }>
+      : Promise.resolve({ data: [] as EventSectionMember[] }),
+  ])
 
-  // Datos para el editor de tareas del jefe: todas las tareas de sus áreas
-  // (incluidas las propias) + nombres de los participantes del evento.
-  let jefeAreaTasksConNombre: (EventTask & { assigned_name: string | null })[] = []
-  let participantWorkers: { id: string; full_name: string; area_trabajo: string[] }[] = []
+  const encargadoIds = Array.from(
+    new Set((allMembers ?? []).filter(m => m.member_role === 'encargado').map(m => m.user_id))
+  )
+  // Nombres vía cliente admin: profiles no es legible entre trabajadores
+  // (mismo patrón que admin/eventos/[id]/page.tsx y el wizard).
+  let nameById = new Map<string, string>()
+  if (encargadoIds.length > 0) {
+    const adminClient = await createAdminClient()
+    const { data: profiles } = await adminClient
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', encargadoIds) as unknown as { data: { id: string; full_name: string }[] | null }
+    nameById = new Map((profiles ?? []).map(p => [p.id, p.full_name]))
+  }
 
-  if (esJefeActivo) {
-    const participantIds = Array.from(new Set((roles ?? []).map(r => r.user_id)))
-    if (participantIds.length > 0) {
-      const adminClient = await createAdminClient()
-      const { data: profilesData } = await adminClient
-        .from('profiles')
-        .select('id, full_name, area_trabajo')
-        .in('id', participantIds) as unknown as {
-          data: { id: string; full_name: string; area_trabajo: string[] | null }[] | null
-        }
-      participantWorkers = (profilesData ?? []).map(p => ({
-        id: p.id,
-        full_name: p.full_name,
-        area_trabajo: Array.isArray(p.area_trabajo) ? p.area_trabajo : [],
-      }))
-    }
-    const nameById = new Map(participantWorkers.map(w => [w.id, w.full_name]))
-    jefeAreaTasksConNombre = (tasks ?? [])
-      .filter(t => jefeAreas.includes(t.area))
-      .map(t => ({ ...t, assigned_name: t.assigned_to ? nameById.get(t.assigned_to) ?? null : null }))
+  const tasksBySection = new Map<string, EventTask[]>()
+  for (const t of tasks ?? []) {
+    const list = tasksBySection.get(t.section_id) ?? []
+    list.push(t)
+    tasksBySection.set(t.section_id, list)
   }
 
   return (
     <div className="col" style={{ gap: 24 }} data-screen-label="Trabajador · Detalle evento">
       <EncabezadoPagina
         titulo={event.title}
-        sub={`${EVENT_TYPE_LABELS[event.event_type]} · ${new Date(event.event_date + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}`}
+        sub={
+          <>
+            <span aria-hidden="true">{EVENT_TYPE_EMOJI[event.event_type]}</span> {EVENT_TYPE_LABELS[event.event_type]}
+            {' · '}
+            {new Date(event.event_date + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </>
+        }
       >
-        <div className="fila" style={{ gap: 8 }}>
-          {event.status === 'activo' && <Badge tono="ok">En curso</Badge>}
-          {myRoles.length > 0 && (
-            <Badge tono="aviso" punto={false}>
-              {myRoles[0].role === 'jefe' ? `Jefe · ${myRoles[0].area}` : `Delegado · ${myRoles[0].area}`}
-            </Badge>
-          )}
-        </div>
+        {event.status === 'activo' && <Badge tono="ok">En curso</Badge>}
       </EncabezadoPagina>
 
       <p className="silencio" style={{ maxWidth: 640, fontSize: 15 }}>{event.description}</p>
 
-      {myTasks.length > 0 && (
-        <section className="card card-pad col entra" style={{ gap: 12 }}>
-          <h2 style={{ fontSize: 16.5 }}>Tus tareas</h2>
-          <TaskChecklist tasks={myTasks.map(t => ({ id: t.id, title: t.title, area: t.area, is_done: t.is_done }))} />
-        </section>
-      )}
-
-      {esJefeActivo ? (
-        <TareasEditor
-          eventId={event.id}
-          tasks={jefeAreaTasksConNombre}
-          workers={participantWorkers}
-          jefeAreas={jefeAreas}
-          isAdmin={false}
-        />
+      {misSecciones.length === 0 ? (
+        <p className="silencio texto-s">No participas en ninguna sección de este evento todavía.</p>
       ) : (
-        areaTasks.length > 0 && (
-          <section className="card card-pad col entra" style={{ gap: 12 }}>
-            <h2 style={{ fontSize: 16.5 }}>Tareas de tu área</h2>
-            <TaskChecklist tasks={areaTasks.map(t => ({ id: t.id, title: t.title, area: t.area, is_done: t.is_done }))} />
-          </section>
-        )
+        misSecciones.map(s => {
+          const encargadosNombres = (allMembers ?? [])
+            .filter(m => m.section_id === s.id && m.member_role === 'encargado')
+            .map(m => nameById.get(m.user_id) ?? '—')
+          const canToggle = myRoleBySection.get(s.id) === 'encargado'
+          const sTasks = tasksBySection.get(s.id) ?? []
+
+          return (
+            <section key={s.id} className="card card-pad col entra" style={{ gap: 12 }}>
+              <div>
+                <h2 style={{ fontSize: 16.5 }}>{s.name}</h2>
+                {encargadosNombres.length > 0 && (
+                  <p className="texto-s silencio-3">
+                    Encargado{encargadosNombres.length > 1 ? 's' : ''}: {encargadosNombres.join(', ')}
+                  </p>
+                )}
+              </div>
+              {sTasks.length === 0 ? (
+                <p className="texto-s silencio-3">Sin tareas en esta sección.</p>
+              ) : (
+                <TaskChecklist tasks={sTasks.map(t => ({ id: t.id, title: t.title, status: t.status, canToggle }))} />
+              )}
+            </section>
+          )
+        })
       )}
 
-      <DocsPanel eventId={event.id} docs={docs ?? []} canManage={false} />
-
-      <GaleriaFotos
-        eventId={event.id}
-        photos={photos ?? []}
-        canUpload={isParticipant}
-        isAdmin={false}
-        currentUserId={userId}
-      />
+      {/* Solo se muestra si hay documentos visibles para este usuario (RLS
+          devuelve vacío si no es miembro de ninguna sección del evento). Sin
+          galería de fotos todavía — vuelve en Task 6. */}
+      {(docs ?? []).length > 0 && (
+        <DocsPanel eventId={event.id} docs={docs ?? []} canManage={false} />
+      )}
     </div>
   )
 }

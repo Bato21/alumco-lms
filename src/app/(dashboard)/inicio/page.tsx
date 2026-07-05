@@ -4,7 +4,7 @@ import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { DeadlineCalendar } from '@/components/alumco/curso/DeadlineCalendar'
 import WelcomeModal from '@/components/alumco/shared/WelcomeModal'
-import { EventoInicioBlock } from '@/components/alumco/eventos/EventoInicioBlock'
+import { EventoDashboardCard } from '@/components/alumco/eventos/EventoDashboardCard'
 import { Anillo, Onda, Icono } from '@/components/alumco/ds'
 import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/curso/CursoCardTrab'
 
@@ -122,7 +122,7 @@ export default async function InicioPage() {
         />
       )}
 
-      <EventoInicioBlock userId={user!.id} />
+      <EventoDashboardCard userId={user!.id} isAdmin={false} />
 
       {/* Saludo */}
       <div className="entra">
