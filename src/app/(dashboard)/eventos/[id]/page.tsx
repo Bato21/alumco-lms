@@ -66,9 +66,8 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
       : Promise.resolve({ data: [] as EventSectionMember[] }),
   ])
 
-  const encargadoIds = Array.from(
-    new Set((allMembers ?? []).filter(m => m.member_role === 'encargado').map(m => m.user_id))
-  )
+  // Nombres de TODO el equipo (encargados y colaboradores) para el overview.
+  const allMemberIds = Array.from(new Set((allMembers ?? []).map(m => m.user_id)))
   // Si soy encargado de alguna sección, puedo sumar colaboradores: necesito
   // la lista de trabajadores de la sede del evento para el selector.
   const soyEncargado = misSecciones.some(s => myRoleBySection.get(s.id) === 'encargado')
@@ -77,11 +76,11 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
   // (mismo patrón que admin/eventos/[id]/page.tsx y el wizard).
   let nameById = new Map<string, string>()
   let workersSede: { id: string; full_name: string }[] = []
-  if (encargadoIds.length > 0 || soyEncargado) {
+  if (allMemberIds.length > 0 || soyEncargado) {
     const adminClient = await createAdminClient()
     const [{ data: profiles }, { data: sede }] = await Promise.all([
-      encargadoIds.length > 0
-        ? adminClient.from('profiles').select('id, full_name').in('id', encargadoIds) as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>
+      allMemberIds.length > 0
+        ? adminClient.from('profiles').select('id, full_name').in('id', allMemberIds) as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>
         : Promise.resolve({ data: [] as { id: string; full_name: string }[] }),
       soyEncargado
         ? adminClient.from('profiles').select('id, full_name').eq('status', 'activo').eq('sede', event.sede_id).order('full_name') as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>
@@ -121,22 +120,38 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
         <p className="silencio texto-s">No participas en ninguna sección de este evento todavía.</p>
       ) : (
         misSecciones.map(s => {
-          const encargadosNombres = (allMembers ?? [])
-            .filter(m => m.section_id === s.id && m.member_role === 'encargado')
-            .map(m => nameById.get(m.user_id) ?? '—')
           const canToggle = myRoleBySection.get(s.id) === 'encargado'
           const sTasks = tasksBySection.get(s.id) ?? []
-          const miembrosIds = new Set((allMembers ?? []).filter(m => m.section_id === s.id).map(m => m.user_id))
+          // Equipo de la sección con encargados primero
+          const equipo = (allMembers ?? [])
+            .filter(m => m.section_id === s.id)
+            .sort((a, b) => (a.member_role === 'encargado' ? -1 : 0) - (b.member_role === 'encargado' ? -1 : 0))
+          const miembrosIds = new Set(equipo.map(m => m.user_id))
           const disponibles = workersSede.filter(w => !miembrosIds.has(w.id))
 
           return (
             <section key={s.id} className="card card-pad col entra" style={{ gap: 12 }}>
-              <div>
+              <div className="col" style={{ gap: 8 }}>
                 <h2 style={{ fontSize: 16.5 }}>{s.name}</h2>
-                {encargadosNombres.length > 0 && (
-                  <p className="texto-s silencio-3">
-                    Encargado{encargadosNombres.length > 1 ? 's' : ''}: {encargadosNombres.join(', ')}
-                  </p>
+                {equipo.length > 0 && (
+                  <div className="col" style={{ gap: 5 }}>
+                    <span className="texto-s silencio-3" style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      Equipo
+                    </span>
+                    <ul className="fila" style={{ flexWrap: 'wrap', gap: 8, listStyle: 'none' }}>
+                      {equipo.map(m => (
+                        <li key={m.user_id} className="fila" style={{ gap: 6 }}>
+                          <span className="texto-s">
+                            {nameById.get(m.user_id) ?? '—'}
+                            {m.user_id === userId && <span className="silencio-3"> (tú)</span>}
+                          </span>
+                          <Badge tono={m.member_role === 'encargado' ? 'aviso' : 'neutro'} punto={false}>
+                            {m.member_role === 'encargado' ? 'Encargado' : 'Colaborador'}
+                          </Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </div>
               {sTasks.length === 0 ? (
