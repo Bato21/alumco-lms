@@ -716,12 +716,12 @@ export async function getDocumentSignedUrlAction(
   }
 }
 
-// ── Galería de fotos (bucket público event-photos) ──────────
-// La tabla `event_photos` y el bucket son una PROPUESTA todavía no aplicada
-// por Bato (ver supabase/propuestas/event-photos.sql). Estas actions quedan
-// listas pero fallarán en runtime con el mensaje de abajo hasta que la
-// migración se corra — nada las consume todavía (GaleriaFotos.tsx no está
-// montado en ninguna página).
+// ── Galería de fotos (bucket PRIVADO event-photos) ──────────
+// Las fotos muestran residentes en contexto de cuidado: dato sensible bajo
+// Ley 21.719. El bucket es privado, en `image_url` se guarda el PATH relativo
+// dentro del bucket y todo acceso va por signed URL generada server-side.
+// RLS real (migración de Bato): SELECT por sede; DELETE de fila admin o autor;
+// borrar OBJETOS de storage solo lo puede el service role.
 
 const PHOTO_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -763,15 +763,6 @@ async function isEventMember(eventId: string, userId: string): Promise<boolean> 
   return !!membership
 }
 
-// Deriva el path dentro del bucket desde la URL pública guardada en
-// image_url, buscando el marcador '/event-photos/'.
-function pathFromPublicUrl(url: string): string | null {
-  const marker = '/event-photos/'
-  const idx = url.indexOf(marker)
-  if (idx === -1) return null
-  return url.slice(idx + marker.length)
-}
-
 export async function uploadEventPhotoAction(
   eventId: string,
   formData: FormData,
@@ -807,13 +798,12 @@ export async function uploadEventPhotoAction(
       }
     }
 
-    const { data: publicUrlData } = adminClient.storage.from(PHOTO_BUCKET).getPublicUrl(path)
-
+    // Bucket privado: se guarda el path relativo, nunca una URL pública.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { error } = await ac.from('event_photos').insert({
       event_id: eventId,
-      image_url: publicUrlData.publicUrl,
+      image_url: path,
       caption,
       uploaded_by: caller.userId,
     }) as { error: { message: string; code?: string } | null }
@@ -841,37 +831,37 @@ export async function deleteEventPhotoAction(
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
 
-    const adminClient = await createAdminClient()
+    // La fila se borra con el cliente del USUARIO: la policy RLS de DELETE
+    // (admin o autor) es la que autoriza — el server no decide por su cuenta.
+    // Solo después de que RLS confirmó el borrado se elimina el objeto de
+    // storage con service role (la policy de objetos solo deja borrar al admin).
+    const supabase = await createClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ac = adminClient as any
-    const { data: photo, error: fetchError } = await ac
+    const sp = supabase as any
+    const { data: deleted, error } = await sp
       .from('event_photos')
-      .select('image_url, uploaded_by, event_id')
+      .delete()
       .eq('id', photoId)
-      .maybeSingle() as {
-        data: { image_url: string; uploaded_by: string; event_id: string } | null
+      .select('image_url, event_id') as {
+        data: { image_url: string; event_id: string }[] | null
         error: { message: string; code?: string } | null
       }
 
-    if (fetchError) {
+    if (error) {
       return {
-        error: isGaleriaNoHabilitada(fetchError.message, fetchError.code)
+        error: isGaleriaNoHabilitada(error.message, error.code)
           ? 'La galería aún no está habilitada'
-          : fetchError.message,
+          : error.message,
       }
     }
-    if (!photo) return { error: 'Foto no encontrada' }
-    if (caller.role !== 'admin' && photo.uploaded_by !== caller.userId) {
-      return { error: 'No puedes eliminar esta foto' }
+    if (!deleted || deleted.length === 0) {
+      return { error: 'No puedes eliminar esta foto (o ya no existe)' }
     }
 
-    const { error } = await ac.from('event_photos').delete().eq('id', photoId) as { error: { message: string } | null }
-    if (error) return { error: error.message }
+    const adminClient = await createAdminClient()
+    await adminClient.storage.from(PHOTO_BUCKET).remove([deleted[0].image_url])
 
-    const path = pathFromPublicUrl(photo.image_url)
-    if (path) await adminClient.storage.from(PHOTO_BUCKET).remove([path])
-
-    revalidateEventos(photo.event_id)
+    revalidateEventos(deleted[0].event_id)
     return { success: true }
   } catch {
     return { error: 'Error inesperado al eliminar la foto' }

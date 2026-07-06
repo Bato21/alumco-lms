@@ -1,10 +1,8 @@
 'use client'
 
-// Galería de fotos del evento. Lista pero desconectada: la tabla
-// `event_photos` y el bucket público `event-photos` son una PROPUESTA que
-// todavía no aplica Bato (ver supabase/propuestas/event-photos.sql). Este
-// componente no se renderiza en ninguna página todavía — se conecta cuando
-// confirme que corrió el SQL.
+// Galería de fotos del evento. El bucket `event-photos` es PRIVADO (fotos de
+// residentes = dato sensible, Ley 21.719): las páginas server resuelven una
+// signed URL por foto antes de renderizar y este componente solo la muestra.
 
 import { useState, useTransition } from 'react'
 import { AlertCircle, Loader2 } from 'lucide-react'
@@ -12,9 +10,11 @@ import { uploadEventPhotoAction, deleteEventPhotoAction } from '@/lib/actions/ev
 import { Icono } from '@/components/alumco/ds'
 import type { EventPhoto } from '@/lib/types/database'
 
+export type FotoConUrl = EventPhoto & { signedUrl: string | null }
+
 export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserId }: {
   eventId: string
-  photos: EventPhoto[]
+  photos: FotoConUrl[]
   canUpload: boolean
   isAdmin: boolean
   currentUserId: string
@@ -56,12 +56,16 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
               className="group relative overflow-hidden rounded-xl"
               style={{ background: 'var(--arena-100)' }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={p.image_url}
-                alt={p.caption ?? 'Foto del evento'}
-                className="aspect-[4/3] w-full object-cover"
-              />
+              {p.signedUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={p.signedUrl}
+                  alt={p.caption ?? 'Foto del evento'}
+                  className="aspect-[4/3] w-full object-cover"
+                />
+              ) : (
+                <div className="aspect-[4/3] w-full" aria-hidden="true" />
+              )}
               {p.caption && (
                 <figcaption className="texto-s silencio-3" style={{ padding: '4px 2px' }}>
                   {p.caption}

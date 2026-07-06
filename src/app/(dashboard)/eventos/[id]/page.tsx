@@ -4,6 +4,8 @@ import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/s
 import { EncabezadoPagina, Badge } from '@/components/alumco/ds'
 import { TaskChecklist } from '@/components/alumco/eventos/TaskChecklist'
 import { DocsPanel } from '@/components/alumco/eventos/DocsPanel'
+import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
+import { firmarFotos } from '@/lib/eventos/fotos'
 import {
   EVENT_TYPE_LABELS,
   EVENT_TYPE_EMOJI,
@@ -12,6 +14,7 @@ import {
   type EventSectionMember,
   type EventTask,
   type EventDocument,
+  type EventPhoto,
 } from '@/lib/types/database'
 
 export const metadata: Metadata = { title: 'Evento | Alumco LMS' }
@@ -26,10 +29,11 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
   // Cliente de usuario para todo lo relacionado al evento: RLS ya filtra
   // por sede (eventos/secciones/tareas) y por membresía (documentos — solo
   // ve algo si es admin o miembro de alguna sección del evento).
-  const [{ data: event }, { data: sectionsRaw }, { data: docs }] = await Promise.all([
+  const [{ data: event }, { data: sectionsRaw }, { data: docs }, { data: photosRaw }] = await Promise.all([
     supabase.from('events').select('*').eq('id', id).maybeSingle() as unknown as Promise<{ data: EventRecord | null }>,
     supabase.from('event_sections').select('*').eq('event_id', id).order('order_index') as unknown as Promise<{ data: EventSection[] | null }>,
     supabase.from('event_documents').select('*').eq('event_id', id).order('created_at') as unknown as Promise<{ data: EventDocument[] | null }>,
+    supabase.from('event_photos').select('*').eq('event_id', id).order('created_at', { ascending: false }) as unknown as Promise<{ data: EventPhoto[] | null }>,
   ])
 
   // notFound también si el evento está en planificación (todavía no visible
@@ -83,6 +87,8 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
     tasksBySection.set(t.section_id, list)
   }
 
+  const fotos = await firmarFotos(photosRaw ?? [])
+
   return (
     <div className="col" style={{ gap: 24 }} data-screen-label="Trabajador · Detalle evento">
       <EncabezadoPagina
@@ -131,11 +137,20 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
       )}
 
       {/* Solo se muestra si hay documentos visibles para este usuario (RLS
-          devuelve vacío si no es miembro de ninguna sección del evento). Sin
-          galería de fotos todavía — vuelve en Task 6. */}
+          devuelve vacío si no es miembro de ninguna sección del evento). */}
       {(docs ?? []).length > 0 && (
         <DocsPanel eventId={event.id} docs={docs ?? []} canManage={false} />
       )}
+
+      {/* Fotos: filas filtradas por sede vía RLS; subir solo miembros del
+          evento (la action además lo verifica server-side). */}
+      <GaleriaFotos
+        eventId={event.id}
+        photos={fotos}
+        canUpload={misSecciones.length > 0}
+        isAdmin={false}
+        currentUserId={userId}
+      />
     </div>
   )
 }

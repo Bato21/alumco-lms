@@ -7,6 +7,8 @@ import { SeccionesEditor } from '@/components/alumco/eventos/SeccionesEditor'
 import { TareasEditor } from '@/components/alumco/eventos/TareasEditor'
 import { DocsPanel } from '@/components/alumco/eventos/DocsPanel'
 import { EstadoEventoButton } from '@/components/alumco/eventos/EstadoEventoButton'
+import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
+import { firmarFotos } from '@/lib/eventos/fotos'
 import {
   EVENT_TYPE_LABELS,
   EVENT_TYPE_EMOJI,
@@ -15,6 +17,7 @@ import {
   type EventSectionMember,
   type EventTask,
   type EventDocument,
+  type EventPhoto,
 } from '@/lib/types/database'
 
 export const metadata: Metadata = { title: 'Detalle del evento | Alumco LMS' }
@@ -31,11 +34,12 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
   // conocer los ids de las secciones (no hay FK directa evento→tarea, ver
   // patrón ya usado en admin/eventos/page.tsx), así que van en una segunda
   // tanda paralela una vez resueltas las secciones.
-  const [{ data: event }, { data: sectionsRaw }, { data: docs }, { data: sedes }] = await Promise.all([
+  const [{ data: event }, { data: sectionsRaw }, { data: docs }, { data: sedes }, { data: photosRaw }] = await Promise.all([
     adminClient.from('events').select('*').eq('id', id).maybeSingle() as unknown as Promise<{ data: EventRecord | null }>,
     adminClient.from('event_sections').select('*').eq('event_id', id).order('order_index') as unknown as Promise<{ data: EventSection[] | null }>,
     adminClient.from('event_documents').select('*').eq('event_id', id).order('created_at') as unknown as Promise<{ data: EventDocument[] | null }>,
     adminClient.from('sedes').select('id, nombre') as unknown as Promise<{ data: { id: string; nombre: string }[] | null }>,
+    adminClient.from('event_photos').select('*').eq('event_id', id).order('created_at', { ascending: false }) as unknown as Promise<{ data: EventPhoto[] | null }>,
   ])
 
   if (!event) notFound()
@@ -86,6 +90,7 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
   const hasDocAlimentacion = (docs ?? []).some(d => d.doc_type === 'dificultades_alimenticias')
   const totalTareas = (tasks ?? []).length
   const doneTareas = (tasks ?? []).filter(t => t.status === 'completada').length
+  const fotos = await firmarFotos(photosRaw ?? [])
 
   return (
     <div className="col" style={{ gap: 28 }} data-screen-label="Admin · Detalle evento">
@@ -136,6 +141,13 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
       )}
       <TareasEditor sections={sectionsConTareas} isAdmin={isAdmin} />
       <DocsPanel eventId={event.id} docs={docs ?? []} canManage={isAdmin} />
+      <GaleriaFotos
+        eventId={event.id}
+        photos={fotos}
+        canUpload={isAdmin}
+        isAdmin={isAdmin}
+        currentUserId={auth.ok ? auth.userId : ''}
+      />
     </div>
   )
 }
