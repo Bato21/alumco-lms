@@ -474,7 +474,17 @@ const UpsertTaskSchema = z.object({
   title: z.string().min(3, 'La tarea debe tener al menos 3 caracteres'),
   description: z.string().optional().nullable(),
   due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida').optional().nullable(),
+  due_time: z.string().regex(/^\d{2}:\d{2}$/, 'Hora inválida').optional().nullable(),
 })
+
+// La columna due_time es una adición reciente; hasta que la migración se
+// aplique en todos los entornos, si el insert/update falla por columna
+// inexistente se reintenta sin ella (la tarea se guarda igual, sin hora).
+function isColumnaFaltante(message?: string | null, code?: string | null): boolean {
+  if (code === 'PGRST204') return true
+  if (!message) return false
+  return /due_time|could not find.*column|schema cache/i.test(message)
+}
 
 export async function upsertTaskAction(
   sectionId: string,
@@ -489,6 +499,7 @@ export async function upsertTaskAction(
       title: formData.get('title'),
       description: formData.get('description') || null,
       due_date: formData.get('due_date') || null,
+      due_time: formData.get('due_time') || null,
     })
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
 
@@ -497,16 +508,22 @@ export async function upsertTaskAction(
     const sc = supabase as any
 
     if (taskId) {
-      const { data: updated, error } = await sc
+      const baseUpdate = {
+        title: parsed.data.title,
+        description: parsed.data.description ?? null,
+        due_date: parsed.data.due_date ?? null,
+        updated_at: new Date().toISOString(),
+      }
+      const runUpdate = (payload: Record<string, unknown>) => sc
         .from('event_tasks')
-        .update({
-          title: parsed.data.title,
-          description: parsed.data.description ?? null,
-          due_date: parsed.data.due_date ?? null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(payload)
         .eq('id', taskId)
-        .select('id, section_id') as { data: { id: string; section_id: string }[] | null; error: { message: string } | null }
+        .select('id, section_id') as Promise<{ data: { id: string; section_id: string }[] | null; error: { message: string; code?: string } | null }>
+
+      let { data: updated, error } = await runUpdate({ ...baseUpdate, due_time: parsed.data.due_time ?? null })
+      if (error && isColumnaFaltante(error.message, error.code)) {
+        ({ data: updated, error } = await runUpdate(baseUpdate))
+      }
 
       if (error) {
         return { error: isRlsDenied(error.message) ? 'No tienes permisos para editar esta tarea (solo el encargado de la sección o un admin)' : error.message }
@@ -527,18 +544,24 @@ export async function upsertTaskAction(
       .limit(1)
       .maybeSingle() as { data: { order_index: number } | null }
 
-    const { data: inserted, error } = await sc
+    const baseInsert = {
+      section_id: sectionId,
+      title: parsed.data.title,
+      description: parsed.data.description ?? null,
+      status: 'pendiente',
+      due_date: parsed.data.due_date ?? null,
+      order_index: (maxRow?.order_index ?? -1) + 1,
+      created_by: caller.userId,
+    }
+    const runInsert = (payload: Record<string, unknown>) => sc
       .from('event_tasks')
-      .insert({
-        section_id: sectionId,
-        title: parsed.data.title,
-        description: parsed.data.description ?? null,
-        status: 'pendiente',
-        due_date: parsed.data.due_date ?? null,
-        order_index: (maxRow?.order_index ?? -1) + 1,
-        created_by: caller.userId,
-      })
-      .select('id') as { data: { id: string }[] | null; error: { message: string } | null }
+      .insert(payload)
+      .select('id') as Promise<{ data: { id: string }[] | null; error: { message: string; code?: string } | null }>
+
+    let { data: inserted, error } = await runInsert({ ...baseInsert, due_time: parsed.data.due_time ?? null })
+    if (error && isColumnaFaltante(error.message, error.code)) {
+      ({ data: inserted, error } = await runInsert(baseInsert))
+    }
 
     if (error) {
       return { error: isRlsDenied(error.message) ? 'No tienes permisos para crear tareas en esta sección (solo el encargado o un admin)' : error.message }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { toggleTaskStatusAction } from '@/lib/actions/events'
+import { CheckTarea } from './CheckTarea'
 import type { EventTaskStatus } from '@/lib/types/database'
 
 interface ChecklistTask {
@@ -30,14 +31,12 @@ export function TaskChecklist({ tasks }: { tasks: ChecklistTask[] }) {
     <div className="col" style={{ gap: 10 }}>
       <ul className="col" style={{ gap: 10, listStyle: 'none' }}>
         {tasks.map(t => (
-          <li key={t.id} className="fila" style={{ gap: 12 }}>
-            <input
-              type="checkbox"
+          <li key={t.id} className="fila" style={{ gap: 6 }}>
+            <CheckTarea
               checked={t.status === 'completada'}
               disabled={pending || !t.canToggle}
-              onChange={() => onToggle(t)}
-              aria-label={`Marcar ${t.title}`}
-              style={{ width: 18, height: 18, accentColor: 'var(--ambar)', flex: 'none' }}
+              onToggle={() => onToggle(t)}
+              label={`Marcar ${t.title}`}
             />
             <span
               className="texto-s crece"

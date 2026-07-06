@@ -141,7 +141,7 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
       {isAdmin && (
         <SeccionesEditor eventId={event.id} sections={sectionsConMiembros} workers={workers ?? []} />
       )}
-      <TareasEditor sections={sectionsConTareas} isAdmin={isAdmin} />
+      <TareasEditor sections={sectionsConTareas} isAdmin={isAdmin} eventDate={event.event_date} />
       <DocsPanel eventId={event.id} docs={docs ?? []} canManage={isAdmin} />
       <GaleriaFotos
         eventId={event.id}

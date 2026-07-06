@@ -251,6 +251,7 @@ export interface EventTask {
   description: string | null
   status: EventTaskStatus
   due_date: string | null
+  due_time: string | null
   order_index: number
   completed_at: string | null
   completed_by: string | null

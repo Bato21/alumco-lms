@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { upsertTaskAction, toggleTaskStatusAction, deleteTaskAction } from '@/lib/actions/events'
 import { Icono, Progreso } from '@/components/alumco/ds'
+import { CheckTarea } from './CheckTarea'
 import type { EventTask } from '@/lib/types/database'
 
 interface SectionTasks {
@@ -12,14 +13,27 @@ interface SectionTasks {
   tasks: EventTask[]
 }
 
+// Muestra "15 sept · 18:30" según lo que tenga la tarea (fecha, hora o ambas).
+function formatoVencimiento(dueDate: string | null, dueTime: string | null): string | null {
+  const partes: string[] = []
+  if (dueDate) {
+    partes.push(new Date(dueDate + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }))
+  }
+  if (dueTime) partes.push(dueTime.slice(0, 5))
+  return partes.length > 0 ? partes.join(' · ') : null
+}
+
 // Tareas agrupadas por sección. El status real tiene 3 valores
 // ('pendiente'|'en_progreso'|'completada') pero la UI v2 usa un checkbox
 // binario: marcar = 'completada', desmarcar = 'pendiente' (nunca vuelve a
 // 'en_progreso' desde acá). Editar título inline queda fuera de alcance
 // (YAGNI) — solo crear, marcar y eliminar.
-export function TareasEditor({ sections, isAdmin }: {
+export function TareasEditor({ sections, isAdmin, eventDate }: {
   sections: SectionTasks[]
   isAdmin: boolean
+  // Fecha del evento: se usa como default del campo fecha de nuevas tareas
+  // (los eventos duran 1-2 días, casi todas vencen ese día — evita retipearla).
+  eventDate: string
 }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -109,15 +123,15 @@ export function TareasEditor({ sections, isAdmin }: {
                 <p className="texto-s silencio-3">Sin tareas en esta sección.</p>
               ) : (
                 <ul className="col" style={{ gap: 8 }}>
-                  {s.tasks.map(t => (
-                    <li key={t.id} className="fila" style={{ gap: 10 }}>
-                      <input
-                        type="checkbox"
+                  {s.tasks.map(t => {
+                    const venc = formatoVencimiento(t.due_date, t.due_time)
+                    return (
+                    <li key={t.id} className="fila" style={{ gap: 6 }}>
+                      <CheckTarea
                         checked={t.status === 'completada'}
-                        onChange={() => onToggle(t.id, t.status)}
+                        onToggle={() => onToggle(t.id, t.status)}
                         disabled={pending || !isAdmin}
-                        style={{ width: 18, height: 18, accentColor: 'var(--ambar)' }}
-                        aria-label={`Marcar ${t.title}`}
+                        label={`Marcar ${t.title}`}
                       />
                       <span
                         className={'crece' + (t.status === 'completada' ? ' silencio-3' : '')}
@@ -125,10 +139,8 @@ export function TareasEditor({ sections, isAdmin }: {
                       >
                         {t.title}
                       </span>
-                      {t.due_date && (
-                        <span className="texto-s silencio-3">
-                          {new Date(t.due_date + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })}
-                        </span>
+                      {venc && (
+                        <span className="texto-s silencio-3">{venc}</span>
                       )}
                       {isAdmin && (
                         <button
@@ -142,7 +154,8 @@ export function TareasEditor({ sections, isAdmin }: {
                         </button>
                       )}
                     </li>
-                  ))}
+                    )
+                  })}
                 </ul>
               )}
 
@@ -159,17 +172,31 @@ export function TareasEditor({ sections, isAdmin }: {
                     disabled={pending}
                     placeholder="Nueva tarea…"
                     className="input crece"
-                    style={{ minWidth: 160 }}
+                    style={{ minWidth: 160, flexBasis: '100%' }}
                     aria-label={`Título de la tarea para ${s.name}`}
                   />
-                  <input
-                    type="date"
-                    name="due_date"
-                    disabled={pending}
-                    className="input"
-                    aria-label={`Fecha límite para tarea de ${s.name}`}
-                  />
-                  <button type="submit" disabled={pending} className="btn btn-primary btn-sm">Agregar</button>
+                  <label className="col" style={{ gap: 3 }}>
+                    <span className="texto-s silencio-3">Fecha (opcional)</span>
+                    <input
+                      type="date"
+                      name="due_date"
+                      defaultValue={eventDate}
+                      disabled={pending}
+                      className="input"
+                      aria-label={`Fecha límite para tarea de ${s.name}`}
+                    />
+                  </label>
+                  <label className="col" style={{ gap: 3 }}>
+                    <span className="texto-s silencio-3">Hora (opcional)</span>
+                    <input
+                      type="time"
+                      name="due_time"
+                      disabled={pending}
+                      className="input"
+                      aria-label={`Hora límite para tarea de ${s.name}`}
+                    />
+                  </label>
+                  <button type="submit" disabled={pending} className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-end' }}>Agregar</button>
                 </form>
               )}
             </li>
