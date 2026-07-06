@@ -49,38 +49,62 @@ async function getEventIdForSection(sectionId: string): Promise<string | null> {
 }
 
 // Contexto de una sección para armar notificaciones push: nombre de la
-// sección, evento al que pertenece y miembros actuales.
+// sección, evento al que pertenece, miembros y encargados actuales.
 async function getSectionContexto(sectionId: string): Promise<{
   sectionName: string
   eventId: string
   eventTitle: string
   eventEmoji: string
   memberIds: string[]
+  encargadoIds: string[]
 } | null> {
   const adminClient = await createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ac = adminClient as any
   const { data } = await ac
     .from('event_sections')
-    .select('name, event_id, events(title, event_type), event_section_members(user_id)')
+    .select('name, event_id, events(title, event_type), event_section_members(user_id, member_role)')
     .eq('id', sectionId)
     .maybeSingle() as {
       data: {
         name: string
         event_id: string
         events: { title: string; event_type: keyof typeof EVENT_TYPE_EMOJI } | null
-        event_section_members: { user_id: string }[] | null
+        event_section_members: { user_id: string; member_role: string }[] | null
       } | null
     }
 
   if (!data || !data.events) return null
+  const miembros = data.event_section_members ?? []
   return {
     sectionName: data.name,
     eventId: data.event_id,
     eventTitle: data.events.title,
     eventEmoji: EVENT_TYPE_EMOJI[data.events.event_type] ?? '🎉',
-    memberIds: (data.event_section_members ?? []).map(m => m.user_id),
+    memberIds: miembros.map(m => m.user_id),
+    encargadoIds: miembros.filter(m => m.member_role === 'encargado').map(m => m.user_id),
   }
+}
+
+// Todos los user_id con algún rol en el evento (a través de sus secciones).
+async function getEventMemberIds(eventId: string): Promise<string[]> {
+  const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+  const { data: secs } = await ac.from('event_sections').select('id').eq('event_id', eventId) as { data: { id: string }[] | null }
+  const ids = (secs ?? []).map(s => s.id)
+  if (ids.length === 0) return []
+  const { data: mem } = await ac.from('event_section_members').select('user_id').in('section_id', ids) as { data: { user_id: string }[] | null }
+  return Array.from(new Set((mem ?? []).map(m => m.user_id)))
+}
+
+// Nombre de un perfil (para mensajes tipo "X completó la tarea"). Best-effort.
+async function getNombre(userId: string): Promise<string> {
+  const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+  const { data } = await ac.from('profiles').select('full_name').eq('id', userId).maybeSingle() as { data: { full_name: string } | null }
+  return data?.full_name ?? 'Alguien'
 }
 
 function revalidateEventos(eventId?: string | null) {
@@ -250,6 +274,7 @@ export async function updateEventAction(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 
+    let seActiva = false
     if (parsed.data.status) {
       const { data: current } = await ac
         .from('events')
@@ -266,6 +291,7 @@ export async function updateEventAction(
       if (!current || !(validTransitions[current.status] ?? []).includes(parsed.data.status)) {
         return { error: 'Transición de estado inválida' }
       }
+      seActiva = current.status === 'planificacion' && parsed.data.status === 'activo'
     }
 
     const { error } = await ac
@@ -274,6 +300,21 @@ export async function updateEventAction(
       .eq('id', eventId) as { error: { message: string } | null }
 
     if (error) return { error: error.message }
+
+    // Al pasar de planificación a activo, avisar a todos los miembros del
+    // evento: recién ahora pueden verlo en su vista de colaborador.
+    if (seActiva) {
+      const { data: ev } = await ac.from('events').select('title, event_type').eq('id', eventId).maybeSingle() as { data: { title: string; event_type: keyof typeof EVENT_TYPE_EMOJI } | null }
+      const memberIds = await getEventMemberIds(eventId)
+      if (ev && memberIds.length > 0) {
+        await sendPushToUsers(memberIds, {
+          title: `${EVENT_TYPE_EMOJI[ev.event_type] ?? '🎉'} ${ev.title}`,
+          body: 'El evento ya está activo. Revisa tus tareas.',
+          url: `/eventos/${eventId}`,
+        })
+      }
+    }
+
     revalidateEventos(eventId)
     return { success: true }
   } catch {
@@ -686,7 +727,7 @@ export async function toggleTaskStatusAction(
       .from('event_tasks')
       .update(update)
       .eq('id', taskId)
-      .select('id, section_id') as { data: { id: string; section_id: string }[] | null; error: { message: string } | null }
+      .select('id, section_id, title') as { data: { id: string; section_id: string; title: string }[] | null; error: { message: string } | null }
 
     if (error) {
       return { error: isRlsDenied(error.message) ? 'No tienes permisos para modificar esta tarea (solo el encargado de la sección o un admin)' : error.message }
@@ -695,7 +736,22 @@ export async function toggleTaskStatusAction(
       return { error: 'No tienes permisos para modificar esta tarea (solo el encargado de la sección o un admin)' }
     }
 
-    revalidateEventos(await getEventIdForSection(updated[0].section_id))
+    const ctx = await getSectionContexto(updated[0].section_id)
+    // Al completar, avisar a los encargados de la sección (menos quien la
+    // marcó) para que tengan el avance en tiempo real.
+    if (isCompleting && ctx) {
+      const destinatarios = ctx.encargadoIds.filter(id => id !== caller.userId)
+      if (destinatarios.length > 0) {
+        const quien = await getNombre(caller.userId)
+        await sendPushToUsers(destinatarios, {
+          title: `${ctx.eventEmoji} ${ctx.sectionName}`,
+          body: `${quien} completó: ${updated[0].title}`,
+          url: `/eventos/${ctx.eventId}`,
+        })
+      }
+    }
+
+    revalidateEventos(ctx?.eventId ?? await getEventIdForSection(updated[0].section_id))
     return { success: true }
   } catch {
     return { error: 'Error inesperado al actualizar la tarea' }
