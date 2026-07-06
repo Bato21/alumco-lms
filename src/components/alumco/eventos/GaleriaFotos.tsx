@@ -53,35 +53,51 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
           {photos.map(p => (
             <figure
               key={p.id}
-              className="group relative overflow-hidden rounded-xl"
-              style={{ background: 'var(--arena-100)' }}
+              className="col"
+              style={{ gap: 0, overflow: 'hidden', borderRadius: 'var(--radio-m)', border: '1px solid var(--arena-200)', background: 'var(--blanco)' }}
             >
-              {p.signedUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={p.signedUrl}
-                  alt={p.caption ?? 'Foto del evento'}
-                  className="aspect-[4/3] w-full object-cover"
-                />
-              ) : (
-                <div className="aspect-[4/3] w-full" aria-hidden="true" />
-              )}
+              <div className="group relative" style={{ background: 'var(--arena-100)' }}>
+                {p.signedUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={p.signedUrl}
+                    alt={p.caption ?? 'Foto del evento'}
+                    style={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <div style={{ width: '100%', aspectRatio: '4 / 3' }} aria-hidden="true" />
+                )}
+                {(isAdmin || p.uploaded_by === currentUserId) && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(p.id)}
+                    disabled={pending}
+                    className="opacity-0 transition group-hover:opacity-100"
+                    style={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 999,
+                      border: 'none',
+                      background: 'rgba(0,0,0,0.55)',
+                      color: '#fff',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                    aria-label="Eliminar foto"
+                  >
+                    <Icono n="basura" s={16} />
+                  </button>
+                )}
+              </div>
               {p.caption && (
-                <figcaption className="texto-s silencio-3" style={{ padding: '4px 2px' }}>
+                <figcaption className="texto-s silencio-3" style={{ padding: '9px 12px' }}>
                   {p.caption}
                 </figcaption>
-              )}
-              {(isAdmin || p.uploaded_by === currentUserId) && (
-                <button
-                  type="button"
-                  onClick={() => onDelete(p.id)}
-                  disabled={pending}
-                  className="absolute right-2 top-2 rounded-full opacity-0 transition group-hover:opacity-100"
-                  style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', padding: 6, lineHeight: 0 }}
-                  aria-label="Eliminar foto"
-                >
-                  <Icono n="basura" s={14} />
-                </button>
               )}
             </figure>
           ))}
