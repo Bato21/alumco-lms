@@ -7,6 +7,7 @@ import { SeccionesEditor } from '@/components/alumco/eventos/SeccionesEditor'
 import { TareasEditor } from '@/components/alumco/eventos/TareasEditor'
 import { DocsPanel } from '@/components/alumco/eventos/DocsPanel'
 import { EstadoEventoButton } from '@/components/alumco/eventos/EstadoEventoButton'
+import { EditarEventoPanel } from '@/components/alumco/eventos/EditarEventoPanel'
 import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
 import { firmarFotos } from '@/lib/eventos/fotos'
 import {
@@ -135,6 +136,8 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
           <Progreso pct={Math.round((doneTareas / totalTareas) * 100)} />
         </div>
       )}
+
+      {isAdmin && <EditarEventoPanel event={event} />}
 
       {isAdmin && (
         <SeccionesEditor eventId={event.id} sections={sectionsConMiembros} workers={workers ?? []} />
