@@ -23,6 +23,20 @@ export function TareasEditor({ sections, isAdmin }: {
 }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  // Secciones colapsables: parten cerradas (el header resume el avance) y
+  // se abre solo la que se está trabajando. Con una sola sección, abierta.
+  const [abiertas, setAbiertas] = useState<Set<string>>(
+    () => new Set(sections.length === 1 ? [sections[0].id] : [])
+  )
+
+  function toggleSeccion(id: string) {
+    setAbiertas(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   function onAdd(sectionId: string, e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -66,22 +80,32 @@ export function TareasEditor({ sections, isAdmin }: {
       <ul className="col" style={{ gap: 18 }}>
         {sections.map(s => {
           const done = s.tasks.filter(t => t.status === 'completada').length
+          const abierta = abiertas.has(s.id)
           return (
             <li
               key={s.id}
               className="col"
               style={{ gap: 10, border: '1px solid var(--arena-200)', borderRadius: 'var(--radio-m)', padding: 14 }}
             >
-              <div className="fila" style={{ justifyContent: 'space-between' }}>
-                <p style={{ fontWeight: 600 }}>{s.name}</p>
-                {s.tasks.length > 0 && (
-                  <span className="texto-s silencio-3">{done}/{s.tasks.length}</span>
-                )}
-              </div>
+              <button
+                type="button"
+                onClick={() => toggleSeccion(s.id)}
+                aria-expanded={abierta}
+                className="fila"
+                style={{ justifyContent: 'space-between', gap: 10, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', font: 'inherit', color: 'inherit' }}
+              >
+                <span className="fila" style={{ gap: 8 }}>
+                  <Icono n={abierta ? 'chevD' : 'chevR'} s={16} />
+                  <span style={{ fontWeight: 600 }}>{s.name}</span>
+                </span>
+                <span className="texto-s silencio-3">
+                  {s.tasks.length === 0 ? 'sin tareas' : `${done}/${s.tasks.length}`}
+                </span>
+              </button>
 
               {s.tasks.length > 0 && <Progreso pct={Math.round((done / s.tasks.length) * 100)} alto={6} />}
 
-              {s.tasks.length === 0 ? (
+              {!abierta ? null : s.tasks.length === 0 ? (
                 <p className="texto-s silencio-3">Sin tareas en esta sección.</p>
               ) : (
                 <ul className="col" style={{ gap: 8 }}>
@@ -122,7 +146,7 @@ export function TareasEditor({ sections, isAdmin }: {
                 </ul>
               )}
 
-              {isAdmin && (
+              {isAdmin && abierta && (
                 <form
                   onSubmit={e => onAdd(s.id, e)}
                   className="fila"

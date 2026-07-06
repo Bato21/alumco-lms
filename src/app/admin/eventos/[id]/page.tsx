@@ -7,7 +7,7 @@ import { SeccionesEditor } from '@/components/alumco/eventos/SeccionesEditor'
 import { TareasEditor } from '@/components/alumco/eventos/TareasEditor'
 import { DocsPanel } from '@/components/alumco/eventos/DocsPanel'
 import { EstadoEventoButton } from '@/components/alumco/eventos/EstadoEventoButton'
-import { EditarEventoPanel } from '@/components/alumco/eventos/EditarEventoPanel'
+import { EditarEventoControl, EliminarEventoZona } from '@/components/alumco/eventos/EditarEventoPanel'
 import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
 import { firmarFotos } from '@/lib/eventos/fotos'
 import {
@@ -107,6 +107,7 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
           </>
         }
       >
+        {isAdmin && <EditarEventoControl event={event} />}
         {isAdmin && <EstadoEventoButton eventId={event.id} status={event.status} />}
       </EncabezadoPagina>
 
@@ -137,8 +138,6 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
         </div>
       )}
 
-      {isAdmin && <EditarEventoPanel event={event} />}
-
       {isAdmin && (
         <SeccionesEditor eventId={event.id} sections={sectionsConMiembros} workers={workers ?? []} />
       )}
@@ -151,6 +150,8 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
         isAdmin={isAdmin}
         currentUserId={auth.ok ? auth.userId : ''}
       />
+
+      {isAdmin && <EliminarEventoZona eventId={event.id} />}
     </div>
   )
 }

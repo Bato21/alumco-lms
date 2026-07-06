@@ -1,18 +1,19 @@
 'use client'
 
-// Edición de datos del evento + eliminación (solo admin). La sede no se
-// edita: las secciones ya tienen miembros de esa sede — mover el evento de
-// residencia dejaría equipos inconsistentes. Si se necesita, se crea otro.
+// Controles de administración del evento, en dos piezas:
+// - EditarEventoControl: botón "Editar datos" junto a "Activar evento" en el
+//   encabezado; abre un modal con el form. La sede no se edita: las secciones
+//   ya tienen equipos de esa sede — si cambia la residencia, se crea otro evento.
+// - EliminarEventoZona: zona de peligro al final de la página (patrón común),
+//   confirmación en dos pasos.
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateEventAction, deleteEventAction } from '@/lib/actions/events'
 import { EVENT_TYPE_LABELS, EVENT_TYPE_EMOJI, type EventRecord, type EventType } from '@/lib/types/database'
 
-export function EditarEventoPanel({ event }: { event: EventRecord }) {
-  const router = useRouter()
+export function EditarEventoControl({ event }: { event: EventRecord }) {
   const [abierto, setAbierto] = useState(false)
-  const [confirmandoBorrado, setConfirmandoBorrado] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [guardado, setGuardado] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -29,13 +30,85 @@ export function EditarEventoPanel({ event }: { event: EventRecord }) {
     })
   }
 
+  return (
+    <>
+      <button type="button" className="btn btn-ghost" onClick={() => { setAbierto(true); setGuardado(false); setError(null) }}>
+        Editar datos
+      </button>
+
+      {abierto && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Editar evento"
+          onClick={(e) => { if (e.target === e.currentTarget && !pending) setAbierto(false) }}
+        >
+          <div className="card card-pad col" style={{ gap: 14, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="fila" style={{ justifyContent: 'space-between' }}>
+              <h2 style={{ fontSize: 16.5 }}>Editar evento</h2>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAbierto(false)} disabled={pending}>
+                Cerrar
+              </button>
+            </div>
+
+            <form onSubmit={onGuardar} className="col" style={{ gap: 14 }}>
+              <div className="campo">
+                <label htmlFor="edit-title">Título</label>
+                <input id="edit-title" name="title" required minLength={3} defaultValue={event.title} className="input" disabled={pending} />
+              </div>
+
+              <div className="fila" style={{ gap: 14, flexWrap: 'wrap' }}>
+                <div className="campo" style={{ flex: 1, minWidth: 160 }}>
+                  <label htmlFor="edit-type">Celebración</label>
+                  <select id="edit-type" name="event_type" defaultValue={event.event_type} className="select" disabled={pending}>
+                    {(Object.keys(EVENT_TYPE_LABELS) as EventType[]).map(t => (
+                      <option key={t} value={t}>{EVENT_TYPE_EMOJI[t]} {EVENT_TYPE_LABELS[t]}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="campo" style={{ flex: 1, minWidth: 160 }}>
+                  <label htmlFor="edit-date">Fecha</label>
+                  <input id="edit-date" name="event_date" type="date" required defaultValue={event.event_date} className="input" disabled={pending} />
+                </div>
+              </div>
+
+              <div className="campo">
+                <label htmlFor="edit-desc">Descripción</label>
+                <textarea id="edit-desc" name="description" rows={3} defaultValue={event.description} className="textarea" disabled={pending} />
+              </div>
+
+              <div className="fila" style={{ gap: 10, flexWrap: 'wrap' }}>
+                <button type="submit" disabled={pending} className="btn btn-primary">
+                  {pending ? 'Guardando…' : 'Guardar cambios'}
+                </button>
+                {guardado && <span className="badge badge-info">Cambios guardados</span>}
+              </div>
+
+              {error && (
+                <p role="alert" className="texto-s" style={{ color: 'var(--peligro)', fontWeight: 600 }}>{error}</p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+export function EliminarEventoZona({ eventId }: { eventId: string }) {
+  const router = useRouter()
+  const [confirmando, setConfirmando] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [pending, startTransition] = useTransition()
+
   function onEliminar() {
     setError(null)
     startTransition(async () => {
-      const res = await deleteEventAction(event.id)
+      const res = await deleteEventAction(eventId)
       if (res.error) {
         setError(res.error)
-        setConfirmandoBorrado(false)
+        setConfirmando(false)
         return
       }
       router.push('/admin/eventos')
@@ -43,63 +116,19 @@ export function EditarEventoPanel({ event }: { event: EventRecord }) {
   }
 
   return (
-    <section className="card card-pad col entra" style={{ gap: 14 }}>
-      <div className="fila" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-        <h2 style={{ fontSize: 16.5 }}>Editar evento</h2>
-        <button
-          type="button"
-          className="btn btn-ghost btn-sm"
-          onClick={() => { setAbierto(a => !a); setGuardado(false); setError(null) }}
-        >
-          {abierto ? 'Cerrar' : 'Editar datos'}
-        </button>
-      </div>
+    <section
+      className="card card-pad col entra"
+      style={{ gap: 12, border: '1px solid var(--peligro)', borderStyle: 'dashed' }}
+    >
+      <h2 style={{ fontSize: 15, color: 'var(--peligro)' }}>Zona de peligro</h2>
 
-      {abierto && (
-        <form onSubmit={onGuardar} className="col" style={{ gap: 14 }}>
-          <div className="campo">
-            <label htmlFor="edit-title">Título</label>
-            <input id="edit-title" name="title" required minLength={3} defaultValue={event.title} className="input" disabled={pending} />
-          </div>
-
-          <div className="fila" style={{ gap: 14, flexWrap: 'wrap' }}>
-            <div className="campo" style={{ flex: 1, minWidth: 180 }}>
-              <label htmlFor="edit-type">Celebración</label>
-              <select id="edit-type" name="event_type" defaultValue={event.event_type} className="select" disabled={pending}>
-                {(Object.keys(EVENT_TYPE_LABELS) as EventType[]).map(t => (
-                  <option key={t} value={t}>{EVENT_TYPE_EMOJI[t]} {EVENT_TYPE_LABELS[t]}</option>
-                ))}
-              </select>
-            </div>
-            <div className="campo" style={{ flex: 1, minWidth: 180 }}>
-              <label htmlFor="edit-date">Fecha</label>
-              <input id="edit-date" name="event_date" type="date" required defaultValue={event.event_date} className="input" disabled={pending} />
-            </div>
-          </div>
-
-          <div className="campo">
-            <label htmlFor="edit-desc">Descripción</label>
-            <textarea id="edit-desc" name="description" rows={3} defaultValue={event.description} className="textarea" disabled={pending} />
-          </div>
-
-          <div className="fila" style={{ gap: 10, flexWrap: 'wrap' }}>
-            <button type="submit" disabled={pending} className="btn btn-primary">
-              {pending ? 'Guardando…' : 'Guardar cambios'}
-            </button>
-            {guardado && <span className="badge badge-info">Cambios guardados</span>}
-          </div>
-        </form>
-      )}
-
-      {/* Zona de peligro: borrar elimina secciones, tareas, documentos y
-          fotos del evento (cascade). Confirmación en dos pasos. */}
-      <div className="fila" style={{ gap: 10, flexWrap: 'wrap', borderTop: '1px solid var(--arena-200)', paddingTop: 14 }}>
-        {!confirmandoBorrado ? (
+      <div className="fila" style={{ gap: 10, flexWrap: 'wrap' }}>
+        {!confirmando ? (
           <button
             type="button"
             className="btn btn-ghost btn-sm"
             style={{ color: 'var(--peligro)' }}
-            onClick={() => setConfirmandoBorrado(true)}
+            onClick={() => setConfirmando(true)}
             disabled={pending}
           >
             Eliminar evento…
@@ -118,7 +147,7 @@ export function EditarEventoPanel({ event }: { event: EventRecord }) {
             >
               {pending ? 'Eliminando…' : 'Sí, eliminar definitivamente'}
             </button>
-            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmandoBorrado(false)} disabled={pending}>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setConfirmando(false)} disabled={pending}>
               Cancelar
             </button>
           </>

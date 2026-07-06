@@ -36,6 +36,20 @@ export function SeccionesEditor({ eventId, sections, workers }: {
 }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  // Secciones colapsables: parten cerradas (el header resume el equipo) y
+  // se abre solo la que se está editando. Con una sola sección, abierta.
+  const [abiertas, setAbiertas] = useState<Set<string>>(
+    () => new Set(sections.length === 1 ? [sections[0].id] : [])
+  )
+
+  function toggleSeccion(id: string) {
+    setAbiertas(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
 
   function onAddSection(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -82,22 +96,69 @@ export function SeccionesEditor({ eventId, sections, workers }: {
     <section className="card card-pad col entra" style={{ gap: 20 }}>
       <h2 style={{ fontSize: 16.5 }}>Secciones y equipos</h2>
 
+      {/* Crear sección arriba: siempre a mano, sin buscar el final de la lista */}
+      <form
+        onSubmit={onAddSection}
+        className="fila"
+        style={{ gap: 10, flexWrap: 'wrap', borderBottom: '1px solid var(--arena-200)', paddingBottom: 16 }}
+      >
+        <input
+          name="name"
+          required
+          minLength={2}
+          disabled={pending}
+          placeholder="Nombre de la sección…"
+          className="input crece"
+          style={{ minWidth: 180 }}
+          aria-label="Nombre de la sección"
+        />
+        <input
+          name="description"
+          disabled={pending}
+          placeholder="Descripción (opcional)…"
+          className="input crece"
+          style={{ minWidth: 180 }}
+          aria-label="Descripción de la sección"
+        />
+        <button type="submit" disabled={pending} className="btn btn-primary">
+          <Icono n="mas" s={16} /> Agregar sección
+        </button>
+      </form>
+
       {sections.length === 0 && <p className="silencio texto-s">Aún no hay secciones creadas.</p>}
 
       <ul className="col" style={{ gap: 16 }}>
         {sections.map(s => {
           const disponibles = workers.filter(w => !s.members.some(m => m.user_id === w.id))
+          const abierta = abiertas.has(s.id)
+          const encargados = s.members.filter(m => m.member_role === 'encargado').length
           return (
             <li
               key={s.id}
               className="col"
               style={{ gap: 10, border: '1px solid var(--arena-200)', borderRadius: 'var(--radio-m)', padding: 14 }}
             >
-              <div className="fila" style={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div className="crece">
-                  <p style={{ fontWeight: 600 }}>{s.name}</p>
-                  {s.description && <p className="texto-s silencio-3">{s.description}</p>}
-                </div>
+              <div className="fila" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => toggleSeccion(s.id)}
+                  aria-expanded={abierta}
+                  className="fila crece"
+                  style={{ gap: 8, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', font: 'inherit', color: 'inherit', alignItems: 'flex-start' }}
+                >
+                  <Icono n={abierta ? 'chevD' : 'chevR'} s={16} />
+                  <span className="crece">
+                    <span style={{ fontWeight: 600, display: 'block' }}>{s.name}</span>
+                    {abierta && s.description && <span className="texto-s silencio-3">{s.description}</span>}
+                    {!abierta && (
+                      <span className="texto-s silencio-3">
+                        {s.members.length === 0
+                          ? 'sin equipo todavía'
+                          : `${s.members.length} miembro${s.members.length === 1 ? '' : 's'} · ${encargados} encargado${encargados === 1 ? '' : 's'}`}
+                      </span>
+                    )}
+                  </span>
+                </button>
                 <button
                   type="button"
                   onClick={() => onRemoveSection(s.id, s.name)}
@@ -109,7 +170,7 @@ export function SeccionesEditor({ eventId, sections, workers }: {
                 </button>
               </div>
 
-              {s.members.length > 0 && (
+              {abierta && s.members.length > 0 && (
                 <ul className="col" style={{ gap: 6 }}>
                   {s.members.map(m => (
                     <li key={m.user_id} className="fila" style={{ justifyContent: 'space-between' }}>
@@ -133,7 +194,7 @@ export function SeccionesEditor({ eventId, sections, workers }: {
                 </ul>
               )}
 
-              {disponibles.length > 0 && (
+              {abierta && disponibles.length > 0 && (
                 <form
                   onSubmit={e => onAddMember(s.id, e)}
                   className="fila"
@@ -169,34 +230,6 @@ export function SeccionesEditor({ eventId, sections, workers }: {
           )
         })}
       </ul>
-
-      <form
-        onSubmit={onAddSection}
-        className="fila"
-        style={{ gap: 10, flexWrap: 'wrap', borderTop: '1px solid var(--arena-200)', paddingTop: 16 }}
-      >
-        <input
-          name="name"
-          required
-          minLength={2}
-          disabled={pending}
-          placeholder="Nombre de la sección…"
-          className="input crece"
-          style={{ minWidth: 180 }}
-          aria-label="Nombre de la sección"
-        />
-        <input
-          name="description"
-          disabled={pending}
-          placeholder="Descripción (opcional)…"
-          className="input crece"
-          style={{ minWidth: 180 }}
-          aria-label="Descripción de la sección"
-        />
-        <button type="submit" disabled={pending} className="btn btn-primary">
-          <Icono n="mas" s={16} /> Agregar sección
-        </button>
-      </form>
 
       {error && (
         <div
