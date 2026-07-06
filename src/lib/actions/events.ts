@@ -411,6 +411,19 @@ export async function addMemberAction(
     const adminClient = await createAdminClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
+
+    // El miembro debe ser de la misma sede del evento: la RLS filtra los
+    // eventos por sede, así que uno de otra sede quedaría asignado pero sin
+    // poder ver el evento nunca.
+    const [{ data: sec }, { data: prof }] = await Promise.all([
+      ac.from('event_sections').select('events(sede_id)').eq('id', sectionId).maybeSingle() as Promise<{ data: { events: { sede_id: string } | null } | null }>,
+      ac.from('profiles').select('sede').eq('id', parsed.data.user_id).maybeSingle() as Promise<{ data: { sede: string } | null }>,
+    ])
+    const eventoSede = sec?.events?.sede_id
+    if (eventoSede && prof && prof.sede !== eventoSede) {
+      return { error: 'Solo puedes asignar trabajadores de la misma sede del evento' }
+    }
+
     const { error } = await ac
       .from('event_section_members')
       .insert({ section_id: sectionId, ...parsed.data }) as { error: { message: string; code?: string } | null }

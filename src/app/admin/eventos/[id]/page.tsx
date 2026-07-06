@@ -55,7 +55,10 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
     sectionIds.length > 0
       ? adminClient.from('event_tasks').select('*').in('section_id', sectionIds).order('order_index') as unknown as Promise<{ data: EventTask[] | null }>
       : Promise.resolve({ data: [] as EventTask[] }),
-    adminClient.from('profiles').select('id, full_name').eq('status', 'activo').order('full_name') as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>,
+    // Solo trabajadores de la MISMA sede del evento: la RLS filtra los
+    // eventos por sede, así que un miembro de otra sede nunca vería el evento
+    // (quedaría asignado pero invisible). El selector debe reflejar eso.
+    adminClient.from('profiles').select('id, full_name').eq('status', 'activo').eq('sede', event.sede_id).order('full_name') as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>,
   ])
 
   const nameById = new Map((workers ?? []).map(w => [w.id, w.full_name]))
