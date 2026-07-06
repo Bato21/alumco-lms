@@ -21,6 +21,32 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
 }) {
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  // Foto abierta en el lightbox (preview grande)
+  const [preview, setPreview] = useState<FotoConUrl | null>(null)
+  const [bajando, setBajando] = useState(false)
+
+  // Descarga forzada: el bucket es privado y la signed URL es cross-origin,
+  // así que fetch → blob → <a download> en vez de confiar en el atributo.
+  async function descargar(foto: FotoConUrl) {
+    if (!foto.signedUrl) return
+    setBajando(true)
+    try {
+      const res = await fetch(foto.signedUrl)
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = foto.image_url.split('/').pop() || `foto-${foto.id}.jpg`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      window.open(foto.signedUrl, '_blank', 'noopener')
+    } finally {
+      setBajando(false)
+    }
+  }
 
   function onUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -58,12 +84,19 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
             >
               <div className="group relative" style={{ background: 'var(--arena-100)' }}>
                 {p.signedUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.signedUrl}
-                    alt={p.caption ?? 'Foto del evento'}
-                    style={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'cover' }}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setPreview(p)}
+                    aria-label={`Ver foto${p.caption ? `: ${p.caption}` : ''} más grande`}
+                    style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={p.signedUrl}
+                      alt={p.caption ?? 'Foto del evento'}
+                      style={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'cover' }}
+                    />
+                  </button>
                 ) : (
                   <div style={{ width: '100%', aspectRatio: '4 / 3' }} aria-hidden="true" />
                 )}
@@ -144,6 +177,46 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
         >
           <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {preview && preview.signedUrl && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Vista de la foto"
+          onClick={(e) => { if (e.target === e.currentTarget) setPreview(null) }}
+        >
+          <div className="col" style={{ gap: 12, maxWidth: '92vw', maxHeight: '92vh', alignItems: 'center' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={preview.signedUrl}
+              alt={preview.caption ?? 'Foto del evento'}
+              style={{ maxWidth: '92vw', maxHeight: '78vh', objectFit: 'contain', borderRadius: 'var(--radio-m)' }}
+            />
+            {preview.caption && (
+              <p style={{ color: '#fff', fontSize: 14.5, textAlign: 'center' }}>{preview.caption}</p>
+            )}
+            <div className="fila" style={{ gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => descargar(preview)}
+                disabled={bajando}
+                className="btn btn-primary btn-sm"
+              >
+                <Icono n="descargar" s={16} /> {bajando ? 'Descargando…' : 'Descargar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPreview(null)}
+                className="btn btn-sm"
+                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)' }}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </section>
