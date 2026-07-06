@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
+import { sendPushToUsers } from '@/lib/push/send'
 import {
+  EVENT_TYPE_EMOJI,
   type CreateEventPayload,
   type EventDocType,
   type EventTaskStatus,
@@ -44,6 +46,41 @@ async function getEventIdForSection(sectionId: string): Promise<string | null> {
     .eq('id', sectionId)
     .maybeSingle() as { data: { event_id: string } | null }
   return data?.event_id ?? null
+}
+
+// Contexto de una sección para armar notificaciones push: nombre de la
+// sección, evento al que pertenece y miembros actuales.
+async function getSectionContexto(sectionId: string): Promise<{
+  sectionName: string
+  eventId: string
+  eventTitle: string
+  eventEmoji: string
+  memberIds: string[]
+} | null> {
+  const adminClient = await createAdminClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+  const { data } = await ac
+    .from('event_sections')
+    .select('name, event_id, events(title, event_type), event_section_members(user_id)')
+    .eq('id', sectionId)
+    .maybeSingle() as {
+      data: {
+        name: string
+        event_id: string
+        events: { title: string; event_type: keyof typeof EVENT_TYPE_EMOJI } | null
+        event_section_members: { user_id: string }[] | null
+      } | null
+    }
+
+  if (!data || !data.events) return null
+  return {
+    sectionName: data.name,
+    eventId: data.event_id,
+    eventTitle: data.events.title,
+    eventEmoji: EVENT_TYPE_EMOJI[data.events.event_type] ?? '🎉',
+    memberIds: (data.event_section_members ?? []).map(m => m.user_id),
+  }
 }
 
 function revalidateEventos(eventId?: string | null) {
@@ -383,8 +420,17 @@ export async function addMemberAction(
       return { error: error.message }
     }
 
-    const eventId = await getEventIdForSection(sectionId)
-    revalidateEventos(eventId)
+    // Aviso push al nuevo miembro (best-effort, nunca falla la action)
+    const ctx = await getSectionContexto(sectionId)
+    if (ctx) {
+      await sendPushToUsers([parsed.data.user_id], {
+        title: `${ctx.eventEmoji} ${ctx.eventTitle}`,
+        body: `Te sumaron a la sección ${ctx.sectionName} como ${parsed.data.member_role}`,
+        url: `/eventos/${ctx.eventId}`,
+      })
+    }
+
+    revalidateEventos(ctx?.eventId ?? await getEventIdForSection(sectionId))
     return { success: true }
   } catch {
     return { error: 'Error inesperado al agregar el miembro' }
@@ -501,7 +547,18 @@ export async function upsertTaskAction(
       return { error: 'No tienes permisos para crear tareas en esta sección (solo el encargado o un admin)' }
     }
 
-    revalidateEventos(await getEventIdForSection(sectionId))
+    // Aviso push a los miembros de la sección (menos quien la creó)
+    const ctx = await getSectionContexto(sectionId)
+    if (ctx) {
+      const destinatarios = ctx.memberIds.filter(id => id !== caller.userId)
+      await sendPushToUsers(destinatarios, {
+        title: `${ctx.eventEmoji} Nueva tarea en ${ctx.sectionName}`,
+        body: parsed.data.title,
+        url: `/eventos/${ctx.eventId}`,
+      })
+    }
+
+    revalidateEventos(ctx?.eventId ?? await getEventIdForSection(sectionId))
     return { success: true }
   } catch {
     return { error: 'Error inesperado al guardar la tarea' }

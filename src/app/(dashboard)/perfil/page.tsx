@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { ProfileClient } from './ProfileClient'
+import { ActivarNotificaciones } from '@/components/alumco/shared/ActivarNotificaciones'
 
 export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
@@ -159,6 +160,8 @@ export default async function PerfilPage() {
         approvalRate={approvalRate}
         totalCerts={totalCerts}
       />
+
+      <ActivarNotificaciones />
     </div>
   )
 }
