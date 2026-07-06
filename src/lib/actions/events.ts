@@ -450,6 +450,70 @@ export async function addMemberAction(
   }
 }
 
+// El encargado de una sección puede sumar más gente a SU sección, pero solo
+// como colaborador (nunca como encargado — eso queda para el admin). Reusa la
+// misma validación de sede que addMemberAction.
+export async function addColaboradorAction(
+  sectionId: string,
+  formData: FormData,
+): Promise<{ success?: boolean; error?: string }> {
+  try {
+    const caller = await getCaller()
+    if (!caller) return { error: 'No autenticado' }
+
+    const userId = formData.get('user_id')
+    if (!userId || typeof userId !== 'string') return { error: 'Selecciona un trabajador' }
+
+    const adminClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const ac = adminClient as any
+
+    // Permiso: admin o encargado de ESTA sección
+    if (caller.role !== 'admin') {
+      const { data: enc } = await ac
+        .from('event_section_members')
+        .select('user_id')
+        .eq('section_id', sectionId)
+        .eq('user_id', caller.userId)
+        .eq('member_role', 'encargado')
+        .maybeSingle() as { data: { user_id: string } | null }
+      if (!enc) return { error: 'Solo el encargado de la sección o un admin puede sumar gente' }
+    }
+
+    // Misma sede del evento
+    const [{ data: sec }, { data: prof }] = await Promise.all([
+      ac.from('event_sections').select('events(sede_id)').eq('id', sectionId).maybeSingle() as Promise<{ data: { events: { sede_id: string } | null } | null }>,
+      ac.from('profiles').select('sede').eq('id', userId).maybeSingle() as Promise<{ data: { sede: string } | null }>,
+    ])
+    const eventoSede = sec?.events?.sede_id
+    if (eventoSede && prof && prof.sede !== eventoSede) {
+      return { error: 'Solo puedes sumar trabajadores de la misma sede del evento' }
+    }
+
+    const { error } = await ac
+      .from('event_section_members')
+      .insert({ section_id: sectionId, user_id: userId, member_role: 'colaborador' }) as { error: { message: string; code?: string } | null }
+
+    if (error) {
+      if (error.code === '23505') return { error: 'Esa persona ya es miembro de esta sección' }
+      return { error: error.message }
+    }
+
+    const ctx = await getSectionContexto(sectionId)
+    if (ctx) {
+      await sendPushToUsers([userId], {
+        title: `${ctx.eventEmoji} ${ctx.eventTitle}`,
+        body: `Te sumaron a la sección ${ctx.sectionName}`,
+        url: `/eventos/${ctx.eventId}`,
+      })
+    }
+    revalidateEventos(ctx?.eventId ?? await getEventIdForSection(sectionId))
+    return { success: true }
+  } catch {
+    return { error: 'Error inesperado al sumar a la persona' }
+  }
+}
+
 export async function removeMemberAction(
   sectionId: string,
   userId: string,

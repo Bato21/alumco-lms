@@ -5,6 +5,7 @@ import { EncabezadoPagina, Badge } from '@/components/alumco/ds'
 import { TaskChecklist } from '@/components/alumco/eventos/TaskChecklist'
 import { DocsPanel } from '@/components/alumco/eventos/DocsPanel'
 import { GaleriaFotos } from '@/components/alumco/eventos/GaleriaFotos'
+import { PanelEncargadoSeccion } from '@/components/alumco/eventos/PanelEncargadoSeccion'
 import { firmarFotos } from '@/lib/eventos/fotos'
 import {
   EVENT_TYPE_LABELS,
@@ -68,16 +69,26 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
   const encargadoIds = Array.from(
     new Set((allMembers ?? []).filter(m => m.member_role === 'encargado').map(m => m.user_id))
   )
+  // Si soy encargado de alguna sección, puedo sumar colaboradores: necesito
+  // la lista de trabajadores de la sede del evento para el selector.
+  const soyEncargado = misSecciones.some(s => myRoleBySection.get(s.id) === 'encargado')
+
   // Nombres vía cliente admin: profiles no es legible entre trabajadores
   // (mismo patrón que admin/eventos/[id]/page.tsx y el wizard).
   let nameById = new Map<string, string>()
-  if (encargadoIds.length > 0) {
+  let workersSede: { id: string; full_name: string }[] = []
+  if (encargadoIds.length > 0 || soyEncargado) {
     const adminClient = await createAdminClient()
-    const { data: profiles } = await adminClient
-      .from('profiles')
-      .select('id, full_name')
-      .in('id', encargadoIds) as unknown as { data: { id: string; full_name: string }[] | null }
+    const [{ data: profiles }, { data: sede }] = await Promise.all([
+      encargadoIds.length > 0
+        ? adminClient.from('profiles').select('id, full_name').in('id', encargadoIds) as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>
+        : Promise.resolve({ data: [] as { id: string; full_name: string }[] }),
+      soyEncargado
+        ? adminClient.from('profiles').select('id, full_name').eq('status', 'activo').eq('sede', event.sede_id).order('full_name') as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>
+        : Promise.resolve({ data: [] as { id: string; full_name: string }[] }),
+    ])
     nameById = new Map((profiles ?? []).map(p => [p.id, p.full_name]))
+    workersSede = sede ?? []
   }
 
   const tasksBySection = new Map<string, EventTask[]>()
@@ -115,6 +126,8 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
             .map(m => nameById.get(m.user_id) ?? '—')
           const canToggle = myRoleBySection.get(s.id) === 'encargado'
           const sTasks = tasksBySection.get(s.id) ?? []
+          const miembrosIds = new Set((allMembers ?? []).filter(m => m.section_id === s.id).map(m => m.user_id))
+          const disponibles = workersSede.filter(w => !miembrosIds.has(w.id))
 
           return (
             <section key={s.id} className="card card-pad col entra" style={{ gap: 12 }}>
@@ -130,6 +143,15 @@ export default async function EventoDetallePage(props: { params: Promise<{ id: s
                 <p className="texto-s silencio-3">Sin tareas en esta sección.</p>
               ) : (
                 <TaskChecklist tasks={sTasks.map(t => ({ id: t.id, title: t.title, status: t.status, canToggle }))} />
+              )}
+              {/* El encargado gestiona su sección: crear tareas y sumar colaboradores */}
+              {canToggle && (
+                <PanelEncargadoSeccion
+                  sectionId={s.id}
+                  sectionName={s.name}
+                  eventDate={event.event_date}
+                  disponibles={disponibles}
+                />
               )}
             </section>
           )

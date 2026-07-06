@@ -112,7 +112,7 @@ export function DocsPanel({ eventId, docs, canManage }: {
             required
             disabled={pending}
             accept=".pdf,.xlsx,.docx"
-            className="texto-s"
+            className="input-archivo"
             aria-label="Archivo"
           />
           <select name="doc_type" disabled={pending} className="select" aria-label="Tipo de documento" defaultValue="general">

@@ -100,7 +100,7 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
             required
             disabled={pending}
             accept="image/jpeg,image/png,image/webp"
-            className="texto-s"
+            className="input-archivo"
             aria-label="Foto"
           />
           <input

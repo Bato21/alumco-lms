@@ -216,6 +216,32 @@ button { font-family: inherit; }
 }
 .input::placeholder, .textarea::placeholder { color: var(--tinta-3); }
 
+/* Input de archivo: el botón nativo se ve como texto plano. Le damos aspecto
+   de botón secundario clickeable vía ::file-selector-button. */
+.input-archivo {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--tinta-3);
+  max-width: 100%;
+}
+.input-archivo::file-selector-button {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--tinta);
+  background: var(--arena-100);
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-m);
+  padding: 9px 16px;
+  margin-right: 12px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.input-archivo::file-selector-button:hover {
+  background: var(--arena-200);
+  border-color: #d5cdbd;
+}
+
 .input-busqueda {
   display: flex; align-items: center; gap: 10px;
   background: var(--blanco);

@@ -441,6 +441,7 @@ export function WizardEvento({ sedes, profiles }: { sedes: SedeOption[]; profile
                 accept=".pdf,.xlsx,.docx"
                 disabled={pending}
                 onChange={e => setAlimentacionFile(e.target.files?.[0] ?? null)}
+                className="input-archivo"
                 aria-label="Archivo de dificultades alimenticias"
               />
               {alimentacionFile && (
@@ -477,6 +478,7 @@ export function WizardEvento({ sedes, profiles }: { sedes: SedeOption[]; profile
                   if (file) addGeneralDoc(file)
                   e.target.value = ''
                 }}
+                className="input-archivo"
                 aria-label="Agregar documento general"
               />
             </div>
