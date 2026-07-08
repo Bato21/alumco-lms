@@ -29,7 +29,10 @@ export function ActivarNotificaciones() {
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
+    // Detección de capacidad del navegador: sincronizar con una API de
+    // plataforma es el uso legítimo de un effect (no hay SSR de esto).
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEstado('no-soportado')
       return
     }
@@ -46,6 +49,11 @@ export function ActivarNotificaciones() {
 
   function activar() {
     setError(null)
+    const vapid = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    if (!vapid) {
+      setError('Faltan las llaves de notificación en el servidor (VAPID). Avisa al equipo.')
+      return
+    }
     startTransition(async () => {
       try {
         const permiso = await Notification.requestPermission()
@@ -56,7 +64,7 @@ export function ActivarNotificaciones() {
         const reg = await navigator.serviceWorker.ready
         const sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: base64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ''),
+          applicationServerKey: base64ToUint8Array(vapid),
         })
         const json = sub.toJSON()
         const res = await savePushSubscriptionAction({
@@ -69,7 +77,8 @@ export function ActivarNotificaciones() {
           return
         }
         setEstado('activo')
-      } catch {
+      } catch (err) {
+        console.error('Error activando notificaciones:', err)
         setError('No se pudo activar las notificaciones en este dispositivo')
       }
     })
