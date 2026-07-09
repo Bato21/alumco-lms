@@ -1,6 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
 import { Geist, Fraunces, Archivo, Playfair_Display } from 'next/font/google'
+import { ServiceWorkerRegistrar } from '@/components/alumco/shared/ServiceWorkerRegistrar'
 import './globals.css'
 
 const geist = Geist({
@@ -64,6 +65,7 @@ export default function RootLayout({
         className={`${geist.variable} ${fraunces.variable} ${archivo.variable} ${playfair.variable} font-sans antialiased`}
       >
         {children}
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   )
