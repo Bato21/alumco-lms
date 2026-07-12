@@ -87,11 +87,23 @@ export async function sendTestPushAction(): Promise<{ success?: boolean; error?:
     const userId = await getCallerId()
     if (!userId) return { error: 'No autenticado' }
 
-    await sendPushToUsers([userId], {
+    const result = await sendPushToUsers([userId], {
       title: 'Alumco 🔔',
       body: 'Las notificaciones están funcionando. Así te avisaremos de tareas y plazos.',
       url: '/inicio',
     })
+    if (result.missingConfig) {
+      return { error: 'Faltan las llaves de notificación en el servidor (VAPID)' }
+    }
+    if (result.missingTable) {
+      return { error: 'Las notificaciones aún no están habilitadas en el servidor' }
+    }
+    if (result.subscriptions === 0) {
+      return { error: 'Este dispositivo no quedó guardado. Desactiva y vuelve a activar las notificaciones.' }
+    }
+    if (result.sent === 0) {
+      return { error: 'No se pudo enviar la notificación de prueba a este dispositivo' }
+    }
     return { success: true }
   } catch {
     return { error: 'No se pudo enviar la notificación de prueba' }
