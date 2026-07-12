@@ -30,7 +30,12 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // getClaims verifica el JWT localmente (llave pública ES256 vía JWKS,
+  // cacheada en memoria) — cero round trips a Supabase en el caso común.
+  // Solo toca la red para refrescar un token vencido. getUser() acá costaba
+  // ~100-300ms de latencia extra en CADA navegación.
+  const { data } = await supabase.auth.getClaims()
+  const user = data?.claims ?? null
   const pathname = request.nextUrl.pathname
   const isPublic = pathname === '/' || pathname === '/login' || pathname === '/registro'
 
