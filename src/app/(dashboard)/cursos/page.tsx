@@ -29,7 +29,9 @@ export default async function CursosPage({
   const supabase = await createClient()
   const user = await getCachedUser()
 
-  const [{ data: workerProfile }, { data: courses }, { data: progressData }] = await Promise.all([
+  // Los módulos se piden sin filtrar junto al resto (como en inicio): filtrar
+  // por curso requería esperar la lista de cursos = un round trip extra.
+  const [{ data: workerProfile }, { data: courses }, { data: progressData }, { data: allModulesRaw }] = await Promise.all([
     supabase
       .from('profiles')
       .select('area_trabajo')
@@ -44,6 +46,9 @@ export default async function CursosPage({
       .from('course_progress')
       .select('course_id, completed_modules, is_completed')
       .eq('user_id', user!.id) as unknown as Promise<{ data: { course_id: string; completed_modules: string[] | null; is_completed: boolean }[] | null }>,
+    supabase
+      .from('modules')
+      .select('course_id') as unknown as Promise<{ data: { course_id: string }[] | null }>,
   ])
 
   const workerAreas = workerProfile?.area_trabajo ?? []
@@ -51,12 +56,8 @@ export default async function CursosPage({
   const coursesNormalized = (courses ?? []).map(c => ({ ...c, target_areas: c.target_areas ?? [] }))
   const coursesByArea = filterCoursesByWorkerAreas(coursesNormalized, workerAreas)
 
-  const courseIds = coursesByArea.map(c => c.id)
-
-  const { data: allModules } = await supabase
-    .from('modules')
-    .select('course_id')
-    .in('course_id', courseIds.length > 0 ? courseIds : ['none']) as { data: { course_id: string }[] | null }
+  const courseIdSet = new Set(coursesByArea.map(c => c.id))
+  const allModules = (allModulesRaw ?? []).filter(m => courseIdSet.has(m.course_id))
 
   const totalModulesByCourse = new Map<string, number>()
   allModules?.forEach(module => {
