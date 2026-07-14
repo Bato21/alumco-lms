@@ -51,6 +51,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#1a56a4',
+  // Sin cover, iOS reporta env(safe-area-inset-*) = 0 y la barra inferior
+  // del PWA queda pegada al home indicator del iPhone.
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({

@@ -764,3 +764,29 @@ section[id] { scroll-margin-top: 80px; }
   body[data-tema="didasko"] .landing-page .t-eyebrow { color: var(--ambar-700) !important; }
   body[data-tema="didasko"] .landing-page .t-eyebrow.claro { color: #F5C26B !important; }
 }
+
+/* ============================================================
+   Login: sin scroll en móvil.
+   - 100dvh en vez de 100vh: en iOS el vh clásico incluye la zona
+     de la barra de URL y genera scroll aunque el contenido quepa.
+   - En pantallas chicas se compacta el card (paddings, márgenes,
+     logo y gaps del formulario); los !important vencen a los
+     estilos inline del componente.
+   ============================================================ */
+.login-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+@media (max-width: 767px) {
+  .login-shell .login-panel-form {
+    padding: 14px 16px calc(env(safe-area-inset-bottom, 0px) + 16px) !important;
+  }
+  .login-shell .login-volver { margin-bottom: 10px !important; }
+  .login-shell .login-card { padding: 20px 16px !important; }
+  .login-shell .login-encabezado { margin-bottom: 14px !important; }
+  .login-shell .login-logo { width: 126px !important; height: auto !important; }
+  .login-shell .login-titulo { font-size: 22px !important; }
+  .login-shell .login-sub { margin-top: 4px !important; margin-bottom: 14px !important; }
+  .login-shell .login-card form { gap: 13px !important; }
+}
