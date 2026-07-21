@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useTransition } from 'react'
 import { markModuleCompleteAction } from '@/lib/actions/progress'
 
@@ -12,6 +12,28 @@ interface VideoPlayerProps {
   thumbnailUrl?: string | null
 }
 
+function extractYouTubeId(url: string): string | null {
+  if (!url) return null
+
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/,
+    /youtube\.com\/watch\?.*v=([^&\s]+)/,
+  ]
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern)
+    if (match?.[1]) {
+      return match[1]
+    }
+  }
+
+  if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
+    return url
+  }
+
+  return null
+}
+
 export function VideoPlayer({
   videoUrl,
   moduleId,
@@ -21,43 +43,10 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   const [isCompletePending, startCompleteTransition] = useTransition()
   const [localCompleted, setLocalCompleted] = useState(isCompleted)
-  const [showCompleteButton, setShowCompleteButton] = useState(true)
-  const [embedUrl, setEmbedUrl] = useState<string>('')
-
-  // Extract YouTube video ID and create embed URL
-  useEffect(() => {
-    const videoId = extractYouTubeId(videoUrl)
-    if (videoId) {
-      setEmbedUrl(`https://www.youtube.com/embed/${videoId}?enablejsapi=1`)
-    } else if (videoUrl) {
-      // If it's not a YouTube URL, use it directly
-      setEmbedUrl(videoUrl)
-    }
-  }, [videoUrl])
-
-  const extractYouTubeId = (url: string): string | null => {
-    if (!url) return null
-
-    // Handle various YouTube URL formats
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?]+)/,
-      /youtube\.com\/watch\?.*v=([^&\s]+)/,
-    ]
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern)
-      if (match?.[1]) {
-        return match[1]
-      }
-    }
-
-    // If the URL is just an ID (11 characters)
-    if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
-      return url
-    }
-
-    return null
-  }
+  const videoId = extractYouTubeId(videoUrl)
+  const embedUrl = videoId
+    ? `https://www.youtube.com/embed/${videoId}?enablejsapi=1`
+    : videoUrl
 
   const handleMarkComplete = useCallback(() => {
     if (localCompleted || isCompletePending) return
@@ -66,18 +55,9 @@ export function VideoPlayer({
       const result = await markModuleCompleteAction(moduleId, courseId)
       if (result.success) {
         setLocalCompleted(true)
-        setShowCompleteButton(false)
       }
     })
   }, [localCompleted, isCompletePending, moduleId, courseId])
-
-  // Auto-mark as complete if video is watched (simulated with a timer for now)
-  // In a real implementation, you'd use YouTube IFrame API to track actual progress
-  useEffect(() => {
-    if (localCompleted) {
-      setShowCompleteButton(false)
-    }
-  }, [localCompleted])
 
   return (
     <div className="space-y-4">
@@ -111,7 +91,7 @@ export function VideoPlayer({
       </div>
 
       {/* Mark as Complete Button */}
-      {showCompleteButton && !localCompleted && (
+      {!localCompleted && (
         <div className="flex justify-end">
           <button
             onClick={handleMarkComplete}
