@@ -32,14 +32,41 @@ function diasRestantes(eventDate: string): { texto: string; tono: DiasTono } {
 // excepción es la resolución de nombres (profiles.full_name de OTROS
 // usuarios), que requiere cliente admin — mismo patrón que el resto de la
 // feature (ver admin/eventos/[id]/page.tsx).
+// Todo el árbol del evento (secciones + tareas + miembros + docs) viene en
+// UNA sola query con embeds de PostgREST: la versión anterior encadenaba
+// hasta 5 round trips seriales y era el mayor costo del inicio. RLS se
+// aplica igual en cada tabla embebida, así que el filtrado por sede y
+// membresía sigue siendo gratis.
+type EventoEmbebido = EventRecord & {
+  event_sections: (EventSection & {
+    event_tasks: EventTask[]
+    event_section_members: Pick<EventSectionMember, 'section_id' | 'user_id' | 'member_role'>[]
+  })[]
+  event_documents: { id: string; doc_type: string }[]
+}
+
 export async function EventoDashboardCard({ userId, isAdmin }: { userId: string; isAdmin: boolean }) {
   const supabase = await createClient()
 
-  const { data: events } = await supabase
-    .from('events')
-    .select('*')
-    .in('status', ['planificacion', 'activo'])
-    .order('event_date') as unknown as { data: EventRecord[] | null }
+  // Los nombres (solo vista colaborador) se piden en paralelo con el árbol
+  // del evento: esperar los ids de encargados costaba un round trip serial.
+  // La tabla profiles de la ONG es chica, así que traer id+nombre de los
+  // activos completos sale más barato que encadenar.
+  const [{ data: events }, nombres] = await Promise.all([
+    supabase
+      .from('events')
+      .select('*, event_sections(*, event_tasks(*), event_section_members(section_id, user_id, member_role)), event_documents(id, doc_type)')
+      .in('status', ['planificacion', 'activo'])
+      .order('event_date') as unknown as Promise<{ data: EventoEmbebido[] | null }>,
+    isAdmin
+      ? Promise.resolve(null)
+      : createAdminClient().then(admin =>
+          admin
+            .from('profiles')
+            .select('id, full_name')
+            .eq('status', 'activo') as unknown as Promise<{ data: { id: string; full_name: string }[] | null }>
+        ).then(r => r.data),
+  ])
 
   if (!events || events.length === 0) return null
 
@@ -53,43 +80,26 @@ export async function EventoDashboardCard({ userId, isAdmin }: { userId: string;
     return diff < closestDiff ? e : closest
   }, events[0])
 
-  const { data: sectionsRaw } = await supabase
-    .from('event_sections')
-    .select('*')
-    .eq('event_id', event.id)
-    .order('order_index') as unknown as { data: EventSection[] | null }
-  const sections = sectionsRaw ?? []
-  const sectionIds = sections.map(s => s.id)
+  const sections = [...(event.event_sections ?? [])].sort((a, b) => a.order_index - b.order_index)
+  const tareasDe = (s: EventoEmbebido['event_sections'][number]) =>
+    [...(s.event_tasks ?? [])].sort((a, b) => a.order_index - b.order_index)
 
   const { texto: diasTexto, tono: diasTono } = diasRestantes(event.event_date)
 
   let cuerpo: ReactNode
 
   if (isAdmin) {
-    const [{ data: tasks }, { data: docs }] = await Promise.all([
-      sectionIds.length > 0
-        ? supabase
-            .from('event_tasks')
-            .select('id, section_id, status')
-            .in('section_id', sectionIds) as unknown as Promise<{ data: Pick<EventTask, 'id' | 'section_id' | 'status'>[] | null }>
-        : Promise.resolve({ data: [] as Pick<EventTask, 'id' | 'section_id' | 'status'>[] }),
-      supabase
-        .from('event_documents')
-        .select('id')
-        .eq('event_id', event.id)
-        .eq('doc_type', 'dificultades_alimenticias')
-        .limit(1) as unknown as Promise<{ data: { id: string }[] | null }>,
-    ])
-
     const avancePorSeccion = new Map<string, { hechas: number; total: number }>()
-    for (const t of tasks ?? []) {
-      const actual = avancePorSeccion.get(t.section_id) ?? { hechas: 0, total: 0 }
-      actual.total += 1
-      if (t.status === 'completada') actual.hechas += 1
-      avancePorSeccion.set(t.section_id, actual)
+    for (const s of sections) {
+      for (const t of s.event_tasks ?? []) {
+        const actual = avancePorSeccion.get(t.section_id) ?? { hechas: 0, total: 0 }
+        actual.total += 1
+        if (t.status === 'completada') actual.hechas += 1
+        avancePorSeccion.set(t.section_id, actual)
+      }
     }
 
-    const docId = docs?.[0]?.id ?? null
+    const docId = (event.event_documents ?? []).find(d => d.doc_type === 'dificultades_alimenticias')?.id ?? null
 
     cuerpo = (
       <div className="col" style={{ gap: 14 }}>
@@ -129,52 +139,19 @@ export async function EventoDashboardCard({ userId, isAdmin }: { userId: string;
       </div>
     )
   } else {
-    const { data: myMemberships } = sectionIds.length > 0
-      ? await (supabase
-          .from('event_section_members')
-          .select('section_id, member_role')
-          .eq('user_id', userId)
-          .in('section_id', sectionIds) as unknown as Promise<{ data: Pick<EventSectionMember, 'section_id' | 'member_role'>[] | null }>)
-      : { data: [] as Pick<EventSectionMember, 'section_id' | 'member_role'>[] }
+    const miembrosTodos = sections.flatMap(s => s.event_section_members ?? [])
+    const myMemberships = miembrosTodos.filter(m => m.user_id === userId)
 
-    const mySectionIds = (myMemberships ?? []).map(m => m.section_id)
-    const myRoleBySection = new Map((myMemberships ?? []).map(m => [m.section_id, m.member_role]))
+    const mySectionIds = myMemberships.map(m => m.section_id)
+    const myRoleBySection = new Map(myMemberships.map(m => [m.section_id, m.member_role]))
     const misSecciones = sections.filter(s => mySectionIds.includes(s.id))
 
     if (misSecciones.length === 0) {
       cuerpo = <p className="texto-s silencio-3">No tienes secciones asignadas en este evento todavía.</p>
     } else {
-      const [{ data: tasks }, { data: allMembers }] = await Promise.all([
-        supabase
-          .from('event_tasks')
-          .select('*')
-          .in('section_id', mySectionIds)
-          .order('order_index') as unknown as Promise<{ data: EventTask[] | null }>,
-        supabase
-          .from('event_section_members')
-          .select('*')
-          .in('section_id', mySectionIds) as unknown as Promise<{ data: EventSectionMember[] | null }>,
-      ])
+      const allMembers = miembrosTodos.filter(m => mySectionIds.includes(m.section_id))
 
-      const encargadoIds = Array.from(
-        new Set((allMembers ?? []).filter(m => m.member_role === 'encargado').map(m => m.user_id))
-      )
-      let nameById = new Map<string, string>()
-      if (encargadoIds.length > 0) {
-        const adminClient = await createAdminClient()
-        const { data: profiles } = await adminClient
-          .from('profiles')
-          .select('id, full_name')
-          .in('id', encargadoIds) as unknown as { data: { id: string; full_name: string }[] | null }
-        nameById = new Map((profiles ?? []).map(p => [p.id, p.full_name]))
-      }
-
-      const tasksBySection = new Map<string, EventTask[]>()
-      for (const t of tasks ?? []) {
-        const list = tasksBySection.get(t.section_id) ?? []
-        list.push(t)
-        tasksBySection.set(t.section_id, list)
-      }
+      const nameById = new Map((nombres ?? []).map(p => [p.id, p.full_name]))
 
       cuerpo = (
         <div className="col" style={{ gap: 16 }}>
@@ -183,7 +160,7 @@ export async function EventoDashboardCard({ userId, isAdmin }: { userId: string;
               .filter(m => m.section_id === s.id && m.member_role === 'encargado')
               .map(m => nameById.get(m.user_id) ?? '—')
             const canToggle = myRoleBySection.get(s.id) === 'encargado'
-            const sTasks = tasksBySection.get(s.id) ?? []
+            const sTasks = tareasDe(s)
 
             return (
               <div key={s.id} className="col" style={{ gap: 8 }}>

@@ -23,7 +23,8 @@ export default async function AdminDashboardPage() {
   const user = await getCachedUser()
   const adminClient = await createAdminClient()
 
-  // 6 queries en paralelo; el resto de las métricas se derivan en memoria.
+  // 6 queries + alertas en paralelo; el resto de las métricas se derivan en
+  // memoria. getAdminAlerts iba en serie después y sumaba ~150ms al TTFB.
   const [
     { data: profile },
     { data: workersData },
@@ -31,6 +32,7 @@ export default async function AdminDashboardPage() {
     { data: allProgress },
     { data: allCertificates },
     { count: pendingApprovals },
+    adminAlerts,
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -59,6 +61,7 @@ export default async function AdminDashboardPage() {
       .select('id', { count: 'exact', head: true })
       .eq('role', 'trabajador')
       .eq('status', 'pendiente') as unknown as Promise<{ count: number | null }>,
+    getAdminAlerts(),
   ])
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
@@ -173,7 +176,6 @@ export default async function AdminDashboardPage() {
   const atrasadosCount = workerFollowupAll.filter((w) => w.estado === 'atrasado').length
   const workerFollowup = workerFollowupAll.slice(0, 6)
 
-  const adminAlerts = await getAdminAlerts()
   // Vencidos (plazo ya pasado) separados de próximos: incumplimiento real vs aviso.
   const overdueAlerts = adminAlerts.alerts.filter((a) => a.urgency === 'overdue')
   const upcomingAlerts = adminAlerts.alerts.filter((a) => a.urgency !== 'overdue')

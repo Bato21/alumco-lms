@@ -23,11 +23,14 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const adminClient = await createAdminClient()
 
+  // Las solicitudes pendientes necesitan el email (auth admin API) además de
+  // la fila de profiles: toda esa cadena corre DENTRO del Promise.all para
+  // no sumar round trips seriales después de las otras 3 queries.
   const [
     { data: sedesData },
     { data: activosRaw },
     { data: suspendidosRaw },
-    { data: pendientesRaw },
+    solicitudes,
   ] = await Promise.all([
     adminClient
       .from('sedes')
@@ -46,11 +49,19 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
       .select('id, full_name, rut, sede, area_trabajo, role, status, updated_at')
       .eq('status', 'suspendido')
       .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; updated_at: string }[] | null }>,
-    adminClient
-      .from('profiles')
-      .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
-      .eq('status', 'pendiente')
-      .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }>,
+    (async () => {
+      const { data: pendientes } = await (adminClient
+        .from('profiles')
+        .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
+        .eq('status', 'pendiente')
+        .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }>)
+      if (!pendientes || pendientes.length === 0) return []
+      // Un solo listUsers en vez de un getUserById por solicitud: la API
+      // admin de auth se degrada fuerte con llamadas concurrentes.
+      const { data: lista } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 })
+      const emailById = new Map((lista?.users ?? []).map(u => [u.id, u.email]))
+      return pendientes.map(s => ({ ...s, email: emailById.get(s.id) ?? 'Sin correo' }))
+    })(),
   ])
 
   const sedes = sedesData ?? []
@@ -68,17 +79,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const suspendidos = suspendidosRaw ?? []
 
-  const pendingCount = pendientesRaw?.length || 0
-
-  const solicitudes = await Promise.all(
-    (pendientesRaw || []).map(async (s) => {
-      const { data } = await adminClient.auth.admin.getUserById(s.id)
-      return {
-        ...s,
-        email: data.user?.email ?? 'Sin correo',
-      }
-    })
-  )
+  const pendingCount = solicitudes.length
 
   const solicitudesContent = (
     <div className="card entra entra-2 tabla-envoltura">
