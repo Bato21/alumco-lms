@@ -31,7 +31,7 @@ export default async function DashboardLayout({
   if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')
 
   return (
-    <div className="min-h-screen flex flex-col paleta-azul">
+    <div className="min-h-screen flex flex-col paleta-azul" style={{ paddingTop: 'var(--demo-banner-h, 0px)' }}>
       {profile.is_demo && <DemoBanner />}
       <CursorBlobs />
       <WorkerTopNav

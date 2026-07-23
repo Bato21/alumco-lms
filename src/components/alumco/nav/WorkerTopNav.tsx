@@ -49,7 +49,7 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
   return (
     <>
       {/* Desktop: topbar horizontal */}
-      <header className="topbar hidden lg:flex" style={{ position: 'sticky', top: 0, zIndex: 30 }}>
+      <header className="topbar hidden lg:flex" style={{ position: 'sticky', top: 'var(--demo-banner-h, 0px)', zIndex: 30 }}>
         <Link href="/inicio" aria-label="Inicio" style={{ textDecoration: 'none' }} className="fila" >
           <Gota s={28} />
           <div>
@@ -105,7 +105,7 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
       {/* Móvil: cabecera */}
       <header
         className="topbar lg:hidden"
-        style={{ position: 'sticky', top: 0, zIndex: 30, padding: '10px 16px', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
+        style={{ position: 'sticky', top: 'var(--demo-banner-h, 0px)', zIndex: 30, padding: '10px 16px', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
       >
         <Link href="/inicio" aria-label="Inicio" style={{ textDecoration: 'none' }} className="fila">
           <Gota s={24} />

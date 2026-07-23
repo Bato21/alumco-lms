@@ -39,7 +39,7 @@ export default async function AdminLayout({
   if (!profile || (profile.role !== 'admin' && profile.role !== 'profesor')) redirect('/inicio')
 
   return (
-    <div className="min-h-screen paleta-oliva">
+    <div className="min-h-screen paleta-oliva" style={{ paddingTop: 'var(--demo-banner-h, 0px)' }}>
       {profile.is_demo && <DemoBanner />}
       <CursorBlobs />
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
