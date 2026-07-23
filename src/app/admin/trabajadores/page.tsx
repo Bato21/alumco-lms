@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { ApprovalPanel } from '@/components/alumco/admin/ApprovalPanel'
 import { WorkersTable } from './WorkersTable'
 import { SuspendedTable } from './SuspendedTable'
-import Link from 'next/link'
+import { TabsTrabajadores } from './TabsTrabajadores'
 import { EncabezadoPagina, Avatar } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
@@ -23,11 +23,14 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const adminClient = await createAdminClient()
 
+  // Las solicitudes pendientes necesitan el email (auth admin API) además de
+  // la fila de profiles: toda esa cadena corre DENTRO del Promise.all para
+  // no sumar round trips seriales después de las otras 3 queries.
   const [
     { data: sedesData },
     { data: activosRaw },
     { data: suspendidosRaw },
-    { data: pendientesRaw },
+    solicitudes,
   ] = await Promise.all([
     adminClient
       .from('sedes')
@@ -46,11 +49,19 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
       .select('id, full_name, rut, sede, area_trabajo, role, status, updated_at')
       .eq('status', 'suspendido')
       .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; updated_at: string }[] | null }>,
-    adminClient
-      .from('profiles')
-      .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
-      .eq('status', 'pendiente')
-      .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }>,
+    (async () => {
+      const { data: pendientes } = await (adminClient
+        .from('profiles')
+        .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
+        .eq('status', 'pendiente')
+        .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }>)
+      if (!pendientes || pendientes.length === 0) return []
+      // Un solo listUsers en vez de un getUserById por solicitud: la API
+      // admin de auth se degrada fuerte con llamadas concurrentes.
+      const { data: lista } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 })
+      const emailById = new Map((lista?.users ?? []).map(u => [u.id, u.email]))
+      return pendientes.map(s => ({ ...s, email: emailById.get(s.id) ?? 'Sin correo' }))
+    })(),
   ])
 
   const sedes = sedesData ?? []
@@ -68,43 +79,10 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
 
   const suspendidos = suspendidosRaw ?? []
 
-  const pendingCount = pendientesRaw?.length || 0
+  const pendingCount = solicitudes.length
 
-  const solicitudes = await Promise.all(
-    (pendientesRaw || []).map(async (s) => {
-      const { data } = await adminClient.auth.admin.getUserById(s.id)
-      return {
-        ...s,
-        email: data.user?.email ?? 'Sin correo',
-      }
-    })
-  )
-
-  const tabs = [
-    { key: 'activos', label: 'Trabajadores activos', count: activos.length },
-    { key: 'suspendidos', label: 'Suspendidos', count: suspendidos.length },
-    { key: 'solicitudes', label: 'Solicitudes pendientes', count: pendingCount },
-  ]
-
-  return (
-    <div data-screen-label="Admin · Trabajadores">
-      <EncabezadoPagina titulo="Trabajadores" sub="Gestión centralizada de personal y accesos a la plataforma">
-        <span className="badge badge-info">{activos.length} colaboradores activos</span>
-      </EncabezadoPagina>
-
-      {/* Tabs — chips didasko */}
-      <div className="chips entra entra-1" style={{ marginBottom: 22 }}>
-        {tabs.map((t) => (
-          <Link key={t.key} href={`?tab=${t.key}`} className={'chip' + (activeTab === t.key ? ' activo' : '')}>
-            {t.label}
-            {t.count > 0 && <span className="conteo">{t.count}</span>}
-          </Link>
-        ))}
-      </div>
-
-      {/* Content */}
-      {activeTab === 'solicitudes' ? (
-        <div className="card entra entra-2 tabla-envoltura">
+  const solicitudesContent = (
+    <div className="card entra entra-2 tabla-envoltura">
           <table className="tabla">
             <thead>
               <tr>
@@ -168,11 +146,22 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
             </tbody>
           </table>
         </div>
-      ) : activeTab === 'suspendidos' ? (
-        <SuspendedTable workers={suspendidos} />
-      ) : (
-        <WorkersTable workers={activos} sedes={sedes} />
-      )}
+  )
+
+  return (
+    <div data-screen-label="Admin · Trabajadores">
+      <EncabezadoPagina titulo="Trabajadores" sub="Gestión centralizada de personal y accesos a la plataforma">
+        <span className="badge badge-info">{activos.length} colaboradores activos</span>
+      </EncabezadoPagina>
+
+      <TabsTrabajadores
+        initialTab={activeTab}
+        tabs={[
+          { key: 'activos', label: 'Trabajadores activos', count: activos.length, content: <WorkersTable workers={activos} sedes={sedes} /> },
+          { key: 'suspendidos', label: 'Suspendidos', count: suspendidos.length, content: <SuspendedTable workers={suspendidos} /> },
+          { key: 'solicitudes', label: 'Solicitudes pendientes', count: pendingCount, content: solicitudesContent },
+        ]}
+      />
     </div>
   )
 }

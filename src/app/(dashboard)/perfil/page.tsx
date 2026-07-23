@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { ProfileClient } from './ProfileClient'
+import { ActivarNotificaciones } from '@/components/alumco/shared/ActivarNotificaciones'
 
 export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
@@ -11,11 +12,29 @@ export default async function PerfilPage() {
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, full_name, rut, sede, area_trabajo, role, status, fecha_nacimiento, avatar_url, firma_url, created_at, approved_at')
-    .eq('id', user.id)
-    .single() as { data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[] | null; role: string; status: string; fecha_nacimiento: string | null; avatar_url: string | null; firma_url: string | null; created_at: string; approved_at: string | null } | null }
+  // El perfil y las stats de trabajador se piden juntos: esperar el perfil
+  // para decidir la rama agregaba un round trip serial. Para admin/profesor
+  // las 3 queries extra son baratas (filtran por su propio user_id) y se
+  // descartan.
+  const [{ data: profile }, { data: wProgress }, { data: wCerts }, { data: wCourses }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, full_name, rut, sede, area_trabajo, role, status, fecha_nacimiento, avatar_url, firma_url, created_at, approved_at')
+      .eq('id', user.id)
+      .single() as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[] | null; role: string; status: string; fecha_nacimiento: string | null; avatar_url: string | null; firma_url: string | null; created_at: string; approved_at: string | null } | null }>,
+    supabase
+      .from('course_progress')
+      .select('course_id, is_completed, completed_modules')
+      .eq('user_id', user.id) as unknown as Promise<{ data: { course_id: string; is_completed: boolean; completed_modules: string[] | null }[] | null }>,
+    supabase
+      .from('certificates')
+      .select('id')
+      .eq('user_id', user.id) as unknown as Promise<{ data: { id: string }[] | null }>,
+    supabase
+      .from('courses')
+      .select('id, target_areas')
+      .eq('is_published', true) as unknown as Promise<{ data: { id: string; target_areas: string[] | null }[] | null }>,
+  ])
 
   const role = profile?.role ?? 'trabajador'
   const userId = profile?.id ?? user.id
@@ -91,20 +110,9 @@ export default async function PerfilPage() {
       ? Math.round((approvedAttempts / totalAttempts) * 100)
       : 0
   } else {
-    const [{ data: progress }, { data: certs }, { data: allCourses }] = await Promise.all([
-      supabase
-        .from('course_progress')
-        .select('course_id, is_completed, completed_modules')
-        .eq('user_id', user!.id) as unknown as Promise<{ data: { course_id: string; is_completed: boolean; completed_modules: string[] | null }[] | null }>,
-      supabase
-        .from('certificates')
-        .select('id')
-        .eq('user_id', user!.id) as unknown as Promise<{ data: { id: string }[] | null }>,
-      supabase
-        .from('courses')
-        .select('id, target_areas')
-        .eq('is_published', true) as unknown as Promise<{ data: { id: string; target_areas: string[] | null }[] | null }>,
-    ])
+    const progress = wProgress
+    const certs = wCerts
+    const allCourses = wCourses
 
     const workerAreas = (profile?.area_trabajo as string[]) ?? []
     const visibleCourseIds = new Set(
@@ -159,6 +167,8 @@ export default async function PerfilPage() {
         approvalRate={approvalRate}
         totalCerts={totalCerts}
       />
+
+      <ActivarNotificaciones />
     </div>
   )
 }

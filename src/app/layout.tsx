@@ -1,6 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
 import { Geist, Fraunces, Archivo, Playfair_Display } from 'next/font/google'
+import { ServiceWorkerRegistrar } from '@/components/alumco/shared/ServiceWorkerRegistrar'
 import './globals.css'
 
 const geist = Geist({
@@ -36,13 +37,23 @@ export const metadata: Metadata = {
     template: '%s | Alumco LMS',
   },
   description: 'Plataforma de capacitación continua para trabajadores ELEAM',
-  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    title: 'Alumco',
+    statusBarStyle: 'default',
+  },
+  icons: {
+    apple: '/icons/apple-touch-icon.png',
+  },
 }
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#1a56a4',
+  // Sin cover, iOS reporta env(safe-area-inset-*) = 0 y la barra inferior
+  // del PWA queda pegada al home indicator del iPhone.
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -57,6 +68,7 @@ export default function RootLayout({
         className={`${geist.variable} ${fraunces.variable} ${archivo.variable} ${playfair.variable} font-sans antialiased`}
       >
         {children}
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   )

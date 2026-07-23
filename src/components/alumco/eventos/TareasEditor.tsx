@@ -1,0 +1,220 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import { AlertCircle } from 'lucide-react'
+import { upsertTaskAction, toggleTaskStatusAction, deleteTaskAction } from '@/lib/actions/events'
+import { Icono, Progreso } from '@/components/alumco/ds'
+import { CheckTarea } from './CheckTarea'
+import type { EventTask } from '@/lib/types/database'
+
+interface SectionTasks {
+  id: string
+  name: string
+  tasks: EventTask[]
+}
+
+// Muestra "15 sept · 18:30" según lo que tenga la tarea (fecha, hora o ambas).
+function formatoVencimiento(dueDate: string | null, dueTime: string | null): string | null {
+  const partes: string[] = []
+  if (dueDate) {
+    partes.push(new Date(dueDate + 'T00:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' }))
+  }
+  if (dueTime) partes.push(dueTime.slice(0, 5))
+  return partes.length > 0 ? partes.join(' · ') : null
+}
+
+// Tareas agrupadas por sección. El status real tiene 3 valores
+// ('pendiente'|'en_progreso'|'completada') pero la UI v2 usa un checkbox
+// binario: marcar = 'completada', desmarcar = 'pendiente' (nunca vuelve a
+// 'en_progreso' desde acá). Editar título inline queda fuera de alcance
+// (YAGNI) — solo crear, marcar y eliminar.
+export function TareasEditor({ sections, isAdmin, eventDate }: {
+  sections: SectionTasks[]
+  isAdmin: boolean
+  // Fecha del evento: se usa como default del campo fecha de nuevas tareas
+  // (los eventos duran 1-2 días, casi todas vencen ese día — evita retipearla).
+  eventDate: string
+}) {
+  const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
+  // Secciones colapsables: parten cerradas (el header resume el avance) y
+  // se abre solo la que se está trabajando. Con una sola sección, abierta.
+  const [abiertas, setAbiertas] = useState<Set<string>>(
+    () => new Set(sections.length === 1 ? [sections[0].id] : [])
+  )
+
+  function toggleSeccion(id: string) {
+    setAbiertas(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function onAdd(sectionId: string, e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    setError(null)
+    startTransition(async () => {
+      const res = await upsertTaskAction(sectionId, formData)
+      if (res.error) setError(res.error)
+      else form.reset()
+    })
+  }
+
+  function onToggle(taskId: string, currentStatus: EventTask['status']) {
+    const next = currentStatus === 'completada' ? 'pendiente' : 'completada'
+    setError(null)
+    startTransition(async () => {
+      const res = await toggleTaskStatusAction(taskId, next)
+      if (res.error) setError(res.error)
+    })
+  }
+
+  function onDelete(taskId: string, title: string) {
+    if (!window.confirm(`¿Eliminar la tarea "${title}"?`)) return
+    setError(null)
+    startTransition(async () => {
+      const res = await deleteTaskAction(taskId)
+      if (res.error) setError(res.error)
+    })
+  }
+
+  const totalTareas = sections.reduce((acc, s) => acc + s.tasks.length, 0)
+
+  return (
+    <section className="card card-pad col entra" style={{ gap: 20 }}>
+      <h2 style={{ fontSize: 16.5 }}>Tareas por sección</h2>
+
+      {sections.length === 0 && <p className="silencio texto-s">Aún no hay secciones para asignar tareas.</p>}
+      {sections.length > 0 && totalTareas === 0 && <p className="silencio texto-s">Sin tareas todavía.</p>}
+
+      <ul className="col" style={{ gap: 18 }}>
+        {sections.map(s => {
+          const done = s.tasks.filter(t => t.status === 'completada').length
+          const abierta = abiertas.has(s.id)
+          return (
+            <li
+              key={s.id}
+              className="col"
+              style={{ gap: 10, border: '1px solid var(--arena-200)', borderRadius: 'var(--radio-m)', padding: 14 }}
+            >
+              <button
+                type="button"
+                onClick={() => toggleSeccion(s.id)}
+                aria-expanded={abierta}
+                className="fila"
+                style={{ justifyContent: 'space-between', gap: 10, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', font: 'inherit', color: 'inherit' }}
+              >
+                <span className="fila" style={{ gap: 8 }}>
+                  <Icono n={abierta ? 'chevD' : 'chevR'} s={16} />
+                  <span style={{ fontWeight: 600 }}>{s.name}</span>
+                </span>
+                <span className="texto-s silencio-3">
+                  {s.tasks.length === 0 ? 'sin tareas' : `${done}/${s.tasks.length}`}
+                </span>
+              </button>
+
+              {s.tasks.length > 0 && <Progreso pct={Math.round((done / s.tasks.length) * 100)} alto={6} />}
+
+              {!abierta ? null : s.tasks.length === 0 ? (
+                <p className="texto-s silencio-3">Sin tareas en esta sección.</p>
+              ) : (
+                <ul className="col" style={{ gap: 8 }}>
+                  {s.tasks.map(t => {
+                    const venc = formatoVencimiento(t.due_date, t.due_time)
+                    return (
+                    <li key={t.id} className="fila" style={{ gap: 6 }}>
+                      <CheckTarea
+                        checked={t.status === 'completada'}
+                        onToggle={() => onToggle(t.id, t.status)}
+                        disabled={pending || !isAdmin}
+                        label={`Marcar ${t.title}`}
+                      />
+                      <span
+                        className={'crece' + (t.status === 'completada' ? ' silencio-3' : '')}
+                        style={t.status === 'completada' ? { textDecoration: 'line-through' } : undefined}
+                      >
+                        {t.title}
+                      </span>
+                      {venc && (
+                        <span className="texto-s silencio-3">{venc}</span>
+                      )}
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(t.id, t.title)}
+                          disabled={pending}
+                          className="btn btn-ghost btn-sm btn-icon"
+                          aria-label={`Eliminar ${t.title}`}
+                        >
+                          <Icono n="basura" s={16} />
+                        </button>
+                      )}
+                    </li>
+                    )
+                  })}
+                </ul>
+              )}
+
+              {isAdmin && abierta && (
+                <form
+                  onSubmit={e => onAdd(s.id, e)}
+                  className="fila"
+                  style={{ gap: 10, flexWrap: 'wrap', borderTop: '1px solid var(--arena-200)', paddingTop: 12 }}
+                >
+                  <input
+                    name="title"
+                    required
+                    minLength={3}
+                    disabled={pending}
+                    placeholder="Nueva tarea…"
+                    className="input crece"
+                    style={{ minWidth: 160, flexBasis: '100%' }}
+                    aria-label={`Título de la tarea para ${s.name}`}
+                  />
+                  <label className="col" style={{ gap: 3 }}>
+                    <span className="texto-s silencio-3">Fecha (opcional)</span>
+                    <input
+                      type="date"
+                      name="due_date"
+                      defaultValue={eventDate}
+                      disabled={pending}
+                      className="input"
+                      aria-label={`Fecha límite para tarea de ${s.name}`}
+                    />
+                  </label>
+                  <label className="col" style={{ gap: 3 }}>
+                    <span className="texto-s silencio-3">Hora (opcional)</span>
+                    <input
+                      type="time"
+                      name="due_time"
+                      disabled={pending}
+                      className="input"
+                      aria-label={`Hora límite para tarea de ${s.name}`}
+                    />
+                  </label>
+                  <button type="submit" disabled={pending} className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-end' }}>Agregar</button>
+                </form>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="fila"
+          style={{ gap: 10, padding: '12px 14px', borderRadius: 'var(--radio-m)', background: 'var(--peligro-bg)', color: 'var(--peligro)', border: '2px solid var(--peligro)', boxShadow: '3px 3px 0 var(--peligro)', fontSize: 14.5, fontWeight: 600 }}
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+      )}
+    </section>
+  )
+}

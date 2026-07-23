@@ -20,7 +20,7 @@ function GotaMascota({ size = 56 }: { size?: number }) {
 
 export default function LoginPage() {
   return (
-    <div className="login-shell paleta-azul flex flex-col md:flex-row" style={{ minHeight: '100vh' }}>
+    <div className="login-shell paleta-azul flex flex-col md:flex-row">
 
       {/* Panel de marca — "Amanecer sobre agua" */}
       <div
@@ -111,19 +111,19 @@ export default function LoginPage() {
       </div>
 
       {/* Formulario */}
-      <div className="crece" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px', background: 'var(--crema)', backgroundImage: 'none' }}>
+      <div className="crece login-panel-form" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px', background: 'var(--crema)', backgroundImage: 'none' }}>
         <div className="col entra entra-1" style={{ width: 430, maxWidth: '100%', gap: 0 }}>
           <Link
             href="/"
-            className="texto-s silencio-3"
+            className="texto-s silencio-3 login-volver"
             style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 16 }}
           >
             <span aria-hidden="true">←</span> Volver a la página principal
           </Link>
 
           {/* Card del login (look típico: borde + sombra suave) */}
-          <div className="card" style={{ padding: '34px 32px' }}>
-            <div className="col" style={{ alignItems: 'center', gap: 6, marginBottom: 30, textAlign: 'center' }}>
+          <div className="card login-card" style={{ padding: '34px 32px' }}>
+            <div className="col login-encabezado" style={{ alignItems: 'center', gap: 6, marginBottom: 30, textAlign: 'center' }}>
               {/* Logo del cliente — ONG Alumco (marca KimünKo abajo) */}
               <Image
                 src="/LogoAlumco.png"
@@ -131,14 +131,15 @@ export default function LoginPage() {
                 width={168}
                 height={57}
                 priority
+                className="login-logo"
                 style={{ objectFit: 'contain' }}
               />
               <p className="texto-s silencio-3" style={{ marginTop: 6 }}>
                 Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · plataforma de capacitación de ONG Alumco
               </p>
             </div>
-            <h2 className="t-display" style={{ fontSize: 27, textAlign: 'center' }}>Ingreso a la plataforma</h2>
-            <p className="silencio" style={{ textAlign: 'center', marginTop: 6, marginBottom: 26 }}>
+            <h2 className="t-display login-titulo" style={{ fontSize: 27, textAlign: 'center' }}>Ingreso a la plataforma</h2>
+            <p className="silencio login-sub" style={{ textAlign: 'center', marginTop: 6, marginBottom: 26 }}>
               Ingrese sus credenciales para continuar.
             </p>
 

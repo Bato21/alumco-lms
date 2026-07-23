@@ -4,6 +4,9 @@
 CLAUDE.md
 .claude
 
+# Configuracion local de Codex
+/.codex/
+
 
 # local env files
 .env*.local

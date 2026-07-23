@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { getAdminAlerts } from '@/lib/actions/alerts'
 import { Avatar, Badge, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
 import type { IconoNombre } from '@/components/alumco/ds'
+import { EventoDashboardCard } from '@/components/alumco/eventos/EventoDashboardCard'
 
 export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
@@ -21,7 +23,8 @@ export default async function AdminDashboardPage() {
   const user = await getCachedUser()
   const adminClient = await createAdminClient()
 
-  // 6 queries en paralelo; el resto de las métricas se derivan en memoria.
+  // 6 queries + alertas en paralelo; el resto de las métricas se derivan en
+  // memoria. getAdminAlerts iba en serie después y sumaba ~150ms al TTFB.
   const [
     { data: profile },
     { data: workersData },
@@ -29,6 +32,7 @@ export default async function AdminDashboardPage() {
     { data: allProgress },
     { data: allCertificates },
     { count: pendingApprovals },
+    adminAlerts,
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -57,6 +61,7 @@ export default async function AdminDashboardPage() {
       .select('id', { count: 'exact', head: true })
       .eq('role', 'trabajador')
       .eq('status', 'pendiente') as unknown as Promise<{ count: number | null }>,
+    getAdminAlerts(),
   ])
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
@@ -171,7 +176,6 @@ export default async function AdminDashboardPage() {
   const atrasadosCount = workerFollowupAll.filter((w) => w.estado === 'atrasado').length
   const workerFollowup = workerFollowupAll.slice(0, 6)
 
-  const adminAlerts = await getAdminAlerts()
   // Vencidos (plazo ya pasado) separados de próximos: incumplimiento real vs aviso.
   const overdueAlerts = adminAlerts.alerts.filter((a) => a.urgency === 'overdue')
   const upcomingAlerts = adminAlerts.alerts.filter((a) => a.urgency !== 'overdue')
@@ -208,6 +212,11 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="col" style={{ gap: 20 }} data-screen-label="Admin · Dashboard">
+
+      {/* Streamea aparte: su cascada de queries no bloquea el resto del dashboard */}
+      <Suspense fallback={<div className="card card-pad"><div className="skeleton" style={{ height: 120 }} /></div>}>
+        <EventoDashboardCard userId={user!.id} isAdmin />
+      </Suspense>
 
       {/* Hero saludo (variante B) */}
       <div

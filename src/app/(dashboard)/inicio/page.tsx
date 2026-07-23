@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { DeadlineCalendar } from '@/components/alumco/curso/DeadlineCalendar'
 import WelcomeModal from '@/components/alumco/shared/WelcomeModal'
+import { EventoDashboardCard } from '@/components/alumco/eventos/EventoDashboardCard'
 import { Anillo, Onda, Icono } from '@/components/alumco/ds'
 import { type EstacionCurso, type EstadoCurso } from '@/components/alumco/curso/CauceCursos'
 import { RecorridoCapas } from '@/components/alumco/curso/RecorridoCapas'
@@ -14,7 +16,9 @@ export default async function InicioPage() {
   const supabase = await createClient()
   const user = await getCachedUser()
 
-  const [{ data: profile }, { data: courses }, { data: progressData }] = await Promise.all([
+  // Los módulos se piden junto al resto (sin esperar los ids de cursos) para
+  // evitar un segundo roundtrip en serie: el conteo se filtra en memoria.
+  const [{ data: profile }, { data: courses }, { data: progressData }, { data: allModules }] = await Promise.all([
     supabase
       .from('profiles')
       .select('full_name, sede, area_trabajo, onboarding_completed')
@@ -29,6 +33,9 @@ export default async function InicioPage() {
       .from('course_progress')
       .select('course_id, completed_modules, is_completed')
       .eq('user_id', user!.id) as unknown as Promise<{ data: { course_id: string; completed_modules: string[] | null; is_completed: boolean }[] | null }>,
+    supabase
+      .from('modules')
+      .select('course_id') as unknown as Promise<{ data: { course_id: string }[] | null }>,
   ])
 
   const workerAreas = profile?.area_trabajo ?? []
@@ -38,15 +45,12 @@ export default async function InicioPage() {
     workerAreas
   )
 
-  const courseIds = filteredCourses.map(c => c.id)
-  const { data: allModules } = await supabase
-    .from('modules')
-    .select('course_id')
-    .in('course_id', courseIds.length > 0 ? courseIds : ['none']) as { data: { course_id: string }[] | null }
-
+  const courseIdSet = new Set(filteredCourses.map(c => c.id))
   const totalModulesByCourse = new Map<string, number>()
   allModules?.forEach(m => {
-    totalModulesByCourse.set(m.course_id, (totalModulesByCourse.get(m.course_id) || 0) + 1)
+    if (courseIdSet.has(m.course_id)) {
+      totalModulesByCourse.set(m.course_id, (totalModulesByCourse.get(m.course_id) || 0) + 1)
+    }
   })
 
   // Calcular stats
@@ -132,6 +136,11 @@ export default async function InicioPage() {
           sede={profile?.sede ?? 'sede_1'}
         />
       )}
+
+      {/* Streamea aparte: su cascada de queries no bloquea el resto del inicio */}
+      <Suspense fallback={<div className="card card-pad"><div className="skeleton" style={{ height: 120 }} /></div>}>
+        <EventoDashboardCard userId={user!.id} isAdmin={false} />
+      </Suspense>
 
       {/* Saludo */}
       <div className="entra">

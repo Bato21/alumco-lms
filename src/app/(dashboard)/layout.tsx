@@ -39,7 +39,7 @@ export default async function DashboardLayout({
       />
       <main
         id="main-content"
-        className="relative z-10 flex-1 w-full mx-auto max-w-[1080px] px-5 pt-7 pb-24 lg:pb-16"
+        className="relative z-10 flex-1 w-full mx-auto max-w-[1080px] px-5 pt-7 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-16"
       >
         {children}
       </main>

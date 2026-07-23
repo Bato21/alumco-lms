@@ -23,12 +23,14 @@ interface WorkerTopNavProps {
 const NAV: { href: string; label: string; icono: IconoNombre; exact?: boolean }[] = [
   { href: '/inicio', label: 'Inicio', icono: 'inicio' },
   { href: '/cursos', label: 'Mis cursos', icono: 'cursos', exact: true },
+  { href: '/eventos', label: 'Eventos', icono: 'calendario' },
   { href: '/mis-certificados', label: 'Certificados', icono: 'certificado' },
 ]
 
 const TABS: { href: string; label: string; icono: IconoNombre; exact?: boolean }[] = [
   { href: '/inicio', label: 'Inicio', icono: 'inicio' },
   { href: '/cursos', label: 'Cursos', icono: 'cursos', exact: true },
+  { href: '/eventos', label: 'Eventos', icono: 'calendario' },
   { href: '/mis-certificados', label: 'Certificados', icono: 'certificado' },
   { href: '/perfil', label: 'Perfil', icono: 'perfil' },
 ]
@@ -101,7 +103,10 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
       </header>
 
       {/* Móvil: cabecera */}
-      <header className="topbar lg:hidden" style={{ position: 'sticky', top: 0, zIndex: 30, padding: '10px 16px' }}>
+      <header
+        className="topbar lg:hidden"
+        style={{ position: 'sticky', top: 0, zIndex: 30, padding: '10px 16px', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)' }}
+      >
         <Link href="/inicio" aria-label="Inicio" style={{ textDecoration: 'none' }} className="fila">
           <Gota s={24} />
           <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1 }}>
@@ -125,7 +130,12 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
           zIndex: 40,
           borderTop: '2px solid var(--azul-800)',
           background: 'var(--blanco)',
-          paddingBottom: 'env(safe-area-inset-bottom, 6px)',
+          // Patrón tab bar iOS: los ítems quedan completos sobre el home
+          // indicator (safe-area) más un colchón de 8px, y el fondo blanco
+          // se extiende hasta el borde físico de la pantalla.
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
+          paddingLeft: 'env(safe-area-inset-left, 0px)',
+          paddingRight: 'env(safe-area-inset-right, 0px)',
         }}
       >
         {TABS.map((t) => {

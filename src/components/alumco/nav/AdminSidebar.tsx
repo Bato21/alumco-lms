@@ -28,6 +28,7 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
   const gestion: NavItem[] = [
     { href: '/admin/dashboard', label: 'Dashboard', icono: 'inicio', show: true },
     { href: '/admin/cursos', label: 'Cursos', icono: 'cursos', show: true },
+    { href: '/admin/eventos', label: 'Eventos', icono: 'calendario', show: true },
     { href: '/admin/trabajadores', label: 'Trabajadores', icono: 'usuarios', show: isAdmin },
     { href: '/admin/sedes', label: 'Sedes', icono: 'sede', show: isAdmin },
     { href: '/admin/reportes', label: 'Reportes', icono: 'reportes', show: true },
