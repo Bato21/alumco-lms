@@ -720,6 +720,7 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
   /* bordes neutros suaves (didasko los pone azul marino, demasiado duro) */
   --borde:       #ded7c8;
   --borde-suave: #ece6d9;
+  --foco-glow:   rgba(110, 139, 106, 0.22); /* glow de foco (verde) */
 }
 .paleta-oliva .acento-claro { color: var(--oliva-clara) !important; }
 
@@ -742,20 +743,21 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
   /* bordes neutros fríos */
   --borde:       #DCE2EC;
   --borde-suave: #E8EDF4;
+  --foco-glow:   rgba(245, 166, 35, 0.22); /* glow de foco (ambar) */
 }
 .paleta-azul .acento-claro { color: var(--oliva-clara) !important; }
 
 /* ============================================================
    ADMIN CALMO — menos brutalismo, más claridad de datos
    (bajar carga cognitiva: PDFs usabilidad/redacción web).
-   Solo dentro de .paleta-oliva.
+   Aplica a ambas paletas de plataforma (.paleta-oliva y .paleta-azul).
    ============================================================ */
 /* Fondo liso + números tabulares (columnas de métricas no bailan) */
-.paleta-oliva { background: var(--crema); font-variant-numeric: tabular-nums; }
+:is(.paleta-oliva, .paleta-azul) { background: var(--crema); font-variant-numeric: tabular-nums; }
 
 /* Tipografía display = la del landing: serif Playfair, sentence-case
    (mata el Archivo mayúsculas peso 800 "tipo cómic"). Cuerpo sigue Geist. */
-body[data-tema="didasko"] .paleta-oliva .t-display {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-display {
   font-family: var(--font-serif-display), "Playfair Display", Georgia, serif;
   text-transform: none;
   font-weight: 500;
@@ -764,31 +766,31 @@ body[data-tema="didasko"] .paleta-oliva .t-display {
 }
 
 /* IMPORTANTE: didasko usa selector `body[data-tema=...]` (más específico que
-   `.paleta-oliva`). Para ganar la cascada, TODO override lleva el mismo prefijo. */
+   `:is(.paleta-oliva, .paleta-azul)`). Para ganar la cascada, TODO override lleva el mismo prefijo. */
 
 /* Cards: hairline casi invisible + sombra whisper. Se leen por espacio en
    blanco, no por contorno navy (los bordes gruesos competían por atención). */
-body[data-tema="didasko"] .paleta-oliva .card {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .card {
   border: 1px solid #ece7dd;
   border-radius: 14px;
   box-shadow: 0 1px 2px rgba(20, 40, 100, 0.04), 0 1px 1px rgba(20, 40, 100, 0.03);
 }
-body[data-tema="didasko"] .paleta-oliva .card-hover:hover {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(20, 40, 100, 0.08);
 }
-body[data-tema="didasko"] .paleta-oliva article.card:nth-of-type(6n+1),
-body[data-tema="didasko"] .paleta-oliva article.card:nth-of-type(6n+4) { background: var(--blanco); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) article.card:nth-of-type(6n+1),
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) article.card:nth-of-type(6n+4) { background: var(--blanco); }
 
 /* Hero / bloques de marca: sin borde, esquinas suaves, sombra discreta */
-body[data-tema="didasko"] .paleta-oliva .card.bloque-marca {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .card.bloque-marca {
   border: none;
   border-radius: 16px;
   box-shadow: 0 4px 16px rgba(21, 42, 102, 0.14);
 }
 
 /* Eyebrow: texto plano (didasko fuerza color navy con !important → !important) */
-body[data-tema="didasko"] .paleta-oliva .t-eyebrow {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-eyebrow {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
@@ -797,7 +799,7 @@ body[data-tema="didasko"] .paleta-oliva .t-eyebrow {
 }
 
 /* "9 vencimientos": ámbar marca de texto, sin caja (didasko fuerza navy → !important) */
-body[data-tema="didasko"] .paleta-oliva .t-display em {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-display em {
   background: none !important;
   color: #F5A623 !important;
   box-shadow: none !important;
@@ -808,14 +810,14 @@ body[data-tema="didasko"] .paleta-oliva .t-display em {
 }
 
 /* Botones: planos, borde hairline, sin sombra dura ni salto */
-body[data-tema="didasko"] .paleta-oliva .btn { border-width: 1px; }
-body[data-tema="didasko"] .paleta-oliva .btn-secondary { border: 1px solid var(--borde); box-shadow: none; }
-body[data-tema="didasko"] .paleta-oliva .btn-primary { box-shadow: none; }
-body[data-tema="didasko"] .paleta-oliva .btn-secondary:hover { transform: none; background: var(--ambar-50); }
-body[data-tema="didasko"] .paleta-oliva .btn-primary:hover { transform: none; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn { border-width: 1px; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-secondary { border: 1px solid var(--borde); box-shadow: none; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-primary { box-shadow: none; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-secondary:hover { transform: none; background: var(--ambar-50); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-primary:hover { transform: none; }
 
 /* Badges: relleno suave, sin borde ni mayúsculas */
-body[data-tema="didasko"] .paleta-oliva .badge {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .badge {
   border: none;
   text-transform: none;
   letter-spacing: 0.01em;
@@ -824,23 +826,23 @@ body[data-tema="didasko"] .paleta-oliva .badge {
 }
 
 /* Tabla / avatar / chips / inputs: bordes hairline, sin navy duro */
-body[data-tema="didasko"] .paleta-oliva .tabla th { border-bottom: 1px solid var(--borde-suave); color: var(--tinta-3); }
-body[data-tema="didasko"] .paleta-oliva .avatar { border: none; }
-body[data-tema="didasko"] .paleta-oliva .chip { border: 1px solid var(--borde); box-shadow: none; }
-body[data-tema="didasko"] .paleta-oliva .input,
-body[data-tema="didasko"] .paleta-oliva .select,
-body[data-tema="didasko"] .paleta-oliva .textarea,
-body[data-tema="didasko"] .paleta-oliva .input-busqueda { border: 1px solid var(--borde); }
-body[data-tema="didasko"] .paleta-oliva .input-busqueda:focus-within,
-body[data-tema="didasko"] .paleta-oliva .input:focus,
-body[data-tema="didasko"] .paleta-oliva .select:focus,
-body[data-tema="didasko"] .paleta-oliva .textarea:focus { border-color: var(--ambar); box-shadow: 0 0 0 3px rgba(110, 139, 106, 0.22); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .tabla th { border-bottom: 1px solid var(--borde-suave); color: var(--tinta-3); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .avatar { border: none; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .chip { border: 1px solid var(--borde); box-shadow: none; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input,
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .select,
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .textarea,
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input-busqueda { border: 1px solid var(--borde); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input-busqueda:focus-within,
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input:focus,
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .select:focus,
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .textarea:focus { border-color: var(--ambar); box-shadow: 0 0 0 3px var(--foco-glow); }
 
 /* Sidebar / topbar: separadores finos; activo sin sombra dura */
-body[data-tema="didasko"] .paleta-oliva .sidebar { border-right: 1px solid var(--borde-suave); }
-body[data-tema="didasko"] .paleta-oliva .topbar { border-bottom: 1px solid var(--borde-suave); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .sidebar { border-right: 1px solid var(--borde-suave); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .topbar { border-bottom: 1px solid var(--borde-suave); }
 /* Activo: navy translúcido para ver la gota por detrás; pill por encima de la gota */
-body[data-tema="didasko"] .paleta-oliva .nav-item.activo {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .nav-item.activo {
   box-shadow: none;
   position: relative;
   z-index: 1;
@@ -849,8 +851,8 @@ body[data-tema="didasko"] .paleta-oliva .nav-item.activo {
 
 /* Gota indicadora: se desliza al tab activo (spring) + respira (como el login).
    reduce-motion la deja quieta (el bloque global mata animación/transición). */
-body[data-tema="didasko"] .paleta-oliva .sidebar-nav { position: relative; }
-body[data-tema="didasko"] .paleta-oliva .gota-indicador {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .sidebar-nav { position: relative; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .gota-indicador {
   position: absolute;
   top: 0;
   right: 28px;
@@ -861,7 +863,7 @@ body[data-tema="didasko"] .paleta-oliva .gota-indicador {
   transition: transform 0.6s cubic-bezier(0.34, 1.5, 0.5, 1);
   will-change: transform;
 }
-body[data-tema="didasko"] .paleta-oliva .gota-idle {
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .gota-idle {
   display: block;
   transform-origin: 50% 88%;
   animation: gota-respira 4.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
@@ -874,3 +876,232 @@ body[data-tema="didasko"] .paleta-oliva .gota-idle {
 
 /* Login coherente con el admin: las gotitas del splat también en sage/oliva */
 .paleta-oliva .mascot-drips span { background: var(--oliva-clara); }
+
+/* ============================================================
+   CAUCE DE APRENDIZAJE — sendero vertical tematizado como río
+   (KimünKo: Kimün = conocimiento, Ko = agua). El agua baja por el
+   cauce hasta la estación actual (marcada con la gota). Cards
+   alternan lado izq/der en desktop; apiladas a la derecha en móvil.
+   ============================================================ */
+.cauce {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.cauce-fila {
+  display: grid;
+  grid-template-columns: 1fr 88px 1fr;
+  align-items: center;
+  column-gap: 4px;
+}
+
+/* Card a un lado u otro del cauce (winding) */
+.cauce-fila > .cauce-card,
+.cauce-fila > .cauce-meta-texto {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: end;
+  max-width: 460px;
+  width: 100%;
+}
+.cauce-fila[data-lado="der"] > .cauce-card,
+.cauce-fila[data-lado="der"] > .cauce-meta-texto {
+  grid-column: 3;
+  justify-self: start;
+}
+
+/* Riel central: dos mitades de línea (arriba/abajo del nodo) para
+   controlar el nivel del agua con precisión aunque las cards midan distinto. */
+.cauce-rail {
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  align-self: stretch;
+  min-height: 96px;
+}
+.cauce-rail::before,
+.cauce-rail::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  border-radius: 4px;
+}
+.cauce-rail::before { top: 0; height: 50%; background: var(--linea-top, var(--borde)); }
+.cauce-rail::after  { top: 50%; height: 50%; background: var(--linea-bot, var(--borde)); }
+
+/* Flujo del agua: leve corriente descendente en los tramos mojados */
+.cauce-rail::before,
+.cauce-rail::after {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.35) 45%,
+    rgba(255, 255, 255, 0) 90%
+  );
+  background-size: 100% 220%;
+  background-repeat: no-repeat;
+  animation: cauce-fluye 2.6s linear infinite;
+}
+@keyframes cauce-fluye {
+  from { background-position: 50% -120%; }
+  to   { background-position: 50% 220%; }
+}
+
+/* Nodo (estación) centrado sobre el riel */
+.cauce-nodo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(21, 42, 102, 0.14);
+}
+.cauce-nodo.es-hecho {
+  background: var(--azul-700);
+  color: #fff;
+}
+.cauce-nodo.es-seco {
+  background: #fff;
+  border: 2px solid var(--borde);
+  box-shadow: 0 1px 3px rgba(21, 42, 102, 0.08);
+}
+.cauce-nodo.es-seco .cauce-punto {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--borde);
+}
+.cauce-nodo.es-actual {
+  width: 62px;
+  height: 62px;
+  background: var(--grad-marca);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(21, 42, 102, 0.28);
+}
+
+/* Onda expansiva de la estación actual (respira como el login) */
+.cauce-onda {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--ambar);
+  opacity: 0;
+  animation: cauce-pulso 2.1s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+@keyframes cauce-pulso {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  70%  { transform: scale(1.55); opacity: 0; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+/* Card del cauce: hereda .card; resalte suave cuando es la actual */
+.cauce-card { padding: 16px 18px; }
+.cauce-card.es-actual {
+  border-color: var(--ambar) !important;
+  box-shadow: 0 6px 20px rgba(245, 166, 35, 0.16) !important;
+}
+
+/* Hito final (certificación) */
+.cauce-nodo-meta.es-logrado { background: var(--ambar); color: #fff; }
+.cauce-meta-texto { padding: 4px 2px; }
+
+/* Móvil: riel a la izquierda, cards siempre a la derecha */
+@media (max-width: 720px) {
+  .cauce-fila { grid-template-columns: 58px 1fr; column-gap: 14px; }
+  .cauce-fila > .cauce-card,
+  .cauce-fila[data-lado="der"] > .cauce-card,
+  .cauce-fila > .cauce-meta-texto,
+  .cauce-fila[data-lado="der"] > .cauce-meta-texto {
+    grid-column: 2;
+    justify-self: stretch;
+    max-width: none;
+  }
+  .cauce-rail { grid-column: 1; min-height: 88px; }
+  .cauce-nodo { width: 46px; height: 46px; }
+  .cauce-nodo.es-actual { width: 52px; height: 52px; }
+}
+
+/* Respeta reduce-motion (además del bloque global) */
+@media (prefers-reduced-motion: reduce) {
+  .cauce-rail::before,
+  .cauce-rail::after,
+  .cauce-onda { animation: none; }
+  .cauce-rail::before,
+  .cauce-rail::after { background-image: none; }
+}
+
+/* ---------- Recorrido por capas (versión horizontal "Horizonte") ---------- */
+.recorrido-capas {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(132px, 1fr);
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.recorrido-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+.recorrido-col:hover { text-decoration: none; }
+.recorrido-linea {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 58px;
+}
+.recorrido-conector { flex: 1; height: 3px; border-radius: 2px; }
+.recorrido-nodo {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.recorrido-nodo.es-hecho {
+  background: var(--azul-700);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(21, 42, 102, 0.14);
+}
+.recorrido-nodo.es-actual {
+  width: 54px;
+  height: 54px;
+  background: var(--grad-marca);
+  border: 2px solid var(--ambar);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(21, 42, 102, 0.28);
+}
+.recorrido-nodo.es-seco {
+  background: var(--blanco);
+  border: 2px dashed #cfc4a4;
+}
+.recorrido-punto {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--arena-200);
+}
+.recorrido-texto { text-align: center; margin-top: 10px; padding: 0 8px; }
+.recorrido-titulo {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--tinta);
+  transition: color 0.15s ease;
+}
+.recorrido-col:hover .recorrido-titulo { color: var(--ambar-700); }
+.recorrido-sub { font-size: 12px; font-weight: 600; margin-top: 3px; }

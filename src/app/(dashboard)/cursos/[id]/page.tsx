@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { CertificateBadge } from '@/components/alumco/certificado/CertificateBadge'
-import { CourseBannerImage } from '@/components/alumco/CourseBannerImage'
 import Link from 'next/link'
 import type { ContentType, Module } from '@/lib/types/database'
-import { Badge, BadgeEstado, Anillo, Onda, Icono, type IconoNombre } from '@/components/alumco/ds'
+import { Badge, BadgeEstado, Progreso, Icono, type IconoNombre } from '@/components/alumco/ds'
+import { DibujoGota } from '@/components/alumco/curso/DibujoGota'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -126,35 +126,82 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
         <Icono n="flechaIzq" s={18} /> Volver a mis cursos
       </Link>
 
-      {/* Hero del curso */}
+      {/* Encabezado del curso · la gota se traza con tu avance */}
       <div
-        className="card bloque-marca entra entra-1"
-        style={{ background: 'var(--grad-marca)', border: 'none', color: '#fff', overflow: 'hidden', position: 'relative' }}
+        className="card entra entra-1"
+        style={{
+          overflow: 'hidden',
+          padding: 0,
+          backgroundColor: 'var(--arena-100)',
+          backgroundImage: 'radial-gradient(#e0d6ba 1.2px, transparent 1.2px)',
+          backgroundSize: '22px 22px',
+        }}
       >
-        {/* Imagen del banner detrás del contenido (si hay foto) */}
-        <CourseBannerImage
-          thumbnailUrl={course.thumbnail_url}
-          targetAreas={course.target_areas ?? []}
-          lineHeight={8}
-        />
-
-        <div style={{ padding: '30px 32px 18px', position: 'relative', zIndex: 1 }}>
-          <div className="fila" style={{ gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-            <BadgeEstado estado={estadoCurso} />
-            {(course.target_areas ?? []).slice(0, 1).map((a) => (
-              <Badge key={a} tono="info" punto={false}>{a}</Badge>
-            ))}
+        <div className="fila" style={{ gap: 40, flexWrap: 'wrap', alignItems: 'center', padding: '28px 32px' }}>
+          {/* Info del curso + acción */}
+          <div className="crece" style={{ minWidth: 280, flexBasis: 360 }}>
+            <div className="fila" style={{ gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+              <BadgeEstado estado={estadoCurso} />
+              {(course.target_areas ?? []).slice(0, 1).map((a) => (
+                <Badge key={a} tono="info" punto={false}>{a}</Badge>
+              ))}
+            </div>
+            <h1 className="t-display" style={{ fontSize: 30, maxWidth: 460 }}>{course.title}</h1>
+            {course.description && (
+              <p className="silencio" style={{ marginTop: 10, maxWidth: 440, fontSize: 15.5 }}>{course.description}</p>
+            )}
+            <div className="fila texto-s silencio" style={{ gap: 20, marginTop: 16, flexWrap: 'wrap' }}>
+              <span className="fila" style={{ gap: 6 }}><Icono n="doc" s={16} />{totalModules} módulos</span>
+              <span className="fila" style={{ gap: 6 }}><Icono n="check" s={16} />{completedModules} completados</span>
+            </div>
+            <div className="col" style={{ gap: 6, marginTop: 16, maxWidth: 360 }}>
+              <div className="fila texto-s">
+                <span className="crece silencio">{isCourseCompleted ? '¡Curso completado!' : 'Avance del dibujo'}</span>
+                <strong style={{ color: isCourseCompleted ? 'var(--ok)' : 'var(--ambar-700)' }}>{courseProgress}%</strong>
+              </div>
+              <Progreso pct={courseProgress} />
+            </div>
+            {nextModule ? (
+              <Link href={`/cursos/${course.id}/modulos/${nextModule.id}`} className="btn btn-primary btn-lg" style={{ marginTop: 18 }}>
+                <Icono n="play" s={20} /> {courseProgress > 0 ? 'Continuar' : 'Comenzar curso'}
+              </Link>
+            ) : modules && modules.length > 0 ? (
+              <Link href={`/cursos/${course.id}/modulos/${modules[0].id}`} className="btn btn-secondary btn-lg" style={{ marginTop: 18 }}>
+                Repasar curso
+              </Link>
+            ) : null}
           </div>
-          <h1 className="t-display" style={{ fontSize: 30, color: '#fff', maxWidth: 640 }}>{course.title}</h1>
-          {course.description && (
-            <p style={{ color: 'rgba(255,255,255,0.72)', marginTop: 10, maxWidth: 600, fontSize: 15.5 }}>{course.description}</p>
-          )}
-          <div className="fila texto-s" style={{ gap: 20, marginTop: 16, color: 'rgba(255,255,255,0.85)', flexWrap: 'wrap' }}>
-            <span className="fila" style={{ gap: 6 }}><Icono n="doc" s={16} />{totalModules} módulos</span>
-            <span className="fila" style={{ gap: 6 }}><Icono n="check" s={16} />{completedModules} completados</span>
+
+          {/* Dibujo grande (papel con cinta) */}
+          <div className="crece" style={{ position: 'relative', minWidth: 320, flexBasis: 460, transform: 'rotate(-0.5deg)' }}>
+            <div
+              style={{
+                background: 'var(--blanco)',
+                border: '1px solid var(--borde)',
+                borderRadius: 18,
+                boxShadow: 'var(--sombra-2)',
+                padding: '24px 26px 16px',
+              }}
+            >
+              <DibujoGota
+                avance={courseProgress}
+                tinta={isCourseCompleted ? 'var(--ok)' : undefined}
+                sol={isCourseCompleted ? 'var(--ok)' : undefined}
+              />
+              <div className="fila" style={{ gap: 12, marginTop: 12, borderTop: '1px solid var(--borde-suave)', paddingTop: 12 }}>
+                <span style={{ fontFamily: 'var(--fuente-display)', fontStyle: 'italic', fontSize: 15, color: 'var(--tinta-2)' }}>
+                  «La gota de Kimün»
+                </span>
+                <span className="crece" />
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: isCourseCompleted ? 'var(--ok)' : 'var(--ambar-700)' }}>
+                  {courseProgress}% trazado
+                </span>
+              </div>
+            </div>
+            <span aria-hidden style={{ position: 'absolute', top: -10, left: 40, width: 78, height: 22, background: 'rgba(245,166,35,0.32)', transform: 'rotate(-3deg)', borderRadius: 2 }} />
+            <span aria-hidden style={{ position: 'absolute', top: -10, right: 40, width: 78, height: 22, background: 'rgba(245,166,35,0.32)', transform: 'rotate(2.5deg)', borderRadius: 2 }} />
           </div>
         </div>
-        <Onda alto={30} />
       </div>
 
       <div className="entra entra-2 grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 items-start">
@@ -190,25 +237,6 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
         {/* Panel lateral */}
         <div className="col" style={{ gap: 20 }}>
-          <div className="card card-pad col" style={{ gap: 16, alignItems: 'center', textAlign: 'center' }}>
-            <Anillo pct={courseProgress} s={110} grosor={11} color={isCourseCompleted ? 'var(--ok)' : 'var(--ambar)'} />
-            <div>
-              <h3 style={{ fontSize: 17 }}>{isCourseCompleted ? '¡Curso completado!' : 'Vas por buen camino'}</h3>
-              <p className="texto-s silencio" style={{ marginTop: 4 }}>
-                {completedModules} de {totalModules} módulos completados.
-              </p>
-            </div>
-            {nextModule ? (
-              <Link href={`/cursos/${course.id}/modulos/${nextModule.id}`} className="btn btn-primary btn-lg" style={{ width: '100%' }}>
-                <Icono n="play" s={20} /> {courseProgress > 0 ? 'Continuar' : 'Comenzar curso'}
-              </Link>
-            ) : modules && modules.length > 0 ? (
-              <Link href={`/cursos/${course.id}/modulos/${modules[0].id}`} className="btn btn-secondary btn-lg" style={{ width: '100%' }}>
-                Repasar curso
-              </Link>
-            ) : null}
-          </div>
-
           {isCourseCompleted && certificate && profile ? (
             <div className="card card-pad">
               <CertificateBadge certificate={certificate} courseName={course.title} workerName={profile.full_name} />

@@ -5,7 +5,8 @@ import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { DeadlineCalendar } from '@/components/alumco/curso/DeadlineCalendar'
 import WelcomeModal from '@/components/alumco/shared/WelcomeModal'
 import { Anillo, Onda, Icono } from '@/components/alumco/ds'
-import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/curso/CursoCardTrab'
+import { type EstacionCurso, type EstadoCurso } from '@/components/alumco/curso/CauceCursos'
+import { RecorridoCapas } from '@/components/alumco/curso/RecorridoCapas'
 
 export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
 
@@ -54,12 +55,15 @@ export default async function InicioPage() {
     const completed = Array.isArray(progress?.completed_modules)
       ? progress.completed_modules.length
       : 0
-    const total = totalModulesByCourse.get(course.id) || 1
-    const progressPct = Math.round((completed / total) * 100)
+    const totalModules = totalModulesByCourse.get(course.id) || 0
+    const progressPct = Math.round((completed / (totalModules || 1)) * 100)
 
     let status: 'completed' | 'in_progress' | 'not_started' = 'not_started'
     if (progress?.is_completed) status = 'completed'
     else if (completed > 0) status = 'in_progress'
+
+    // Módulos que cuentan para el dibujo: un curso completado cuenta entero.
+    const completedModules = status === 'completed' ? totalModules : Math.min(completed, totalModules)
 
     // Calcular estado del deadline
     const today = new Date()
@@ -76,17 +80,18 @@ export default async function InicioPage() {
       else deadlineStatus = 'ok'
     }
 
-    return { ...course, status, progressPct, deadlineStatus }
+    return { ...course, status, progressPct, deadlineStatus, completedModules, totalModules }
   })
 
   const totalCourses = coursesWithStatus.length
   const completedCount = coursesWithStatus.filter(c => c.status === 'completed').length
 
-  const cumulativeProgress = coursesWithStatus.length > 0
-    ? Math.round(
-        coursesWithStatus.reduce((acc, c) => acc + c.progressPct, 0) /
-        coursesWithStatus.length
-      )
+  // El dibujo crece por módulos completados sobre el total de módulos de todos
+  // los cursos: cada módulo aporta lo mismo, sin diferencia entre cursos.
+  const totalModulesAll = coursesWithStatus.reduce((acc, c) => acc + c.totalModules, 0)
+  const completedModulesAll = coursesWithStatus.reduce((acc, c) => acc + c.completedModules, 0)
+  const cumulativeProgress = totalModulesAll > 0
+    ? Math.round((completedModulesAll / totalModulesAll) * 100)
     : 0
 
   const firstName = profile?.full_name?.split(' ')[0] ?? 'Bienvenido'
@@ -100,9 +105,16 @@ export default async function InicioPage() {
     coursesWithStatus.find((c) => c.status === 'in_progress') ??
     coursesWithStatus.find((c) => c.status === 'not_started')
 
-  const proximos = coursesWithStatus
-    .filter((c) => c.id !== continuar?.id && c.status !== 'completed')
-    .slice(0, 3)
+  const estaciones: EstacionCurso[] = coursesWithStatus.map((c) => ({
+    id: c.id,
+    titulo: c.title,
+    href: `/cursos/${c.id}`,
+    estado: estadoCurso(c.status),
+    progreso: c.progressPct,
+    modulos: totalModulesByCourse.get(c.id) ?? 0,
+    esActual: c.id === continuar?.id,
+    deadlineStatus: c.deadlineStatus,
+  }))
 
   const alertCourse =
     coursesWithStatus.find((c) => c.deadlineStatus === 'overdue') ??
@@ -159,25 +171,17 @@ export default async function InicioPage() {
         </div>
       )}
 
-      {/* Próximos cursos */}
-      {proximos.length > 0 && (
-        <div className="entra entra-2">
-          <div className="fila" style={{ marginBottom: 14 }}>
-            <h2 className="t-display crece" style={{ fontSize: 23 }}>Tus próximos cursos</h2>
+      {/* Tu recorrido · una capa del dibujo por cada curso */}
+      {estaciones.length > 0 && (
+        <div className="card card-pad entra entra-2 col" style={{ gap: 20 }}>
+          <div className="fila">
+            <div className="crece">
+              <span className="t-eyebrow">◆ Tu recorrido · {totalCourses} {totalCourses === 1 ? 'curso' : 'cursos'}</span>
+              <h2 className="t-display" style={{ fontSize: 23, marginTop: 6 }}>Tu avance por cursos</h2>
+            </div>
             <Link href="/cursos" className="btn btn-ghost">Ver todos <Icono n="chevR" s={17} /></Link>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: 18 }}>
-            {proximos.map((c) => (
-              <CursoCardTrab
-                key={c.id}
-                titulo={c.title}
-                href={`/cursos/${c.id}`}
-                estado={estadoCurso(c.status)}
-                progreso={c.progressPct}
-                meta={`${totalModulesByCourse.get(c.id) ?? 0} módulos`}
-              />
-            ))}
-          </div>
+          <RecorridoCapas estaciones={estaciones} />
         </div>
       )}
 
