@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { profileInScope } from '@/lib/auth/demoScope'
 import { z } from 'zod'
 import { type Sede, type UserRole, type ProfileStatus } from '@/lib/types/database'
 
@@ -197,10 +198,13 @@ export async function approveWorkerAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
 
-  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
+  const { data: callerProfile } = await supabase.from('profiles').select('role, is_demo').eq('id', user.id).single() as { data: { role: string; is_demo: boolean | null } | null }
   if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
   const adminClient = await createAdminClient()
+  if (!(await profileInScope(adminClient, parsed.data.profileId, callerProfile.is_demo === true))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ac = adminClient as any
 
@@ -232,7 +236,7 @@ export async function rejectWorkerAction(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'No autenticado' }
 
-  const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
+  const { data: callerProfile } = await supabase.from('profiles').select('role, is_demo').eq('id', user.id).single() as { data: { role: string; is_demo: boolean | null } | null }
   if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
   // Usamos el cliente con privilegios de administrador para saltar el RLS
@@ -242,6 +246,10 @@ export async function rejectWorkerAction(formData: FormData) {
 
   const profileId = formData.get('profileId') as string
   if (!profileId) return { error: 'ID de perfil no proporcionado' }
+
+  if (!(await profileInScope(adminClient, profileId, callerProfile.is_demo === true))) {
+    return { error: 'No autorizado' }
+  }
 
   // 3. Buscamos el perfil usando el adminClient
   const { data: profile, error: searchError } = await ac

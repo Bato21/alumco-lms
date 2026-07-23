@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { courseInScope } from '@/lib/auth/demoScope'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { type Question } from '@/lib/types/database'
@@ -54,6 +55,9 @@ export async function saveQuestionAction(
     }
 
     const adminClient = await createAdminClient()
+    if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+      return { success: false, error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 
@@ -100,6 +104,9 @@ export async function deleteQuestionAction(
     if (!auth.ok) return { success: false, error: auth.error }
 
     const adminClient = await createAdminClient()
+    if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+      return { success: false, error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 

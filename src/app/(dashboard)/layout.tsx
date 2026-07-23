@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { WorkerTopNav } from '@/components/alumco/nav/WorkerTopNav'
 import { CursorBlobs } from '@/components/alumco/shared/CursorBlobs'
+import { DemoBanner } from '@/components/alumco/shared/DemoBanner'
 import { getWorkerAlerts } from '@/lib/actions/alerts'
 
 export default async function DashboardLayout({
@@ -17,9 +18,9 @@ export default async function DashboardLayout({
   const [{ data: profile }, workerAlerts] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, role, sede, area_trabajo, avatar_url')
+      .select('full_name, role, sede, area_trabajo, avatar_url, is_demo')
       .eq('id', user.id)
-      .single() as unknown as Promise<{ data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null; avatar_url: string | null } | null }>,
+      .single() as unknown as Promise<{ data: { full_name: string; role: string; sede: string; area_trabajo: string[] | null; avatar_url: string | null; is_demo: boolean | null } | null }>,
     getWorkerAlerts(),
   ])
 
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen flex flex-col paleta-azul">
+      {profile.is_demo && <DemoBanner />}
       <CursorBlobs />
       <WorkerTopNav
         fullName={profile.full_name ?? 'Usuario'}

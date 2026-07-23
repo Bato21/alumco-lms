@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
+import { SEDE_DEMO, eventInScope, sectionInScope, taskInScope } from '@/lib/auth/demoScope'
 import { sendPushToUsers } from '@/lib/push/send'
 import {
   EVENT_TYPE_EMOJI,
@@ -13,14 +14,14 @@ import {
 
 // ── Helpers internos ───────────────────────────────────────
 
-async function getCaller(): Promise<{ userId: string; role: string } | null> {
+async function getCaller(): Promise<{ userId: string; role: string; isDemo: boolean } | null> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const { data: profile } = await supabase
-    .from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
+    .from('profiles').select('role, is_demo').eq('id', user.id).single() as { data: { role: string; is_demo: boolean | null } | null }
   if (!profile) return null
-  return { userId: user.id, role: profile.role }
+  return { userId: user.id, role: profile.role, isDemo: profile.is_demo === true }
 }
 
 // Distingue un rechazo de RLS de un error genérico de base de datos, para
@@ -160,6 +161,15 @@ export async function createEventAction(
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
     const data = parsed.data
 
+    // Aislamiento demo: un admin demo crea siempre en la Sede Demo (que lo
+    // aísla vía RLS por sede); un admin real no puede crear en la Sede Demo.
+    if (caller.isDemo && data.sede_id !== SEDE_DEMO) {
+      data.sede_id = SEDE_DEMO
+    }
+    if (!caller.isDemo && data.sede_id === SEDE_DEMO) {
+      return { error: 'Sede no válida' }
+    }
+
     const { data: eventRow, error: eventError } = await ac
       .from('events')
       .insert({
@@ -171,6 +181,7 @@ export async function createEventAction(
         status: 'planificacion',
         cover_image_url: null,
         created_by: caller.userId,
+        is_demo: caller.isDemo,
       })
       .select('id')
       .single() as { data: { id: string } | null; error: { message: string } | null }
@@ -271,6 +282,16 @@ export async function updateEventAction(
     if (Object.keys(parsed.data).length === 0) return { error: 'No hay cambios para guardar' }
 
     const adminClient = await createAdminClient()
+    if (!(await eventInScope(adminClient, eventId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
+    // Un admin demo no puede mover un evento fuera de la Sede Demo.
+    if (caller.isDemo && parsed.data.sede_id && parsed.data.sede_id !== SEDE_DEMO) {
+      parsed.data.sede_id = SEDE_DEMO
+    }
+    if (!caller.isDemo && parsed.data.sede_id === SEDE_DEMO) {
+      return { error: 'Sede no válida' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 
@@ -331,6 +352,9 @@ export async function deleteEventAction(
     if (caller.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    if (!(await eventInScope(adminClient, eventId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { error } = await ac.from('events').delete().eq('id', eventId) as { error: { message: string } | null }
@@ -366,6 +390,9 @@ export async function addSectionAction(
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
 
     const adminClient = await createAdminClient()
+    if (!(await eventInScope(adminClient, eventId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 
@@ -410,6 +437,9 @@ export async function removeSectionAction(
     if (caller.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    if (!(await sectionInScope(adminClient, sectionId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { data: section } = await ac
@@ -450,6 +480,9 @@ export async function addMemberAction(
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
 
     const adminClient = await createAdminClient()
+    if (!(await sectionInScope(adminClient, sectionId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 
@@ -506,6 +539,9 @@ export async function addColaboradorAction(
     if (!userId || typeof userId !== 'string') return { error: 'Selecciona un trabajador' }
 
     const adminClient = await createAdminClient()
+    if (!(await sectionInScope(adminClient, sectionId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 
@@ -565,6 +601,9 @@ export async function removeMemberAction(
     if (caller.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    if (!(await sectionInScope(adminClient, sectionId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { error } = await ac
@@ -620,6 +659,14 @@ export async function upsertTaskAction(
       due_time: formData.get('due_time') || null,
     })
     if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }
+
+    // Aislamiento demo: la mutación va por cliente de usuario (RLS), pero un
+    // admin demo pasa RLS vía is_admin(), así que el scope se verifica aparte.
+    const scopeClient = await createAdminClient()
+    const inScope = taskId
+      ? await taskInScope(scopeClient, taskId, caller.isDemo)
+      : await sectionInScope(scopeClient, sectionId, caller.isDemo)
+    if (!inScope) return { error: 'No autorizado' }
 
     const supabase = await createClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -714,6 +761,11 @@ export async function toggleTaskStatusAction(
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
 
+    const scopeClient = await createAdminClient()
+    if (!(await taskInScope(scopeClient, taskId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
+
     const supabase = await createClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sc = supabase as any
@@ -781,6 +833,10 @@ export async function deleteTaskAction(
 
     if (!task) return { error: 'No tienes permisos para eliminar esta tarea, o ya no existe' }
 
+    if (!(await sectionInScope(ac, task.section_id, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
+
     if (caller.role !== 'admin') {
       const { data: membership } = await ac
         .from('event_section_members')
@@ -839,6 +895,9 @@ export async function uploadEventDocumentAction(
     const title = ((formData.get('title') as string) || file.name).slice(0, 200)
 
     const adminClient = await createAdminClient()
+    if (!(await eventInScope(adminClient, eventId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     const path = `${eventId}/${crypto.randomUUID()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`
 
     const { error: uploadError } = await adminClient.storage
@@ -885,6 +944,9 @@ export async function deleteEventDocumentAction(
       .single() as { data: { event_id: string; file_url: string } | null }
 
     if (!doc) return { error: 'Documento no encontrado' }
+    if (!(await eventInScope(ac, doc.event_id, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
 
     const { error } = await ac.from('event_documents').delete().eq('id', docId) as { error: { message: string } | null }
     if (error) return { error: error.message }
@@ -912,13 +974,16 @@ export async function getDocumentSignedUrlAction(
     const sc = supabase as any
     const { data: doc } = await sc
       .from('event_documents')
-      .select('file_url')
+      .select('file_url, event_id')
       .eq('id', docId)
-      .maybeSingle() as { data: { file_url: string } | null }
+      .maybeSingle() as { data: { file_url: string; event_id: string } | null }
 
     if (!doc) return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    if (!(await eventInScope(adminClient, doc.event_id, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     const { data, error } = await adminClient.storage
       .from(DOC_BUCKET)
       .createSignedUrl(doc.file_url, 60)
@@ -998,6 +1063,9 @@ export async function uploadEventPhotoAction(
     const caption = ((formData.get('caption') as string) || '').trim().slice(0, 200) || null
 
     const adminClient = await createAdminClient()
+    if (!(await eventInScope(adminClient, eventId, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
     const path = `${eventId}/${crypto.randomUUID()}.${ext}`
 
     const { error: uploadError } = await adminClient.storage
@@ -1043,6 +1111,20 @@ export async function deleteEventPhotoAction(
   try {
     const caller = await getCaller()
     if (!caller) return { error: 'No autenticado' }
+
+    // Aislamiento demo: resolver el evento de la foto y verificar el scope
+    // antes de borrar (un admin demo pasa la RLS de DELETE vía is_admin).
+    const scopeClient = await createAdminClient()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: photoRow } = await (scopeClient as any)
+      .from('event_photos')
+      .select('event_id')
+      .eq('id', photoId)
+      .maybeSingle() as { data: { event_id: string } | null }
+    if (!photoRow) return { error: 'No puedes eliminar esta foto (o ya no existe)' }
+    if (!(await eventInScope(scopeClient, photoRow.event_id, caller.isDemo))) {
+      return { error: 'No autorizado' }
+    }
 
     // La fila se borra con el cliente del USUARIO: la policy RLS de DELETE
     // (admin o autor) es la que autoriza — el server no decide por su cuenta.

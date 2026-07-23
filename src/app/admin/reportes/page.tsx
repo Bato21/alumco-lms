@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { ReportesClient } from './ReportesClient'
 
 export const metadata: Metadata = { title: 'Reportes | Alumco LMS' }
@@ -7,6 +8,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function ReportesPage() {
   const adminClient = await createAdminClient()
+  const isDemo = await getViewerIsDemo()
 
   const [{ data: workersRaw }, { data: courses }, { data: progressRaw }] = await Promise.all([
     adminClient
@@ -14,15 +16,18 @@ export default async function ReportesPage() {
       .select('id, full_name, sede, area_trabajo')
       .eq('role', 'trabajador')
       .eq('status', 'activo')
+      .eq('is_demo', isDemo)
       .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }>,
     adminClient
       .from('courses')
       .select('id, title, target_areas')
       .eq('is_published', true)
+      .eq('is_demo', isDemo)
       .order('order_index') as unknown as Promise<{ data: { id: string; title: string; target_areas: string[] | null }[] | null }>,
     adminClient
       .from('course_progress')
-      .select('user_id, course_id, is_completed') as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean }[] | null }>,
+      .select('user_id, course_id, is_completed')
+      .eq('is_demo', isDemo) as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean }[] | null }>,
   ])
 
   // Índice por trabajador para evitar recorrer todo el progreso por cada uno

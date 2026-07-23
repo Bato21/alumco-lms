@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { Icono, Badge, Progreso } from '@/components/alumco/ds'
 import { TaskChecklist } from './TaskChecklist'
 import { AbrirDocumentoBoton } from './AbrirDocumentoBoton'
@@ -47,16 +48,20 @@ type EventoEmbebido = EventRecord & {
 
 export async function EventoDashboardCard({ userId, isAdmin }: { userId: string; isAdmin: boolean }) {
   const supabase = await createClient()
+  const isDemo = await getViewerIsDemo()
 
   // Los nombres (solo vista colaborador) se piden en paralelo con el árbol
   // del evento: esperar los ids de encargados costaba un round trip serial.
   // La tabla profiles de la ONG es chica, así que traer id+nombre de los
   // activos completos sale más barato que encadenar.
+  // El filtro is_demo es explícito porque un admin demo pasa la RLS de eventos
+  // vía is_admin() y si no, vería eventos reales.
   const [{ data: events }, nombres] = await Promise.all([
     supabase
       .from('events')
       .select('*, event_sections(*, event_tasks(*), event_section_members(section_id, user_id, member_role)), event_documents(id, doc_type)')
       .in('status', ['planificacion', 'activo'])
+      .eq('is_demo', isDemo)
       .order('event_date') as unknown as Promise<{ data: EventoEmbebido[] | null }>,
     isAdmin
       ? Promise.resolve(null)

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import CertificadosClient from './CertificadosClient'
 import { EncabezadoPagina, Vacio } from '@/components/alumco/ds'
 
@@ -8,6 +9,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminCertificadosPage() {
   const adminClient = await createAdminClient()
+  const isDemo = await getViewerIsDemo()
 
   const { data: certificates } = await adminClient
     .from('certificates')
@@ -21,6 +23,7 @@ export default async function AdminCertificadosPage() {
         title
       )
     `)
+    .eq('is_demo', isDemo)
     .order('issued_at', { ascending: false }) as { data: { id: string; issued_at: string; pdf_url: string | null; user_id: string; course_id: string; courses: { title: string } | { title: string }[] | null }[] | null }
 
   const userIds = [...new Set((certificates ?? []).map((c) => c.user_id))]

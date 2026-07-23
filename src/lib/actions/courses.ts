@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { z } from 'zod'
 import { type ContentType } from '@/lib/types/database'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { courseInScope } from '@/lib/auth/demoScope'
 
 // ── Schemas de validación ──────────────────────────────────
 
@@ -91,6 +92,7 @@ export async function createCourseAction(
   const { data: lastCourse } = await ac
     .from('courses')
     .select('order_index')
+    .eq('is_demo', auth.isDemo)
     .order('order_index', { ascending: false })
     .limit(1)
     .single() as { data: { order_index: number } | null }
@@ -108,6 +110,7 @@ export async function createCourseAction(
       is_published: false,
       order_index: nextIndex,
       created_by: userId,
+      is_demo: auth.isDemo,
     } as unknown as never)
     .select('id')
     .single() as unknown as { data: { id: string } | null; error: { message: string } | null }
@@ -143,6 +146,9 @@ export async function updateCourseAction(
   }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (adminClient as any)
     .from('courses')
@@ -178,6 +184,9 @@ export async function updateCourseBannerAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (adminClient as any)
     .from('courses')
@@ -221,6 +230,9 @@ export async function uploadCourseBannerAction(
   const path = `${courseId}/${Date.now()}.${ext}`
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   const { error: uploadError } = await adminClient.storage
     .from(BANNER_BUCKET)
     .upload(path, file, { contentType: file.type, upsert: true })
@@ -250,6 +262,9 @@ export async function togglePublishCourseAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (adminClient as any)
     .from('courses')
@@ -274,6 +289,9 @@ export async function deleteCourseAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   const { error } = await adminClient
     .from('courses')
     .delete()
@@ -298,6 +316,9 @@ export async function createModuleAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ac = adminClient as any
 
@@ -431,6 +452,9 @@ export async function updateModuleAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const acU = adminClient as any
 
@@ -460,6 +484,9 @@ export async function deleteModuleAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const acD = adminClient as any
   const { error } = await acD
@@ -484,6 +511,9 @@ export async function reorderModulesAction(
   if (!auth.ok) return { error: auth.error }
 
   const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const acR = adminClient as any
 

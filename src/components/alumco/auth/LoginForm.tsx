@@ -7,10 +7,12 @@ import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 const initialState: ActionResult = {}
 
-// Credenciales demo (mismas que usan las capturas de docs/flujo-plataforma)
+// Cuentas demo reales (burbuja aislada, sede_demo, is_demo=true). Su contenido
+// vive en su propio mundo y se reinicia con un cron. Ver docs/superpowers/
+// plans/2026-07-23-acceso-demo-burbuja.md
 const DEMO = {
-  colaborador: { email: 'Baptiste@gmail.com', password: '12345678' },
-  admin: { email: 'da.ongalumco@gmail.com', password: 'alumco123' },
+  colaborador: { email: 'demo-colab@kimunko.demo', password: 'democolab2026' },
+  admin: { email: 'demo-admin@kimunko.demo', password: 'demoadmin2026' },
 } as const
 
 export function LoginForm() {

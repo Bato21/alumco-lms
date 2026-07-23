@@ -25,7 +25,9 @@ interface WorkerAlert {
 // Las alertas admin son globales (mismas para todo admin) y alimentan solo el
 // badge de la campana: 60s de staleness es aceptable y evita recalcular 3
 // queries de tablas completas en cada navegación del panel.
-let adminAlertsCache: { data: { count: number; alerts: AdminAlert[] }; ts: number } | null = null
+// Caché separado por mundo (real/demo): un admin demo y uno real no comparten
+// alertas.
+const adminAlertsCache = new Map<boolean, { data: { count: number; alerts: AdminAlert[] }; ts: number }>()
 const ADMIN_ALERTS_TTL_MS = 60_000
 
 export async function getAdminAlerts(): Promise<{
@@ -35,9 +37,11 @@ export async function getAdminAlerts(): Promise<{
   try {
     const auth = await requireAdmin()
     if (!auth.ok) return { count: 0, alerts: [] }
+    const isDemo = auth.isDemo
 
-    if (adminAlertsCache && Date.now() - adminAlertsCache.ts < ADMIN_ALERTS_TTL_MS) {
-      return adminAlertsCache.data
+    const cached = adminAlertsCache.get(isDemo)
+    if (cached && Date.now() - cached.ts < ADMIN_ALERTS_TTL_MS) {
+      return cached.data
     }
 
     const adminClient = await createAdminClient()
@@ -49,16 +53,19 @@ export async function getAdminAlerts(): Promise<{
         .from('courses')
         .select('id, title, deadline, target_areas')
         .eq('is_published', true)
+        .eq('is_demo', isDemo)
         .not('deadline', 'is', null)
         .order('deadline', { ascending: true }) as unknown as Promise<{ data: { id: string; title: string; deadline: string | null; target_areas: string[] | null }[] | null }>,
       adminClient
         .from('profiles')
         .select('id, area_trabajo')
         .eq('role', 'trabajador')
-        .eq('status', 'activo') as unknown as Promise<{ data: { id: string; area_trabajo: string[] | null }[] | null }>,
+        .eq('status', 'activo')
+        .eq('is_demo', isDemo) as unknown as Promise<{ data: { id: string; area_trabajo: string[] | null }[] | null }>,
       adminClient
         .from('course_progress')
-        .select('course_id, user_id, is_completed') as unknown as Promise<{ data: { course_id: string; user_id: string; is_completed: boolean }[] | null }>,
+        .select('course_id, user_id, is_completed')
+        .eq('is_demo', isDemo) as unknown as Promise<{ data: { course_id: string; user_id: string; is_completed: boolean }[] | null }>,
     ])
 
     const alerts: AdminAlert[] = (courses ?? [])
@@ -109,7 +116,7 @@ export async function getAdminAlerts(): Promise<{
       })
 
     const result = { count: alerts.length, alerts }
-    adminAlertsCache = { data: result, ts: Date.now() }
+    adminAlertsCache.set(isDemo, { data: result, ts: Date.now() })
     return result
   } catch {
     return { count: 0, alerts: [] }
