@@ -156,7 +156,7 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
             </div>
             <div className="col" style={{ gap: 6, marginTop: 16, maxWidth: 360 }}>
               <div className="fila texto-s">
-                <span className="crece silencio">{isCourseCompleted ? '¡Curso completado!' : 'Avance del dibujo'}</span>
+                <span className="crece silencio">{isCourseCompleted ? '¡Curso completado!' : 'Completa los módulos para dibujarla'}</span>
                 <strong style={{ color: isCourseCompleted ? 'var(--ok)' : 'var(--ambar-700)' }}>{courseProgress}%</strong>
               </div>
               <Progreso pct={courseProgress} />
@@ -197,6 +197,11 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
                   {courseProgress}% trazado
                 </span>
               </div>
+              {!isCourseCompleted && (
+                <p className="texto-s silencio" style={{ marginTop: 8, fontSize: 12.5, textAlign: 'center' }}>
+                  La gota se irá dibujando a medida que completes los módulos.
+                </p>
+              )}
             </div>
             <span aria-hidden style={{ position: 'absolute', top: -10, left: 40, width: 78, height: 22, background: 'rgba(245,166,35,0.32)', transform: 'rotate(-3deg)', borderRadius: 2 }} />
             <span aria-hidden style={{ position: 'absolute', top: -10, right: 40, width: 78, height: 22, background: 'rgba(245,166,35,0.32)', transform: 'rotate(2.5deg)', borderRadius: 2 }} />
