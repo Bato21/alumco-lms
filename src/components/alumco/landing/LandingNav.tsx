@@ -33,16 +33,14 @@ export default function LandingNav() {
             display: 'inline-flex',
             alignItems: 'center',
             borderRadius: 999,
-            fontWeight: 600,
+            fontWeight: 700,
             fontSize: 14,
             padding: '9px 20px',
-            background: 'rgba(24,32,26,0.42)',
-            border: '1px solid rgba(255,255,255,0.30)',
-            color: '#fff',
+            background: '#F5A623',
+            border: '1px solid rgba(0,0,0,0.08)',
+            color: '#1A1A2E',
             textDecoration: 'none',
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            textShadow: '0 1px 2px rgba(0,0,0,0.45)',
+            boxShadow: '0 2px 10px rgba(245,166,35,0.35)',
           }}
         >
           Ingresar
