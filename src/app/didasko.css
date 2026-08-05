@@ -1136,3 +1136,228 @@ body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .gota-idle {
 }
 .recorrido-col:hover .recorrido-titulo { color: var(--ambar-700); }
 .recorrido-sub { font-size: 12px; font-weight: 600; margin-top: 3px; }
+
+/* ============================================================
+   BASE MÓVIL — vista colaborador
+   La plataforma se usa sobre todo en teléfono y se instala como PWA.
+   Todo lo de acá vive bajo `:is(.paleta-oliva, .paleta-azul)` (igual que el
+   bloque PLATAFORMA CALMA) para ganar la cascada sin tocar el escritorio, y
+   dentro de `max-width: 1023px` para no pisar el layout `lg:` de Tailwind.
+   Criterios: cuerpo ≥16px, targets ≥48px.
+   Ver docs/superpowers/specs/2026-08-05-mobile-colaborador-design.md
+   ============================================================ */
+
+/* ---------- Subrayado de enlaces ----------
+   El tema didasko subraya TODO enlace en ámbar (regla `body[data-tema] a`).
+   PLATAFORMA CALMA nunca la sobrescribió, así que el subrayado se colaba en
+   los labels del tab bar, en las cards-enlace y en los botones, y la barra
+   inferior se leía como una lista de enlaces.
+   Se mantiene el subrayado en enlaces de texto corridos —es affordance real y
+   no depende del color— y se quita donde el elemento YA se ve como control. */
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul)
+  :is(a.btn, a.chip, a.card, a.nav-item, a.recorrido-col, a.cauce-card, nav a, a[data-tab]) {
+  text-decoration: none;
+}
+
+@media (max-width: 1023px) {
+  /* ---------- Tipografía: piso de 16px ---------- */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) {
+    font-size: 16px;
+  }
+
+  /* iOS Safari hace zoom al enfocar un campo con font-size < 16px. Con 15px
+     la página saltaba en cada foco; 16px lo evita sin cambiar el aspecto. */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul)
+    :is(.input, .select, .textarea, .input-busqueda input) {
+    font-size: 16px;
+  }
+
+  /* Display fluido: 36px fijos se comían un cuarto de pantalla en un 375. */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-display {
+    font-size: clamp(25px, 6.6vw, 34px);
+    line-height: 1.15;
+  }
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) h1.t-display {
+    font-size: clamp(27px, 7.4vw, 36px);
+  }
+
+  /* Texto auxiliar: nada de cuerpo bajo 13px en móvil. */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .texto-s {
+    font-size: 14.5px;
+  }
+
+  /* ---------- Áreas táctiles: 48px ---------- */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul)
+    :is(.btn, .chip, .input, .select, .input-busqueda, .nav-item) {
+    min-height: 48px;
+  }
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn {
+    font-size: 15.5px;
+  }
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-sm {
+    min-height: 48px;
+    padding: 10px 16px;
+    font-size: 15px;
+  }
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-icon,
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-icon.btn-sm {
+    width: 48px;
+    min-width: 48px;
+  }
+
+  /* Los chips de filtro se apilan a ancho completo antes que truncarse. */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .chip {
+    padding: 11px 16px;
+  }
+}
+
+/* ---------- Utilidad: área táctil sin agrandar el ícono ----------
+   Para botones-ícono chicos (cerrar, pasos del calendario) donde crecer
+   visualmente rompería el diseño. Extiende el área pulsable a 48x48
+   centrada, sin mover nada del layout. Requiere `position: relative`. */
+.area-tactil {
+  position: relative;
+}
+.area-tactil::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  border-radius: inherit;
+}
+
+/* ---------- Shell instalado (PWA) ----------
+   En standalone no hay barra del navegador: el rebote elástico deja ver el
+   fondo del sistema y se siente roto. */
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior-y: none;
+  }
+}
+
+/* ---------- Tab bar inferior (móvil) ----------
+   El estado activo no puede depender solo del color (daltonismo): además del
+   ámbar lleva una barra superior y peso tipográfico. */
+.tab-inferior {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 2px 6px;
+  min-height: 56px;
+  position: relative;
+  color: var(--tinta-3);
+  font-weight: 500;
+  text-decoration: none;
+}
+.tab-inferior[data-activo] {
+  color: var(--ambar-700);
+  font-weight: 600;
+}
+/* Indicador no cromático del tab activo. */
+.tab-inferior[data-activo]::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 12%;
+  right: 12%;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--ambar);
+}
+.tab-inferior-label {
+  font-size: 12.5px;
+  line-height: 1.1;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Medido a 375px: la etiqueta más larga («Certificados») ocupa 70px de los
+   75 disponibles, así que los 5 tabs entran a 12.5px sin truncarse ni en un
+   iPhone SE. El ellipsis de arriba queda como red de seguridad para
+   traducciones o etiquetas más largas. */
+@media (max-width: 389px) {
+  .tab-inferior { padding-left: 1px; padding-right: 1px; }
+}
+
+/* ---------- Banner de modo demo ----------
+   Dos redacciones del mismo aviso: la corta en móvil (el texto largo ocupaba
+   tres líneas y ~24% de la pantalla) y la larga desde tablet. */
+.demo-banner-texto-largo { display: none; }
+.demo-banner-texto-corto { display: inline; }
+@media (min-width: 768px) {
+  .demo-banner-texto-largo { display: inline; }
+  .demo-banner-texto-corto { display: none; }
+}
+
+/* ---------- Cabecera de sección (título + acciones) ----------
+   En móvil el título ocupa su propio renglón y las acciones bajan debajo,
+   estirándose a ancho completo. Desde tablet vuelve a ser una sola fila. */
+.cabecera-seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cabecera-seccion-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cabecera-seccion-acciones > * {
+  flex: 1 1 auto;
+}
+@media (min-width: 640px) {
+  .cabecera-seccion {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .cabecera-seccion > h2 { flex: 1; }
+  .cabecera-seccion-acciones > * { flex: 0 0 auto; }
+}
+
+/* ---------- Recorrido por capas en móvil ----------
+   Es un carril horizontal: sin indicio visible, no se nota que hay más cursos
+   a la derecha. Se deja la barra de scroll fina siempre visible y se agrega
+   snap para que cada columna quede alineada al soltar. */
+@media (max-width: 1023px) {
+  .recorrido-capas {
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: var(--arena-200) transparent;
+    padding-bottom: 10px;
+  }
+  .recorrido-capas::-webkit-scrollbar { height: 5px; }
+  .recorrido-capas::-webkit-scrollbar-thumb {
+    background: var(--arena-200);
+    border-radius: 3px;
+  }
+  .recorrido-col { scroll-snap-align: center; }
+  .recorrido-titulo { font-size: 14.5px; }
+  .recorrido-sub { font-size: 12.5px; }
+}
+
+@media (max-width: 1023px) {
+  /* Eyebrow: 11px quedaba por debajo del piso de 12px para etiquetas. */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-eyebrow {
+    font-size: 12px;
+  }
+  /* El input de archivo no tiene caja propia: el target real es el botón
+     que dibuja el navegador, así que la altura va en el pseudo-elemento. */
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input-archivo {
+    font-size: 15px;
+  }
+  body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul)
+    .input-archivo::file-selector-button {
+    min-height: 48px;
+    font-size: 15px;
+    padding: 12px 18px;
+  }
+}

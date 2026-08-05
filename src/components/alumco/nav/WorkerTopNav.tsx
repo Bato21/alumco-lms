@@ -145,20 +145,11 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
               key={t.href}
               href={t.href}
               aria-current={act ? 'page' : undefined}
-              style={{
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 3,
-                padding: '10px 4px 6px',
-                minHeight: 56,
-                color: act ? 'var(--ambar-700)' : 'var(--tinta-3)',
-                fontWeight: act ? 600 : 500,
-              }}
+              className="tab-inferior"
+              data-activo={act ? 'si' : undefined}
             >
               <Icono n={t.icono} s={23} />
-              <span style={{ fontSize: 11.5 }}>{t.label}</span>
+              <span className="tab-inferior-label">{t.label}</span>
             </Link>
           )
         })}

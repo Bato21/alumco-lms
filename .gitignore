@@ -54,3 +54,6 @@ next-env.d.ts
 
 # mensaje de commit local (no versionar)
 mensaje_commit.txt
+
+# Salidas locales de auditoría (capturas de scripts/audit-mobile.mjs)
+tmp/
