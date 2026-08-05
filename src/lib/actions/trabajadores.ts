@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
+import { profileInScope, SEDE_DEMO } from '@/lib/auth/demoScope'
 import { AREAS_TRABAJO } from '@/lib/types/database'
 
 void AREAS_TRABAJO // imported for type reference
@@ -27,8 +28,9 @@ export async function updateWorkerAction(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
+    const { data: callerProfile } = await supabase.from('profiles').select('role, is_demo').eq('id', user.id).single() as { data: { role: string; is_demo: boolean | null } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
+    const callerIsDemo = callerProfile.is_demo === true
 
     const raw = {
       full_name: formData.get('full_name'),
@@ -43,11 +45,18 @@ export async function updateWorkerAction(
     }
 
     const adminClient = await createAdminClient()
+    if (!(await profileInScope(adminClient, profileId, callerIsDemo))) {
+      return { error: 'No autorizado' }
+    }
+    // Un trabajador demo se mantiene en la Sede Demo (que lo aísla).
+    const updateData = callerIsDemo
+      ? { ...parsed.data, sede: SEDE_DEMO as unknown as typeof parsed.data.sede }
+      : parsed.data
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { error } = await ac
       .from('profiles')
-      .update(parsed.data)
+      .update(updateData)
       .eq('id', profileId) as { error: { message: string } | null }
 
     if (error) return { error: error.message }
@@ -67,10 +76,13 @@ export async function suspendWorkerAction(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
+    const { data: callerProfile } = await supabase.from('profiles').select('role, is_demo').eq('id', user.id).single() as { data: { role: string; is_demo: boolean | null } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    if (!(await profileInScope(adminClient, profileId, callerProfile.is_demo === true))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { error } = await ac
@@ -94,10 +106,13 @@ export async function reactivateWorkerAction(
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
+    const { data: callerProfile } = await supabase.from('profiles').select('role, is_demo').eq('id', user.id).single() as { data: { role: string; is_demo: boolean | null } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    if (!(await profileInScope(adminClient, profileId, callerProfile.is_demo === true))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
     const { error } = await ac
@@ -147,10 +162,13 @@ export async function getWorkerDetailAction(profileId: string): Promise<
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { error: 'No autenticado' }
-    const { data: callerProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single() as { data: { role: string } | null }
+    const { data: callerProfile } = await supabase.from('profiles').select('role, is_demo').eq('id', user.id).single() as { data: { role: string; is_demo: boolean | null } | null }
     if (callerProfile?.role !== 'admin') return { error: 'No autorizado' }
 
     const adminClient = await createAdminClient()
+    if (!(await profileInScope(adminClient, profileId, callerProfile.is_demo === true))) {
+      return { error: 'No autorizado' }
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ac = adminClient as any
 

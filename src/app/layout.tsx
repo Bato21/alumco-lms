@@ -1,8 +1,12 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from 'next'
 import { Geist, Fraunces, Archivo, Playfair_Display } from 'next/font/google'
+import Script from 'next/script'
 import { ServiceWorkerRegistrar } from '@/components/alumco/shared/ServiceWorkerRegistrar'
 import './globals.css'
+
+// Google Analytics (gtag.js)
+const GA_ID = 'G-D6ZQY4GK0W'
 
 const geist = Geist({
   subsets: ['latin'],
@@ -69,6 +73,20 @@ export default function RootLayout({
       >
         {children}
         <ServiceWorkerRegistrar />
+
+        {/* Google Analytics (gtag.js) */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
+          `}
+        </Script>
       </body>
     </html>
   )

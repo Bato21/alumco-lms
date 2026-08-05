@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { getAdminAlerts } from '@/lib/actions/alerts'
 import { getProximoEventoResumen } from '@/lib/eventos/proximoEvento'
 import { Avatar, Badge, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
@@ -23,6 +24,7 @@ export default async function AdminDashboardPage() {
   const supabase = await createClient()
   const user = await getCachedUser()
   const adminClient = await createAdminClient()
+  const isDemo = await getViewerIsDemo()
 
   // 6 queries + alertas en paralelo; el resto de las métricas se derivan en
   // memoria. getAdminAlerts iba en serie después y sumaba ~150ms al TTFB.
@@ -45,23 +47,28 @@ export default async function AdminDashboardPage() {
       .select('id, full_name, sede, area_trabajo')
       .eq('role', 'trabajador')
       .eq('status', 'activo')
+      .eq('is_demo', isDemo)
       .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; sede: string; area_trabajo: string[] | null }[] | null }>,
     adminClient
       .from('courses')
       .select('id, title, target_areas')
-      .eq('is_published', true) as unknown as Promise<{ data: { id: string; title: string; target_areas: string[] | null }[] | null }>,
+      .eq('is_published', true)
+      .eq('is_demo', isDemo) as unknown as Promise<{ data: { id: string; title: string; target_areas: string[] | null }[] | null }>,
     adminClient
       .from('course_progress')
-      .select('user_id, course_id, is_completed, completed_at, updated_at') as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }>,
+      .select('user_id, course_id, is_completed, completed_at, updated_at')
+      .eq('is_demo', isDemo) as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }>,
     adminClient
       .from('certificates')
-      .select('user_id, issued_at') as unknown as Promise<{ data: { user_id: string; issued_at: string }[] | null }>,
+      .select('user_id, issued_at')
+      .eq('is_demo', isDemo) as unknown as Promise<{ data: { user_id: string; issued_at: string }[] | null }>,
     // Aprobaciones pendientes: trabajadores esperando acceso (solo conteo)
     adminClient
       .from('profiles')
       .select('id', { count: 'exact', head: true })
       .eq('role', 'trabajador')
-      .eq('status', 'pendiente') as unknown as Promise<{ count: number | null }>,
+      .eq('status', 'pendiente')
+      .eq('is_demo', isDemo) as unknown as Promise<{ count: number | null }>,
     getAdminAlerts(),
   ])
 

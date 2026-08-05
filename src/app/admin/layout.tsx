@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { AdminSidebar } from '@/components/alumco/nav/AdminSidebar'
 import { CursorBlobs } from '@/components/alumco/shared/CursorBlobs'
+import { DemoBanner } from '@/components/alumco/shared/DemoBanner'
 import { getAdminAlerts } from '@/lib/actions/alerts'
 import { getProximoEventoResumen } from '@/lib/eventos/proximoEvento'
 import { type UserRole } from '@/lib/types/database'
@@ -12,6 +13,7 @@ export const dynamic = 'force-dynamic'
 interface AdminProfile {
   full_name: string
   role: UserRole
+  is_demo: boolean | null
 }
 
 export default async function AdminLayout({
@@ -27,7 +29,7 @@ export default async function AdminLayout({
   const [{ data: rawProfile }, adminAlerts, evento] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, role')
+      .select('full_name, role, is_demo')
       .eq('id', user.id)
       .single(),
     getAdminAlerts(),
@@ -43,7 +45,8 @@ export default async function AdminLayout({
     : null
 
   return (
-    <div className="min-h-screen paleta-oliva">
+    <div className="min-h-screen paleta-oliva" style={{ paddingTop: 'var(--demo-banner-h, 0px)' }}>
+      {profile.is_demo && <DemoBanner />}
       <CursorBlobs />
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
 

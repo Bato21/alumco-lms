@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { CourseBuilder } from '@/components/alumco/admin/CourseBuilder/CourseBuilder'
 import { type ModuleBlock } from '@/components/alumco/admin/CourseBuilder/CourseBuilder'
 import { type Question } from '@/lib/types/database'
@@ -14,13 +15,14 @@ interface EditarCursoPageProps {
 export default async function EditarCursoPage({ params }: EditarCursoPageProps) {
   const { id } = await params
   const supabase = await createAdminClient()
+  const isDemo = await getViewerIsDemo()
 
   // Curso y módulos en paralelo
   const coursePromise = supabase
     .from('courses')
-    .select('id, title, description, deadline, deadline_description, is_published, target_areas, thumbnail_url')
+    .select('id, title, description, deadline, deadline_description, is_published, target_areas, thumbnail_url, is_demo')
     .eq('id', id)
-    .single() as unknown as Promise<{ data: { id: string; title: string; description: string | null; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null; thumbnail_url: string | null } | null }>
+    .single() as unknown as Promise<{ data: { id: string; title: string; description: string | null; deadline: string | null; deadline_description: string | null; is_published: boolean; target_areas: string[] | null; thumbnail_url: string | null; is_demo: boolean } | null }>
 
   // Cargar módulos ordenados con sus quizzes y preguntas
   const modulesPromise = supabase
@@ -54,6 +56,8 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
   const [{ data: course }, { data: modules }] = await Promise.all([coursePromise, modulesPromise])
 
   if (!course) notFound()
+  // Aislamiento demo: un admin no puede editar un curso de otro mundo.
+  if (course.is_demo !== isDemo) notFound()
 
   const initialModules: ModuleBlock[] = (modules ?? []).map((m) => ({
     id: m.id,

@@ -31,6 +31,7 @@ export interface Profile {
   approved_by: string | null
   approved_at: string | null
   onboarding_completed: boolean | null
+  is_demo: boolean
   created_at: string
   updated_at: string
 }
@@ -73,6 +74,7 @@ export interface Course {
   target_areas: string[] | null
   deadline: string | null
   deadline_description: string | null
+  is_demo: boolean
   created_at: string
   updated_at: string
 }
@@ -225,6 +227,7 @@ export interface EventRecord {
   cover_image_url: string | null
   sede_id: string
   created_by: string
+  is_demo: boolean
   created_at: string
   updated_at: string
 }

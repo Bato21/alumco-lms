@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { escapeIlike } from '@/lib/utils'
 
 export async function searchAction(query: string): Promise<{
@@ -26,6 +27,7 @@ export async function searchAction(query: string): Promise<{
   const adminClient = await createAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ac = adminClient as any
+  const isViewerDemo = await getViewerIsDemo()
 
   const [{ data: profile }, { data: allCourses }, { data: workersData }] = await Promise.all([
     sp
@@ -44,6 +46,7 @@ export async function searchAction(query: string): Promise<{
       .select('id, full_name, area_trabajo, sede')
       .eq('status', 'activo')
       .eq('role', 'trabajador')
+      .eq('is_demo', isViewerDemo)
       .ilike('full_name', qPattern)
       .order('full_name')
       .limit(5) as Promise<{ data: { id: string; full_name: string; area_trabajo: string[] | null; sede: string }[] | null }>,

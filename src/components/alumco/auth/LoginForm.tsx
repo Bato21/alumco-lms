@@ -7,10 +7,12 @@ import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 
 const initialState: ActionResult = {}
 
-// Credenciales demo (mismas que usan las capturas de docs/flujo-plataforma)
+// Cuentas demo reales (burbuja aislada, sede_demo, is_demo=true). Su contenido
+// vive en su propio mundo y se reinicia con un cron. Ver docs/superpowers/
+// plans/2026-07-23-acceso-demo-burbuja.md
 const DEMO = {
-  colaborador: { email: 'Baptiste@gmail.com', password: '12345678' },
-  admin: { email: 'da.ongalumco@gmail.com', password: 'alumco123' },
+  colaborador: { email: 'demo-colab@kimunko.demo', password: 'democolab2026' },
+  admin: { email: 'demo-admin@kimunko.demo', password: 'demoadmin2026' },
 } as const
 
 export function LoginForm() {
@@ -142,10 +144,25 @@ export function LoginForm() {
       </button>
 
       {/* Accesos demo — rellenan credenciales y envían el formulario */}
-      <div className="col" style={{ gap: 8, marginTop: 4 }}>
-        <p className="texto-s silencio-3" style={{ textAlign: 'center', margin: 0 }}>
-          Acceso demo
-        </p>
+      <div
+        className="col"
+        style={{
+          gap: 10,
+          marginTop: 8,
+          padding: '16px 16px 18px',
+          borderRadius: 'var(--radio-m)',
+          border: '2px dashed var(--azul-800)',
+          background: 'var(--azul-50)',
+        }}
+      >
+        <div className="col" style={{ gap: 2, textAlign: 'center' }}>
+          <p style={{ margin: 0, fontSize: 17, fontWeight: 800, color: 'var(--azul-800)' }}>
+            Probar sin registrarse
+          </p>
+          <p className="texto-s silencio-3" style={{ margin: 0 }}>
+            Entra con un clic y explora la plataforma
+          </p>
+        </div>
         <div className="fila" style={{ gap: 10 }}>
           <button
             type="button"
@@ -153,7 +170,7 @@ export function LoginForm() {
             disabled={isPending}
             className="btn btn-secondary crece"
           >
-            Colaborador
+            Demo Colaborador
           </button>
           <button
             type="button"
@@ -161,7 +178,7 @@ export function LoginForm() {
             disabled={isPending}
             className="btn btn-secondary crece"
           >
-            Admin
+            Demo Admin
           </button>
         </div>
       </div>

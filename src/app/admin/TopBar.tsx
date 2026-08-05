@@ -57,7 +57,7 @@ export function AdminTopBar({ alerts, role, fullName, evento }: AdminTopBarProps
       className="topbar hidden lg:flex"
       style={{
         position: 'fixed',
-        top: 0,
+        top: 'var(--demo-banner-h, 0px)',
         left: 264,
         right: 0,
         zIndex: 30,

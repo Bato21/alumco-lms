@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { EncabezadoPagina, Badge, Vacio, Icono } from '@/components/alumco/ds'
 import { EVENT_TYPE_LABELS, EVENT_TYPE_EMOJI, type EventRecord } from '@/lib/types/database'
 
@@ -20,11 +21,13 @@ const ESTADO_LABEL: Record<string, string> = {
 
 export default async function EventosAdminPage() {
   const adminClient = await createAdminClient()
+  const isDemo = await getViewerIsDemo()
 
   const [{ data: events }, { data: sedes }, { data: sections }, { data: tasks }] = await Promise.all([
     adminClient
       .from('events')
       .select('*')
+      .eq('is_demo', isDemo)
       .order('event_date', { ascending: false }) as unknown as Promise<{ data: EventRecord[] | null }>,
     adminClient
       .from('sedes')

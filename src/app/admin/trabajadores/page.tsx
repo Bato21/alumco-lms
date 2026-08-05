@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/server'
+import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { ApprovalPanel } from '@/components/alumco/admin/ApprovalPanel'
 import { WorkersTable } from './WorkersTable'
 import { SuspendedTable } from './SuspendedTable'
@@ -23,6 +24,7 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     : 'activos'
 
   const adminClient = await createAdminClient()
+  const isDemo = await getViewerIsDemo()
 
   // Las solicitudes pendientes necesitan el email (auth admin API) además de
   // la fila de profiles: toda esa cadena corre DENTRO del Promise.all para
@@ -44,17 +46,20 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
       .from('profiles')
       .select('id, full_name, rut, sede, area_trabajo, role, status')
       .eq('status', 'activo')
+      .eq('is_demo', isDemo)
       .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string }[] | null }>,
     adminClient
       .from('profiles')
       .select('id, full_name, rut, sede, area_trabajo, role, status, updated_at')
       .eq('status', 'suspendido')
+      .eq('is_demo', isDemo)
       .order('full_name') as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; sede: string; area_trabajo: string[]; role: string; status: string; updated_at: string }[] | null }>,
     (async () => {
       const { data: pendientes } = await (adminClient
         .from('profiles')
         .select('id, full_name, rut, requested_at, sede, area_trabajo, role')
         .eq('status', 'pendiente')
+        .eq('is_demo', isDemo)
         .order('created_at', { ascending: false }) as unknown as Promise<{ data: { id: string; full_name: string; rut: string | null; requested_at: string | null; sede: string | null; area_trabajo: string[] | null; role: string }[] | null }>)
       if (!pendientes || pendientes.length === 0) return []
       // Un solo listUsers en vez de un getUserById por solicitud: la API

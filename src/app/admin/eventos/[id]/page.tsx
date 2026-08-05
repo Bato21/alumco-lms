@@ -44,6 +44,8 @@ export default async function EventoDetalleAdmin(props: { params: Promise<{ id: 
   ])
 
   if (!event) notFound()
+  // Aislamiento demo: un admin no puede abrir un evento de otro mundo.
+  if (auth.ok && event.is_demo !== auth.isDemo) notFound()
 
   const sections = sectionsRaw ?? []
   const sectionIds = sections.map(s => s.id)

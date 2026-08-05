@@ -132,14 +132,18 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="sidebar hidden lg:flex fixed left-0 top-0 h-screen z-40" aria-label="Navegación principal">
+      <aside
+        className="sidebar hidden lg:flex fixed left-0 h-screen z-40"
+        style={{ top: 'var(--demo-banner-h, 0px)', height: 'calc(100vh - var(--demo-banner-h, 0px))' }}
+        aria-label="Navegación principal"
+      >
         <SidebarContent fullName={fullName} role={role} />
       </aside>
 
       {/* Mobile Header */}
       <header
-        className="lg:hidden sticky top-0 z-50 topbar"
-        style={{ justifyContent: 'space-between', padding: '12px 16px' }}
+        className="lg:hidden sticky z-50 topbar"
+        style={{ top: 'var(--demo-banner-h, 0px)', justifyContent: 'space-between', padding: '12px 16px' }}
       >
         <Link href="/admin/dashboard" aria-label="Ir al inicio" style={{ textDecoration: 'none' }}>
           <Image src="/LogoAlumco.png" alt="Alumco" width={116} height={39} priority style={{ width: 116, height: 'auto' }} />
@@ -166,9 +170,10 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
       {/* Mobile Drawer */}
       <aside
         className={
-          'sidebar lg:hidden fixed top-0 left-0 h-screen z-50 transform transition-transform duration-300 ease-in-out ' +
+          'sidebar lg:hidden fixed left-0 h-screen z-50 transform transition-transform duration-300 ease-in-out ' +
           (isDrawerOpen ? 'translate-x-0' : '-translate-x-full')
         }
+        style={{ top: 'var(--demo-banner-h, 0px)', height: 'calc(100vh - var(--demo-banner-h, 0px))' }}
         aria-label="Menú de navegación"
       >
         <div className="fila" style={{ justifyContent: 'flex-end', padding: 12 }}>
