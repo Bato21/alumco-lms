@@ -54,7 +54,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#1a56a4',
+  // Debe coincidir con manifest.ts (background_color/theme_color): instalada,
+  // la barra de estado se pinta con esto y el azul cortaba con la cabecera
+  // crema de la plataforma.
+  themeColor: '#FCFAF6',
   // Sin cover, iOS reporta env(safe-area-inset-*) = 0 y la barra inferior
   // del PWA queda pegada al home indicator del iPhone.
   viewportFit: 'cover',
