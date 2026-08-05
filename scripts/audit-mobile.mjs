@@ -58,10 +58,18 @@ const auditar = () => {
   }
 
   // 2. Targets táctiles bajo el mínimo.
+  // `.area-tactil` amplía la zona pulsable a 48x48 con un ::after sin cambiar
+  // la caja visible, así que ahí se mide el área efectiva, no el rectángulo.
   const targets = []
   for (const el of document.querySelectorAll('a, button, [role="button"], input, select, textarea')) {
     if (!visible(el)) continue
     const r = el.getBoundingClientRect()
+    if (el.classList.contains('area-tactil')) {
+      const after = getComputedStyle(el, '::after')
+      const aw = parseFloat(after.width) || 0
+      const ah = parseFloat(after.height) || 0
+      if (Math.max(r.width, aw) >= 48 && Math.max(r.height, ah) >= 48) continue
+    }
     if (r.width < 48 || r.height < 48) {
       targets.push({
         sel: el.tagName.toLowerCase() +
