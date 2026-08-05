@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
+import { NotificationBell, type EventoBellItem } from '@/components/alumco/shared/NotificationBell'
 import SearchBar from '@/components/alumco/shared/SearchBar'
 import { Avatar } from '@/components/alumco/ds'
 
@@ -22,9 +22,10 @@ interface AdminTopBarProps {
   }
   role: 'admin' | 'profesor'
   fullName: string
+  evento?: EventoBellItem | null
 }
 
-export function AdminTopBar({ alerts, role, fullName }: AdminTopBarProps) {
+export function AdminTopBar({ alerts, role, fullName, evento }: AdminTopBarProps) {
   const [isVisible, setIsVisible] = useState(true)
   const lastScrollY = useRef(0)
   const ticking = useRef(false)
@@ -67,7 +68,7 @@ export function AdminTopBar({ alerts, role, fullName }: AdminTopBarProps) {
     >
       <SearchBar placeholder="Buscar cursos, trabajadores o sedes…" className="w-full max-w-[480px]" />
       <div className="crece" />
-      <NotificationBell initialAlerts={alerts} role={role} />
+      <NotificationBell initialAlerts={alerts} role={role} evento={evento} />
       <span style={{ width: 1, height: 26, background: 'var(--borde-suave)' }} />
       <Link
         href="/admin/perfil"

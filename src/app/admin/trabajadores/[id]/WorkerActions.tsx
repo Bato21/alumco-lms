@@ -72,7 +72,7 @@ export default function WorkerActions({ worker, sedes }: WorkerActionsProps) {
             onClick={handleReactivate}
             disabled={isPending}
             aria-busy={isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#27AE60] text-[#27AE60] text-sm font-semibold hover:bg-[#27AE60]/5 transition-colors min-h-[44px] disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#b9740f] text-[#b9740f] text-sm font-semibold hover:bg-[#b9740f]/5 transition-colors min-h-[44px] disabled:opacity-50"
           >
             {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
             Reactivar

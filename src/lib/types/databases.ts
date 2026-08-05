@@ -280,6 +280,52 @@ export interface EventPhoto {
   created_at: string
 }
 
+// ── Días administrativos ───────────────────────────────────
+// Solicitudes de días libres del trabajador. Cupo por área configurable por el
+// admin (default 5) y período de renovación configurable. Ver
+// supabase/propuestas/admin-days.sql (pendiente de que se corra en la DB viva).
+
+export type AdminDayStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'cancelada'
+export type AdminDayResetPeriod = 'anual' | 'fijo'
+
+export const ADMIN_DAY_STATUS_LABELS: Record<AdminDayStatus, string> = {
+  pendiente: 'Pendiente',
+  aprobada: 'Aprobada',
+  rechazada: 'Rechazada',
+  cancelada: 'Cancelada',
+}
+
+// Reglas de negocio (constantes de producto, no configurables por ahora).
+export const ADMIN_DAY_MAX_PER_REQUEST = 5
+export const ADMIN_DAY_MIN_ADVANCE_BUSINESS_DAYS = 5
+
+export interface AdminDayConfig {
+  id: boolean
+  default_quota: number
+  reset_period: AdminDayResetPeriod
+  updated_by: string | null
+  updated_at: string
+}
+
+export interface AdminDayAreaQuota {
+  area: string
+  quota: number
+}
+
+export interface AdminDayRequest {
+  id: string
+  user_id: string
+  start_date: string
+  end_date: string
+  days_count: number
+  reason: string | null
+  status: AdminDayStatus
+  review_note: string | null
+  reviewed_by: string | null
+  reviewed_at: string | null
+  created_at: string
+}
+
 // ── Payload del wizard de creación de eventos ──────────────
 // Los archivos 'use server' solo pueden exportar funciones async, así que
 // este tipo vive acá (no en events.ts) y se importa donde se necesite.
@@ -386,6 +432,27 @@ export interface Database {
         Row: EventPhoto
         Insert: Omit<EventPhoto, 'id' | 'created_at'>
         Update: Record<string, never>
+        Relationships: []
+      }
+      // Pendiente: tablas propuestas, ver supabase/propuestas/admin-days.sql
+      admin_day_config: {
+        Row: AdminDayConfig
+        Insert: Partial<AdminDayConfig> & { id?: boolean }
+        Update: Partial<Omit<AdminDayConfig, 'id'>>
+        Relationships: []
+      }
+      admin_day_area_quotas: {
+        Row: AdminDayAreaQuota
+        Insert: AdminDayAreaQuota
+        Update: Partial<Pick<AdminDayAreaQuota, 'quota'>>
+        Relationships: []
+      }
+      admin_day_requests: {
+        Row: AdminDayRequest
+        Insert: Omit<AdminDayRequest, 'id' | 'created_at' | 'reviewed_by' | 'reviewed_at' | 'review_note' | 'status'> & {
+          status?: AdminDayStatus
+        }
+        Update: Partial<Omit<AdminDayRequest, 'id' | 'user_id' | 'created_at'>>
         Relationships: []
       }
     }

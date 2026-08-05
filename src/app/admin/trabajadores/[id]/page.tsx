@@ -122,15 +122,15 @@ export default async function WorkerDetailPage(
             <div className="flex items-center gap-2 mt-2 flex-wrap">
               <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
                 sedes.findIndex(s => s.id === worker.sede) % 2 !== 0
-                  ? 'bg-[#EAF3DE] text-[#27500A]'
+                  ? 'bg-[#fdeccc] text-[#854f0b]'
                   : 'bg-[#E6F1FB] text-[#2B4FA0]'
               }`}>
                 {sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}
               </span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                isActive ? 'bg-green-50 text-[#27AE60]' : 'bg-red-50 text-[#E74C3C]'
+                isActive ? 'bg-[#fef6e6] text-[#b9740f]' : 'bg-red-50 text-[#E74C3C]'
               }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#27AE60]' : 'bg-[#E74C3C]'}`} aria-hidden="true" />
+                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#b9740f]' : 'bg-[#E74C3C]'}`} aria-hidden="true" />
                 {isActive ? 'Activo' : 'Suspendido'}
               </span>
             </div>
@@ -173,8 +173,8 @@ export default async function WorkerDetailPage(
             icon: CheckCircle2,
             label: 'Cursos completados',
             value: completedCount,
-            color: 'text-[#27AE60]',
-            bg: 'bg-green-50',
+            color: 'text-[#b9740f]',
+            bg: 'bg-[#fef6e6]',
           },
           {
             icon: BookOpen,
@@ -251,8 +251,8 @@ export default async function WorkerDetailPage(
                             En progreso
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-green-50 text-[#27AE60]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" aria-hidden="true" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#fef6e6] text-[#b9740f]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#b9740f]" aria-hidden="true" />
                             Completado
                           </span>
                         )}

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/server'
 import { ApprovalPanel } from '@/components/alumco/admin/ApprovalPanel'
 import { WorkersTable } from './WorkersTable'
 import { SuspendedTable } from './SuspendedTable'
 import { TabsTrabajadores } from './TabsTrabajadores'
-import { EncabezadoPagina, Avatar } from '@/components/alumco/ds'
+import { EncabezadoPagina, Avatar, Icono } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
   title: 'Gestión de Trabajadores | Alumco LMS',
@@ -152,6 +153,9 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
     <div data-screen-label="Admin · Trabajadores">
       <EncabezadoPagina titulo="Trabajadores" sub="Gestión centralizada de personal y accesos a la plataforma">
         <span className="badge badge-info">{activos.length} colaboradores activos</span>
+        <Link href="/admin/dias-administrativos" className="btn btn-secondary btn-sm">
+          <Icono n="reloj" s={17} /> Días administrativos
+        </Link>
       </EncabezadoPagina>
 
       <TabsTrabajadores

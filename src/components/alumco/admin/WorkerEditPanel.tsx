@@ -287,7 +287,7 @@ export function WorkerEditPanel({
             onClick={handleSave}
             disabled={isLoading || fullName.trim().length < 2}
             aria-busy={isPending}
-            className="w-full h-12 flex items-center justify-center rounded-lg bg-[#27AE60] text-white font-bold text-sm hover:bg-[#219150] transition-colors disabled:opacity-50"
+            className="w-full h-12 flex items-center justify-center rounded-lg bg-[#b9740f] text-white font-bold text-sm hover:bg-[#9a6210] transition-colors disabled:opacity-50"
           >
             {isPending ? (
               <>

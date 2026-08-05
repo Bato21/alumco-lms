@@ -1,4 +1,4 @@
-import { FileText, Download } from 'lucide-react'
+import { FileText } from 'lucide-react'
 
 const DOCS = [
   'Convenio',
@@ -27,6 +27,9 @@ export default function MemoriasSection() {
         </p>
       </div>
 
+      {/* Documentos informativos (aún no disponibles para descarga): se
+          muestran como elementos estáticos con etiqueta "Próximamente" para no
+          aparentar botones/enlaces que no llevan a ningún lado. */}
       <div
         style={{
           display: 'grid',
@@ -35,17 +38,15 @@ export default function MemoriasSection() {
         }}
       >
         {DOCS.map((doc) => (
-          <a
+          <div
             key={doc}
-            href="#"
-            className="card card-hover"
+            className="card"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 12,
               padding: '16px 18px',
               color: 'var(--tinta)',
-              textDecoration: 'none',
             }}
           >
             <span
@@ -64,8 +65,20 @@ export default function MemoriasSection() {
               <FileText size={18} />
             </span>
             <span style={{ fontWeight: 500, fontSize: 15, flex: 1 }}>{doc}</span>
-            <Download size={16} style={{ color: 'var(--tinta-3)' }} />
-          </a>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--tinta-3)',
+                background: 'var(--arena-100)',
+                padding: '3px 8px',
+                borderRadius: 999,
+                flexShrink: 0,
+              }}
+            >
+              Próximamente
+            </span>
+          </div>
         ))}
       </div>
     </section>

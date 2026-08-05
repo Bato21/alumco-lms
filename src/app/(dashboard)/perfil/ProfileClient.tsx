@@ -2,8 +2,9 @@
 
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { updateProfileAction, uploadFirmaAction, deleteFirmaAction } from '@/lib/actions/trabajadores'
-import { Mail, MapPin, Calendar, CreditCard } from 'lucide-react'
+import { Mail, MapPin, Calendar, CreditCard, CalendarClock } from 'lucide-react'
 import { TarjetaStat, Badge } from '@/components/alumco/ds'
 
 interface ProfileClientProps {
@@ -28,6 +29,10 @@ interface ProfileClientProps {
   capacitatedWorkers?: number
   approvalRate?: number
   totalCerts?: number
+  adminDaysRemaining?: number
+  adminDaysQuota?: number
+  adminDaysUsed?: number
+  adminDaysPending?: number
 }
 
 const roleLabel: Record<string, string> = {
@@ -70,6 +75,10 @@ export function ProfileClient({
   capacitatedWorkers,
   approvalRate,
   totalCerts,
+  adminDaysRemaining,
+  adminDaysQuota,
+  adminDaysUsed,
+  adminDaysPending,
 }: ProfileClientProps) {
   const initial = fechaNacimiento ?? ''
   const [fechaNac, setFechaNac] = useState(initial)
@@ -342,6 +351,33 @@ export function ProfileClient({
           {firmaSuccess && (
             <p className="text-sm text-[#27AE60] font-medium">✓ Firma guardada correctamente</p>
           )}
+        </div>
+      )}
+
+      {/* ── Días administrativos (solo trabajador) ──────────── */}
+      {role === 'trabajador' && adminDaysRemaining !== undefined && (
+        <div className="card card-pad space-y-4">
+          <div className="fila" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div className="fila" style={{ gap: 12 }}>
+              <div className="h-11 w-11 rounded-full bg-[var(--ambar-50)] text-[var(--ambar)] flex items-center justify-center shrink-0">
+                <CalendarClock className="w-5 h-5" aria-hidden="true" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-[var(--tinta)]">Días administrativos</h2>
+                <p className="text-xs text-[var(--tinta-3)] mt-0.5">
+                  Te quedan <strong>{adminDaysRemaining}</strong> de {adminDaysQuota} días
+                  {adminDaysPending ? ` · ${adminDaysPending} pendiente(s) de aprobación` : ''}
+                </p>
+              </div>
+            </div>
+            <Link href="/dias-administrativos" className="btn btn-secondary btn-sm">Ver y solicitar</Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+            <TarjetaStat etiqueta="Disponibles" valor={adminDaysRemaining} icono="calendario" tono="ambar" />
+            <TarjetaStat etiqueta="Usados" valor={adminDaysUsed ?? 0} icono="check" />
+            <TarjetaStat etiqueta="Pendientes" valor={adminDaysPending ?? 0} icono="reloj" />
+          </div>
         </div>
       )}
 

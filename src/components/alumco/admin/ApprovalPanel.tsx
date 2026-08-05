@@ -366,7 +366,7 @@ export function ApprovalPanel({
                 type="submit"
                 form="approval-form"
                 disabled={isPending || isRejecting}
-                className="w-full h-12 text-sm font-bold bg-[#27AE60] hover:bg-[#219150] text-white rounded-xl"
+                className="w-full h-12 text-sm font-bold bg-[#b9740f] hover:bg-[#9a6210] text-white rounded-xl"
                 aria-busy={isPending}
               >
                 {isPending ? (

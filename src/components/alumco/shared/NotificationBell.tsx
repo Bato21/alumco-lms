@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { NotificationItem } from './NotificationItem'
 
 interface AlertItem {
   courseId: string
@@ -13,12 +14,22 @@ interface AlertItem {
   completionPct?: number
 }
 
+// Evento institucional próximo, para mostrarlo también en la campana.
+export interface EventoBellItem {
+  id: string
+  title: string
+  categoria: string | null
+  diasRestantes: number
+  href: string
+}
+
 interface NotificationBellProps {
   initialAlerts: {
     count: number
     alerts: AlertItem[]
   }
   role: 'admin' | 'profesor' | 'trabajador'
+  evento?: EventoBellItem | null
 }
 
 const urgencyConfig = {
@@ -36,7 +47,7 @@ const urgencyConfig = {
   },
 }
 
-export function NotificationBell({ initialAlerts, role }: NotificationBellProps) {
+export function NotificationBell({ initialAlerts, role, evento }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [seen, setSeen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -51,7 +62,8 @@ export function NotificationBell({ initialAlerts, role }: NotificationBellProps)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const hasUnseen = initialAlerts.count > 0 && !seen
+  const totalCount = initialAlerts.count + (evento ? 1 : 0)
+  const hasUnseen = totalCount > 0 && !seen
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -84,10 +96,10 @@ export function NotificationBell({ initialAlerts, role }: NotificationBellProps)
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-[#1A1A2E] text-sm">Alertas</h3>
-              {initialAlerts.count > 0 && (
+              {totalCount > 0 && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full
                   bg-[#FAECE7] text-[#E74C3C]">
-                  {initialAlerts.count}
+                  {totalCount}
                 </span>
               )}
             </div>
@@ -103,7 +115,7 @@ export function NotificationBell({ initialAlerts, role }: NotificationBellProps)
 
           {/* Lista */}
           <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
-            {initialAlerts.count === 0 ? (
+            {totalCount === 0 ? (
               <div className="px-4 py-8 text-center">
                 <p className="text-sm text-[#6B7280]">Sin alertas pendientes</p>
                 <p className="text-xs text-slate-400 mt-1">
@@ -111,56 +123,46 @@ export function NotificationBell({ initialAlerts, role }: NotificationBellProps)
                 </p>
               </div>
             ) : (
-              initialAlerts.alerts.map(alert => {
-                const config = urgencyConfig[alert.urgency]
-                const urgencyLabel = alert.urgency === 'overdue'
-                  ? 'Vencido'
-                  : `${alert.daysLeft}d restantes`
-                const href = role === 'admin'
-                  ? '/admin/reportes'
-                  : `/cursos/${alert.courseId}`
+              <>
+                {/* Evento próximo (arriba del todo) */}
+                {evento && (
+                  <NotificationItem
+                    href={evento.href}
+                    dotClass="bg-[#F5A623]"
+                    title={evento.title}
+                    label={
+                      evento.diasRestantes > 0
+                        ? `Faltan ${evento.diasRestantes} día${evento.diasRestantes === 1 ? '' : 's'}`
+                        : evento.diasRestantes === 0 ? '¡Es hoy!' : 'En curso'
+                    }
+                    labelClass="text-[#F5A623]"
+                    extra={evento.categoria ?? undefined}
+                  />
+                )}
 
-                return (
-                  <a
-                    key={alert.courseId}
-                    href={href}
-                    className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors"
-                  >
-                    <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${config.dot}`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1A2E] truncate">
-                        {alert.courseTitle}
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className={`text-xs font-semibold ${config.labelStyle}`}>
-                          {urgencyLabel}
-                        </span>
-                        {alert.pendingWorkers !== undefined && (
-                          <>
-                            <span className="text-slate-300">·</span>
-                            <span className="text-xs text-[#6B7280]">
-                              {alert.pendingWorkers} sin completar
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      {alert.completionPct !== undefined && (
-                        <div className="mt-1.5 h-1 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[#2B4FA0] rounded-full"
-                            style={{ width: `${alert.completionPct}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </a>
-                )
-              })
+                {initialAlerts.alerts.map(alert => {
+                  const config = urgencyConfig[alert.urgency]
+                  const urgencyLabel = alert.urgency === 'overdue' ? 'Vencido' : `${alert.daysLeft}d restantes`
+                  const href = role === 'admin' ? '/admin/reportes' : `/cursos/${alert.courseId}`
+                  return (
+                    <NotificationItem
+                      key={alert.courseId}
+                      href={href}
+                      dotClass={config.dot}
+                      title={alert.courseTitle}
+                      label={urgencyLabel}
+                      labelClass={config.labelStyle}
+                      extra={alert.pendingWorkers !== undefined ? `${alert.pendingWorkers} sin completar` : undefined}
+                      progressPct={alert.completionPct}
+                    />
+                  )
+                })}
+              </>
             )}
           </div>
 
           {/* Footer */}
-          {initialAlerts.count > 0 && (
+          {totalCount > 0 && (
             <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50">
               <p className="text-[10px] text-slate-400 text-center">
                 {role === 'admin'

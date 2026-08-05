@@ -732,21 +732,26 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
    (reemplaza el ámbar). Scoped a .paleta-oliva.
    ============================================================ */
 .paleta-oliva {
-  --ambar:       #6E8B6A;
-  --ambar-600:   #5f7d5b;
-  --ambar-700:   #4f6a4c;
-  --ambar-100:   #dde7da;
-  --ambar-50:    #eef2ec;
-  /* oliva oscuro (secciones tipo landing) + sage claro (acento sobre azul) */
-  --oliva-950:   #222a1f;
-  --oliva-900:   #2b3427;
-  --oliva-800:   #3a4636;
-  --oliva-clara: #aac6a3;
-  --grad-oliva:  linear-gradient(168deg, #2b3427 0%, #3a4636 100%);
-  /* bordes neutros suaves (didasko los pone azul marino, demasiado duro) */
+  /* Acento ámbar de marca (antes verde oliva). El admin usa el mismo amarillo
+     Alumco que el resto de la plataforma. */
+  --ambar:       #F5A623;
+  --ambar-600:   #e0961a;
+  --ambar-700:   #b9740f;
+  --ambar-100:   #fdeccc;
+  --ambar-50:    #fef6e6;
+  /* azul marino de marca (secciones oscuras) + ámbar claro (acento sobre azul) */
+  --oliva-950:   #0b1838;
+  --oliva-900:   #0f1f4d;
+  --oliva-800:   #152a66;
+  --oliva-clara: #F5C26B;
+  --grad-oliva:  linear-gradient(168deg, #0f1f4d 0%, #152a66 100%);
+  /* bordes neutros suaves */
   --borde:       #ded7c8;
   --borde-suave: #ece6d9;
-  --foco-glow:   rgba(110, 139, 106, 0.22); /* glow de foco (verde) */
+  --foco-glow:   rgba(245, 166, 35, 0.22); /* glow de foco (ámbar) */
+  /* "éxito/activo" en ámbar de marca (antes verde) para todo el admin */
+  --ok:          #b9740f;
+  --ok-bg:       #fef6e6;
 }
 .paleta-oliva .acento-claro { color: var(--oliva-clara) !important; }
 

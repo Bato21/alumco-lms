@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { getAdminAlerts } from '@/lib/actions/alerts'
+import { getProximoEventoResumen } from '@/lib/eventos/proximoEvento'
 import { Avatar, Badge, BadgeEstado, Progreso, Onda, Icono } from '@/components/alumco/ds'
 import type { IconoNombre } from '@/components/alumco/ds'
-import { EventoDashboardCard } from '@/components/alumco/eventos/EventoDashboardCard'
+import { CompactEventCard } from '@/components/alumco/eventos/CompactEventCard'
+import { EventNotificationModal } from '@/components/alumco/eventos/EventNotificationModal'
 
 export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
@@ -210,37 +211,43 @@ export default async function AdminDashboardPage() {
     { href: '/admin/trabajadores', icono: 'reportes', valor: atrasadosCount, etiqueta: 'Trabajadores atrasados', detalle: 'bajo 50% de avance', tono: 'ambar' },
   ]
 
+  // Resumen del próximo evento (cache() dedup con el layout/campana).
+  const evento = await getProximoEventoResumen(true)
+
   return (
     <div className="col" style={{ gap: 20 }} data-screen-label="Admin · Dashboard">
 
-      {/* Streamea aparte: su cascada de queries no bloquea el resto del dashboard */}
-      <Suspense fallback={<div className="card card-pad"><div className="skeleton" style={{ height: 120 }} /></div>}>
-        <EventoDashboardCard userId={user!.id} isAdmin />
-      </Suspense>
+      {/* Modal de evento al iniciar sesión (estado 1). Se auto-abre si no fue
+          visto; al cerrarlo queda la tarjeta compacta (estado 2). */}
+      {evento && <EventNotificationModal evento={evento} userId={user!.id} />}
 
-      {/* Hero saludo (variante B) */}
-      <div
-        className="card bloque-marca entra"
-        style={{ background: 'var(--grad-marca)', color: '#fff', border: 'none', overflow: 'hidden', position: 'relative' }}
-      >
-        <div className="fila" style={{ padding: '30px 32px 24px', gap: 24, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-          <div className="crece" style={{ minWidth: 280 }}>
-            <span className="t-eyebrow" style={{ color: 'var(--oliva-clara, var(--ambar))' }}>◆ {mesLabel}</span>
-            <h1 className="t-display" style={{ fontSize: 30, color: '#fff', marginTop: 8 }}>
-              {saludo}, {firstName}.<br />
-              Hay <em style={{ color: 'var(--oliva-clara, var(--ambar))' }}>{adminAlerts.count} vencimiento{adminAlerts.count !== 1 ? 's' : ''}</em> este mes.
-            </h1>
+      {/* Bienvenida + tarjeta compacta de evento a la derecha (abajo en móvil) */}
+      <div className="flex flex-col lg:flex-row gap-4 lg:items-stretch entra">
+        <div
+          className="card bloque-marca flex-1 min-w-0"
+          style={{ background: 'var(--grad-marca)', color: '#fff', border: 'none', overflow: 'hidden', position: 'relative' }}
+        >
+          <div className="fila" style={{ padding: '30px 32px 24px', gap: 24, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
+            <div className="crece" style={{ minWidth: 280 }}>
+              <span className="t-eyebrow" style={{ color: 'var(--oliva-clara, var(--ambar))' }}>◆ {mesLabel}</span>
+              <h1 className="t-display" style={{ fontSize: 30, color: '#fff', marginTop: 8 }}>
+                {saludo}, {firstName}.<br />
+                Hay <em style={{ color: 'var(--oliva-clara, var(--ambar))' }}>{adminAlerts.count} vencimiento{adminAlerts.count !== 1 ? 's' : ''}</em> este mes.
+              </h1>
+            </div>
+            <div className="fila" style={{ gap: 28 }}>
+              {heroStats.map(([v, l]) => (
+                <div key={l} style={{ textAlign: 'center' }}>
+                  <div className="t-display" style={{ fontSize: 34, color: '#fff' }}>{v}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{l}</div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="fila" style={{ gap: 28 }}>
-            {heroStats.map(([v, l]) => (
-              <div key={l} style={{ textAlign: 'center' }}>
-                <div className="t-display" style={{ fontSize: 34, color: '#fff' }}>{v}</div>
-                <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', marginTop: 2 }}>{l}</div>
-              </div>
-            ))}
-          </div>
+          <Onda alto={36} />
         </div>
-        <Onda alto={36} />
+
+        {evento && <CompactEventCard evento={evento} />}
       </div>
 
       {/* Acciones del día — lo accionable arriba (pirámide invertida + patrón F) */}

@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { DeadlineCalendar } from '@/components/alumco/curso/DeadlineCalendar'
+import { SolicitarDiasModal } from '@/components/alumco/dias/SolicitarDiasModal'
+import { getMyAdminDaysSummary } from '@/lib/actions/admin-days'
 import WelcomeModal from '@/components/alumco/shared/WelcomeModal'
-import { EventoDashboardCard } from '@/components/alumco/eventos/EventoDashboardCard'
+import { CompactEventCard } from '@/components/alumco/eventos/CompactEventCard'
+import { EventNotificationModal } from '@/components/alumco/eventos/EventNotificationModal'
+import { getProximoEventoResumen } from '@/lib/eventos/proximoEvento'
 import { Anillo, Onda, Icono } from '@/components/alumco/ds'
 import { type EstacionCurso, type EstadoCurso } from '@/components/alumco/curso/CauceCursos'
 import { RecorridoCapas } from '@/components/alumco/curso/RecorridoCapas'
@@ -126,6 +129,10 @@ export default async function InicioPage() {
 
   const fechaHoy = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
 
+  const adminDays = await getMyAdminDaysSummary()
+
+  const evento = await getProximoEventoResumen(false)
+
   return (
     <div className="col" style={{ gap: 26 }} data-screen-label="Trabajador · Inicio">
 
@@ -137,10 +144,9 @@ export default async function InicioPage() {
         />
       )}
 
-      {/* Streamea aparte: su cascada de queries no bloquea el resto del inicio */}
-      <Suspense fallback={<div className="card card-pad"><div className="skeleton" style={{ height: 120 }} /></div>}>
-        <EventoDashboardCard userId={user!.id} isAdmin={false} />
-      </Suspense>
+      {/* Modal de evento al iniciar sesión (estado 1); al cerrar queda la
+          tarjeta compacta junto al bloque azul (estado 2). */}
+      {evento && <EventNotificationModal evento={evento} userId={user!.id} />}
 
       {/* Saludo */}
       <div className="entra">
@@ -153,30 +159,36 @@ export default async function InicioPage() {
         </p>
       </div>
 
-      {/* Card continuar */}
-      {continuar && (
-        <div
-          className="card bloque-marca entra entra-1"
-          style={{ background: 'var(--grad-marca)', border: 'none', color: '#fff', overflow: 'hidden' }}
-        >
-          <div style={{ padding: '30px 32px 20px', position: 'relative', zIndex: 1 }}>
-            <div className="fila" style={{ gap: 24, flexWrap: 'wrap' }}>
-              <div className="crece" style={{ minWidth: 260 }}>
-                <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>Continúa donde quedaste</span>
-                <h2 className="t-display" style={{ fontSize: 27, color: '#fff', margin: '10px 0 8px' }}>{continuar.title}</h2>
-                <p className="texto-s" style={{ color: 'rgba(255,255,255,0.72)', marginBottom: 18 }}>
-                  {continuar.progressPct > 0 ? `Vas en el ${continuar.progressPct}% del curso` : 'Aún no comienzas este curso'}
-                </p>
-                <Link href={`/cursos/${continuar.id}`} className="btn btn-primary btn-lg">
-                  <Icono n="play" s={20} /> {continuar.progressPct > 0 ? 'Continuar curso' : 'Comenzar curso'}
-                </Link>
+      {/* Bloque azul (continuar) + tarjeta compacta de evento a la derecha */}
+      {(continuar || evento) && (
+        <div className="flex flex-col lg:flex-row gap-4 lg:items-stretch entra entra-1">
+          {continuar && (
+            <div
+              className="card bloque-marca flex-1 min-w-0"
+              style={{ background: 'var(--grad-marca)', border: 'none', color: '#fff', overflow: 'hidden', position: 'relative' }}
+            >
+              <div style={{ padding: '30px 32px 20px', position: 'relative', zIndex: 1 }}>
+                <div className="fila" style={{ gap: 24, flexWrap: 'wrap' }}>
+                  <div className="crece" style={{ minWidth: 260 }}>
+                    <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>Continúa donde quedaste</span>
+                    <h2 className="t-display" style={{ fontSize: 27, color: '#fff', margin: '10px 0 8px' }}>{continuar.title}</h2>
+                    <p className="texto-s" style={{ color: 'rgba(255,255,255,0.72)', marginBottom: 18 }}>
+                      {continuar.progressPct > 0 ? `Vas en el ${continuar.progressPct}% del curso` : 'Aún no comienzas este curso'}
+                    </p>
+                    <Link href={`/cursos/${continuar.id}`} className="btn btn-primary btn-lg">
+                      <Icono n="play" s={20} /> {continuar.progressPct > 0 ? 'Continuar curso' : 'Comenzar curso'}
+                    </Link>
+                  </div>
+                  <div style={{ alignSelf: 'center' }}>
+                    <Anillo pct={cumulativeProgress} s={104} grosor={10} etiqueta={`${cumulativeProgress}%`} />
+                  </div>
+                </div>
               </div>
-              <div style={{ alignSelf: 'center' }}>
-                <Anillo pct={cumulativeProgress} s={104} grosor={10} etiqueta={`${cumulativeProgress}%`} />
-              </div>
+              <Onda alto={30} />
             </div>
-          </div>
-          <Onda alto={30} />
+          )}
+
+          {evento && <CompactEventCard evento={evento} />}
         </div>
       )}
 
@@ -224,8 +236,16 @@ export default async function InicioPage() {
 
       {/* Calendario de plazos */}
       <div className="card card-pad entra entra-4 col" style={{ gap: 16 }}>
-        <div className="fila">
+        <div className="fila" style={{ flexWrap: 'wrap', gap: 10 }}>
           <h2 className="crece" style={{ fontSize: 16.5 }}>Plazos de cursos</h2>
+          {adminDays && (
+            <SolicitarDiasModal
+              remainingDays={adminDays.remainingDays}
+              quota={adminDays.quota}
+              hasOverdue={adminDays.overdueCourses.length > 0}
+              triggerLabel="Solicitar días administrativos"
+            />
+          )}
           <Link href="/cursos" className="btn btn-ghost btn-sm">Ver todos <Icono n="chevR" s={16} /></Link>
         </div>
         <DeadlineCalendar courses={coursesWithStatus.filter((c): c is typeof c & { deadline: string } => c.deadline !== null)} />

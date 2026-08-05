@@ -77,16 +77,15 @@ export default function MisionVision() {
         </div>
 
         <style>{`
+          /* Grid parejo (5 columnas) en vez de flex-wrap: evita que la última
+             fila quede descuadrada al envolver. */
           .mision-cats {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
             margin-top: 46px;
           }
           .mision-cat {
-            flex: 1 1 132px;
-            max-width: 166px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -95,11 +94,12 @@ export default function MisionVision() {
             border: 1px solid rgba(255,255,255,0.10);
             border-radius: 14px;
             background: rgba(255,255,255,0.025);
-            transition: border-color .25s ease, background .25s ease;
           }
-          .mision-cat:hover {
-            border-color: rgba(226,182,115,0.42);
-            background: rgba(255,255,255,0.045);
+          @media (max-width: 720px) {
+            .mision-cats { grid-template-columns: repeat(3, 1fr); }
+          }
+          @media (max-width: 460px) {
+            .mision-cats { grid-template-columns: repeat(2, 1fr); }
           }
           .mision-cat-label {
             font-size: 13.5px;

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { ProfileClient } from './ProfileClient'
 import { ActivarNotificaciones } from '@/components/alumco/shared/ActivarNotificaciones'
+import { getMyAdminDaysSummary } from '@/lib/actions/admin-days'
 
 export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
@@ -137,6 +138,9 @@ export default async function PerfilPage() {
     certsCount = (certs ?? []).length
   }
 
+  // Días administrativos (solo trabajador)
+  const adminDays = isAdminOrProfesor ? null : await getMyAdminDaysSummary()
+
   return (
     <div className="col max-w-4xl mx-auto" style={{ gap: 22 }} data-screen-label="Trabajador · Perfil">
       <div className="entra">
@@ -166,6 +170,10 @@ export default async function PerfilPage() {
         capacitatedWorkers={capacitatedWorkers}
         approvalRate={approvalRate}
         totalCerts={totalCerts}
+        adminDaysRemaining={adminDays?.remainingDays}
+        adminDaysQuota={adminDays?.quota}
+        adminDaysUsed={adminDays?.usedDays}
+        adminDaysPending={adminDays?.pendingDays}
       />
 
       <ActivarNotificaciones />

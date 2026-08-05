@@ -50,7 +50,7 @@ function SuspendidoRow({ worker }: { worker: Worker }) {
         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
           worker.sede === 'sede_1'
             ? 'bg-[#E6F1FB] text-[#2B4FA0]'
-            : 'bg-[#EAF3DE] text-[#27500A]'
+            : 'bg-[#fdeccc] text-[#854f0b]'
         }`}>
           {worker.sede === 'sede_1' ? 'Hualpén' : worker.sede === 'sede_2' ? 'Coyhaique' : worker.sede}
         </span>
@@ -70,7 +70,7 @@ function SuspendidoRow({ worker }: { worker: Worker }) {
           disabled={isPending}
           aria-label={`Reactivar ${worker.full_name}`}
           aria-busy={isPending}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#27AE60] text-[#27AE60] text-sm font-semibold hover:bg-[#27AE60]/5 transition-colors min-h-[44px] disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#b9740f] text-[#b9740f] text-sm font-semibold hover:bg-[#b9740f]/5 transition-colors min-h-[44px] disabled:opacity-50"
         >
           {isPending ? (
             <>

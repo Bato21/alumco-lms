@@ -3,7 +3,7 @@
 // en el nombre, /icons y fuentes cambian de URL al cambiar). HTML y datos
 // JAMÁS se cachean: siempre van a la red (auth y RLS mandan).
 
-const CACHE_ESTATICOS = 'alumco-static-v1'
+const CACHE_ESTATICOS = 'alumco-static-v2'
 
 self.addEventListener('install', () => {
   self.skipWaiting()

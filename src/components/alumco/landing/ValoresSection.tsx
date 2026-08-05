@@ -92,6 +92,8 @@ export default function ValoresSection() {
             "b c e";
           align-items: stretch;
         }
+        /* Tarjetas informativas (no interactivas): sin hover-lift para que no
+           se confundan con botones. */
         .valor-card {
           position: relative;
           border-radius: 20px;
@@ -101,12 +103,6 @@ export default function ValoresSection() {
           backdrop-filter: blur(9px);
           -webkit-backdrop-filter: blur(9px);
           box-shadow: 0 12px 34px rgba(0,0,0,0.22);
-          transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-        }
-        .valor-card:hover {
-          transform: translateY(-4px);
-          border-color: rgba(245,166,35,0.42);
-          box-shadow: 0 20px 46px rgba(0,0,0,0.3);
         }
         .valor-card.featured {
           display: flex;
@@ -116,11 +112,6 @@ export default function ValoresSection() {
           border-color: rgba(255,255,255,0.12);
           background: linear-gradient(180deg, rgba(245,166,35,0.07) 0%, rgba(255,255,255,0.05) 100%);
           box-shadow: 0 16px 44px rgba(0,0,0,0.3);
-        }
-        .valor-card.featured:hover {
-          transform: translateY(-4px);
-          border-color: rgba(245,166,35,0.42);
-          box-shadow: 0 22px 52px rgba(0,0,0,0.34);
         }
         .valor-badge {
           width: 54px;
