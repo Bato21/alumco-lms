@@ -42,7 +42,7 @@ export function CertificateBadge({
           </svg>
         </div>
         <div>
-          <p className="text-[10px] font-bold text-[#F5A623] uppercase tracking-widest mb-0.5">
+          <p className="text-xs font-bold text-[#F5A623] uppercase tracking-widest mb-0.5">
             Certificado obtenido
           </p>
           <h3 className="font-bold text-[#1A1A2E] text-lg leading-tight">

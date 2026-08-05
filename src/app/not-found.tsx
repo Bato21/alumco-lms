@@ -1,16 +1,20 @@
 import Link from 'next/link'
+import { Gota } from '@/components/alumco/ds'
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-6">
 
-        {/* Logo */}
-        <img
-          src="https://ongalumco.cl/wp-content/uploads/2023/11/logo-alumco-completoccc-300x102.png"
-          alt="Alumco"
-          className="h-10 object-contain mx-auto opacity-80"
-        />
+        {/* Marca. Antes era un <img> a ongalumco.cl: dependía de un host
+            externo y se veía como imagen rota cuando no respondía. */}
+        <div className="flex items-center justify-center gap-2" aria-label="KimünKo">
+          <Gota s={26} />
+          <span style={{ fontSize: 21, fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1 }}>
+            <span style={{ color: 'var(--azul-900)' }}>Kimün</span>
+            <span style={{ color: 'var(--ambar)' }}>Ko</span>
+          </span>
+        </div>
 
         {/* Número 404 */}
         <div className="relative">

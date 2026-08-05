@@ -78,7 +78,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
       <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b">
         <button
           onClick={prevMonth}
-          className="p-2 sm:p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-[#F5F5F5] transition-colors"
+          className="p-2 sm:p-2 min-h-[48px] min-w-[48px] rounded-lg hover:bg-[#F5F5F5] transition-colors"
           aria-label="Mes anterior"
         >
           <ChevronLeft className="h-5 w-5 text-muted-foreground" aria-hidden="true"/>
@@ -90,7 +90,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
 
         <button
           onClick={nextMonth}
-          className="p-2 sm:p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-[#F5F5F5] transition-colors"
+          className="p-2 sm:p-2 min-h-[48px] min-w-[48px] rounded-lg hover:bg-[#F5F5F5] transition-colors"
           aria-label="Mes siguiente"
         >
           <ChevronRight className="h-5 w-5 text-muted-foreground" aria-hidden="true"/>
@@ -102,7 +102,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
         {DAYS.map(day => (
           <div
             key={day}
-            className="py-2 text-center text-[10px] sm:text-xs font-semibold text-muted-foreground"
+            className="py-2 text-center text-xs font-semibold text-muted-foreground"
           >
             {day}
           </div>
@@ -126,7 +126,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
                 <>
                   {/* Número del día */}
                   <div className="flex justify-end mb-1">
-                    <span className={`text-[10px] sm:text-xs font-semibold h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center rounded-full ${
+                    <span className={`text-xs font-semibold h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center rounded-full ${
                       isCurrentDay
                         ? 'bg-[#2B4FA0] text-white'
                         : 'text-muted-foreground'
@@ -149,7 +149,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
                         <Link
                           key={course.id}
                           href={`/cursos/${course.id}`}
-                          className={`block text-[9px] sm:text-[10px] font-medium px-1 sm:px-1.5 py-0.5 rounded border truncate leading-tight ${color} hover:opacity-80 transition-opacity min-h-[20px]`}
+                          className={`block text-[11px] sm:text-[10px] font-medium px-1 sm:px-1.5 py-0.5 rounded border truncate leading-tight ${color} hover:opacity-80 transition-opacity min-h-[20px]`}
                           title={course.title}
                         >
                           {course.title}
@@ -159,7 +159,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
 
                     {/* Si hay más de 2 */}
                     {deadlines.length > 2 && (
-                      <span className="text-[9px] sm:text-[10px] text-muted-foreground px-1">
+                      <span className="text-[11px] sm:text-[10px] text-muted-foreground px-1">
                         +{deadlines.length - 2} más
                       </span>
                     )}

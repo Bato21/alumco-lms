@@ -151,7 +151,7 @@ export default async function InicioPage() {
       {/* Saludo */}
       <div className="entra">
         <span className="t-eyebrow">◆ {fechaHoy}</span>
-        <h1 className="t-display" style={{ fontSize: 36, marginTop: 8 }}>
+        <h1 className="t-display" style={{ marginTop: 8 }}>
           Hola {firstName},<br />sigamos <em>aprendiendo</em>.
         </h1>
         <p className="silencio" style={{ marginTop: 8, fontSize: 16.5 }}>
@@ -236,17 +236,22 @@ export default async function InicioPage() {
 
       {/* Calendario de plazos */}
       <div className="card card-pad entra entra-4 col" style={{ gap: 16 }}>
-        <div className="fila" style={{ flexWrap: 'wrap', gap: 10 }}>
-          <h2 className="crece" style={{ fontSize: 16.5 }}>Plazos de cursos</h2>
-          {adminDays && (
-            <SolicitarDiasModal
-              remainingDays={adminDays.remainingDays}
-              quota={adminDays.quota}
-              hasOverdue={adminDays.overdueCourses.length > 0}
-              triggerLabel="Solicitar días administrativos"
-            />
-          )}
-          <Link href="/cursos" className="btn btn-ghost btn-sm">Ver todos <Icono n="chevR" s={16} /></Link>
+        {/* El título y las acciones iban en una sola fila: en móvil el botón
+            de días administrativos empujaba «Plazos de cursos» a tres líneas.
+            Ahora el título ocupa su renglón y las acciones bajan debajo. */}
+        <div className="cabecera-seccion">
+          <h2 style={{ fontSize: 16.5 }}>Plazos de cursos</h2>
+          <div className="cabecera-seccion-acciones">
+            {adminDays && (
+              <SolicitarDiasModal
+                remainingDays={adminDays.remainingDays}
+                quota={adminDays.quota}
+                hasOverdue={adminDays.overdueCourses.length > 0}
+                triggerLabel="Solicitar días administrativos"
+              />
+            )}
+            <Link href="/cursos" className="btn btn-ghost btn-sm">Ver todos <Icono n="chevR" s={16} /></Link>
+          </div>
         </div>
         <DeadlineCalendar courses={coursesWithStatus.filter((c): c is typeof c & { deadline: string } => c.deadline !== null)} />
       </div>
