@@ -57,6 +57,55 @@ export function filterCoursesByWorkerAreas<T extends { target_areas: string[] }>
   })
 }
 
+// ── Progreso secuencial de módulos ────────────────────────
+// Un módulo se abre solo cuando el anterior está completo. La UI ya lo pintaba
+// así, pero la regla vive acá para que el servidor use exactamente la misma:
+// pintar un candado no impide que alguien llame la server action a mano.
+
+/** Estado de un módulo para el trabajador que lo mira. */
+export type ModuleGate = 'completado' | 'disponible' | 'bloqueado'
+
+/**
+ * `modules` debe venir ordenado por `order_index`. Devuelve el estado de cada
+ * módulo, indexado por id.
+ */
+export function computeModuleGates<T extends { id: string }>(
+  modules: T[],
+  completedModuleIds: string[]
+): Map<string, ModuleGate> {
+  const completados = new Set(completedModuleIds)
+  const estados = new Map<string, ModuleGate>()
+
+  // El primero siempre está disponible; el resto hereda del anterior. Un
+  // módulo ya completado nunca se vuelve a bloquear, aunque se reabra el curso.
+  let anteriorCompleto = true
+  for (const m of modules) {
+    if (completados.has(m.id)) estados.set(m.id, 'completado')
+    else if (anteriorCompleto) estados.set(m.id, 'disponible')
+    else estados.set(m.id, 'bloqueado')
+    anteriorCompleto = completados.has(m.id)
+  }
+
+  return estados
+}
+
+/**
+ * Atajo para el caso de un solo módulo (el que usan las server actions).
+ *
+ * Un `moduleId` que no está en `modules` devuelve false, no true: si el módulo
+ * no pertenece a este curso, no hay nada que desbloquear. Las actions ya
+ * validan la cadena módulo → curso por separado, pero esta función no puede
+ * dar por buena una entrada que no reconoce.
+ */
+export function isModuleUnlocked<T extends { id: string }>(
+  modules: T[],
+  completedModuleIds: string[],
+  moduleId: string
+): boolean {
+  const gate = computeModuleGates(modules, completedModuleIds).get(moduleId)
+  return gate !== undefined && gate !== 'bloqueado'
+}
+
 // Escapa wildcards `%` y `_` en patrones ilike para evitar matches no deseados.
 export function escapeIlike(s: string): string {
   return s.replace(/[\\%_]/g, c => `\\${c}`)

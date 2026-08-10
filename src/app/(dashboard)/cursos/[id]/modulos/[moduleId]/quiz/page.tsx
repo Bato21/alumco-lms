@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import QuizClient from './QuizClient'
-import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { filterCoursesByWorkerAreas, isModuleUnlocked } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -54,6 +54,7 @@ export default async function QuizPage({ params }: QuizPageProps) {
     { data: quizProfile },
     { data: quiz },
     { data: modules },
+    { data: progress },
   ] = await Promise.all([
     supabase
       .from('courses')
@@ -76,6 +77,12 @@ export default async function QuizPage({ params }: QuizPageProps) {
       .select('id')
       .eq('course_id', courseId)
       .order('order_index') as unknown as Promise<{ data: { id: string }[] | null }>,
+    supabase
+      .from('course_progress')
+      .select('completed_modules')
+      .eq('user_id', user.id)
+      .eq('course_id', courseId)
+      .maybeSingle() as unknown as Promise<{ data: { completed_modules: string[] | null } | null }>,
   ])
 
   if (!courseAccess) notFound()
@@ -111,6 +118,36 @@ export default async function QuizPage({ params }: QuizPageProps) {
 
   if (!quiz) {
     notFound()
+  }
+
+  // Candado secuencial. Faltaba acá: la evaluación suele ser el último módulo,
+  // así que sin este check se podía entrar directo por URL y certificarse sin
+  // haber abierto el contenido.
+  const completedModuleIds = progress?.completed_modules ?? []
+  if (
+    quizProfile?.role === 'trabajador' &&
+    !isModuleUnlocked(modules ?? [], completedModuleIds, moduleId)
+  ) {
+    return (
+      <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
+        <div className="h-16 w-16 rounded-2xl bg-[var(--arena-100)] flex items-center justify-center mx-auto">
+          <svg className="h-8 w-8 text-[var(--tinta-3)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+          </svg>
+        </div>
+        <h2 className="text-xl font-bold text-[var(--tinta)]">Evaluación bloqueada</h2>
+        <p className="text-[var(--tinta-3)]">
+          Necesitas completar los módulos anteriores antes de rendir esta evaluación.
+        </p>
+        <Link
+          href={`/cursos/${courseId}`}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--ambar)] text-white rounded-lg font-semibold text-sm hover:bg-[var(--ambar-600)] transition-colors"
+        >
+          ← Volver al curso
+        </Link>
+      </div>
+    )
   }
 
   // Fetch questions

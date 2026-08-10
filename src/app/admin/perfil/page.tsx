@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { ProfileClient } from '@/app/(dashboard)/perfil/ProfileClient'
 import { ActivarNotificaciones } from '@/components/alumco/shared/ActivarNotificaciones'
+import { AccessibilityPanel } from '@/components/alumco/shared/AccessibilityPanel'
+import { getUserPreferences } from '@/lib/actions/preferences'
 
 export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
@@ -138,6 +140,8 @@ export default async function AdminPerfilPage() {
         approvalRate={approvalRate}
         totalCerts={totalCerts}
       />
+
+      <AccessibilityPanel initial={await getUserPreferences()} />
 
       <ActivarNotificaciones />
     </div>

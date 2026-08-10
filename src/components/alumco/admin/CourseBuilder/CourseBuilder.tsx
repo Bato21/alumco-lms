@@ -22,6 +22,8 @@ export interface ModuleBlock {
   title: string
   content_type: ContentType
   content_url: string
+  /** Solo para content_type = 'texto'. Ya saneado por el servidor. */
+  content_html: string | null
   order_index: number
   duration_mins: number | null
   is_required: boolean

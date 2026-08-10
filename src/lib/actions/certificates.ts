@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache'
 import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
+import QRCode from 'qrcode'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { verificationUrl } from '@/lib/certificates/verify'
 
 void degrees // imported for potential use
 
@@ -82,6 +84,7 @@ export async function getCertificateAction(
   id: string
   issued_at: string
   pdf_url: string | null
+  verification_code: string | null
 } | null> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -89,10 +92,10 @@ export async function getCertificateAction(
 
   const { data } = await supabase
     .from('certificates')
-    .select('id, issued_at, pdf_url')
+    .select('id, issued_at, pdf_url, verification_code')
     .eq('user_id', user.id)
     .eq('course_id', courseId)
-    .maybeSingle() as { data: { id: string; issued_at: string; pdf_url: string | null } | null }
+    .maybeSingle() as { data: { id: string; issued_at: string; pdf_url: string | null; verification_code: string | null } | null }
 
   return data ?? null
 }
@@ -111,9 +114,9 @@ export async function generateCertificatePDF(
 
     const { data: cert } = await adminClient
       .from('certificates')
-      .select('id, issued_at, user_id, course_id, courses(title, created_by)')
+      .select('id, issued_at, user_id, course_id, verification_code, courses(title, created_by)')
       .eq('id', certificateId)
-      .single() as { data: { id: string; issued_at: string; user_id: string; course_id: string; courses: { title: string; created_by: string | null } | { title: string; created_by: string | null }[] | null } | null }
+      .single() as { data: { id: string; issued_at: string; user_id: string; course_id: string; verification_code: string | null; courses: { title: string; created_by: string | null } | { title: string; created_by: string | null }[] | null } | null }
 
     if (!cert) return { error: 'Certificado no encontrado' }
 
@@ -284,13 +287,71 @@ export async function generateCertificatePDF(
       x: col2X, y: detailStartY - 61, size: 10, font: fontRegular, color: colorDark,
     })
 
-    page.drawText(`ID: ${cert.id.slice(0, 8).toUpperCase()}`, {
-      x: width / 2 - 40, y: height - 470,
-      size: 8, font: fontRegular, color: colorGray,
-    })
-
-    // Línea separadora antes de firmas
+    // Línea separadora antes del bloque de verificación
     page.drawRectangle({ x: 60, y: height - 490, width: width - 120, height: 0.5, color: rgb(0.9, 0.9, 0.9) })
+
+    // ── Bloque de verificación (QR + folio) ───────────────
+    // Es lo que convierte el papel impreso en algo comprobable: un
+    // fiscalizador escanea y valida sin credenciales. Si la migración del
+    // verification_code todavía no corre en la DB, el bloque se omite y el
+    // resto del certificado sale igual.
+    if (cert.verification_code) {
+      const verifyUrl = verificationUrl(cert.verification_code)
+      const qrSize = 88
+      const qrX = 80
+      const qrY = 235
+
+      try {
+        const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
+          errorCorrectionLevel: 'M',
+          margin: 0,
+          width: 320,
+          color: { dark: '#1A2F6B', light: '#FFFFFF' },
+        })
+        const qrImage = await pdfDoc.embedPng(
+          Buffer.from(qrDataUrl.split(',')[1], 'base64')
+        )
+        page.drawImage(qrImage, { x: qrX, y: qrY, width: qrSize, height: qrSize })
+      } catch (qrError) {
+        // Un QR que no se pudo generar no debe costar el certificado entero.
+        console.error('Error generando el QR de verificación:', qrError)
+      }
+
+      const textX = qrX + qrSize + 22
+
+      page.drawText('VERIFICACIÓN EN LÍNEA', {
+        x: textX, y: qrY + qrSize - 14,
+        size: 8, font: fontBold, color: colorGray,
+      })
+      page.drawText('Escanea el código para comprobar', {
+        x: textX, y: qrY + qrSize - 32,
+        size: 9, font: fontRegular, color: colorDark,
+      })
+      page.drawText('la autenticidad de este certificado.', {
+        x: textX, y: qrY + qrSize - 44,
+        size: 9, font: fontRegular, color: colorDark,
+      })
+
+      page.drawText('FOLIO', {
+        x: textX, y: qrY + 22,
+        size: 7.5, font: fontBold, color: colorGray,
+      })
+      page.drawText(cert.verification_code, {
+        x: textX, y: qrY + 6,
+        size: 13, font: fontBold, color: colorBlue,
+      })
+
+      page.drawText(verifyUrl, {
+        x: qrX, y: qrY - 16,
+        size: 7, font: fontRegular, color: colorGray,
+        maxWidth: width - 160,
+      })
+    } else {
+      page.drawText(`ID: ${cert.id.slice(0, 8).toUpperCase()}`, {
+        x: width / 2 - 40, y: height - 470,
+        size: 8, font: fontRegular, color: colorGray,
+      })
+    }
 
     // ── Firmas ────────────────────────────────────────────
     const firmaY = 120

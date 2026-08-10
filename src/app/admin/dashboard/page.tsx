@@ -8,6 +8,15 @@ import { Avatar, Badge, BadgeEstado, Progreso, Onda, Icono } from '@/components/
 import type { IconoNombre } from '@/components/alumco/ds'
 import { CompactEventCard } from '@/components/alumco/eventos/CompactEventCard'
 import { EventNotificationModal } from '@/components/alumco/eventos/EventNotificationModal'
+import {
+  getAnnualCoverage,
+  getCertificatesByMonth,
+  getComplianceByArea,
+} from '@/lib/actions/analytics'
+import { AnnualCoverageGauge } from '@/components/alumco/dashboard/AnnualCoverageGauge'
+import { AnnualTargetForm } from '@/components/alumco/dashboard/AnnualTargetForm'
+import { CertificatesMonthlyChart } from '@/components/alumco/dashboard/CertificatesMonthlyChart'
+import { ComplianceByAreaChart } from '@/components/alumco/dashboard/ComplianceByAreaChart'
 
 export const metadata: Metadata = {
   title: 'Dashboard Administrador | Alumco LMS',
@@ -219,7 +228,14 @@ export default async function AdminDashboardPage() {
   ]
 
   // Resumen del próximo evento (cache() dedup con el layout/campana).
-  const evento = await getProximoEventoResumen(true)
+  // Las agregaciones de BI van en el mismo lote: son independientes entre sí
+  // y en serie sumaban ~300ms al TTFB.
+  const [evento, mensuales, porArea, cobertura] = await Promise.all([
+    getProximoEventoResumen(true),
+    getCertificatesByMonth(12),
+    getComplianceByArea(),
+    getAnnualCoverage(),
+  ])
 
   return (
     <div className="col" style={{ gap: 20 }} data-screen-label="Admin · Dashboard">
@@ -423,6 +439,51 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Panorama del año: cobertura vs. objetivo + tendencia mensual ── */}
+      <div className="entra entra-3 grid grid-cols-1 lg:grid-cols-[1fr_1.7fr] gap-5 items-start">
+        <div className="card card-pad col" style={{ gap: 14 }}>
+          <div className="fila" style={{ gap: 8 }}>
+            <div className="crece" style={{ minWidth: 0 }}>
+              <h2 style={{ fontSize: 16.5 }}>Cobertura anual</h2>
+              <p className="texto-s silencio-3">Trabajadores certificados este año</p>
+            </div>
+            {cobertura.data && <AnnualTargetForm target={cobertura.data.target} />}
+          </div>
+          {cobertura.data ? (
+            <AnnualCoverageGauge data={cobertura.data} />
+          ) : (
+            <p className="silencio texto-s">No se pudo calcular la cobertura anual.</p>
+          )}
+        </div>
+
+        <div className="card card-pad col" style={{ gap: 10 }}>
+          <div>
+            <h2 style={{ fontSize: 16.5 }}>Certificados emitidos por mes</h2>
+            <p className="texto-s silencio-3">Últimos 12 meses — la tendencia que pide el directorio</p>
+          </div>
+          {mensuales.data ? (
+            <CertificatesMonthlyChart data={mensuales.data} />
+          ) : (
+            <p className="silencio texto-s">No se pudo cargar la serie mensual.</p>
+          )}
+        </div>
+      </div>
+
+      {/* ── Cumplimiento por área de trabajo ── */}
+      <div className="entra entra-3 card card-pad col" style={{ gap: 10 }}>
+        <div>
+          <h2 style={{ fontSize: 16.5 }}>Cumplimiento por área de trabajo</h2>
+          <p className="texto-s silencio-3">
+            Dónde falta capacitación, por estamento — de peor a mejor
+          </p>
+        </div>
+        {porArea.data ? (
+          <ComplianceByAreaChart data={porArea.data} />
+        ) : (
+          <p className="silencio texto-s">No se pudo cargar el desglose por área.</p>
+        )}
       </div>
 
       {/* Fila inferior: cursos más completados + certificados */}

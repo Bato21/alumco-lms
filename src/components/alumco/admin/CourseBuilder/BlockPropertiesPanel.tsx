@@ -19,9 +19,13 @@ export function BlockPropertiesPanel({
   onUpdated,
 }: BlockPropertiesPanelProps) {
   const [title, setTitle] = useState(module.title)
+  const esTexto = module.content_type === 'texto'
+  const [html, setHtml] = useState(module.content_html ?? '')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [quizDirty, setQuizDirty] = useState(false)
+
+  const htmlDirty = esTexto && html !== (module.content_html ?? '')
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -29,6 +33,9 @@ export function BlockPropertiesPanel({
 
     const formData = new FormData()
     formData.append('title', title)
+    // Solo se manda para módulos de texto: la action lo trata como "hay
+    // contenido nuevo" si viene la clave.
+    if (esTexto) formData.append('content_html', html)
 
     startTransition(async () => {
       const result = await updateModuleAction(module.id, courseId, formData)
@@ -36,7 +43,7 @@ export function BlockPropertiesPanel({
         setError(result.error)
         return
       }
-      onUpdated({ ...module, title })
+      onUpdated({ ...module, title, content_html: esTexto ? html : module.content_html })
       onClose()
     })
   }
@@ -46,6 +53,7 @@ export function BlockPropertiesPanel({
     pdf: 'PDF',
     quiz: 'Evaluación',
     slides: 'Presentación',
+    texto: 'Lectura',
   }
 
   const typeColors: Record<string, string> = {
@@ -53,6 +61,7 @@ export function BlockPropertiesPanel({
     pdf: 'bg-[#FAECE7] text-[#712B13]',
     quiz: 'bg-[#EAF3DE] text-[#27500A]',
     slides: 'bg-[#EEEDFE] text-[#3C3489]',
+    texto: 'bg-[#F1EEE7] text-[#4A4335]',
   }
 
   return (
@@ -135,6 +144,29 @@ export function BlockPropertiesPanel({
           </div>
         )}
 
+        {esTexto && (
+          <div className="space-y-1.5">
+            <label
+              htmlFor="edit-content-html"
+              className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+            >
+              Contenido
+            </label>
+            <textarea
+              id="edit-content-html"
+              rows={12}
+              value={html}
+              disabled={isPending}
+              onChange={(e) => setHtml(e.target.value)}
+              className="w-full p-3 rounded-lg border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+            />
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              HTML básico. Lo que se guarda pasa por el saneador del servidor, así
+              que puede diferir de lo que escribas si incluye etiquetas no permitidas.
+            </p>
+          </div>
+        )}
+
         {module.content_type === 'quiz' && module.quiz && (
           <div className="space-y-4">
             <div className="space-y-3">
@@ -163,7 +195,7 @@ export function BlockPropertiesPanel({
           </div>
         )}
 
-        {module.content_type === 'video' && module.duration_mins && (
+        {(module.content_type === 'video' || esTexto) && module.duration_mins && (
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Duración</span>
             <span className="font-semibold text-[#1A1A2E]">
@@ -184,7 +216,7 @@ export function BlockPropertiesPanel({
           </button>
           <button
             type="submit"
-            disabled={isPending || (title === module.title && !quizDirty)}
+            disabled={isPending || (title === module.title && !quizDirty && !htmlDirty)}
             className="flex-1 h-12 lg:h-10 rounded-lg bg-[#2B4FA0] text-white text-sm font-semibold hover:bg-[#2B4FA0]/90 transition-colors disabled:opacity-50"
           >
             {isPending ? 'Guardando...' : 'Guardar'}

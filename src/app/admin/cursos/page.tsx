@@ -4,6 +4,7 @@ import { createClient, getCachedUser } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { EncabezadoPagina, Icono, BadgeEstado, Badge, Vacio } from '@/components/alumco/ds'
 import { CourseBannerImage } from '@/components/alumco/CourseBannerImage'
+import { DuplicateCourseButton } from '@/components/alumco/admin/DuplicateCourseButton'
 
 export const metadata: Metadata = {
   title: 'Gestión de Cursos | Alumco LMS',
@@ -152,13 +153,23 @@ export default async function AdminCursosPage({
                   </span>
                 </div>
 
-                <div className="fila" style={{ gap: 10, marginTop: 'auto' }}>
-                  <Link href={`/admin/cursos/${course.id}/editar`} className="btn btn-secondary btn-sm crece">
-                    <Icono n="editar" s={16} /> Editar
+                <div className="col" style={{ gap: 10, marginTop: 'auto' }}>
+                  <div className="fila" style={{ gap: 10 }}>
+                    <Link href={`/admin/cursos/${course.id}/editar`} className="btn btn-secondary btn-sm crece">
+                      <Icono n="editar" s={16} /> Editar
+                    </Link>
+                    <Link href={`/admin/reportes?curso=${course.id}`} className="btn btn-marca btn-sm crece">
+                      <Icono n="reportes" s={16} /> Ver reporte
+                    </Link>
+                  </div>
+                  <Link
+                    href={`/admin/cursos/${course.id}/feedback`}
+                    className="btn btn-ghost btn-sm"
+                    style={{ justifyContent: 'flex-start', marginLeft: -10 }}
+                  >
+                    <Icono n="estrella" s={16} /> Ver valoraciones
                   </Link>
-                  <Link href={`/admin/reportes?curso=${course.id}`} className="btn btn-marca btn-sm crece">
-                    <Icono n="reportes" s={16} /> Ver reporte
-                  </Link>
+                  <DuplicateCourseButton courseId={course.id} courseTitle={course.title} />
                 </div>
               </article>
             )

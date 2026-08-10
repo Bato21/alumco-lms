@@ -1,7 +1,7 @@
 // src/lib/types/database.ts
 
 export type UserRole = 'admin' | 'trabajador' | 'profesor'
-export type ContentType = 'video' | 'pdf' | 'slides' | 'quiz'
+export type ContentType = 'video' | 'pdf' | 'slides' | 'quiz' | 'texto'
 export type AttemptStatus = 'aprobado' | 'reprobado' | 'en_progreso'
 export type Sede = string
 export type ProfileStatus = 'pendiente' | 'activo' | 'suspendido'
@@ -75,6 +75,9 @@ export interface Course {
   deadline: string | null
   deadline_description: string | null
   is_demo: boolean
+  // Curso origen si este se creó duplicando otro. Solo trazabilidad — el clon
+  // es independiente. Ver supabase/propuestas/course-duplication-and-text-modules.sql.
+  duplicated_from: string | null
   created_at: string
   updated_at: string
 }
@@ -86,6 +89,8 @@ export interface Module {
   description: string | null
   content_type: ContentType
   content_url: string
+  // HTML ya saneado en el servidor. Solo se usa con content_type = 'texto'.
+  content_html: string | null
   order_index: number
   duration_mins: number | null
   is_required: boolean
@@ -162,6 +167,9 @@ export interface Certificate {
   course_id: string
   issued_at: string
   pdf_url: string | null
+  // Folio corto (Crockford base32, 12 chars) que va en el QR del PDF y en la
+  // ruta pública /certificados/verificar/[codigo]. Lo genera un trigger.
+  verification_code: string
 }
 
 export interface CourseProgress {
@@ -329,6 +337,124 @@ export interface AdminDayRequest {
   created_at: string
 }
 
+// ── Ajustes de plataforma ──────────────────────────────────
+// Key-value para lo configurable desde la UI admin. Ver
+// supabase/propuestas/platform-settings.sql.
+
+export interface PlatformSetting {
+  key: string
+  value: unknown
+  updated_by: string | null
+  updated_at: string
+}
+
+/** Key del target de cobertura anual (% de trabajadores certificados en el año). */
+export const SETTING_ANNUAL_TARGET = 'annual_certification_target'
+export const DEFAULT_ANNUAL_TARGET = 85
+
+// ── Tickets de soporte ─────────────────────────────────────
+// Ver supabase/propuestas/support-tickets.sql.
+
+export type SupportCategory =
+  | 'acceso'
+  | 'error_tecnico'
+  | 'contenido_curso'
+  | 'certificado'
+  | 'cuenta'
+  | 'otro'
+
+export type SupportPriority = 'baja' | 'media' | 'alta'
+export type SupportStatus = 'abierto' | 'en_progreso' | 'cerrado'
+
+export const SUPPORT_CATEGORY_LABELS: Record<SupportCategory, string> = {
+  acceso: 'Problema de acceso',
+  error_tecnico: 'Error técnico',
+  contenido_curso: 'Contenido de un curso',
+  certificado: 'Certificados',
+  cuenta: 'Mi cuenta',
+  otro: 'Otro',
+}
+
+export const SUPPORT_PRIORITY_LABELS: Record<SupportPriority, string> = {
+  baja: 'Baja',
+  media: 'Media',
+  alta: 'Alta',
+}
+
+export const SUPPORT_STATUS_LABELS: Record<SupportStatus, string> = {
+  abierto: 'Abierto',
+  en_progreso: 'En progreso',
+  cerrado: 'Cerrado',
+}
+
+export interface SupportTicket {
+  id: string
+  requester_id: string | null
+  requester_email: string | null
+  requester_name: string | null
+  category: SupportCategory
+  priority: SupportPriority
+  status: SupportStatus
+  subject: string
+  description: string
+  context: Record<string, unknown>
+  assignee_id: string | null
+  is_demo: boolean
+  created_at: string
+  updated_at: string
+  closed_at: string | null
+}
+
+export interface SupportTicketMessage {
+  id: string
+  ticket_id: string
+  author_id: string | null
+  body: string
+  is_internal: boolean
+  created_at: string
+}
+
+// ── Feedback de cursos ─────────────────────────────────────
+// Ver supabase/propuestas/course-feedback.sql.
+
+export interface CourseFeedback {
+  id: string
+  course_id: string
+  user_id: string
+  rating: number
+  comment: string | null
+  is_demo: boolean
+  created_at: string
+  updated_at: string
+}
+
+// ── Preferencias de accesibilidad ──────────────────────────
+// Ver supabase/propuestas/accessibility-preferences.sql.
+
+export type FontScale = 'normal' | 'grande' | 'extra'
+
+export const FONT_SCALE_LABELS: Record<FontScale, string> = {
+  normal: 'Normal',
+  grande: 'Grande',
+  extra: 'Muy grande',
+}
+
+export interface UserPreferences {
+  user_id: string
+  font_scale: FontScale
+  high_contrast: boolean
+  /** null = respetar prefers-reduced-motion del sistema. */
+  reduced_motion: boolean | null
+  updated_at: string
+}
+
+/** Lo que se aplica cuando el usuario todavía no guardó preferencias. */
+export const DEFAULT_PREFERENCES: Omit<UserPreferences, 'user_id' | 'updated_at'> = {
+  font_scale: 'normal',
+  high_contrast: false,
+  reduced_motion: null,
+}
+
 // ── Payload del wizard de creación de eventos ──────────────
 // Los archivos 'use server' solo pueden exportar funciones async, así que
 // este tipo vive acá (no en events.ts) y se importa donde se necesite.
@@ -390,7 +516,8 @@ export interface Database {
       }
       certificates: {
         Row: Certificate
-        Insert: Omit<Certificate, 'id' | 'issued_at'>
+        // verification_code lo pone un trigger — nunca se manda desde el cliente.
+        Insert: Omit<Certificate, 'id' | 'issued_at' | 'verification_code'>
         Update: Pick<Certificate, 'pdf_url'>
         Relationships: []
       }
@@ -456,6 +583,43 @@ export interface Database {
           status?: AdminDayStatus
         }
         Update: Partial<Omit<AdminDayRequest, 'id' | 'user_id' | 'created_at'>>
+        Relationships: []
+      }
+      // Pendiente: tabla propuesta, ver supabase/propuestas/platform-settings.sql
+      platform_settings: {
+        Row: PlatformSetting
+        Insert: Omit<PlatformSetting, 'updated_at'>
+        Update: Partial<Omit<PlatformSetting, 'key'>>
+        Relationships: []
+      }
+      // Pendiente: tablas propuestas, ver supabase/propuestas/support-tickets.sql
+      support_tickets: {
+        Row: SupportTicket
+        Insert: Omit<SupportTicket, 'id' | 'created_at' | 'updated_at' | 'closed_at' | 'status' | 'priority'> & {
+          status?: SupportStatus
+          priority?: SupportPriority
+        }
+        Update: Partial<Pick<SupportTicket, 'status' | 'priority' | 'assignee_id' | 'closed_at'>>
+        Relationships: []
+      }
+      support_ticket_messages: {
+        Row: SupportTicketMessage
+        Insert: Omit<SupportTicketMessage, 'id' | 'created_at'>
+        Update: Record<string, never>  // El hilo es inmutable
+        Relationships: []
+      }
+      // Pendiente: tabla propuesta, ver supabase/propuestas/course-feedback.sql
+      course_feedback: {
+        Row: CourseFeedback
+        Insert: Omit<CourseFeedback, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Pick<CourseFeedback, 'rating' | 'comment'>>
+        Relationships: []
+      }
+      // Pendiente: tabla propuesta, ver supabase/propuestas/accessibility-preferences.sql
+      user_preferences: {
+        Row: UserPreferences
+        Insert: Omit<UserPreferences, 'updated_at'>
+        Update: Partial<Omit<UserPreferences, 'user_id'>>
         Relationships: []
       }
     }

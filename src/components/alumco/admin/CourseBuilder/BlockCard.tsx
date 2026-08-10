@@ -13,7 +13,10 @@ interface BlockCardProps {
 
 // ── Configuración visual por tipo ──────────────────────────
 
-const typeConfig = {
+const typeConfig: Record<
+  ModuleBlock['content_type'],
+  { label: string; bgColor: string; textColor: string; iconColor: string; icon: React.ReactElement }
+> = {
   video: {
     label: 'Video',
     bgColor: 'bg-[#E6F1FB]',
@@ -59,6 +62,19 @@ const typeConfig = {
         <rect x="2" y="3" width="20" height="14" rx="2"/>
         <line x1="8" y1="21" x2="16" y2="21"/>
         <line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+    ),
+  },
+  texto: {
+    label: 'Lectura',
+    bgColor: 'bg-[#F1EEE7]',
+    textColor: 'text-[#4A4335]',
+    iconColor: '#6B6046',
+    icon: (
+      <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <line x1="4" y1="6" x2="20" y2="6"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="18" x2="13" y2="18"/>
       </svg>
     ),
   },

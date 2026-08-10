@@ -4,6 +4,8 @@ import { WorkerTopNav } from '@/components/alumco/nav/WorkerTopNav'
 import { CursorBlobs } from '@/components/alumco/shared/CursorBlobs'
 import { DemoBanner } from '@/components/alumco/shared/DemoBanner'
 import { getWorkerAlerts } from '@/lib/actions/alerts'
+import { isPreviewMode } from '@/lib/auth/previewMode'
+import { PreviewModeBanner } from '@/components/alumco/shared/PreviewModeBanner'
 
 export default async function DashboardLayout({
   children,
@@ -28,10 +30,16 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  if (profile.role === 'admin' || profile.role === 'profesor') redirect('/admin/dashboard')
+  const esStaff = profile.role === 'admin' || profile.role === 'profesor'
+
+  // El staff normalmente rebota al panel admin. En modo vista previa se queda:
+  // es exactamente lo que vino a hacer.
+  const enPreview = esStaff && (await isPreviewMode())
+  if (esStaff && !enPreview) redirect('/admin/dashboard')
 
   return (
     <div className="min-h-screen flex flex-col paleta-azul" style={{ paddingTop: 'var(--demo-banner-h, 0px)' }}>
+      {enPreview && <PreviewModeBanner role={profile.role as 'admin' | 'profesor'} />}
       {profile.is_demo && <DemoBanner />}
       <CursorBlobs />
       <WorkerTopNav

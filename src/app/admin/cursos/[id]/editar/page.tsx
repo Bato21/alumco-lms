@@ -32,6 +32,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       title,
       content_type,
       content_url,
+      content_html,
       order_index,
       duration_mins,
       is_required,
@@ -51,7 +52,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
       )
     `)
     .eq('course_id', id)
-    .order('order_index') as unknown as Promise<{ data: { id: string; title: string; content_type: string; content_url: string | null; order_index: number; duration_mins: number | null; is_required: boolean; quizzes: { id: string; passing_score: number; max_attempts: number; questions: import('@/lib/types/database').Question[] }[] }[] | null }>
+    .order('order_index') as unknown as Promise<{ data: { id: string; title: string; content_type: string; content_url: string | null; content_html: string | null; order_index: number; duration_mins: number | null; is_required: boolean; quizzes: { id: string; passing_score: number; max_attempts: number; questions: import('@/lib/types/database').Question[] }[] }[] | null }>
 
   const [{ data: course }, { data: modules }] = await Promise.all([coursePromise, modulesPromise])
 
@@ -64,6 +65,7 @@ export default async function EditarCursoPage({ params }: EditarCursoPageProps) 
     title: m.title,
     content_type: m.content_type as ModuleBlock['content_type'],
     content_url: m.content_url ?? '',
+    content_html: m.content_html ?? null,
     order_index: m.order_index,
     duration_mins: m.duration_mins,
     is_required: m.is_required,

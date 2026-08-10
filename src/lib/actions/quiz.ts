@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { markModuleCompleteAction } from './progress'
-import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { filterCoursesByWorkerAreas, isModuleUnlocked } from '@/lib/utils'
 import type { UserAnswers, QuizSubmitResult, QuizStatus } from '@/lib/types/database'
 
 const AnswerOptionSchema = z.enum(['a', 'b', 'c', 'd'])
@@ -218,12 +218,36 @@ export async function submitQuizAction(
     // Obtener fecha del último reset para este curso
     const { data: progress } = await sp
       .from('course_progress')
-      .select('last_quiz_reset_at')
+      .select('last_quiz_reset_at, completed_modules')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .single() as { data: { last_quiz_reset_at: string | null } | null }
+      .maybeSingle() as { data: { last_quiz_reset_at: string | null; completed_modules: string[] | null } | null }
 
     const resetAt = progress?.last_quiz_reset_at ?? null
+
+    // Candado secuencial: la evaluación es lo que dispara el certificado, así
+    // que es donde más importa que no se pueda saltar el contenido por URL.
+    if (callerProfile?.role === 'trabajador') {
+      const { data: courseModules } = await sp
+        .from('modules')
+        .select('id')
+        .eq('course_id', courseId)
+        .order('order_index') as { data: { id: string }[] | null }
+
+      if (
+        courseModules &&
+        !isModuleUnlocked(courseModules, progress?.completed_modules ?? [], moduleId)
+      ) {
+        return {
+          success: false,
+          score: 0,
+          passed: false,
+          attemptNumber: 0,
+          attemptsRemaining: 0,
+          error: 'Debes completar los módulos anteriores antes de rendir esta evaluación.',
+        }
+      }
+    }
 
     // Verificar intentos previos (solo después del último reset)
     let attemptsQuery = sp

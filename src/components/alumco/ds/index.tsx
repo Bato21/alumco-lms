@@ -120,6 +120,8 @@ const BADGE_ESTADO: Record<string, [Tono, string]> = {
   completado: ['ok', 'Completado'],
   'en-curso': ['info', 'En curso'],
   pendiente: ['neutro', 'Pendiente'],
+  disponible: ['info', 'Disponible'],
+  bloqueado: ['neutro', 'Bloqueado'],
 }
 
 export function BadgeEstado({ estado }: { estado: string }) {

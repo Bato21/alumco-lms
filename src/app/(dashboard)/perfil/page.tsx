@@ -2,8 +2,12 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { ProfileClient } from './ProfileClient'
+import Link from 'next/link'
 import { ActivarNotificaciones } from '@/components/alumco/shared/ActivarNotificaciones'
+import { AccessibilityPanel } from '@/components/alumco/shared/AccessibilityPanel'
 import { getMyAdminDaysSummary } from '@/lib/actions/admin-days'
+import { getUserPreferences } from '@/lib/actions/preferences'
+import { Icono } from '@/components/alumco/ds'
 
 export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
 
@@ -141,6 +145,9 @@ export default async function PerfilPage() {
   // Días administrativos (solo trabajador)
   const adminDays = isAdminOrProfesor ? null : await getMyAdminDaysSummary()
 
+  // cache() dedup con el layout raíz: no cuesta una consulta extra.
+  const prefs = await getUserPreferences()
+
   return (
     <div className="col max-w-4xl mx-auto" style={{ gap: 22 }} data-screen-label="Trabajador · Perfil">
       <div className="entra">
@@ -175,6 +182,30 @@ export default async function PerfilPage() {
         adminDaysUsed={adminDays?.usedDays}
         adminDaysPending={adminDays?.pendingDays}
       />
+
+      <AccessibilityPanel initial={prefs} />
+
+      {/* Soporte: el acceso principal está en la barra de escritorio, pero en
+          móvil no cabe una sexta pestaña, así que este es el camino. */}
+      <div className="card card-pad fila" style={{ gap: 14, flexWrap: 'wrap' }}>
+        <span
+          aria-hidden="true"
+          style={{
+            width: 44, height: 44, borderRadius: '50%', flex: 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'var(--ambar-50)', color: 'var(--ambar-700)',
+          }}
+        >
+          <Icono n="alerta" s={22} />
+        </span>
+        <div className="crece" style={{ minWidth: 200 }}>
+          <h2 style={{ fontSize: 16.5 }}>¿Algo no funciona?</h2>
+          <p className="texto-s silencio-3">
+            Repórtalo y sigue el estado de tu ticket.
+          </p>
+        </div>
+        <Link href="/soporte" className="btn btn-secondary btn-sm">Ir a soporte</Link>
+      </div>
 
       <ActivarNotificaciones />
     </div>

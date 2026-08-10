@@ -1361,3 +1361,155 @@ body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul)
     padding: 12px 18px;
   }
 }
+
+/* ============================================================
+   Accesibilidad — preferencias persistidas por usuario
+   Ver src/lib/actions/preferences.ts y
+   supabase/propuestas/accessibility-preferences.sql.
+   Los atributos los pone el layout raíz en el servidor, así que no hay
+   parpadeo entre el render inicial y la preferencia guardada.
+   ============================================================ */
+
+/* --- Tamaño de letra ---------------------------------------
+   Se usa `zoom` y no `font-size` a propósito: el sistema DIDASKO define
+   tamaños, alturas y espaciados en px (muchos inline), y subir la raíz en
+   rem no movería nada. `zoom` escala la caja completa —texto, iconos,
+   targets táctiles y aire— que es justo lo que espera alguien que pide
+   "letra más grande". Se comporta como el zoom del navegador: el layout
+   responsive reacomoda solo y no aparece scroll horizontal.
+   Los tres niveles son deliberados; un slider libre deja estados
+   intermedios donde el layout se rompe. */
+body[data-escala="grande"] { zoom: 1.12; }
+body[data-escala="extra"]  { zoom: 1.28; }
+
+/* --- Alto contraste ----------------------------------------
+   Sube el contraste del texto secundario y engrosa los bordes, que es
+   donde la paleta crema pierde legibilidad con vista cansada. No cambia
+   los colores de marca: el ámbar y el azul siguen siendo los mismos. */
+body[data-contraste="alto"] {
+  --tinta:       #0d1220;
+  --tinta-2:     #232a3d;
+  --tinta-3:     #454b60;  /* 7.4:1 sobre blanco (AAA) vs 4.6:1 del normal */
+  --borde:       #9aa3b5;
+  --borde-suave: #b6bdcb;
+  --crema:       #ffffff;
+  --arena-100:   #eceff5;
+  --arena-200:   #dbe0ea;
+  --ok:          #1c5c40;
+  --peligro:     #8f2318;
+  --aviso:       #7c3a06;
+  --info:        #1d3572;
+}
+
+body[data-contraste="alto"] .card,
+body[data-contraste="alto"] .tabla th,
+body[data-contraste="alto"] .tabla td {
+  border-color: var(--borde);
+}
+
+/* El foco tiene que ser evidente, no sugerido. */
+body[data-contraste="alto"] :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--tinta);
+  outline-offset: 2px;
+}
+
+/* --- Reducción de movimiento -------------------------------
+   `reducido` = el usuario lo pidió explícitamente. Sin el atributo manda
+   prefers-reduced-motion del sistema; con `completo` el usuario decidió
+   ver las animaciones aunque el sistema pida lo contrario. */
+body[data-movimiento="reducido"],
+body[data-movimiento="reducido"] * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not([data-movimiento="completo"]),
+  body:not([data-movimiento="completo"]) * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Módulos de tipo texto (HTML enriquecido)
+   El HTML se sanea en el servidor (src/lib/sanitizeHtml.ts); acá solo se le
+   da tipografía. Se estila por descendencia porque el contenido viene de un
+   editor y no trae clases propias.
+   ============================================================ */
+.contenido-modulo {
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--tinta-2);
+  overflow-wrap: anywhere;
+}
+
+.contenido-modulo > * + * { margin-top: 1em; }
+
+.contenido-modulo :is(h2, h3, h4) {
+  font-family: var(--fuente-display, var(--font-archivo));
+  color: var(--tinta);
+  line-height: 1.25;
+  margin-top: 1.6em;
+}
+.contenido-modulo h2 { font-size: 22px; }
+.contenido-modulo h3 { font-size: 18.5px; }
+.contenido-modulo h4 { font-size: 16.5px; }
+
+.contenido-modulo strong, .contenido-modulo b { color: var(--tinta); font-weight: 650; }
+
+.contenido-modulo :is(ul, ol) { padding-left: 1.4em; }
+.contenido-modulo ul { list-style: disc; }
+.contenido-modulo ol { list-style: decimal; }
+.contenido-modulo li + li { margin-top: 0.4em; }
+
+.contenido-modulo a {
+  color: var(--azul-800);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.contenido-modulo a:hover { color: var(--ambar-700); }
+
+.contenido-modulo blockquote {
+  border-left: 3px solid var(--ambar);
+  padding: 2px 0 2px 16px;
+  color: var(--tinta-3);
+  font-style: italic;
+}
+
+.contenido-modulo hr {
+  border: none;
+  border-top: 1px solid var(--borde-suave);
+  margin: 1.8em 0;
+}
+
+.contenido-modulo :is(code, pre) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92em;
+  background: var(--arena-100);
+  border-radius: 6px;
+}
+.contenido-modulo code { padding: 2px 5px; }
+.contenido-modulo pre { padding: 12px 14px; overflow-x: auto; }
+.contenido-modulo pre code { background: none; padding: 0; }
+
+/* Las tablas de un procedimiento clínico suelen ser anchas: scroll propio
+   para que la página nunca se desplace en horizontal. */
+.contenido-modulo table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+.contenido-modulo :is(th, td) {
+  border: 1px solid var(--borde-suave);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+.contenido-modulo th { background: var(--arena-100); color: var(--tinta); font-weight: 650; }

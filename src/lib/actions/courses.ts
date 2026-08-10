@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { type ContentType } from '@/lib/types/database'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { courseInScope } from '@/lib/auth/demoScope'
+import { hasVisibleText, sanitizeModuleHtml, MAX_HTML_LENGTH } from '@/lib/sanitizeHtml'
 
 // ── Schemas de validación ──────────────────────────────────
 
@@ -40,6 +41,13 @@ const VideoModuleSchema = z.object({
 const PdfModuleSchema = z.object({
   title: z.string().min(2, 'El título debe tener al menos 2 caracteres'),
   content_url: z.string().min(1, 'La URL del PDF es requerida'),
+  is_required: z.coerce.boolean().default(true),
+})
+
+const TextModuleSchema = z.object({
+  title: z.string().min(2, 'El título debe tener al menos 2 caracteres'),
+  content_html: z.string().min(1, 'El contenido no puede estar vacío').max(MAX_HTML_LENGTH),
+  duration_mins: z.coerce.number().min(1).optional(),
   is_required: z.coerce.boolean().default(true),
 })
 
@@ -393,6 +401,47 @@ export async function createModuleAction(
     return { success: true, id: (module as { id: string }).id }
   }
 
+  if (contentType === 'texto') {
+    const parsed = TextModuleSchema.safeParse({
+      title: formData.get('title'),
+      content_html: formData.get('content_html'),
+      duration_mins: formData.get('duration_mins'),
+      is_required: formData.get('is_required') === 'true',
+    })
+    if (!parsed.success) {
+      return { error: parsed.error.issues[0].message }
+    }
+
+    // El saneado es del servidor. Lo que haya hecho el editor del cliente es
+    // presentación; acá es donde se decide qué HTML queda guardado.
+    const html = sanitizeModuleHtml(parsed.data.content_html)
+    if (!hasVisibleText(html)) {
+      return { error: 'El contenido del módulo no puede quedar vacío.' }
+    }
+
+    const { data: module, error } = await ac
+      .from('modules')
+      .insert({
+        course_id: courseId,
+        title: parsed.data.title,
+        content_type: 'texto',
+        // content_url es NOT NULL en el schema y un módulo de texto no tiene
+        // URL que guardar.
+        content_url: '',
+        content_html: html,
+        duration_mins: parsed.data.duration_mins ?? null,
+        is_required: parsed.data.is_required,
+        order_index: nextIndex,
+      } as unknown as never)
+      .select('id')
+      .single() as { data: { id: string } | null; error: unknown }
+
+    if (error) return { error: 'Error al crear el módulo de texto.' }
+    await syncFinalModule(courseId)
+    revalidatePath(`/admin/cursos/${courseId}/editar`)
+    return { success: true, id: (module as { id: string }).id }
+  }
+
   if (contentType === 'quiz') {
     const parsed = QuizModuleSchema.safeParse({
       title: formData.get('title'),
@@ -463,9 +512,23 @@ export async function updateModuleAction(
     return { error: 'El título debe tener al menos 2 caracteres' }
   }
 
+  const patch: Record<string, unknown> = { title }
+
+  // Solo los módulos de texto traen `content_html`. Se vuelve a sanear en cada
+  // edición: es la única forma de que un cambio en la lista de etiquetas
+  // permitidas alcance también al contenido que ya estaba guardado.
+  const rawHtml = formData.get('content_html')
+  if (typeof rawHtml === 'string') {
+    const html = sanitizeModuleHtml(rawHtml)
+    if (!hasVisibleText(html)) {
+      return { error: 'El contenido del módulo no puede quedar vacío.' }
+    }
+    patch.content_html = html
+  }
+
   const { error } = await acU
     .from('modules')
-    .update({ title })
+    .update(patch)
     .eq('id', moduleId) as { error: unknown }
 
   if (error) return { error: 'Error al actualizar el módulo.' }
@@ -534,6 +597,180 @@ export async function reorderModulesAction(
   await syncFinalModule(courseId)
   revalidatePath(`/admin/cursos/${courseId}/editar`)
   return { success: true }
+}
+
+// ── Duplicar curso ─────────────────────────────────────────
+
+/**
+ * Clona un curso completo: curso → módulos → quizzes → preguntas.
+ *
+ * Lo que NO se copia, a propósito:
+ *   • el progreso y los certificados de los trabajadores (son del curso viejo);
+ *   • `is_published` — el clon nace en borrador, para que nadie lo vea a
+ *     medio editar;
+ *   • `deadline` — una fecha límite copiada casi siempre nace vencida.
+ *
+ * `duplicated_from` queda apuntando al original, solo como trazabilidad: el
+ * clon es independiente y editarlo no toca al padre.
+ */
+export async function duplicateCourseAction(
+  courseId: string,
+  nuevoTitulo?: string
+): Promise<ActionResult> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return { error: auth.error }
+
+  const adminClient = await createAdminClient()
+  if (!(await courseInScope(adminClient, courseId, auth.isDemo))) {
+    return { error: 'No autorizado' }
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ac = adminClient as any
+
+  const { data: original } = await ac
+    .from('courses')
+    .select('*')
+    .eq('id', courseId)
+    .maybeSingle() as { data: Record<string, unknown> | null }
+
+  if (!original) return { error: 'Curso no encontrado.' }
+
+  const titulo = (nuevoTitulo ?? '').trim() || `${original.title as string} (copia)`
+  if (titulo.length < 2) return { error: 'El título debe tener al menos 2 caracteres.' }
+  if (titulo.length > 200) return { error: 'El título es demasiado largo.' }
+
+  const { data: lastCourse } = await ac
+    .from('courses')
+    .select('order_index')
+    .eq('is_demo', auth.isDemo)
+    .order('order_index', { ascending: false })
+    .limit(1)
+    .maybeSingle() as { data: { order_index: number } | null }
+
+  const { data: clon, error: errorCurso } = await ac
+    .from('courses')
+    .insert({
+      title: titulo,
+      description: original.description ?? null,
+      thumbnail_url: original.thumbnail_url ?? null,
+      target_areas: original.target_areas ?? [],
+      deadline: null,
+      deadline_description: original.deadline_description ?? null,
+      is_published: false,
+      order_index: (lastCourse?.order_index ?? 0) + 1,
+      created_by: auth.userId,
+      is_demo: auth.isDemo,
+      duplicated_from: courseId,
+    } as unknown as never)
+    .select('id')
+    .single() as { data: { id: string } | null; error: { message: string } | null }
+
+  if (errorCurso || !clon) {
+    console.error('Error duplicando el curso:', errorCurso)
+    return { error: 'No se pudo duplicar el curso.' }
+  }
+
+  const nuevoCursoId = clon.id
+
+  const { data: modules } = await ac
+    .from('modules')
+    .select('*')
+    .eq('course_id', courseId)
+    .order('order_index', { ascending: true }) as { data: Record<string, unknown>[] | null }
+
+  // Sin módulos el curso clonado ya está listo.
+  if (!modules || modules.length === 0) {
+    revalidatePath('/admin/cursos')
+    return { success: true, id: nuevoCursoId }
+  }
+
+  const { data: nuevosModulos, error: errorModulos } = await ac
+    .from('modules')
+    .insert(
+      modules.map((m) => ({
+        course_id: nuevoCursoId,
+        title: m.title,
+        description: m.description ?? null,
+        content_type: m.content_type,
+        content_url: m.content_url ?? '',
+        content_html: m.content_html ?? null,
+        order_index: m.order_index,
+        duration_mins: m.duration_mins ?? null,
+        is_required: m.is_required ?? true,
+        is_final_module: false,
+      })) as unknown as never
+    )
+    .select('id, order_index') as {
+      data: { id: string; order_index: number }[] | null
+      error: { message: string } | null
+    }
+
+  if (errorModulos || !nuevosModulos) {
+    // Rollback manual: sin transacciones a través de PostgREST, un clon a
+    // medio armar confunde más que no tener nada.
+    await ac.from('courses').delete().eq('id', nuevoCursoId)
+    console.error('Error duplicando los módulos:', errorModulos)
+    return { error: 'No se pudieron duplicar los módulos del curso.' }
+  }
+
+  // El insert no garantiza el orden de vuelta; se aparea por order_index, que
+  // es único dentro de un curso.
+  const idPorOrden = new Map(nuevosModulos.map((m) => [m.order_index, m.id]))
+
+  const quizModules = modules.filter((m) => m.content_type === 'quiz')
+  if (quizModules.length > 0) {
+    const { data: quizzes } = await ac
+      .from('quizzes')
+      .select('*')
+      .in('module_id', quizModules.map((m) => m.id as string)) as {
+        data: Record<string, unknown>[] | null
+      }
+
+    for (const quiz of quizzes ?? []) {
+      const moduloOriginal = quizModules.find((m) => m.id === quiz.module_id)
+      const nuevoModuloId = moduloOriginal
+        ? idPorOrden.get(moduloOriginal.order_index as number)
+        : undefined
+      if (!nuevoModuloId) continue
+
+      const { data: nuevoQuiz } = await ac
+        .from('quizzes')
+        .insert({
+          module_id: nuevoModuloId,
+          title: quiz.title,
+          passing_score: quiz.passing_score,
+          max_attempts: quiz.max_attempts,
+        } as unknown as never)
+        .select('id')
+        .single() as { data: { id: string } | null }
+
+      if (!nuevoQuiz) continue
+
+      const { data: questions } = await ac
+        .from('questions')
+        .select('*')
+        .eq('quiz_id', quiz.id as string)
+        .order('order_index', { ascending: true }) as { data: Record<string, unknown>[] | null }
+
+      if (questions && questions.length > 0) {
+        await ac.from('questions').insert(
+          questions.map((q) => ({
+            quiz_id: nuevoQuiz.id,
+            question_text: q.question_text,
+            options: q.options,
+            correct_option: q.correct_option,
+            order_index: q.order_index,
+          })) as unknown as never
+        )
+      }
+    }
+  }
+
+  await syncFinalModule(nuevoCursoId)
+
+  revalidatePath('/admin/cursos')
+  revalidatePath(`/admin/cursos/${nuevoCursoId}/editar`)
+  return { success: true, id: nuevoCursoId }
 }
 
 // ── Helper: Sincronizar el último módulo ───────────────────

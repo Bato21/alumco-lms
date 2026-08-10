@@ -6,7 +6,7 @@ export type IconoNombre =
   | 'perfil' | 'campana' | 'lupa' | 'mas' | 'chevD' | 'chevR' | 'flechaIzq'
   | 'check' | 'reloj' | 'alerta' | 'salir' | 'editar' | 'ojo' | 'arrastrar'
   | 'basura' | 'play' | 'descargar' | 'cerrar' | 'calendario' | 'doc'
-  | 'video' | 'quiz' | 'ajustes' | 'copiar'
+  | 'video' | 'quiz' | 'ajustes' | 'copiar' | 'candado' | 'estrella'
 
 const I: Record<string, ReactNode> = {
   inicio: <path d="M3 10.5 12 3l9 7.5M5.5 9v10.5h13V9" />,
@@ -39,6 +39,8 @@ const I: Record<string, ReactNode> = {
   quiz: <path d="M9 8.8a3 3 0 0 1 5.8 1c0 2-3 2.4-3 4.2M11.8 17.5h.01M12 21.5a9.5 9.5 0 1 0 0-19 9.5 9.5 0 0 0 0 19Z" />,
   ajustes: <path d="M12 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm7.5-2.5a7.4 7.4 0 0 0-.1-1.2l2-1.5-2-3.5-2.3 1a7.6 7.6 0 0 0-2.1-1.2L14.6 3h-5.2l-.4 2.6a7.6 7.6 0 0 0-2.1 1.2l-2.3-1-2 3.5 2 1.5a7.4 7.4 0 0 0 0 2.4l-2 1.5 2 3.5 2.3-1c.6.5 1.4.9 2.1 1.2l.4 2.6h5.2l.4-2.6a7.6 7.6 0 0 0 2.1-1.2l2.3 1 2-3.5-2-1.5c.1-.4.1-.8.1-1.2Z" />,
   copiar: <path d="M9 9.5h10A1.5 1.5 0 0 1 20.5 11v8A1.5 1.5 0 0 1 19 20.5H9A1.5 1.5 0 0 1 7.5 19v-8A1.5 1.5 0 0 1 9 9.5Zm-4.5 7h-1A1.5 1.5 0 0 1 2 15V5a1.5 1.5 0 0 1 1.5-1.5h10A1.5 1.5 0 0 1 15 5v1.5" />,
+  candado: <path d="M6 10.5h12a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5H6A1.5 1.5 0 0 1 4.5 19v-7A1.5 1.5 0 0 1 6 10.5Zm2-0.5V8a4 4 0 0 1 8 0v2.5M12 14.5v2.5" />,
+  estrella: <path d="m12 3.8 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9L12 3.8Z" />,
 }
 
 export function Icono({ n, s = 20, sw = 1.7 }: { n: IconoNombre | string; s?: number; sw?: number }) {

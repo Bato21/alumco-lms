@@ -7,6 +7,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Avatar, Icono, Gota, type IconoNombre } from '@/components/alumco/ds'
 import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
+import { PreviewModeButton } from '@/components/alumco/shared/PreviewModeButton'
 import { type UserRole } from '@/lib/types/database'
 
 interface AdminSidebarProps {
@@ -32,6 +33,7 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
     { href: '/admin/trabajadores', label: 'Trabajadores', icono: 'usuarios', show: isAdmin },
     { href: '/admin/sedes', label: 'Sedes', icono: 'sede', show: isAdmin },
     { href: '/admin/reportes', label: 'Reportes', icono: 'reportes', show: true },
+    { href: '/admin/soporte', label: 'Soporte', icono: 'alerta', show: true },
   ]
   const cuenta: NavItem[] = [
     { href: '/admin/certificados', label: 'Certificados', icono: 'certificado', show: true },
@@ -110,7 +112,10 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
         {cuenta.filter((i) => i.show).map(renderItem)}
       </nav>
 
-      <div style={{ padding: '14px 18px 20px', position: 'relative', zIndex: 2 }}>
+      <div className="col" style={{ padding: '14px 18px 20px', gap: 12, position: 'relative', zIndex: 2 }}>
+        {/* Vista previa: mirar la plataforma como la ve el equipo, sin cerrar
+            sesión ni pedirle la clave a nadie. */}
+        <PreviewModeButton />
         <div className="fila" style={{ gap: 12 }}>
           <Avatar nombre={fullName} s={40} tono="ambar" />
           <div className="crece" style={{ lineHeight: 1.25, minWidth: 0 }}>

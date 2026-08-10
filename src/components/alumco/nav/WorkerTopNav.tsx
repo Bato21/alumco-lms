@@ -25,8 +25,12 @@ const NAV: { href: string; label: string; icono: IconoNombre; exact?: boolean }[
   { href: '/cursos', label: 'Mis cursos', icono: 'cursos', exact: true },
   { href: '/eventos', label: 'Eventos', icono: 'calendario' },
   { href: '/mis-certificados', label: 'Certificados', icono: 'certificado' },
+  { href: '/soporte', label: 'Soporte', icono: 'alerta' },
 ]
 
+// Móvil: 5 pestañas es el tope antes de que los targets bajen de 44px, así que
+// Soporte no entra acá — se llega desde el perfil y desde la tarjeta de ayuda
+// del reproductor de módulos.
 const TABS: { href: string; label: string; icono: IconoNombre; exact?: boolean }[] = [
   { href: '/inicio', label: 'Inicio', icono: 'inicio' },
   { href: '/cursos', label: 'Cursos', icono: 'cursos', exact: true },

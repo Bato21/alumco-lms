@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Module } from '@/lib/types/database'
+import { computeModuleGates } from '@/lib/utils'
 
 interface ModuleIndexProps {
   modules: Module[]
@@ -14,18 +15,15 @@ export function ModuleIndex({
   completedModuleIds,
   courseId,
 }: ModuleIndexProps) {
-  const getModuleStatus = (module: Module, index: number): 'completed' | 'active' | 'available' | 'locked' => {
-    if (completedModuleIds.includes(module.id)) {
-      return 'completed'
-    }
-    if (module.id === currentModuleId) {
-      return 'active'
-    }
-    // First module is always available, others need previous completed
-    if (index === 0 || completedModuleIds.includes(modules[index - 1]?.id)) {
-      return 'available'
-    }
-    return 'locked'
+  // El candado se calcula con la misma función que usan las server actions y
+  // la ficha del curso: antes esta regla estaba escrita tres veces.
+  const gates = computeModuleGates(modules, completedModuleIds)
+
+  const getModuleStatus = (module: Module): 'completed' | 'active' | 'available' | 'locked' => {
+    const gate = gates.get(module.id)
+    if (gate === 'completado') return 'completed'
+    if (module.id === currentModuleId) return 'active'
+    return gate === 'bloqueado' ? 'locked' : 'available'
   }
 
   const getContentTypeIcon = (type: string) => {
@@ -58,6 +56,12 @@ export function ModuleIndex({
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
         )
+      case 'texto':
+        return (
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 6h16M4 11h16M4 16h9" />
+          </svg>
+        )
       default:
         return null
     }
@@ -73,6 +77,8 @@ export function ModuleIndex({
         return 'Presentación'
       case 'quiz':
         return 'Evaluación'
+      case 'texto':
+        return 'Lectura'
       default:
         return type
     }
@@ -89,7 +95,7 @@ export function ModuleIndex({
 
       <div className="divide-y divide-[var(--md-surface-container)]">
         {modules.map((module, index) => {
-          const status = getModuleStatus(module, index)
+          const status = getModuleStatus(module)
           const isClickable = status !== 'locked'
 
           const content = (
@@ -165,6 +171,14 @@ export function ModuleIndex({
                       }
                     `}>
                       {module.duration_mins} min
+                    </span>
+                  )}
+
+                  {/* El candado también con palabras: el icono y la opacidad
+                      solos no comunican el estado a quien usa lector de pantalla. */}
+                  {status === 'locked' && (
+                    <span className="text-xs font-semibold text-[var(--md-on-surface-variant)]">
+                      Bloqueado
                     </span>
                   )}
                 </div>

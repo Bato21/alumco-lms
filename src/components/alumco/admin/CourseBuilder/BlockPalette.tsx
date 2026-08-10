@@ -49,6 +49,21 @@ const paletteItems: PaletteItem[] = [
     ),
   },
   {
+    type: 'texto',
+    label: 'Lectura',
+    description: 'Texto con formato, sin archivo',
+    bgColor: 'bg-[#F1EEE7]',
+    textColor: 'text-[#4A4335]',
+    iconColor: '#6B6046',
+    icon: (
+      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <line x1="4" y1="6" x2="20" y2="6"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="18" x2="13" y2="18"/>
+      </svg>
+    ),
+  },
+  {
     type: 'quiz',
     label: 'Evaluación',
     description: 'Preguntas de alternativas',
@@ -92,8 +107,11 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
         title,
         content_type: selectedType,
         content_url: (formData.get('content_url') as string) ?? '',
+        // Optimista: el servidor ya lo saneó, pero acá se muestra lo tipeado
+        // hasta el próximo refresh. No se renderiza como HTML en el builder.
+        content_html: (formData.get('content_html') as string) ?? null,
         order_index: 999,
-        duration_mins: selectedType === 'video'
+        duration_mins: selectedType === 'video' || selectedType === 'texto'
           ? Number(formData.get('duration_mins')) || null
           : null,
         is_required: formData.get('is_required') !== 'false',
@@ -198,6 +216,7 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                 placeholder={
                   selectedType === 'video' ? 'Ej: Introducción al cuidado' :
                   selectedType === 'pdf' ? 'Ej: Protocolo de higiene' :
+                  selectedType === 'texto' ? 'Ej: Señales de alerta en el adulto mayor' :
                   'Ej: Evaluación módulo 1'
                 }
                 className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
@@ -264,6 +283,51 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
               </div>
             )}
 
+            {selectedType === 'texto' && (
+              <>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="content-html"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Contenido
+                  </label>
+                  <textarea
+                    id="content-html"
+                    name="content_html"
+                    rows={10}
+                    required
+                    disabled={isPending}
+                    placeholder={'<h2>Objetivo</h2>\n<p>Al terminar esta lectura sabrás…</p>\n<ul><li>Primer punto</li></ul>'}
+                    className="w-full p-3 rounded-lg border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                  />
+                  {/* El servidor sanea siempre; esto es para fijar expectativas,
+                      no una promesa de seguridad del cliente. */}
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Acepta HTML básico: títulos, párrafos, negrita, listas, tablas,
+                    citas y enlaces. Cualquier script o estilo se elimina al guardar.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="texto-duracion"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wider"
+                  >
+                    Tiempo de lectura (min)
+                  </label>
+                  <input
+                    id="texto-duracion"
+                    name="duration_mins"
+                    type="number"
+                    min="1"
+                    disabled={isPending}
+                    placeholder="Ej: 5"
+                    className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+                  />
+                </div>
+              </>
+            )}
+
             {selectedType === 'quiz' && (
               <>
                 <div className="space-y-1.5">
@@ -305,8 +369,8 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
               </>
             )}
 
-            {/* Toggle obligatorio — solo para video y pdf */}
-            {(selectedType === 'video' || selectedType === 'pdf') && (
+            {/* Toggle obligatorio — no aplica a la evaluación, que siempre lo es */}
+            {selectedType !== 'quiz' && (
               <div className="flex items-center justify-between py-2">
                 <span className="text-sm font-medium text-[#1A1A2E]">
                   Obligatorio

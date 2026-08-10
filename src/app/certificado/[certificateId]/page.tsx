@@ -26,13 +26,14 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
         pdf_url,
         user_id,
         course_id,
+        verification_code,
         courses (
           title,
           description
         )
       `)
       .eq('id', certificateId)
-      .single() as unknown as Promise<{ data: { id: string; issued_at: string; pdf_url: string | null; user_id: string; course_id: string; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null } | null }>,
+      .single() as unknown as Promise<{ data: { id: string; issued_at: string; pdf_url: string | null; user_id: string; course_id: string; verification_code: string | null; courses: { title: string; description: string | null } | { title: string; description: string | null }[] | null } | null }>,
     adminClient
       .from('profiles')
       .select('full_name, role, sede, area_trabajo')
@@ -152,13 +153,30 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
               </div>
               <div>
                 <p className="text-[10px] text-[#6B7280] uppercase tracking-wider mb-1.5 font-semibold">
-                  ID
+                  Folio
                 </p>
-                <p className="text-sm font-mono text-[#6B7280]">
-                  {certificate.id.slice(0, 8).toUpperCase()}
+                <p className="text-sm font-mono text-[#6B7280] break-all">
+                  {certificate.verification_code ?? certificate.id.slice(0, 8).toUpperCase()}
                 </p>
               </div>
             </div>
+
+            {/* Verificación pública — el mismo destino que el QR del PDF */}
+            {certificate.verification_code && (
+              <div className="rounded-xl border border-[#F5A623]/20 bg-[#FAF7F0] px-4 py-3 text-left">
+                <p className="text-xs text-[#6B7280] leading-relaxed">
+                  Cualquier persona puede comprobar la autenticidad de este
+                  certificado sin iniciar sesión, escaneando el código QR del PDF o
+                  entrando a{' '}
+                  <Link
+                    href={`/certificados/verificar/${certificate.verification_code}`}
+                    className="font-semibold text-[#2B4FA0] underline underline-offset-2 break-all"
+                  >
+                    /certificados/verificar/{certificate.verification_code}
+                  </Link>
+                </p>
+              </div>
+            )}
 
             {/* Logo Alumco */}
             <div className="flex justify-center pt-2">

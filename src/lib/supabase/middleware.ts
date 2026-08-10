@@ -39,7 +39,13 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname
   const isPublic = pathname === '/' || pathname === '/login' || pathname === '/registro'
 
-  if (!user && !isPublic) {
+  // Verificación de certificados: abierta a cualquiera, con o sin sesión.
+  // Un fiscalizador de SENAMA escanea el QR de un PDF impreso y tiene que
+  // poder validarlo sin credenciales — y un admin logueado que abra el mismo
+  // link tampoco debe ser redirigido a /cursos.
+  const isCertVerification = pathname.startsWith('/certificados/verificar/')
+
+  if (!user && !isPublic && !isCertVerification) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)

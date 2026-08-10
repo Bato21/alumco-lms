@@ -5,8 +5,9 @@ import Link from 'next/link'
 import { VideoPlayer } from '@/components/alumco/curso/VideoPlayer'
 import { PdfViewer } from '@/components/alumco/curso/PdfViewer'
 import { ModuleIndex } from '@/components/alumco/curso/ModuleIndex'
+import { TextoModulo } from '@/components/alumco/curso/TextoModulo'
 import type { Module, Course, CourseProgress } from '@/lib/types/database'
-import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { filterCoursesByWorkerAreas, isModuleUnlocked } from '@/lib/utils'
 import { Badge, Icono } from '@/components/alumco/ds'
 
 interface ModulePageProps {
@@ -138,9 +139,8 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const prevModule = currentIndex > 0 ? modules?.[currentIndex - 1] : null
   const nextModule = currentIndex < (modules?.length || 0) - 1 ? modules?.[currentIndex + 1] : null
 
-  const prevModuleId = currentIndex > 0 ? modules?.[currentIndex - 1]?.id : null
-  const prevModuleIsCompleted = prevModuleId ? completedModuleIds.includes(prevModuleId) : true
-  const canAccess = currentIndex === 0 || prevModuleIsCompleted
+  // Misma función que la ficha del curso y las server actions.
+  const canAccess = isModuleUnlocked(modules ?? [], completedModuleIds, moduleId)
 
   // ── Módulo bloqueado ──────────────────────────────────────────────────────
   if (!canAccess) {
@@ -235,6 +235,18 @@ export default async function ModulePage({ params }: ModulePageProps) {
                 />
               </div>
             )}
+
+            {module.content_type === 'texto' && (
+              <div className="p-4 md:p-6">
+                {/* El HTML ya viene saneado del servidor al guardarse. */}
+                <TextoModulo
+                  html={module.content_html ?? ''}
+                  moduleId={moduleId}
+                  courseId={courseId}
+                  isCompleted={isModuleCompleted}
+                />
+              </div>
+            )}
           </div>
 
           {/* Navegación */}
@@ -311,31 +323,20 @@ export default async function ModulePage({ params }: ModulePageProps) {
                 <h4 className="text-white font-semibold text-sm">¿Necesitas ayuda?</h4>
               </div>
               <p className="text-white/70 text-xs leading-relaxed mb-4">
-                Contacta al administrador si tienes dudas sobre el contenido de este módulo.
+                Reporta un problema con este módulo y queda registrado con su estado —
+                antes esto se iba por correo y se perdía.
               </p>
-              {course.created_by ? (
-                <a
-                  href="mailto:alumco@ongalumco.cl"
-                  className="w-full py-2.5 bg-[var(--oliva-clara)] hover:opacity-90 text-[var(--oliva-950)] font-bold rounded-lg text-sm transition-opacity flex items-center justify-center gap-2 min-h-[44px]"
-                >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect width="20" height="16" x="2" y="4" rx="2"/>
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                  </svg>
-                  Contactar administrador
-                </a>
-              ) : (
-                <a
-                  href="mailto:da.ehualpen@gmail.com"
-                  className="w-full py-2.5 bg-[var(--oliva-clara)] hover:opacity-90 text-[var(--oliva-950)] font-bold rounded-lg text-sm transition-opacity flex items-center justify-center gap-2 min-h-[44px]"
-                >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect width="20" height="16" x="2" y="4" rx="2"/>
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
-                  </svg>
-                  Contactar administrador
-                </a>
-              )}
+              {/* Antes eran dos mailto sueltos. Ahora entra al sistema de tickets,
+                  que deja trazabilidad y captura el contexto técnico solo. */}
+              <Link
+                href="/soporte"
+                className="w-full py-2.5 bg-[var(--oliva-clara)] hover:opacity-90 text-[var(--oliva-950)] font-bold rounded-lg text-sm transition-opacity flex items-center justify-center gap-2 min-h-[44px]"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 9v4m0 4h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                </svg>
+                Reportar un problema
+              </Link>
             </div>
             <div className="absolute -right-6 -bottom-6 h-24 w-24 rounded-full bg-[var(--blanco)]/5" aria-hidden="true"/>
             <div className="absolute -right-2 -top-4 h-16 w-16 rounded-full bg-[var(--blanco)]/5" aria-hidden="true"/>
@@ -355,6 +356,7 @@ function ContentTypeBadge({ type }: { type: string }) {
     pdf: { label: 'PDF', tono: 'info' },
     slides: { label: 'Presentación', tono: 'info' },
     quiz: { label: 'Evaluación', tono: 'aviso' },
+    texto: { label: 'Lectura', tono: 'neutro' },
   }
   const { label, tono } = config[type] || { label: type, tono: 'neutro' as const }
   return <Badge tono={tono} punto={false}>{label}</Badge>

@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next'
 import { Geist, Fraunces, Archivo, Playfair_Display } from 'next/font/google'
 import Script from 'next/script'
 import { ServiceWorkerRegistrar } from '@/components/alumco/shared/ServiceWorkerRegistrar'
+import { getUserPreferences } from '@/lib/actions/preferences'
 import './globals.css'
 
 // Google Analytics (gtag.js)
@@ -63,15 +64,26 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Preferencias de accesibilidad en el servidor, no en el cliente: aplicarlas
+  // tras la hidratación haría parpadear la página con el tamaño equivocado,
+  // justo para quien necesita el tamaño grande. Sin sesión no hay consulta.
+  const prefs = await getUserPreferences()
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body
         data-tema="didasko"
+        data-escala={prefs.font_scale}
+        data-contraste={prefs.high_contrast ? 'alto' : undefined}
+        // null = respetar prefers-reduced-motion del sistema (lo maneja el CSS).
+        data-movimiento={
+          prefs.reduced_motion === null ? undefined : prefs.reduced_motion ? 'reducido' : 'completo'
+        }
         className={`${geist.variable} ${fraunces.variable} ${archivo.variable} ${playfair.variable} font-sans antialiased`}
       >
         {children}

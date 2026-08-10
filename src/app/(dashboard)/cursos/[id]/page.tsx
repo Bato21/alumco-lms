@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient, getCachedUser } from '@/lib/supabase/server'
-import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { computeModuleGates, filterCoursesByWorkerAreas, type ModuleGate } from '@/lib/utils'
 import { CertificateBadge } from '@/components/alumco/certificado/CertificateBadge'
 import Link from 'next/link'
 import type { ContentType, Module } from '@/lib/types/database'
 import { Badge, BadgeEstado, Progreso, Icono, type IconoNombre } from '@/components/alumco/ds'
 import { DibujoGota } from '@/components/alumco/curso/DibujoGota'
+import { CourseFeedbackForm } from '@/components/alumco/curso/CourseFeedbackForm'
+import { getMyCourseFeedbackAction } from '@/lib/actions/feedback'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -114,11 +116,16 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
   const estadoCurso = isCourseCompleted ? 'completado' : courseProgress > 0 ? 'en-curso' : 'pendiente'
 
-  // Próximo módulo accesible no completado
-  const nextModule = (modules ?? []).find((m, i) => {
-    const prevDone = i === 0 || completedModuleIds.includes(modules![i - 1]?.id)
-    return !completedModuleIds.includes(m.id) && prevDone
-  })
+  // Solo se consulta si hay algo que mostrar: la tarjeta de valoración
+  // aparece únicamente con el curso completo.
+  const miFeedback = isCourseCompleted ? await getMyCourseFeedbackAction(id) : null
+
+  // Candado secuencial: la misma función que usan las server actions, para que
+  // lo que se pinta y lo que se permite no puedan divergir.
+  const gates = computeModuleGates(modules ?? [], completedModuleIds)
+
+  // Próximo módulo a retomar: el primero disponible sin completar.
+  const nextModule = (modules ?? []).find((m) => gates.get(m.id) === 'disponible')
 
   return (
     <div className="col" style={{ gap: 22 }} data-screen-label="Trabajador · Detalle de curso">
@@ -217,22 +224,15 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
             <span className="badge badge-neutro">{totalModules} módulos</span>
           </div>
           {modules && modules.length > 0 ? (
-            modules.map((module, index) => {
-              const isCompleted = completedModuleIds.includes(module.id)
-              const isPreviousCompleted = index === 0 || completedModuleIds.includes(modules[index - 1]?.id)
-              const canAccess = isPreviousCompleted || isCompleted
-              const enCurso = canAccess && !isCompleted && module.id === nextModule?.id
-              return (
-                <ModuleRow
-                  key={module.id}
-                  module={module}
-                  index={index + 1}
-                  isCompleted={isCompleted}
-                  canAccess={canAccess}
-                  enCurso={enCurso}
-                />
-              )
-            })
+            modules.map((module, index) => (
+              <ModuleRow
+                key={module.id}
+                module={module}
+                index={index + 1}
+                estado={gates.get(module.id) ?? 'bloqueado'}
+                enCurso={module.id === nextModule?.id}
+              />
+            ))
           ) : (
             <div className="card-pad" style={{ textAlign: 'center', padding: 40 }}>
               <p className="silencio">Este curso aún no tiene contenido disponible.</p>
@@ -242,6 +242,15 @@ export default async function CourseDetailPage({ params }: CourseDetailPageProps
 
         {/* Panel lateral */}
         <div className="col" style={{ gap: 20 }}>
+          {/* Valoración: solo al 100%. Pedirla antes daría una nota sobre algo
+              que la persona todavía no terminó de ver. */}
+          {isCourseCompleted && (
+            <div className="card card-pad col" style={{ gap: 12 }}>
+              <h3 style={{ fontSize: 16 }}>Tu valoración</h3>
+              <CourseFeedbackForm courseId={course.id} initial={miFeedback} />
+            </div>
+          )}
+
           {isCourseCompleted && certificate && profile ? (
             <div className="card card-pad">
               <CertificateBadge certificate={certificate} courseName={course.title} workerName={profile.full_name} />
@@ -270,23 +279,30 @@ const TIPO_ICONO: Record<ContentType, IconoNombre> = {
   pdf: 'doc',
   slides: 'doc',
   quiz: 'quiz',
+  texto: 'doc',
 }
 
 function ModuleRow({
   module,
   index,
-  isCompleted,
-  canAccess,
+  estado,
   enCurso,
 }: {
   module: Module
   index: number
-  isCompleted: boolean
-  canAccess: boolean
+  estado: ModuleGate
   enCurso: boolean
 }) {
-  const icono: IconoNombre = isCompleted ? 'check' : TIPO_ICONO[module.content_type]
-  const estado = isCompleted ? 'completado' : enCurso ? 'en-curso' : canAccess ? 'pendiente' : 'pendiente'
+  const completado = estado === 'completado'
+  const bloqueado = estado === 'bloqueado'
+
+  const icono: IconoNombre = completado
+    ? 'check'
+    : bloqueado
+      ? 'candado'
+      : TIPO_ICONO[module.content_type]
+
+  const badge = completado ? 'completado' : enCurso ? 'en-curso' : estado
 
   const inner = (
     <>
@@ -299,8 +315,8 @@ function ModuleRow({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: isCompleted ? 'var(--ok-bg)' : enCurso ? 'var(--ambar-100)' : 'var(--arena-100)',
-          color: isCompleted ? 'var(--ok)' : enCurso ? 'var(--ambar-700)' : 'var(--tinta-3)',
+          background: completado ? 'var(--ok-bg)' : enCurso ? 'var(--ambar-100)' : 'var(--arena-100)',
+          color: completado ? 'var(--ok)' : enCurso ? 'var(--ambar-700)' : 'var(--tinta-3)',
         }}
       >
         <Icono n={icono} s={20} />
@@ -310,11 +326,16 @@ function ModuleRow({
           {index}. {module.title}
         </div>
         <div className="texto-s silencio-3">
-          {module.duration_mins ? `${module.duration_mins} min` : 'Módulo'}
+          {bloqueado
+            ? 'Completa el módulo anterior para abrirlo'
+            : module.duration_mins
+              ? `${module.duration_mins} min`
+              : 'Módulo'}
         </div>
       </div>
-      {canAccess ? <BadgeEstado estado={estado} /> : <Icono n="ojo" s={18} />}
-      {canAccess && (isCompleted || enCurso) && <Icono n="chevR" s={18} />}
+      {/* El estado va siempre con texto, no solo con el icono ni el color */}
+      <BadgeEstado estado={badge} />
+      {!bloqueado && <Icono n="chevR" s={18} />}
     </>
   )
 
@@ -330,8 +351,12 @@ function ModuleRow({
     background: enCurso ? 'var(--ambar-50)' : 'transparent',
   }
 
-  if (!canAccess) {
-    return <div style={{ ...baseStyle, opacity: 0.6 }}>{inner}</div>
+  if (bloqueado) {
+    return (
+      <div style={{ ...baseStyle, opacity: 0.62 }} aria-disabled="true">
+        {inner}
+      </div>
+    )
   }
   return (
     <Link href={`/cursos/${module.course_id}/modulos/${module.id}`} style={baseStyle}>

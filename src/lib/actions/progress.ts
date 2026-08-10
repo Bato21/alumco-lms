@@ -3,7 +3,7 @@
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { generateCertificateAction } from './certificates'
-import { filterCoursesByWorkerAreas } from '@/lib/utils'
+import { filterCoursesByWorkerAreas, isModuleUnlocked } from '@/lib/utils'
 
 /**
  * Valida que el módulo pertenezca al curso y que el trabajador tenga acceso por área.
@@ -86,11 +86,25 @@ export async function markModuleCompleteAction(
         .maybeSingle() as Promise<{ data: { id: string; completed_modules: string[] | null; is_completed: boolean; completed_at: string | null } | null }>,
       ac
         .from('modules')
-        .select('id, content_type')
-        .eq('course_id', courseId) as Promise<{ data: { id: string; content_type: string }[] | null }>,
+        .select('id, content_type, order_index')
+        .eq('course_id', courseId)
+        .order('order_index') as Promise<{ data: { id: string; content_type: string; order_index: number }[] | null }>,
     ])
 
     if (!access.ok) return { success: false, error: access.error }
+
+    // Candado secuencial. La UI ya lo aplica, pero esta action es invocable
+    // directamente: sin este check bastaba una llamada a mano para saltarse
+    // los módulos y llegar al certificado.
+    const yaCompletados = Array.isArray(progress?.completed_modules)
+      ? progress.completed_modules
+      : []
+    if (allModules && !isModuleUnlocked(allModules, yaCompletados, moduleId)) {
+      return {
+        success: false,
+        error: 'Debes completar el módulo anterior antes de avanzar a este.',
+      }
+    }
 
     let completedModules: string[]
 
@@ -195,10 +209,24 @@ export async function updateLastModuleAction(
     // Get current progress — user client is sufficient (RLS allows user to read/write own rows)
     const { data: progress } = await sp
       .from('course_progress')
-      .select('id')
+      .select('id, completed_modules')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .maybeSingle() as { data: { id: string } | null }
+      .maybeSingle() as { data: { id: string; completed_modules: string[] | null } | null }
+
+    // Mismo candado que en markModuleComplete: `last_module_id` es a dónde
+    // vuelve el botón "Continuar", así que apuntarlo a un módulo bloqueado
+    // dejaría al trabajador rebotando contra la pantalla de bloqueo.
+    const adminClient = await createAdminClient()
+    const { data: modules } = await (adminClient as unknown as typeof sp)
+      .from('modules')
+      .select('id')
+      .eq('course_id', courseId)
+      .order('order_index') as { data: { id: string }[] | null }
+
+    if (modules && !isModuleUnlocked(modules, progress?.completed_modules ?? [], moduleId)) {
+      return { success: false, error: 'Módulo bloqueado' }
+    }
 
     if (progress) {
       const { error } = await sp
