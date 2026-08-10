@@ -5,40 +5,61 @@
 
 ---
 
-## ⚠️ Bloqueante: hay 5 archivos SQL sin aplicar
+## ✅ Resuelto: los 6 archivos SQL ya están aplicados (2026-08-10)
 
-El código está escrito y compila, pero **cinco features no funcionan hasta que
-alguien corra las propuestas en la base viva**. Siguen la convención del repo:
-viven en `supabase/propuestas/` y no se aplican solas.
+Se corrieron los seis en la base de producción. Las features que dependían de
+ellos ya no están bloqueadas.
 
-| Archivo | Habilita | Si no se corre |
+| Archivo | Habilita | Estado |
 |---|---|---|
-| `certificate-verification.sql` | Folio + QR + ruta pública | El PDF sale sin QR (fallback al ID corto); la ruta pública siempre dice "no válido" |
-| `platform-settings.sql` | Objetivo anual editable | El gauge usa 85% fijo y guardar el objetivo falla |
-| `support-tickets.sql` | Tickets de soporte | `/soporte` y `/admin/soporte` no cargan |
-| `course-feedback.sql` | Valoraciones | La tarjeta de valoración falla al guardar |
-| `accessibility-preferences.sql` | Preferencias persistidas | Todos ven los valores por defecto |
-| `course-duplication-and-text-modules.sql` | Duplicar cursos + módulos de texto | Duplicar falla; los módulos de texto no se pueden crear |
+| `certificate-verification.sql` | Folio + QR + ruta pública | ✅ aplicada — backfill sobre los 2 certificados existentes |
+| `platform-settings.sql` | Objetivo anual editable | ✅ aplicada — `annual_certification_target` = 85 |
+| `support-tickets.sql` | Tickets de soporte | ✅ aplicada |
+| `course-feedback.sql` | Valoraciones | ✅ aplicada |
+| `accessibility-preferences.sql` | Preferencias persistidas | ✅ aplicada |
+| `course-duplication-and-text-modules.sql` | Duplicar cursos + módulos de texto | ✅ aplicada — ver nota del enum |
 
-El código degrada con gracia donde pudo (el QR se omite, el objetivo cae al
-default, las preferencias vuelven a los valores base) pero no en todo.
+**Nota sobre el enum `content_type`.** Resultó ser un enum (`video, pdf, slides,
+quiz`), no un text con CHECK. El `alter type ... add value 'texto'` se corrió
+por separado y en su propia transacción, no vía el bloque `DO` del archivo: ese
+bloque atrapa cualquier error en un `raise notice`, así que de haber fallado
+habría quedado "exitoso" sin agregar el valor, y los módulos de texto fallarían
+recién al crearse. El enum quedó `video, pdf, slides, quiz, texto` (verificado).
 
-**Orden sugerido:** cualquiera, no dependen entre sí. Todas usan
-`public.is_staff()`, que ya existe desde `admin-days.sql`.
+**Verificado post-aplicación:** 5 tablas nuevas con RLS y 13 policies; 2
+columnas nuevas (`courses.duplicated_from`, `modules.content_html`); los 2
+folios existentes calzan con el regex de `verify.ts` y resuelven sus joins; el
+trigger `tr_set_certificate_verification_code` genera folio válido en
+certificados nuevos (probado con un insert revertido).
 
 ---
 
-## Variables de entorno
+## ⚠️ Pendiente: variable de entorno en Vercel
 
-Se agregó a `.env.local` y **hay que agregarla también en Vercel**:
+**Sigue sin hacerse.** Hay que agregar en Vercel (Production y Preview) y
+redesplegar:
 
 ```
-NEXT_PUBLIC_SITE_URL=https://alumco-lms-nm38.vercel.app
+NEXT_PUBLIC_SITE_URL=https://<dominio-real-de-produccion>
 ```
 
 Es la base absoluta que se codifica dentro del QR de cada certificado. Si en
 producción queda mal, los QR ya emitidos apuntan a un dominio equivocado — es
 el único valor de esta tanda que conviene revisar antes de emitir certificados.
+
+En `.env.local` está como `http://localhost:3000`, que es lo correcto para
+desarrollo: no sirve de referencia para producción.
+
+**Antes de fijarla, decidir cuál es el dominio bueno.** Hoy el código tiene dos
+fallbacks distintos, y como máximo uno puede ser correcto:
+
+| Archivo | Fallback si la env var falta |
+|---|---|
+| `src/lib/actions/auth.ts:197` | `https://alumco-lms.vercel.app` (correos de reset de contraseña) |
+| `src/lib/certificates/verify.ts:101` | `https://alumco-lms-nm38.vercel.app` (QR de certificados) |
+
+Una vez confirmado el dominio real conviene unificar ambos fallbacks, para que
+un despliegue sin la variable no mande a la gente a dos dominios distintos.
 
 ---
 

@@ -1,4 +1,5 @@
--- PROPUESTA: no aplicada. La corre Bato en el dashboard cuando esté de acuerdo.
+-- APLICADA en producción el 2026-08-10. Idempotente: re-correrla no rompe nada.
+-- Backfill ejecutado sobre los 2 certificados que existían.
 -- ─────────────────────────────────────────────────────────────────────────
 -- Verificación pública de certificados con QR
 --

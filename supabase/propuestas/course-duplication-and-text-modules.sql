@@ -1,4 +1,10 @@
--- PROPUESTA: no aplicada. La corre Bato en el dashboard cuando esté de acuerdo.
+-- APLICADA en producción el 2026-08-10. Idempotente: re-correrla no rompe nada.
+--
+-- NOTA: `content_type` resultó ser un enum. El `alter type ... add value 'texto'`
+-- del bloque DO de más abajo se corrió por separado y en su propia transacción,
+-- porque ADD VALUE dentro de un bloque DO depende de la versión de PG y el
+-- bloque se traga el error en un NOTICE — habría quedado "exitoso" sin agregar
+-- nada. El enum ya tiene: video, pdf, slides, quiz, texto.
 -- ─────────────────────────────────────────────────────────────────────────
 -- 1) Duplicación de cursos — trazabilidad del original
 -- 2) Módulos de tipo texto (HTML enriquecido)

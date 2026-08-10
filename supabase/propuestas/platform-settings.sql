@@ -1,4 +1,4 @@
--- PROPUESTA: no aplicada. La corre Bato en el dashboard cuando esté de acuerdo.
+-- APLICADA en producción el 2026-08-10. Idempotente: re-correrla no rompe nada.
 -- ─────────────────────────────────────────────────────────────────────────
 -- Ajustes de plataforma (key-value)
 --
