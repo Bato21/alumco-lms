@@ -1,157 +1,308 @@
+/* ============================================================================
+   Alumco LMS — hoja de estilos raíz
+   ----------------------------------------------------------------------------
+   DECISIÓN DE SISTEMA DE COLOR: oklch, valor completo.
+
+   Antes convivían dos sistemas incompatibles: un bloque `:root` con
+   componentes HSL sueltos (`213 90% 35%`) dentro de `@layer base`, y un
+   segundo `:root` con oklch FUERA de toda capa. Como el CSS sin capa gana a
+   cualquier `@layer`, el segundo pisaba al primero y la paleta Alumco nunca
+   llegaba al runtime: `--primary` resolvía a negro neutro, `--ring` a gris y
+   `--border` a #E5E5E5 (1.26:1 sobre blanco). Además `hsl(var(--background))`
+   producía `hsl(oklch(1 0 0))`, declaración inválida que el navegador
+   descartaba en silencio. Ver docs/AUDITORIA_A11Y.md § A11Y-01.
+
+   Ahora hay UN solo set canónico, en oklch, dentro de `@layer base`:
+
+     · oklch guarda un color completo, no tres componentes. Tailwind v4 lo
+       consume tal cual desde `@theme inline` (`--color-primary: var(--primary)`),
+       así que NINGÚN token va envuelto en `hsl()` ni en `oklch()` al usarse.
+       Se escribe `var(--primary)`, nunca `hsl(var(--primary))`.
+     · oklch es perceptualmente uniforme: mover la L cambia el contraste de
+       forma predecible, que es justo lo que hace falta para afinar a AA.
+     · shadcn/ui v4 ya emite oklch, así que los componentes de `ui/` siguen
+       funcionando sin tocarlos.
+
+   CONTRASTE: cada par foreground/background se calculó con la fórmula de
+   luminancia relativa de WCAG 2.x y se ajustó la L hasta superar el mínimo
+   (4.5:1 texto, 3:1 bordes e indicadores), resolviendo siempre contra el
+   fondo MÁS OSCURO sobre el que el token aparece de verdad —no contra blanco
+   puro—, porque la página real es crema (#FAF6ED), no blanca. La tabla
+   completa con los 24 ratios está en docs/AUDITORIA_A11Y.md § "Corrección
+   de la base de estilos".
+
+   ORDEN DE CAPAS: theme < base < components < utilities.
+   `didasko.css` entra en `components`; los bloques `@layer components` de
+   más abajo van DESPUÉS de ese import, así que ganan a igualdad de
+   especificidad. Las utilidades de Tailwind siguen ganando a todo lo de aquí.
+   ============================================================================ */
+
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
-/* src/app/globals.css */
 /* didasko en @layer components: las utilidades de Tailwind (hidden, fixed,
    flex, grid, lg:*) deben ganar a las clases didasko (.sidebar, .topbar…). */
 @import "./didasko.css" layer(components);
 
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================================
+   1 · TOKENS CANÓNICOS
+   ============================================================================ */
+
 @layer base {
   :root {
-    /* ── Colores base (light) ── */
-    --background:        0 0% 100%;
-    --foreground:        222 20% 12%;
-    --card:              0 0% 100%;
-    --card-foreground:   222 20% 12%;
-    --popover:           0 0% 100%;
-    --popover-foreground: 222 20% 12%;
-    --primary:           213 90% 35%;   /* Azul profundo — contraste AA garantizado */
-    --primary-foreground: 0 0% 100%;
-    --secondary:         210 20% 94%;
-    --secondary-foreground: 222 20% 12%;
-    --muted:             210 20% 96%;
-    --muted-foreground:  215 16% 40%;
-    --accent:            210 20% 94%;
-    --accent-foreground: 222 20% 12%;
-    --destructive:       0 72% 45%;
-    --destructive-foreground: 0 0% 100%;
-    --border:            214 20% 88%;
-    --input:             214 20% 88%;
-    --ring:              213 90% 35%;
-    --radius:            0.625rem;
+    /* ── Superficies y tinta ────────────────────────────────────────────── */
+    --background:             oklch(1.0000 0.0000 0.00);      /* #ffffff */
+    --foreground:             oklch(0.2793 0.0367 268.43);    /* #21283b  14.67:1 */
+    --card:                   oklch(1.0000 0.0000 0.00);      /* #ffffff */
+    --card-foreground:        oklch(0.2793 0.0367 268.43);    /* #21283b  14.67:1 */
+    --popover:                oklch(1.0000 0.0000 0.00);      /* #ffffff */
+    --popover-foreground:     oklch(0.2793 0.0367 268.43);    /* #21283b  14.67:1 */
 
-    /* ── Colores semánticos del LMS ── */
-    --success:           142 60% 32%;
-    --success-foreground: 0 0% 100%;
-    --warning:           38 92% 40%;
-    --warning-foreground: 0 0% 100%;
+    /* ── Marca ──────────────────────────────────────────────────────────
+       #2B4FA0 es el azul Alumco y ya cumple 7.70:1 sobre blanco: se
+       mantiene sin tocar, tal como pide la identidad visual. */
+    --primary:                oklch(0.4477 0.1381 263.72);    /* #2b4fa0 */
+    --primary-foreground:     oklch(1.0000 0.0000 0.00);      /* #ffffff  7.70:1 */
+
+    --secondary:              oklch(0.9540 0.0060 264.00);    /* #eef0f4 */
+    --secondary-foreground:   oklch(0.2793 0.0367 268.43);    /* #21283b  12.86:1 */
+    --accent:                 oklch(0.9540 0.0060 264.00);    /* #eef0f4 */
+    --accent-foreground:      oklch(0.2793 0.0367 268.43);    /* #21283b  12.86:1 */
+
+    --muted:                  oklch(0.9650 0.0050 264.00);    /* #f2f3f7 */
+    /* Resuelto contra #D9E4EA (la superficie MD3 más oscura donde cae este
+       token), no contra blanco: así cumple en las ocho superficies claras. */
+    --muted-foreground:       oklch(0.5010 0.0220 264.00);    /* #5d6471  5.37:1 sobre --muted */
+
+    /* ── Estados: EL TOKEN PELADO ES FONDO, con su propio -foreground ──── */
+    --destructive:            oklch(0.5845 0.1940 29.44);     /* #d63b2d */
+    --destructive-foreground: oklch(1.0000 0.0000 0.00);      /* #ffffff  4.64:1 */
+    /* Croma recortado a 0.1414 = máximo dentro del gamut sRGB a esta L. Con el
+       croma de marca (0.1602) el color queda fuera de gamut y el compilador lo
+       mapea con otro algoritmo: el oklch de origen y el hex final dejarían de
+       describir el mismo color (y el ratio caía de 4.73 a 4.56). */
+    --success:                oklch(0.5418 0.1414 152.37);    /* #008544 */
+    --success-foreground:     oklch(1.0000 0.0000 0.00);      /* #ffffff  4.73:1 */
+    /* El ámbar de marca se conserva INTACTO como fondo; lo que cambia es que
+       encima va tinta oscura, no blanco (blanco sobre ámbar = 2.03:1). Es el
+       mismo patrón que .btn-primary de didasko, así que no rompe identidad. */
+    --warning:                oklch(0.7837 0.1587 72.99);     /* #f5a623  ← ámbar Alumco */
+    --warning-foreground:     oklch(0.2077 0.0398 265.75);    /* #0f172a  8.81:1 */
+
+    /* ── Estados COMO COLOR DE TEXTO ────────────────────────────────────
+       Versiones oscurecidas conservando el hue exacto del color de marca.
+       Resueltas contra #F3ECDC (--arena-100, la superficie clara más oscura
+       del sistema) para que sirvan sobre blanco, tarjeta, crema y arena.
+       Los originales #27AE60 / #E74C3C / #F5A623 quedan permitidos SOLO como
+       fondo de badge o relleno decorativo — nunca como color de texto.
+       El croma va recortado al máximo en gamut sRGB donde hacía falta (verde y
+       ámbar); el rojo conserva el croma de marca porque ya estaba dentro. */
+    --success-text:           oklch(0.5092 0.1329 152.37);    /* #007a3e  5.45:1 blanco · 4.63:1 arena */
+    --error-text:             oklch(0.5460 0.1940 29.44);     /* #c92c20  5.43:1 blanco · 4.62:1 arena */
+    --warning-text:           oklch(0.5297 0.1128 72.99);     /* #925f00  5.44:1 blanco · 4.62:1 arena */
+
+    /* ── Bordes, campos y foco ──────────────────────────────────────────
+       Resueltos contra crema (#FAF6ED), el fondo real de página. */
+    --border:                 oklch(0.6416 0.0217 264.00);    /* #868d9a  3.34:1 blanco · 3.10:1 crema */
+    --input:                  oklch(0.6416 0.0217 264.00);    /* #868d9a  3.34:1 */
+    --ring:                   oklch(0.4477 0.1381 263.72);    /* #2b4fa0  7.70:1 */
+
+    --radius: 0.625rem;
+
+    /* ── Series de gráfico (derivadas del azul de marca) ─────────────── */
+    --chart-1: oklch(0.4477 0.1381 263.72);   /* azul Alumco */
+    --chart-2: oklch(0.5083 0.1602 152.37);   /* verde accesible */
+    --chart-3: oklch(0.5283 0.1587 72.99);    /* ámbar accesible */
+    --chart-4: oklch(0.5460 0.1940 29.44);    /* rojo accesible */
+    --chart-5: oklch(0.4200 0.0900 300.00);   /* violeta */
+
+    /* ── Sidebar (shadcn) — derivado del set canónico ───────────────── */
+    --sidebar:                    var(--card);
+    --sidebar-foreground:         var(--card-foreground);
+    --sidebar-primary:            var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent:             var(--accent);
+    --sidebar-accent-foreground:  var(--accent-foreground);
+    --sidebar-border:             var(--border);
+    --sidebar-ring:               var(--ring);
   }
 
   .dark {
-    --background:        222 20% 8%;
-    --foreground:        210 20% 94%;
-    --card:              222 20% 11%;
-    --card-foreground:   210 20% 94%;
-    --popover:           222 20% 11%;
-    --popover-foreground: 210 20% 94%;
-    --primary:           213 80% 55%;
-    --primary-foreground: 222 20% 8%;
-    --secondary:         217 20% 18%;
-    --secondary-foreground: 210 20% 94%;
-    --muted:             217 20% 15%;
-    --muted-foreground:  215 16% 60%;
-    --accent:            217 20% 18%;
-    --accent-foreground: 210 20% 94%;
-    --destructive:       0 62% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --border:            217 20% 22%;
-    --input:             217 20% 22%;
-    --ring:              213 80% 55%;
-  }
+    --background:             oklch(0.1900 0.0180 265.00);    /* #10141c */
+    --foreground:             oklch(0.9700 0.0040 265.00);    /* #f4f5f8  16.91:1 */
+    --card:                   oklch(0.2400 0.0200 265.00);    /* #1b1f29 */
+    --card-foreground:        oklch(0.9700 0.0040 265.00);    /* #f4f5f8  15.11:1 */
+    --popover:                oklch(0.2400 0.0200 265.00);    /* #1b1f29 */
+    --popover-foreground:     oklch(0.9700 0.0040 265.00);    /* #f4f5f8  15.11:1 */
 
-  /* ── Tipografía accesible (mobile-first) ── */
-  html {
-    font-size: 18px; /* Base 18px — legibilidad para adultos mayores */
-    -webkit-text-size-adjust: 100%;
-  }
+    --primary:                oklch(0.7200 0.1381 263.72);    /* #77a2fb */
+    --primary-foreground:     oklch(0.1900 0.0180 265.00);    /* #10141c  7.33:1 */
+    --secondary:              oklch(0.3100 0.0220 265.00);    /* #2b303c */
+    --secondary-foreground:   oklch(0.9700 0.0040 265.00);    /* #f4f5f8  12.11:1 */
+    --accent:                 oklch(0.3100 0.0220 265.00);    /* #2b303c */
+    --accent-foreground:      oklch(0.9700 0.0040 265.00);    /* #f4f5f8  12.11:1 */
+    --muted:                  oklch(0.2900 0.0200 265.00);    /* #262b36 */
+    --muted-foreground:       oklch(0.7200 0.0180 265.00);    /* #9fa5b0  5.73:1 */
 
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-family: var(--font-sans, system-ui, sans-serif);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
+    --destructive:            oklch(0.7050 0.1940 29.44);     /* #ff6856 */
+    --destructive-foreground: oklch(0.1900 0.0180 265.00);    /* #10141c  6.47:1 */
+    --success:                oklch(0.7500 0.1602 152.37);    /* #4cca7a */
+    --success-foreground:     oklch(0.1900 0.0180 265.00);    /* #10141c  8.81:1 */
+    --warning:                oklch(0.7837 0.1587 72.99);     /* #f5a623 */
+    --warning-foreground:     oklch(0.1900 0.0180 265.00);    /* #10141c  9.10:1 */
 
-  /* ── Targets táctiles mínimos 48x48px (WCAG 2.5.5) ── */
-  button,
-  [role="button"],
-  a,
-  input[type="checkbox"],
-  input[type="radio"],
-  select {
-    min-height: 48px;
-    min-width: 48px;
-  }
+    /* En oscuro el texto semántico se aclara en vez de oscurecerse. */
+    --success-text:           oklch(0.7500 0.1602 152.37);    /* #4cca7a */
+    --error-text:             oklch(0.7050 0.1940 29.44);     /* #ff6856 */
+    --warning-text:           oklch(0.7837 0.1587 72.99);     /* #f5a623 */
 
-  /* Excepción: íconos inline dentro de botones no necesitan el mínimo */
-  button svg,
-  a svg {
-    min-height: unset;
-    min-width: unset;
-  }
-
-  /* ── Focus visible (accesibilidad de teclado) ── */
-  :focus-visible {
-    outline: 3px solid hsl(var(--ring));
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  /* ── Headings con escala legible ── */
-  h1 { font-size: 1.875rem; font-weight: 700; line-height: 1.2; }
-  h2 { font-size: 1.5rem;   font-weight: 600; line-height: 1.3; }
-  h3 { font-size: 1.25rem;  font-weight: 600; line-height: 1.4; }
-  h4 { font-size: 1.125rem; font-weight: 500; line-height: 1.4; }
-
-  /* ── Reducción de movimiento (accesibilidad) ── */
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      transition-duration: 0.01ms !important;
-    }
+    --border:                 oklch(0.5500 0.0220 265.00);    /* #6b727f  3.81:1 */
+    --input:                  oklch(0.5500 0.0220 265.00);    /* #6b727f  3.81:1 */
+    --ring:                   oklch(0.7200 0.1381 263.72);    /* #77a2fb  7.33:1 */
   }
 }
 
-@custom-variant dark (&:is(.dark *));
+/* ============================================================================
+   2 · TOKENS DERIVADOS — Material Design 3 y alias de marca
+   Estos sets NO compiten con el canónico: o son alias directos, o son pasos
+   de la escala tonal MD3 que no tienen equivalente canónico. Ningún token de
+   aquí redefine un nombre del bloque anterior.
+   ============================================================================ */
+
+@layer base {
+  :root {
+    /* Alias directos del set canónico */
+    --md-primary:                 var(--primary);
+    --md-on-primary:              var(--primary-foreground);
+    --md-error:                   var(--destructive);
+    --md-on-error:                var(--destructive-foreground);
+    --md-surface-container-lowest: var(--card);
+    --md-on-surface:              var(--foreground);
+    --md-on-surface-variant:      var(--muted-foreground);
+    --md-outline:                 var(--border);
+    --md-background:              var(--background);
+    --md-on-background:           var(--foreground);
+
+    /* Pasos de la escala tonal MD3 (sin equivalente canónico).
+       Verificados: on-primary-container/primary-container = 6.11:1,
+       on-tertiary-container/tertiary-container = 6.05:1,
+       primary/surface-container-high = 6.26:1. */
+    --md-primary-dim:             oklch(0.4000 0.1300 263.72);
+    --md-primary-container:       #dce1ff;
+    --md-on-primary-container:    #334c9d;
+    --md-primary-fixed:           #dce1ff;
+    --md-primary-fixed-dim:       #c9d3ff;
+    --md-on-primary-fixed:        #1d3989;
+    --md-on-primary-fixed-variant:#3d57a7;
+
+    --md-secondary:               #5f5f62;
+    --md-secondary-dim:           #535356;
+    --md-on-secondary:            #fbf8fc;
+    --md-secondary-container:     #e4e1e6;
+    --md-on-secondary-container:  #525155;
+    --md-secondary-fixed:         #e4e1e6;
+    --md-secondary-fixed-dim:     #d6d3d8;
+    --md-on-secondary-fixed:      #3f3f43;
+    --md-on-secondary-fixed-variant: #5b5b5f;
+
+    --md-tertiary:                #625b77;
+    --md-tertiary-dim:            #564f6a;
+    --md-on-tertiary:             #fdf7ff;
+    --md-tertiary-container:      #e8ddff;
+    --md-on-tertiary-container:   #554e69;
+    --md-tertiary-fixed:          #e8ddff;
+    --md-tertiary-fixed-dim:      #dacff0;
+    --md-on-tertiary-fixed:       #423b56;
+    --md-on-tertiary-fixed-variant: #5f5773;
+
+    --md-surface:                 #f7f9fb;
+    --md-surface-bright:          #f7f9fb;
+    --md-surface-dim:             #cfdce3;
+    --md-surface-container:       #e8eff3;
+    --md-surface-container-low:   #f0f4f7;
+    --md-surface-container-high:  #e1e9ee;
+    --md-surface-container-highest: #d9e4ea;
+    --md-surface-variant:         #d9e4ea;
+
+    --md-error-dim:               #4f0116;
+    --md-error-container:         #ff8b9a;
+    --md-on-error-container:      #782232;
+    --md-outline-variant:         #a9b4b9;
+    --md-inverse-surface:         #0b0f10;
+    --md-inverse-on-surface:      #9a9d9f;
+    --md-inverse-primary:         #8fa7fe;
+
+    /* Alias de marca — derivados, para no tener un tercer origen de verdad.
+       Los dos «-text» apuntan a las variantes accesibles, no al color crudo. */
+    --alumco-blue:         var(--primary);
+    --alumco-gold:         var(--warning);
+    --alumco-success:      var(--success);
+    --alumco-error:        var(--destructive);
+    --alumco-gold-text:    var(--warning-text);
+    --alumco-success-text: var(--success-text);
+    --alumco-error-text:   var(--error-text);
+    --alumco-dark-sidebar: oklch(0.3200 0.1000 265.00);   /* #1a2f6b */
+  }
+}
+
+/* ============================================================================
+   3 · MAPEO A TAILWIND v4
+   `inline` hace que las utilidades emitan `var(--token)` directamente, sin
+   envolverlo en ninguna función de color. Por eso los tokens guardan un color
+   completo y nunca componentes sueltos.
+   ============================================================================ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success-text: var(--success-text);
+  --color-error-text: var(--error-text);
+  --color-warning-text: var(--warning-text);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
   --font-sans: var(--font-sans);
   --font-display: var(--font-display);
-  --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
+  --font-serif-display: var(--font-serif-display);
+  --font-archivo: var(--font-archivo);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -161,221 +312,141 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
+/* ============================================================================
+   4 · BASE: tipografía, superficies, targets táctiles
+   ============================================================================ */
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    /* Solo el color de borde por defecto. Antes esta regla también aplicaba
+       `outline-ring/50`, un contorno al 50 % de opacidad que daba 1.54:1 y
+       competía con el anillo de foco real definido más abajo. */
+    @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+
+  /* 112.5 % = 18px con el tamaño de fuente por defecto del navegador, igual
+     que el `18px` fijo anterior, pero escalando si la persona configuró un
+     tamaño mayor en el sistema o el navegador (1.4.4). */
   html {
+    font-size: 112.5%;
+    -webkit-text-size-adjust: 100%;
     @apply font-sans;
   }
+
+  body {
+    /* Los tokens ya son colores completos: se consumen sin envolver.
+       Antes era `hsl(var(--background))` → `hsl(oklch(1 0 0))`, inválido. */
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans, system-ui, sans-serif);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Objetivos táctiles ──────────────────────────────────────────────
+     El criterio aplicable en AA es 2.5.8 «Tamaño del objetivo (mínimo)»,
+     que pide 24×24 px y exime expresamente los enlaces en línea dentro de
+     un bloque de texto. (El comentario anterior citaba 2.5.5, que es AAA.)
+     Se mantienen 44 px —por encima de AA, y además cumpliendo 2.5.5 AAA—
+     porque el público objetivo lo justifica, pero SOLO sobre elementos que
+     son controles: la regla anterior estiraba cualquier <a>, incluidos los
+     enlaces dentro de párrafos, y rompía el flujo del texto.
+     `:where()` da especificidad 0 para que las utilidades de Tailwind y las
+     clases de didasko puedan sobrescribir cuando sea legítimo. */
+  :where(button, [role="button"], a[role="button"], input[type="checkbox"],
+         input[type="radio"], select, summary) {
+    min-block-size: 44px;
+    min-inline-size: 44px;
+  }
+  a:not([role="button"]) {
+    min-block-size: auto;
+    min-inline-size: auto;
+  }
+  /* Los iconos dentro de un control no heredan el mínimo del control. */
+  :where(button, a) svg {
+    min-block-size: unset;
+    min-inline-size: unset;
+  }
+
+  /* ── Escala de encabezados ─────────────────────────────────────────── */
+  h1 { font-size: 1.875rem; font-weight: 700; line-height: 1.2; }
+  h2 { font-size: 1.5rem;   font-weight: 600; line-height: 1.3; }
+  h3 { font-size: 1.25rem;  font-weight: 600; line-height: 1.4; }
+  h4 { font-size: 1.125rem; font-weight: 500; line-height: 1.4; }
 }
 
-/* ── Material Design 3 Color Tokens (Alumco Theme) ── */
-:root {
-  /* Primary - Alumco Blue #2B4FA0 */
-  --md-primary: #4059aa;
-  --md-primary-dim: #334d9d;
-  --md-on-primary: #f8f7ff;
-  --md-primary-container: #dce1ff;
-  --md-on-primary-container: #334c9d;
-  --md-primary-fixed: #dce1ff;
-  --md-primary-fixed-dim: #c9d3ff;
-  --md-on-primary-fixed: #1d3989;
-  --md-on-primary-fixed-variant: #3d57a7;
+/* ============================================================================
+   5 · OVERRIDES QUE DEBEN GANAR A DIDASKO
+   Van en `components` DESPUÉS del import de didasko.css: misma capa, misma
+   especificidad, posición posterior → ganan. Las utilidades de Tailwind
+   siguen por encima.
+   ============================================================================ */
 
-  /* Secondary */
-  --md-secondary: #5f5f62;
-  --md-secondary-dim: #535356;
-  --md-on-secondary: #fbf8fc;
-  --md-secondary-container: #e4e1e6;
-  --md-on-secondary-container: #525155;
-  --md-secondary-fixed: #e4e1e6;
-  --md-secondary-fixed-dim: #d6d3d8;
-  --md-on-secondary-fixed: #3f3f43;
-  --md-on-secondary-fixed-variant: #5b5b5f;
+@layer components {
+  /* ── Anillo de foco de doble contorno ───────────────────────────────
+     didasko define `:focus-visible { outline: 3px solid var(--ambar) }`, y
+     ese ámbar da 2.03:1: invisible sobre crema y sobre blanco.
+     El doble contorno resuelve el problema de fondo variable: el contorno
+     interior usa el color de superficie y el exterior el azul de marca, así
+     que SIEMPRE hay uno de los dos que contrasta ≥3:1 con lo que tenga al
+     lado. Medido sobre las superficies reales de la plataforma:
+       crema #FAF6ED   → anillo 7.14:1
+       tarjeta #FFFDF6 → anillo 7.56:1
+       sidebar #152A66 → separador 13.51:1
+       hero navy       → separador 10.36:1
+       botón ámbar     → anillo 3.80:1
+       destructive     → separador 4.64:1 */
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--background);
+    border-radius: 4px;
+  }
 
-  /* Tertiary */
-  --md-tertiary: #625b77;
-  --md-tertiary-dim: #564f6a;
-  --md-on-tertiary: #fdf7ff;
-  --md-tertiary-container: #e8ddff;
-  --md-on-tertiary-container: #554e69;
-  --md-tertiary-fixed: #e8ddff;
-  --md-tertiary-fixed-dim: #dacff0;
-  --md-on-tertiary-fixed: #423b56;
-  --md-on-tertiary-fixed-variant: #5f5773;
+  /* ── 1.4.12 Espaciado del texto ─────────────────────────────────────
+     Con interlineado 1.5 / letter-spacing .12em / word-spacing .16em estas
+     tres reglas de didasko recortaban texto o lo desbordaban. Se permite el
+     salto de línea y se sube el alto del tab para acomodar dos renglones. */
+  .btn,
+  .badge {
+    white-space: normal;
+    text-wrap: balance;
+  }
 
-  /* Surface */
-  --md-surface: #f7f9fb;
-  --md-surface-bright: #f7f9fb;
-  --md-surface-dim: #cfdce3;
-  --md-surface-container: #e8eff3;
-  --md-surface-container-low: #f0f4f7;
-  --md-surface-container-lowest: #ffffff;
-  --md-surface-container-high: #e1e9ee;
-  --md-surface-container-highest: #d9e4ea;
-  --md-surface-variant: #d9e4ea;
-  --md-on-surface: #2a3439;
-  --md-on-surface-variant: #566166;
-
-  /* Error */
-  --md-error: #9e3f4e;
-  --md-error-dim: #4f0116;
-  --md-on-error: #fff7f7;
-  --md-error-container: #ff8b9a;
-  --md-on-error-container: #782232;
-
-  /* Outline */
-  --md-outline: #717c82;
-  --md-outline-variant: #a9b4b9;
-
-  /* Inverse */
-  --md-inverse-surface: #0b0f10;
-  --md-inverse-on-surface: #9a9d9f;
-  --md-inverse-primary: #8fa7fe;
-
-  /* Background */
-  --md-background: #f7f9fb;
-  --md-on-background: #2a3439;
-
-  /* Custom Alumco Colors */
-  --alumco-blue: #2B4FA0;
-  --alumco-gold: #F5A623;
-  --alumco-success: #27AE60;
-  --alumco-error: #E74C3C;
-  --alumco-dark-sidebar: #1A2F6B;
+  .tab-inferior-label {
+    /* Antes: white-space: nowrap + overflow: hidden + text-overflow: ellipsis.
+       Con letter-spacing .12em «Certificados» pasa de 70px a ~88px sobre los
+       75px disponibles y se truncaba: eso es pérdida de contenido. */
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+  .tab-inferior {
+    min-block-size: 60px;
+  }
 }
 
-/* ── Architectural Shadow (from mockup) ── */
-.architectural-shadow {
-  box-shadow: 0 20px 40px rgba(42, 52, 57, 0.06);
-}
+/* ============================================================================
+   6 · Animaciones de página
+   ============================================================================ */
 
-/* ── Ghost Border (from mockup) ── */
-.ghost-border {
-  border: 1px solid rgba(169, 180, 185, 0.15);
-}
-
-/* ── Custom Scrollbar ── */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--md-surface-container-low);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--md-outline-variant);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--md-outline);
-}
-
-/* ── Animaciones de página ──────────────────────── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
-.page-transition {
-  animation: fadeInUp 0.3s ease-out forwards;
-}
-
-.page-fade {
-  animation: fadeIn 0.2s ease-out forwards;
-}
+.page-transition { animation: fadeInUp 0.3s ease-out forwards; }
+.page-fade { animation: fadeIn 0.2s ease-out forwards; }
 
 /* Aplicar automáticamente a contenido principal */
-main > * {
-  animation: fadeInUp 0.25s ease-out forwards;
-}
+main > * { animation: fadeInUp 0.25s ease-out forwards; }
 
 /* Stagger para listas de cards */
 .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
@@ -385,20 +456,23 @@ main > * {
 .stagger-children > *:nth-child(5) { animation-delay: 160ms; }
 .stagger-children > *:nth-child(6) { animation-delay: 200ms; }
 
-/* Reducir animaciones para usuarios que lo prefieren */
-@media (prefers-reduced-motion: reduce) {
-  main > *,
-  .page-transition,
-  .page-fade,
-  .stagger-children > * {
-    animation: none;
-  }
-}
-/* ============================================
+/* ── Architectural Shadow (from mockup) ── */
+.architectural-shadow { box-shadow: 0 20px 40px rgba(42, 52, 57, 0.06); }
+
+/* ── Ghost Border (from mockup) ── */
+.ghost-border { border: 1px solid rgba(169, 180, 185, 0.15); }
+
+/* ── Custom Scrollbar ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--md-surface-container-low); }
+::-webkit-scrollbar-thumb { background: var(--md-outline-variant); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--md-outline); }
+
+/* ============================================================================
    Login "Amanecer sobre agua"
    Animaciones: solo transform/opacity (compositor),
    periodos no armonicos para movimiento organico
-   ============================================ */
+   ============================================================================ */
 
 /* --- Agua: deriva horizontal (loop perfecto) --- */
 @keyframes login-wave-drift {
@@ -409,9 +483,7 @@ main > * {
   animation: login-wave-drift 26s linear infinite;
   will-change: transform;
 }
-.login-wave-slow .login-wave {
-  animation-duration: 44s;
-}
+.login-wave-slow .login-wave { animation-duration: 44s; }
 .login-wave-reverse .login-wave {
   animation-direction: reverse;
   animation-duration: 33s;
@@ -441,9 +513,7 @@ main > * {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-13px); }
 }
-.login-float {
-  animation: login-float 6.7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
+.login-float { animation: login-float 6.7s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
 
 @keyframes mascot-sway {
   0%, 100% { transform: rotate(-2deg); }
@@ -478,10 +548,10 @@ main > * {
 .login-fade-up > *:nth-child(3) { animation-delay: 0.23s; }
 .login-fade-up > *:nth-child(4) { animation-delay: 0.32s; }
 
-/* ============================================
+/* ============================================================================
    Mascota gota — reacciones al formulario
    (CSS puro via :has(), sin JavaScript)
-   ============================================ */
+   ============================================================================ */
 
 /* Estado base + transicion de REFORMARSE: resorte elastico hacia arriba.
    Origen en la base: el charco se forma a los pies de la gota. */
@@ -533,7 +603,7 @@ main > * {
   height: 10px;
   margin-left: -4.5px;
   border-radius: 50% 50% 46% 46% / 62% 62% 38% 38%;
-  background: #F5A623;
+  background: var(--warning);
   opacity: 0;
 }
 @keyframes mascot-drip {
@@ -609,41 +679,6 @@ main > * {
   animation-delay: 0.9s;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .login-wave,
-  .login-wave-bob,
-  .login-float,
-  .mascot-sway,
-  .mascot-breathe,
-  .login-fade-up > *,
-  .mascot-splash span {
-    animation: none;
-  }
-  .login-fade-up > * {
-    opacity: 1;
-  }
-  .mascot-pose,
-  .login-wave-layer {
-    transition: none;
-  }
-  .login-shell:has(#email:focus) .mascot-pose,
-  .login-shell:has(#reset-email:focus) .mascot-pose,
-  .login-shell:has(#password:focus) .mascot-pose {
-    animation: none;
-    transform: none;
-    opacity: 1;
-  }
-  .login-shell:has(#password:focus) .mascot-drips span {
-    animation: none;
-  }
-  .login-shell:has(button[aria-busy="true"]) .mascot-pose {
-    animation: none;
-  }
-  .login-shell:has(button[aria-busy="true"]) .login-wave-layer {
-    transform: none;
-  }
-}
-
 /* ── Grano de película — textura "raspa" sobre superficies oscuras ──
    Ruido SVG inline (feTurbulence): sin assets, sin peso de red.
    Usar sobre contenedores con `relative overflow-hidden`. */
@@ -668,9 +703,9 @@ main > * {
   background: radial-gradient(ellipse 120% 90% at 50% 45%, transparent 55%, rgba(8, 16, 40, 0.55) 100%);
 }
 
-/* ============================================================
+/* ============================================================================
    Landing page — responsive nav + anchors
-   ============================================================ */
+   ============================================================================ */
 .landing-nav-links { display: flex; }
 .landing-nav-toggle { display: none; }
 .landing-nav-mobile { display: flex; }
@@ -689,12 +724,12 @@ section[id] { scroll-margin-top: 80px; }
   .hero-float-card { display: none !important; }
 }
 
-/* ============================================================
+/* ============================================================================
    Landing — paleta "Azul + salvia sereno" (scoped)
    Azul = primario (sin cambios). El acento ámbar se reemplaza por salvia
    y los neutros cálidos por neutros fríos limpios. Solo dentro de
    .landing-page → la plataforma mantiene DIDASKO (ámbar).
-   ============================================================ */
+   ============================================================================ */
 .landing-page {
   /* Acento ámbar Alumco (reemplaza el verde salvia) */
   --ambar:     #F5A623;
@@ -715,11 +750,11 @@ section[id] { scroll-margin-top: 80px; }
   --oliva-800:   #152a66;
 }
 
-/* ============================================================
+/* ============================================================================
    Landing — tipografía estilo Giga (Fraunces serif, sentence-case)
    Scoped a .landing-page; la plataforma mantiene DIDASKO (Archivo).
    Reglas sin @layer → ganan al tema DIDASKO (layer components).
-   ============================================================ */
+   ============================================================================ */
 .hero-title {
   font-family: var(--font-serif-display), "Playfair Display", Georgia, serif;
   font-weight: 400;
@@ -765,14 +800,14 @@ section[id] { scroll-margin-top: 80px; }
   body[data-tema="didasko"] .landing-page .t-eyebrow.claro { color: #F5C26B !important; }
 }
 
-/* ============================================================
+/* ============================================================================
    Login: sin scroll en móvil.
    - 100dvh en vez de 100vh: en iOS el vh clásico incluye la zona
      de la barra de URL y genera scroll aunque el contenido quepa.
    - En pantallas chicas se compacta el card (paddings, márgenes,
      logo y gaps del formulario); los !important vencen a los
      estilos inline del componente.
-   ============================================================ */
+   ============================================================================ */
 .login-shell {
   min-height: 100vh;
   min-height: 100dvh;
@@ -789,4 +824,56 @@ section[id] { scroll-margin-top: 80px; }
   .login-shell .login-titulo { font-size: 22px !important; }
   .login-shell .login-sub { margin-top: 4px !important; margin-bottom: 14px !important; }
   .login-shell .login-card form { gap: 13px !important; }
+}
+
+/* ============================================================================
+   Reducción de movimiento — BLOQUE ÚNICO
+   Antes había tres bloques `prefers-reduced-motion` repartidos por el archivo
+   (uno en @layer base, otro tras las animaciones de página y otro tras las del
+   login). Consolidados aquí para que sea evidente qué se detiene.
+   didasko.css añade además el control por preferencia de usuario
+   (`body[data-movimiento]`), que no se toca desde este archivo.
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Animaciones de página y stagger: se anulan del todo, no se aceleran. */
+  main > *,
+  .page-transition,
+  .page-fade,
+  .stagger-children > * {
+    animation: none !important;
+  }
+
+  /* Login: la mascota y el agua quedan quietas y visibles. */
+  .login-wave,
+  .login-wave-bob,
+  .login-float,
+  .mascot-sway,
+  .mascot-breathe,
+  .login-fade-up > *,
+  .mascot-splash span,
+  .mascot-drips span {
+    animation: none !important;
+  }
+  .login-fade-up > * { opacity: 1; }
+  .mascot-pose,
+  .login-wave-layer { transition: none !important; }
+  .login-shell:has(#email:focus) .mascot-pose,
+  .login-shell:has(#reset-email:focus) .mascot-pose,
+  .login-shell:has(#password:focus) .mascot-pose,
+  .login-shell:has(button[aria-busy="true"]) .mascot-pose {
+    animation: none !important;
+    transform: none;
+    opacity: 1;
+  }
+  .login-shell:has(button[aria-busy="true"]) .login-wave-layer { transform: none; }
+
+  html { scroll-behavior: auto; }
 }
