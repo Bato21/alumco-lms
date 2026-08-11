@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { ChevronDown, X, Loader2 } from 'lucide-react'
 import { updateWorkerAction, suspendWorkerAction } from '@/lib/actions/trabajadores'
 import { AREAS_TRABAJO } from '@/lib/types/database'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 interface WorkerEditPanelProps {
   profileId: string
@@ -35,6 +36,9 @@ export function WorkerEditPanel({
   const [isSuspendPending, startSuspendTransition] = useTransition()
 
   const dropdownRef = useRef<HTMLDivElement>(null)
+  // A11Y-12 · el panel se monta ya abierto: el padre controla su ciclo de vida,
+  // así que el estado «abierto» es constante y el cierre es `onClose`.
+  const dialogRef = useAccessibleDialog<HTMLElement>(true, onClose)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -113,6 +117,8 @@ export function WorkerEditPanel({
 
       {/* Panel lateral */}
       <aside
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={`Editar trabajador ${fullName}`}
@@ -159,7 +165,7 @@ export function WorkerEditPanel({
               value={fullName}
               onChange={e => setFullName(e.target.value)}
               disabled={isLoading}
-              className="w-full h-11 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
+              className="w-full h-11 px-3 rounded-lg border border-gray-200 text-sm focus-visible:border-[#2B4FA0] transition-colors disabled:opacity-60"
             />
           </div>
 
@@ -175,7 +181,7 @@ export function WorkerEditPanel({
               onChange={e => setRut(e.target.value)}
               disabled={isLoading}
               placeholder="12.345.678-9"
-              className="w-full h-11 px-3 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
+              className="w-full h-11 px-3 rounded-lg border border-gray-200 text-sm focus-visible:border-[#2B4FA0] transition-colors disabled:opacity-60"
             />
           </div>
 
@@ -189,7 +195,7 @@ export function WorkerEditPanel({
               value={sede}
               onChange={e => setSede(e.target.value)}
               disabled={isLoading}
-              className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
+              className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus-visible:border-[#2B4FA0] transition-colors disabled:opacity-60"
             >
               {sedes.map(s => (
                 <option key={s.id} value={s.id}>{s.nombre}</option>
@@ -221,7 +227,7 @@ export function WorkerEditPanel({
                 aria-haspopup="listbox"
                 // Se anuncia «Áreas de trabajo, <selección actual>».
                 aria-labelledby="wep-areas-rotulo wep-areas-boton"
-                className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm flex items-center justify-between hover:border-[#2B4FA0] transition-colors disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20"
+                className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm flex items-center justify-between hover:border-[#2B4FA0] focus-visible:border-[#2B4FA0] transition-colors disabled:opacity-60"
               >
                 <span className={`truncate ${selectedAreas.length === 0 ? 'text-[#6B7280]' : 'text-[#1A1A2E]'}`}>
                   {triggerText}

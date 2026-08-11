@@ -58,7 +58,7 @@ export function WorkerTopBar({ alerts }: WorkerTopBarProps) {
           <Link
             href="/perfil"
             aria-label="Mi perfil y configuración"
-            className="p-2 text-slate-500 hover:text-[#2B4FA0] transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B4FA0]/30"
+            className="p-2 text-slate-500 hover:text-[#2B4FA0] transition-colors rounded-lg"
           >
             <Settings className="h-6 w-6" aria-hidden="true" />
           </Link>

@@ -117,7 +117,7 @@ export function BlockPropertiesPanel({
             onChange={(e) => setTitle(e.target.value)}
             required
             disabled={isPending}
-            className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+            className="w-full h-12 lg:h-10 px-3 rounded-lg border border-input bg-background text-sm focus-visible:border-[#2B4FA0] transition-colors"
           />
         </div>
 
@@ -158,7 +158,7 @@ export function BlockPropertiesPanel({
               value={html}
               disabled={isPending}
               onChange={(e) => setHtml(e.target.value)}
-              className="w-full p-3 rounded-lg border border-input bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+              className="w-full p-3 rounded-lg border border-input bg-background text-sm font-mono focus-visible:border-[#2B4FA0] transition-colors"
             />
             <p className="text-xs text-muted-foreground leading-relaxed">
               HTML básico. Lo que se guarda pasa por el saneador del servidor, así

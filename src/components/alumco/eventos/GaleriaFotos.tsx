@@ -9,6 +9,7 @@ import { AlertCircle, Loader2 } from 'lucide-react'
 import { uploadEventPhotoAction, deleteEventPhotoAction } from '@/lib/actions/events'
 import { Icono } from '@/components/alumco/ds'
 import type { EventPhoto } from '@/lib/types/database'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 export type FotoConUrl = EventPhoto & { signedUrl: string | null }
 
@@ -23,6 +24,12 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
   const [error, setError] = useState<string | null>(null)
   // Foto abierta en el lightbox (preview grande)
   const [preview, setPreview] = useState<FotoConUrl | null>(null)
+  // A11Y-12 · el lightbox tapa la galería entera: sin trampa, tabular se iba a
+  // las miniaturas de detrás, visibles pero cubiertas por el telón.
+  const dialogRef = useAccessibleDialog<HTMLDivElement>(
+    preview !== null,
+    () => setPreview(null)
+  )
   const [bajando, setBajando] = useState(false)
 
   // Descarga forzada: el bucket es privado y la signed URL es cross-origin,
@@ -189,6 +196,8 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
             onClick={() => setPreview(null)}
           />
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label="Vista de la foto"

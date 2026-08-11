@@ -11,9 +11,15 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateEventAction, deleteEventAction } from '@/lib/actions/events'
 import { EVENT_TYPE_LABELS, EVENT_TYPE_EMOJI, type EventRecord, type EventType } from '@/lib/types/database'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 export function EditarEventoControl({ event }: { event: EventRecord }) {
   const [abierto, setAbierto] = useState(false)
+  // A11Y-12 · el cierre replica la guarda del telón: mientras hay una operación
+  // en vuelo, Escape no descarta el panel.
+  const dialogRef = useAccessibleDialog<HTMLDivElement>(abierto, () => {
+    if (!pending) setAbierto(false)
+  })
   const [error, setError] = useState<string | null>(null)
   const [guardado, setGuardado] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -45,6 +51,8 @@ export function EditarEventoControl({ event }: { event: EventRecord }) {
             onClick={() => { if (!pending) setAbierto(false) }}
           />
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label="Editar evento"

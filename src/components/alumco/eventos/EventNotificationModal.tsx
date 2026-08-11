@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Icono, Badge, Progreso } from '@/components/alumco/ds'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 import type { EventoResumen } from '@/lib/eventos/proximoEvento'
 
 // Estado visto/cerrado por usuario y por evento (localStorage).
@@ -19,22 +20,24 @@ export function EventNotificationModal({ evento, userId }: { evento: EventoResum
 
   // Decide en cliente si auto-abrir (evita mismatch de hidratación: SSR no
   // tiene acceso a localStorage, así que arranca cerrado).
+  //
+  // `set-state-in-effect` avisa del render en cascada, y tiene razón en el caso
+  // general. Aquí el estado inicial depende de `localStorage`, que no existe
+  // durante el render del servidor: calcularlo en el cuerpo del componente daría
+  // un desajuste de hidratación. La alternativa sin efecto es
+  // `useSyncExternalStore`, que cambiaría cuándo aparece el modal; queda anotado
+  // como mejora aparte para no alterar el comportamiento en una pasada de
+  // accesibilidad. El aviso quedó al descubierto al retirar el manejador suelto
+  // de Escape que sustituyó `useAccessibleDialog`.
   useEffect(() => {
     try {
       const estado = localStorage.getItem(storageKey(userId, evento.id))
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (!estado) setOpen(true)
     } catch {
       /* localStorage bloqueado: no auto-abrimos */
     }
   }, [userId, evento.id])
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') cerrar() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, noMostrar])
 
   function persistir() {
     try {
@@ -48,6 +51,12 @@ export function EventNotificationModal({ evento, userId }: { evento: EventoResum
     persistir()
     setOpen(false)
   }
+
+  // A11Y-12 · sustituye al manejador suelto de Escape y añade trampa de foco y
+  // devolución. Va después de `cerrar` —la regla de lint no acepta el izado— y
+  // antes del `return null`, porque un hook no puede quedar tras una salida
+  // temprana.
+  const dialogRef = useAccessibleDialog<HTMLDivElement>(open, () => cerrar())
 
   if (!open) return null
 
@@ -68,6 +77,8 @@ export function EventNotificationModal({ evento, userId }: { evento: EventoResum
         onClick={cerrar}
       />
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={`Próximo evento: ${evento.title}`}

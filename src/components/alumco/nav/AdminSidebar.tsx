@@ -9,6 +9,7 @@ import { Avatar, Icono, Gota, type IconoNombre } from '@/components/alumco/ds'
 import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
 import { PreviewModeButton } from '@/components/alumco/shared/PreviewModeButton'
 import { type UserRole } from '@/lib/types/database'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 interface AdminSidebarProps {
   fullName: string
@@ -133,6 +134,15 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
 
 export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  // A11Y-04 · el cajón se queda montado y sólo se desplaza con `translate`, así
+  // que estando cerrado seguía en el orden de tabulación: el foco desaparecía
+  // fuera de la pantalla. `inert` lo saca del recorrido y del árbol accesible;
+  // el hook aporta el foco al abrir, Escape y la devolución al botón «Abrir
+  // menú».
+  const drawerRef = useAccessibleDialog<HTMLElement>(
+    isDrawerOpen,
+    () => setIsDrawerOpen(false)
+  )
 
   return (
     <>
@@ -174,6 +184,11 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
 
       {/* Mobile Drawer */}
       <aside
+        ref={drawerRef}
+        tabIndex={-1}
+        inert={!isDrawerOpen}
+        role="dialog"
+        aria-modal="true"
         className={
           'sidebar lg:hidden fixed left-0 h-screen z-50 transform transition-transform duration-300 ease-in-out ' +
           (isDrawerOpen ? 'translate-x-0' : '-translate-x-full')

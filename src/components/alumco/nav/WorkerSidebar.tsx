@@ -6,6 +6,7 @@ import { Home, BookOpen, User, Award, X, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
 import { NotificationBell } from '@/components/alumco/shared/NotificationBell'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 import { useState } from 'react'
 
 const navItems = [
@@ -110,7 +111,9 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: Omit<Worke
                   className={cn(
                     'flex items-center gap-3 rounded-xl px-3 py-2.5',
                     'text-base font-medium transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20',
+                    // El anillo de doble contorno de globals.css ya contrasta
+                    // 13.51:1 sobre el navy del sidebar: no se anula el outline.
+
                     isActive
                       ? 'bg-white/10 text-white'
                       : 'text-white/60 hover:text-white hover:bg-white/5'
@@ -159,6 +162,13 @@ function SidebarContent({ fullName, sede, area, avatarUrl, onClose }: Omit<Worke
 
 export function WorkerSidebar({ fullName, sede, area, avatarUrl, alerts }: WorkerSidebarProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  // A11Y-04 · mismo defecto que el cajón de admin: montado siempre y sólo
+  // desplazado con `translate`, seguía siendo tabulable estando cerrado. Es la
+  // vista que más se usa en móvil, así que se corrige junto con la de admin.
+  const drawerRef = useAccessibleDialog<HTMLElement>(
+    isDrawerOpen,
+    () => setIsDrawerOpen(false)
+  )
 
   return (
     <>
@@ -218,6 +228,11 @@ export function WorkerSidebar({ fullName, sede, area, avatarUrl, alerts }: Worke
 
       {/* Mobile Drawer */}
       <aside
+        ref={drawerRef}
+        tabIndex={-1}
+        inert={!isDrawerOpen}
+        role="dialog"
+        aria-modal="true"
         className={cn(
           'lg:hidden fixed top-0 left-0 h-screen w-64 bg-[#1A2F6B] z-50 transform transition-transform duration-300 ease-in-out',
           isDrawerOpen ? 'translate-x-0' : '-translate-x-full'

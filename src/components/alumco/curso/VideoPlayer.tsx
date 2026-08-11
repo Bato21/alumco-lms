@@ -150,12 +150,22 @@ export function VideoPlayer({
       {/* Completed State */}
       {localCompleted && (
         <div className="flex items-center gap-2 text-[#27AE60] font-medium">
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <polyline points="20,6 9,17 4,12" />
           </svg>
           Módulo completado
         </div>
       )}
+
+      {/* 4.1.3 · Marcar el módulo dispara una acción de servidor cuyo único
+          acuse era visual. La región se monta siempre —vacía— para que el
+          lector de pantalla la observe desde el inicio y anuncie el cambio;
+          si se montara junto con el texto, el anuncio no está garantizado.
+          En la primera carga de un módulo ya visto no se anuncia nada,
+          porque el contenido no cambia después del montaje. */}
+      <p role="status" className="sr-only">
+        {localCompleted ? 'Módulo completado. Tu progreso quedó guardado.' : ''}
+      </p>
     </div>
   )
 }

@@ -602,6 +602,15 @@ const handleContinue = async () => {
             </Link>
           )}
         </div>
+
+        {/* 4.1.3 · El puntaje llega desde una acción de servidor y hasta ahora
+            solo se comunicaba visualmente. Va al final del contenedor: `sr-only`
+            está fuera del flujo, así que el margen de `space-y` no desplaza nada. */}
+        <p role="status" className="sr-only">
+          {passed
+            ? `Aprobaste la evaluación con ${quizResult.score} por ciento: ${correctCount} de ${totalCount} respuestas correctas.`
+            : `No aprobaste la evaluación. Obtuviste ${quizResult.score} por ciento: ${correctCount} de ${totalCount} respuestas correctas.`}
+        </p>
       </div>
     )
   }
@@ -658,6 +667,13 @@ const handleContinue = async () => {
             {/* AQUÍ EL TEXTO CLARO */}
             {isCourseCompleted ? 'Volver al curso y ver certificado' : 'Continuar al siguiente módulo'}
           </button>
+
+          {/* 4.1.3 · Resultado final anunciado sin depender de la vista. */}
+          <p role="status" className="sr-only">
+            {isCourseCompleted
+              ? `Completaste el curso. Puntaje final: ${quizResult.score} por ciento.`
+              : `Aprobaste la evaluación con ${quizResult.score} por ciento.`}
+          </p>
         </div>
       )
     }
@@ -711,6 +727,11 @@ const handleContinue = async () => {
               Repasar el contenido
             </Link>
           </div>
+
+          {/* 4.1.3 · Resultado e intentos restantes anunciados. */}
+          <p role="status" className="sr-only">
+            {`No alcanzaste el puntaje mínimo de ${passingScore} por ciento. Obtuviste ${quizResult.score} por ciento. Te quedan ${attemptsRemaining} intento${attemptsRemaining !== 1 ? 's' : ''}.`}
+          </p>
         </div>
       )
     }
@@ -762,6 +783,12 @@ const handleContinue = async () => {
             Volver al módulo
           </Link>
         </div>
+
+        {/* 4.1.3 · Sin intentos restantes: el bloqueo debe quedar claro también
+            para quien no ve la pantalla. */}
+        <p role="status" className="sr-only">
+          {`Has agotado todos tus intentos. Tu puntaje fue ${quizResult.score} por ciento. Contacta a tu administrador para habilitar un nuevo intento.`}
+        </p>
       </div>
     )
   }

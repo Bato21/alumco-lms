@@ -121,7 +121,7 @@ export default function QuestionForm({
           onChange={e => setQuestionText(e.target.value)}
           disabled={isSubmitting}
           placeholder="¿Cuáles son los momentos críticos para el lavado de manos?"
-          className="w-full min-h-[80px] px-3 py-2.5 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors resize-none"
+          className="w-full min-h-[80px] px-3 py-2.5 rounded-lg border border-input bg-background text-sm focus-visible:border-[#2B4FA0] transition-colors resize-none"
         />
       </div>
 
@@ -169,7 +169,7 @@ export default function QuestionForm({
                 // única etiqueta.
                 aria-label={`Texto de la alternativa ${option.id.toUpperCase()}`}
                 placeholder={`Alternativa ${option.id.toUpperCase()}`}
-                className={`flex-1 min-w-0 h-9 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors ${
+                className={`flex-1 min-w-0 h-9 px-3 rounded-lg border text-sm focus-visible:border-[#2B4FA0] transition-colors ${
                   correctOption === option.id
                     ? 'border-[#27AE60] bg-[#EAF3DE]/40'
                     : 'border-input bg-background'

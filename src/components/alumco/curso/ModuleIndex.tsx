@@ -191,7 +191,7 @@ export function ModuleIndex({
               <Link
                 key={module.id}
                 href={`/cursos/${courseId}/modulos/${module.id}`}
-                className="block focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#2B4FA0]"
+                className="block"
               >
                 {content}
               </Link>

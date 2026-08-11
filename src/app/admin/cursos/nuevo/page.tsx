@@ -203,7 +203,7 @@ export default function NuevoCursoPage() {
               type="text"
               required
               placeholder="Ej: Cuidado integral del adulto mayor"
-              className="w-full h-12 px-4 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+              className="w-full h-12 px-4 rounded-lg border border-input bg-background text-base focus-visible:border-[#2B4FA0] transition-colors"
             />
           </div>
 
@@ -217,7 +217,7 @@ export default function NuevoCursoPage() {
               name="description"
               rows={3}
               placeholder="Describe brevemente el contenido y objetivos del curso"
-              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors resize-none"
+              className="w-full px-4 py-3 rounded-lg border border-input bg-background text-base focus-visible:border-[#2B4FA0] transition-colors resize-none"
             />
           </div>
 
@@ -232,7 +232,7 @@ export default function NuevoCursoPage() {
               id="deadline"
               name="deadline"
               type="date"
-              className="w-full h-12 px-4 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+              className="w-full h-12 px-4 rounded-lg border border-input bg-background text-base focus-visible:border-[#2B4FA0] transition-colors"
             />
           </div>
 
@@ -246,7 +246,7 @@ export default function NuevoCursoPage() {
               name="deadline_description"
               type="text"
               placeholder="Ej: Obligatorio antes de auditoría SENAMA"
-              className="w-full h-12 px-4 rounded-lg border border-input bg-background text-base focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors"
+              className="w-full h-12 px-4 rounded-lg border border-input bg-background text-base focus-visible:border-[#2B4FA0] transition-colors"
             />
           </div>
 

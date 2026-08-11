@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Loader2, AlertTriangle } from 'lucide-react'
 import { createSedeAction, toggleSedeAction } from '@/lib/actions/sedes'
 import { Icono, Badge } from '@/components/alumco/ds'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 interface Sede {
   id: string
@@ -21,6 +22,12 @@ export default function SedesClient({ sedes, workersPerSede }: SedesClientProps)
   const [isCreating, startCreateTransition] = useTransition()
   const [togglingId, setTogglingId] = useState<string | null>(null)
   const [confirmSede, setConfirmSede] = useState<Sede | null>(null)
+  // A11Y-12 · el comentario del telón prometía cierre con Escape, pero no había
+  // ningún manejador: el hook lo aporta, junto a la trampa y la devolución.
+  const dialogRef = useAccessibleDialog<HTMLDivElement>(
+    confirmSede !== null,
+    () => setConfirmSede(null)
+  )
 
   function handleCreate(formData: FormData) {
     setError(null)
@@ -73,6 +80,8 @@ export default function SedesClient({ sedes, workersPerSede }: SedesClientProps)
             style={{ position: 'absolute', inset: 0, background: 'rgba(15,31,77,0.4)' }}
           />
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-title"

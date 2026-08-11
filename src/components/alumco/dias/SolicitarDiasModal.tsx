@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SolicitarDiasForm } from './SolicitarDiasForm'
 import { Icono } from '@/components/alumco/ds'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 interface SolicitarDiasModalProps {
   remainingDays: number
@@ -27,12 +28,9 @@ export function SolicitarDiasModal({
   const router = useRouter()
   const [open, setOpen] = useState(false)
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [open])
+  // A11Y-12 · sustituye al manejador suelto de Escape: además atrapa el foco
+  // dentro del diálogo y lo devuelve al botón «Solicitar días» al cerrar.
+  const dialogRef = useAccessibleDialog<HTMLDivElement>(open, () => setOpen(false))
 
   return (
     <>
@@ -42,8 +40,9 @@ export function SolicitarDiasModal({
 
       {open && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Telón decorativo. El cierre por teclado es Escape (useEffect
-              arriba) y el botón «Cerrar»; el clic fuera es sólo para ratón. */}
+          {/* Telón decorativo. El cierre por teclado es Escape (lo aporta
+              useAccessibleDialog) y el botón «Cerrar»; el clic fuera es sólo
+              para ratón. */}
           <div
             aria-hidden="true"
             className="absolute inset-0"
@@ -51,6 +50,8 @@ export function SolicitarDiasModal({
             onClick={() => setOpen(false)}
           />
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label="Solicitar días administrativos"

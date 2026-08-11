@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { completeOnboardingAction } from '@/lib/actions/trabajadores'
 import { Badge } from '@/components/alumco/ds'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 interface WelcomeModalProps {
   fullName: string
@@ -14,6 +15,15 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
   const [isVisible, setIsVisible] = useState(true)
   const [isLeaving, setIsLeaving] = useState(false)
   const [isPending, startTransition] = useTransition()
+
+  // A11Y-12 · octavo modal de la plataforma: bloquea /inicio en el primer
+  // acceso y no declaraba rol, nombre ni gestión de foco.
+  //
+  // El cierre es intencionadamente un no-op: este diálogo no se cancela, se
+  // completa con «Comenzar mi capacitación» —cerrarlo marca el onboarding como
+  // hecho—, así que Escape no debe descartarlo. 2.1.2 no exige Escape, exige
+  // que se pueda salir con teclado, y el botón está dentro de la trampa.
+  const dialogRef = useAccessibleDialog<HTMLDivElement>(isVisible, () => {})
 
   function handleStart() {
     setIsLeaving(true)
@@ -30,7 +40,15 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
   return (
     <div className={`fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isLeaving ? 'opacity-0' : 'opacity-100'}`}>
 
-      <div className={`card max-w-lg w-full overflow-hidden transition-all duration-300 ${isLeaving ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`} style={{ boxShadow: 'var(--sombra-3)' }}>
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-title"
+        className={`card max-w-lg w-full overflow-hidden transition-all duration-300 ${isLeaving ? 'opacity-0 scale-95 translate-y-4' : 'opacity-100 scale-100 translate-y-0'}`}
+        style={{ boxShadow: 'var(--sombra-3)' }}
+      >
 
         {/* Header ámbar con decoración y grano */}
         <div className="relative bg-gradient-to-br from-[#F5A623] to-[#e0961a] px-8 pt-10 pb-16 overflow-hidden film-grain">
@@ -46,10 +64,12 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
             className="h-8 object-contain brightness-0 invert opacity-90 mb-6"
           />
 
-          {/* Saludo */}
-          <h1 className="t-display relative z-10" style={{ fontSize: 32, color: '#fff' }}>
+          {/* Saludo. Es un <h2>, no un <h1>: /inicio ya declara el suyo y dos
+              <h1> en la misma página rompen la jerarquía de encabezados. Da
+              además el nombre accesible del diálogo vía aria-labelledby. */}
+          <h2 id="welcome-title" className="t-display relative z-10" style={{ fontSize: 32, color: '#fff' }}>
             ¡Bienvenido/a a KimünKo,<br />{fullName.split(' ')[0]}!
-          </h1>
+          </h2>
           <p className="text-white/70 text-sm mt-2 relative z-10">
             Tu plataforma de capacitación está lista.
           </p>

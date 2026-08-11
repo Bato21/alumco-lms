@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, AlertCircle, X, CheckCircle2, ChevronDown } from 'lucide-react'
 import { AREAS_TRABAJO } from '@/lib/types/database'
+import { useAccessibleDialog } from '@/hooks/useAccessibleDialog'
 
 function useLockBodyScroll(active: boolean) {
   useEffect(() => {
@@ -32,6 +33,8 @@ export function ApprovalPanel({
   sedes,
 }: ApprovalPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
+  // A11Y-12 · trampa de foco, Escape y devolución del foco al botón que abrió.
+  const dialogRef = useAccessibleDialog<HTMLElement>(isOpen, () => setIsOpen(false))
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [isRejecting, startRejectTransition] = useTransition()
@@ -131,6 +134,8 @@ export function ApprovalPanel({
 
           {/* Panel lateral */}
           <aside
+            ref={dialogRef}
+            tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-label={`Aprobar solicitud de ${fullName}`}
@@ -193,7 +198,7 @@ export function ApprovalPanel({
                     name="sede"
                     required
                     disabled={isPending}
-                    className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
+                    className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus-visible:border-[#2B4FA0] transition-colors disabled:opacity-60"
                   >
                     {sedes.map(s => (
                       <option key={s.id} value={s.id}>{s.nombre}</option>
@@ -241,7 +246,7 @@ export function ApprovalPanel({
                       name="area_trabajo"
                       required
                       disabled={isPending}
-                      className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors disabled:opacity-60"
+                      className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm focus-visible:border-[#2B4FA0] transition-colors disabled:opacity-60"
                     >
                       <option value="">Seleccionar área...</option>
                       {AREAS_TRABAJO.map(area => (
@@ -260,7 +265,7 @@ export function ApprovalPanel({
                           type="button"
                           onClick={() => setDropdownOpen(v => !v)}
                           disabled={isPending}
-                          className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm flex items-center justify-between hover:border-[#2B4FA0] transition-colors disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20"
+                          className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm flex items-center justify-between hover:border-[#2B4FA0] focus-visible:border-[#2B4FA0] transition-colors disabled:opacity-60"
                           aria-expanded={dropdownOpen}
                           aria-haspopup="listbox"
                         >
