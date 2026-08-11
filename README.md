@@ -1,6 +1,6 @@
 # Link de plataforma
 
-https://alumco-lms-nm38.vercel.app/
+https://kimunko.vercel.app/
 
 # Alumco LMS
 

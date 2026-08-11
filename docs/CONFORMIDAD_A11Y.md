@@ -1,7 +1,7 @@
 # Declaración de conformidad de accesibilidad
 
 **Producto evaluado:** Alumco LMS / KimünKo — plataforma de capacitación continua de ONG Alumco
-**URL de producción:** https://alumco-lms-nm38.vercel.app/
+**URL de producción:** https://kimunko.vercel.app/
 **Responsable de la evaluación:** equipo de desarrollo del proyecto
 **Fecha de esta declaración:** 2026-08-11
 **Rama y estado del código evaluado:** `accesibilidad-AA`

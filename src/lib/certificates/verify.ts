@@ -98,6 +98,6 @@ function sedeNombre(sede: string | undefined): string {
 export function verificationUrl(code: string): string {
   const base =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ??
-    'https://alumco-lms-nm38.vercel.app'
+    'https://kimunko.vercel.app'
   return `${base}/certificados/verificar/${code}`
 }

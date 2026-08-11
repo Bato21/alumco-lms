@@ -2,7 +2,7 @@
 
 > Guía de onboarding para el equipo. Todo lo que necesitas para entrar, usar y desarrollar la plataforma en una sesión de trabajo.
 
-**App en producción:** https://alumco-lms-nm38.vercel.app/
+**App en producción:** https://kimunko.vercel.app/
 
 ---
 
@@ -27,7 +27,7 @@ El ciclo completo que cubre:
 
 ### En producción
 
-1. Ir a https://alumco-lms-nm38.vercel.app/ → redirige a `/login`.
+1. Ir a https://kimunko.vercel.app/ → redirige a `/login`.
 2. Si no tienes cuenta: **"Solicitar acceso"** → llenar formulario → queda en estado `pendiente`.
 3. Un admin debe aprobarte en **Admin → Trabajadores → tab Solicitudes** (asigna sede, áreas y rol).
 4. Recién entonces puedes iniciar sesión. Si tu cuenta no está `activo`, el login te rechaza.

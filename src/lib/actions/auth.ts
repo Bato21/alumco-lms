@@ -18,6 +18,16 @@ const LoginSchema = z.object({
     .min(8, 'La contraseña debe tener al menos 8 caracteres'),
 })
 
+const ResetPasswordSchema = z
+  .object({
+    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: 'Las dos contraseñas no coinciden',
+    path: ['confirm'],
+  })
+
 const RegisterSchema = z.object({
   email: z.string().email('Ingresa un correo válido'),
   password: z.string().min(8, 'Mínimo 8 caracteres'),
@@ -194,15 +204,78 @@ export async function forgotPasswordAction(
   }
 
   const supabase = await createClient()
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://alumco-lms.vercel.app'
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://kimunko.vercel.app'
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
-    redirectTo: `${siteUrl}/auth/reset-password`,
+    redirectTo: `${siteUrl}/reset-password`,
   })
 
   // No revelar si el email existe o no
   if (error) {
     console.error('Reset password error:', error)
   }
+
+  return { success: true }
+}
+
+// ── Fijar contraseña nueva desde el enlace del correo ──────
+//
+// Destino de `forgotPasswordAction`. El enlace llega a /reset-password con la
+// credencial de un solo uso en la URL; esta acción la canjea por una sesión,
+// escribe la contraseña y cierra la sesión enseguida.
+export async function resetPasswordAction(
+  _prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = ResetPasswordSchema.safeParse({
+    password: formData.get('password'),
+    confirm: formData.get('confirm'),
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message }
+  }
+
+  const tokenHash = formData.get('token_hash')
+  const code = formData.get('code')
+
+  const supabase = await createClient()
+
+  // Supabase manda uno de dos formatos según la plantilla del correo:
+  // `token_hash` (verifyOtp) funciona en cualquier dispositivo; `code` (PKCE)
+  // exige que el verificador siga en las cookies del MISMO navegador que pidió
+  // el enlace. Se aceptan los dos para no depender de la plantilla.
+  const canje =
+    typeof tokenHash === 'string' && tokenHash.length > 0
+      ? await supabase.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash })
+      : typeof code === 'string' && code.length > 0
+        ? await supabase.auth.exchangeCodeForSession(code)
+        : null
+
+  if (!canje) {
+    return {
+      error: 'El enlace está incompleto. Solicita uno nuevo desde «¿Olvidó su clave?».',
+    }
+  }
+
+  if (canje.error) {
+    return {
+      error:
+        'El enlace no es válido, ya fue usado o expiró. Solicita uno nuevo desde «¿Olvidó su clave?». Si lo abriste en un teléfono distinto al que lo pediste, ábrelo en el mismo.',
+    }
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
+
+  if (error) {
+    if (error.code === 'same_password') {
+      return { error: 'La contraseña nueva debe ser distinta de la anterior.' }
+    }
+    console.error('Reset password update error:', error)
+    return { error: 'No se pudo guardar la contraseña. Intenta nuevamente.' }
+  }
+
+  // Cerrar la sesión que abrió el enlace: el usuario vuelve a entrar con su
+  // contraseña nueva, lo que además le confirma que quedó bien guardada.
+  await supabase.auth.signOut()
 
   return { success: true }
 }

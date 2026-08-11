@@ -45,7 +45,13 @@ export async function updateSession(request: NextRequest) {
   // link tampoco debe ser redirigido a /cursos.
   const isCertVerification = pathname.startsWith('/certificados/verificar/')
 
-  if (!user && !isPublic && !isCertVerification) {
+  // Restablecer contraseña: igual que la verificación de certificados, entra
+  // por ambos lados. Sin sesión, porque quien olvidó su clave no la tiene; y
+  // CON sesión sin rebotar a /cursos, porque alguien que sigue logueado en el
+  // teléfono y abre el enlace del correo también tiene que poder cambiarla.
+  const isResetPassword = pathname === '/reset-password'
+
+  if (!user && !isPublic && !isCertVerification && !isResetPassword) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)

@@ -175,7 +175,7 @@ Agregar a `.env.local` y a Vercel:
 RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL="Alumco LMS <no-reply@ongalumco.cl>"
 CRON_SECRET=<random-32-chars>
-NEXT_PUBLIC_SITE_URL=https://alumco-lms-nm38.vercel.app
+NEXT_PUBLIC_SITE_URL=https://kimunko.vercel.app
 ```
 
 `RESEND_FROM_EMAIL` idealmente con dominio verificado en Resend (`ongalumco.cl`). Mientras se coordina con la ONG, usar `onboarding@resend.dev` (dominio de prueba de Resend).
