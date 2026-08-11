@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useRef, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
 import { loginAction, type ActionResult } from '@/lib/actions/auth'
 import { ForgotPasswordForm } from './ForgotPasswordForm'
 import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
@@ -21,6 +21,17 @@ export function LoginForm() {
   const [capsLockOn, setCapsLockOn] = useState(false)
   const [state, formAction, isPending] = useActionState(loginAction, initialState)
   const formRef = useRef<HTMLFormElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
+
+  // Antes era `autoFocus` en el campo de correo. Se conserva el mismo
+  // comportamiento (foco inicial en el correo) pero de forma explícita, no
+  // declarativa: el foco se mueve DESPUÉS de que el <h1> y el resto de la
+  // página existan, que es lo que evita que un lector de pantalla se salte
+  // el título. Queda pendiente de decisión con la clienta si conviene
+  // retirarlo en móvil, donde abre el teclado y tapa media pantalla.
+  useEffect(() => {
+    emailRef.current?.focus()
+  }, [])
 
   function loginDemo(rol: keyof typeof DEMO) {
     const form = formRef.current
@@ -63,10 +74,10 @@ export function LoginForm() {
         <label htmlFor="email">Correo electrónico</label>
         <input
           id="email"
+          ref={emailRef}
           name="email"
           type="email"
           autoComplete="email"
-          autoFocus
           required
           disabled={isPending}
           placeholder="nombre@alumco.cl"

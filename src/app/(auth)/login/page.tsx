@@ -5,7 +5,7 @@ import { LoginForm } from '@/components/alumco/auth/LoginForm'
 import { Onda } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
-  title: 'Ingresar | Alumco LMS',
+  title: 'Ingresar',
 }
 
 // Gota mascota animada (reacciona al formulario vía :has() en .login-shell)
@@ -95,9 +95,13 @@ export default function LoginPage() {
           </div>
           <div style={{ width: 56, height: 1, background: 'rgba(255,255,255,0.25)', margin: '30px 0' }} />
           <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>◆ Plataforma de capacitación</span>
-          <h1 className="t-display" style={{ fontSize: 42, color: '#fff', marginTop: 16 }}>
+          {/* Era un <h1>. Es un eslogan, no el título de la página, y además
+              vivía en un panel `hidden md:flex`: en móvil desaparecía del árbol
+              de accesibilidad y la página arrancaba en <h2>. El <h1> real es
+              ahora «Ingreso a la plataforma». Ver A11Y-10. */}
+          <p className="t-display" style={{ fontSize: 42, color: '#fff', marginTop: 16 }}>
             Nuestros cuidados son el reflejo de la <span style={{ fontStyle: 'italic', color: 'var(--oliva-clara)' }}>empatía</span>.
-          </h1>
+          </p>
           <p style={{ color: 'rgba(255,255,255,0.7)', marginTop: 18, fontSize: 16, lineHeight: 1.6 }}>
             Capacitación continua para brindar la mejor atención a nuestras personas mayores.
           </p>
@@ -111,7 +115,12 @@ export default function LoginPage() {
       </div>
 
       {/* Formulario */}
-      <div className="crece login-panel-form" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px', background: 'var(--crema)', backgroundImage: 'none' }}>
+      <main
+        id="contenido-principal"
+        tabIndex={-1}
+        className="crece login-panel-form"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 32px', background: 'var(--crema)', backgroundImage: 'none' }}
+      >
         <div className="col entra entra-1" style={{ width: 430, maxWidth: '100%', gap: 0 }}>
           <Link
             href="/"
@@ -138,7 +147,7 @@ export default function LoginPage() {
                 Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · plataforma de capacitación de ONG Alumco
               </p>
             </div>
-            <h2 className="t-display login-titulo" style={{ fontSize: 27, textAlign: 'center' }}>Ingreso a la plataforma</h2>
+            <h1 className="t-display login-titulo" style={{ fontSize: 27, textAlign: 'center' }}>Ingreso a la plataforma</h1>
             <p className="silencio login-sub" style={{ textAlign: 'center', marginTop: 6, marginBottom: 26 }}>
               Ingrese sus credenciales para continuar.
             </p>
@@ -155,7 +164,7 @@ export default function LoginPage() {
             <a href="mailto:soporte@alumco.cl" className="silencio-3">¿Problemas para ingresar? Contactar soporte</a>
           </p>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

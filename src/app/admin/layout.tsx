@@ -56,7 +56,11 @@ export default async function AdminLayout({
       <div className="hidden lg:block h-[73px] shrink-0" aria-hidden="true" />
 
       {/* Contenido */}
-      <main className="relative z-10 flex-1 w-full min-w-0 mx-auto max-w-[1240px] p-4 lg:px-8 lg:py-7">
+      <main
+        id="contenido-principal"
+        tabIndex={-1}
+        className="relative z-10 flex-1 w-full min-w-0 mx-auto max-w-[1240px] p-4 lg:px-8 lg:py-7"
+      >
         {children}
       </main>
       </div>

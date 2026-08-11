@@ -57,17 +57,22 @@ export function EventNotificationModal({ evento, userId }: { evento: EventoResum
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Próximo evento: ${evento.title}`}
       className="fixed inset-0 z-[100] flex items-start justify-center p-4 overflow-y-auto"
-      style={{ background: 'rgba(15,31,77,0.45)', paddingTop: 'max(6vh, 24px)' }}
-      onClick={cerrar}
+      style={{ paddingTop: 'max(6vh, 24px)' }}
     >
+      {/* Telón decorativo; el cierre accesible es el botón «Cerrar». */}
       <div
+        aria-hidden="true"
+        className="fixed inset-0"
+        style={{ background: 'rgba(15,31,77,0.45)' }}
+        onClick={cerrar}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Próximo evento: ${evento.title}`}
         className="card col"
         style={{ gap: 0, width: '100%', maxWidth: 460, maxHeight: '92vh', overflowY: 'auto', background: 'var(--blanco)', position: 'relative' }}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Botón cerrar */}
         <button

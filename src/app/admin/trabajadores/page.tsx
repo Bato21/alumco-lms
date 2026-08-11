@@ -9,7 +9,7 @@ import { TabsTrabajadores } from './TabsTrabajadores'
 import { EncabezadoPagina, Avatar, Icono } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
-  title: 'Gestión de Trabajadores | Alumco LMS',
+  title: 'Gestión de trabajadores',
 }
 
 export const dynamic = 'force-dynamic'

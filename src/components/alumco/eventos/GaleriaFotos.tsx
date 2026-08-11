@@ -181,14 +181,20 @@ export function GaleriaFotos({ eventId, photos, canUpload, isAdmin, currentUserI
       )}
 
       {preview && preview.signedUrl && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Vista de la foto"
-          onClick={(e) => { if (e.target === e.currentTarget) setPreview(null) }}
-        >
-          <div className="col" style={{ gap: 12, maxWidth: '92vw', maxHeight: '92vh', alignItems: 'center' }}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Telón decorativo; el cierre accesible es el botón «Cerrar». */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-black/80"
+            onClick={() => setPreview(null)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Vista de la foto"
+            className="col relative"
+            style={{ gap: 12, maxWidth: '92vw', maxHeight: '92vh', alignItems: 'center' }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preview.signedUrl}

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getMyTicketsAction } from '@/lib/actions/support'
 import { SoporteClient } from './SoporteClient'
 
-export const metadata: Metadata = { title: 'Soporte | Alumco LMS' }
+export const metadata: Metadata = { title: 'Soporte' }
 export const dynamic = 'force-dynamic'
 
 export default async function SoportePage() {

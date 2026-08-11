@@ -8,7 +8,7 @@ import { TicketThread } from '@/components/alumco/support/TicketThread'
 import { TicketStatusBadge } from '@/components/alumco/support/TicketStatusBadge'
 import { SUPPORT_CATEGORY_LABELS } from '@/lib/types/database'
 
-export const metadata: Metadata = { title: 'Ticket de soporte | Alumco LMS' }
+export const metadata: Metadata = { title: 'Ticket de soporte' }
 export const dynamic = 'force-dynamic'
 
 export default async function TicketDetallePage({

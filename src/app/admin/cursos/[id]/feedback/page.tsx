@@ -7,7 +7,7 @@ import { getCourseFeedbackSummaryAction } from '@/lib/actions/feedback'
 import { Icono, Progreso, Vacio } from '@/components/alumco/ds'
 import { Estrellas } from '@/components/alumco/curso/CourseFeedbackForm'
 
-export const metadata: Metadata = { title: 'Valoraciones del curso | Alumco LMS' }
+export const metadata: Metadata = { title: 'Valoraciones del curso' }
 export const dynamic = 'force-dynamic'
 
 export default async function FeedbackCursoPage({

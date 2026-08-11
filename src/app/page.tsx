@@ -9,7 +9,9 @@ import LandingFooter from '@/components/alumco/landing/LandingFooter'
 import { IntroSplash } from '@/components/alumco/shared/IntroSplash'
 
 export const metadata: Metadata = {
-  title: 'ONG Alumco — Cuidado con empatía para personas mayores',
+  // `absolute` porque es la portada pública: no debe llevar el sufijo
+  // « | Alumco LMS » que la plantilla del layout raíz añade al resto.
+  title: { absolute: 'ONG Alumco — Cuidado con empatía para personas mayores' },
   description:
     'ELEAM dedicado a brindar atención integral, de calidad y centrada en la persona para nuestras personas mayores.',
 }
@@ -19,7 +21,7 @@ export default function LandingPage() {
     <div className="landing-page">
       <IntroSplash />
       <LandingNav />
-      <main style={{ background: 'var(--crema)', color: 'var(--tinta)' }}>
+      <main id="contenido-principal" tabIndex={-1} style={{ background: 'var(--crema)', color: 'var(--tinta)' }}>
         <HeroSection />
         <MisionVision />
         <ValoresSection />

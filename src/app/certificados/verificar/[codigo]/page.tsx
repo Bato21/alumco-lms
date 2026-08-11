@@ -13,7 +13,9 @@ import {
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Verificar certificado | Alumco · KimünKo',
+  // `absolute`: es una página pública con su propia marca; la plantilla del
+  // layout raíz añadiría un segundo sufijo.
+  title: { absolute: 'Verificar certificado | Alumco · KimünKo' },
   description:
     'Comprueba la autenticidad de un certificado de capacitación emitido por ONG Alumco.',
   // Los folios no deben terminar indexados: la página es para quien tiene el
@@ -41,7 +43,7 @@ export default async function VerificarCertificadoPage({ params }: Props) {
     : { status: 'limite_excedido', retryAfter: limite.retryAfter }
 
   return (
-    <main style={{ minHeight: '100dvh', background: 'var(--crema, #FAF7F0)', padding: '32px 16px 56px' }}>
+    <main id="contenido-principal" tabIndex={-1} style={{ minHeight: '100dvh', background: 'var(--crema, #FAF7F0)', padding: '32px 16px 56px' }}>
       <div className="col" style={{ maxWidth: 560, margin: '0 auto', gap: 20 }}>
 
         <div className="fila" style={{ justifyContent: 'center', paddingTop: 8 }}>

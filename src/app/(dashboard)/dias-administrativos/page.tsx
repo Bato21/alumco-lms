@@ -4,7 +4,7 @@ import { getCachedUser } from '@/lib/supabase/server'
 import { getMyAdminDaysSummary } from '@/lib/actions/admin-days'
 import { DiasAdminClient } from './DiasAdminClient'
 
-export const metadata: Metadata = { title: 'Días administrativos | Alumco LMS' }
+export const metadata: Metadata = { title: 'Días administrativos' }
 export const dynamic = 'force-dynamic'
 
 export default async function DiasAdministrativosPage() {

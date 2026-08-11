@@ -17,8 +17,8 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { id } = await params
   const result = await getWorkerDetail(id)
-  if ('error' in result) return { title: 'Trabajador | Alumco LMS' }
-  return { title: `${result.worker.full_name} | Alumco LMS` }
+  if ('error' in result) return { title: 'Detalle de trabajador' }
+  return { title: result.worker.full_name }
 }
 
 function formatDate(dateStr: string | null | undefined): string {

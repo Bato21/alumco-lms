@@ -48,7 +48,8 @@ export default async function DashboardLayout({
         alerts={workerAlerts}
       />
       <main
-        id="main-content"
+        id="contenido-principal"
+        tabIndex={-1}
         className="relative z-10 flex-1 w-full mx-auto max-w-[1080px] px-5 pt-7 pb-[calc(7rem+env(safe-area-inset-bottom,0px))] lg:pb-16"
       >
         {children}

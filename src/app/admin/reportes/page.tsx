@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { ReportesClient } from './ReportesClient'
 
-export const metadata: Metadata = { title: 'Reportes | Alumco LMS' }
+export const metadata: Metadata = { title: 'Reportes' }
 export const dynamic = 'force-dynamic'
 
 export default async function ReportesPage() {

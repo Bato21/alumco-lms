@@ -18,7 +18,7 @@ import {
   type EventPhoto,
 } from '@/lib/types/database'
 
-export const metadata: Metadata = { title: 'Evento | Alumco LMS' }
+export const metadata: Metadata = { title: 'Evento' }
 export const dynamic = 'force-dynamic'
 
 export default async function EventoDetallePage(props: { params: Promise<{ id: string }> }) {

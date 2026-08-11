@@ -5,7 +5,7 @@ import { filterCoursesByWorkerAreas } from '@/lib/utils'
 import { Vacio } from '@/components/alumco/ds'
 import { CursoCardTrab, type EstadoCurso } from '@/components/alumco/curso/CursoCardTrab'
 
-export const metadata: Metadata = { title: 'Mis Cursos | Alumco LMS' }
+export const metadata: Metadata = { title: 'Mis cursos' }
 
 interface CourseWithProgress {
   id: string

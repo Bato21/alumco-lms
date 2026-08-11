@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { EncabezadoPagina, Badge, Vacio } from '@/components/alumco/ds'
 import { EVENT_TYPE_LABELS, EVENT_TYPE_EMOJI, type EventRecord } from '@/lib/types/database'
 
-export const metadata: Metadata = { title: 'Eventos | Alumco LMS' }
+export const metadata: Metadata = { title: 'Eventos' }
 export const dynamic = 'force-dynamic'
 
 function diasRestantesTexto(eventDate: string): string {

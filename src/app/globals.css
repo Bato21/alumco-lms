@@ -403,6 +403,41 @@
     border-radius: 4px;
   }
 
+  /* ── 2.4.1 Evitar bloques: enlace de salto ──────────────────────────
+     Primer elemento focusable del <body>. Fuera de la vista hasta recibir
+     foco por teclado; entonces baja a la esquina superior izquierda por
+     encima de cualquier barra fija (el banner de demo usa z-index 40 y la
+     topbar 30). No usa `display:none` ni `visibility:hidden` porque eso lo
+     sacaría del orden de tabulación, que es justo lo que se necesita. */
+  .skip-link {
+    position: fixed;
+    left: 8px;
+    top: -120px;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 48px;
+    padding: 12px 20px;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-weight: 700;
+    font-size: 1rem;
+    text-decoration: none;
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgb(0 0 0 / 0.25);
+    transition: top 0.15s ease;
+  }
+  .skip-link:focus-visible {
+    top: 8px;
+  }
+  /* El <main> recibe foco programático vía tabIndex={-1} al activar el
+     enlace. `:focus-visible` no se dispara en ese caso, pero algunos
+     navegadores pintan `:focus`: se suprime para no dibujar un contorno
+     alrededor de toda la página. */
+  main:focus {
+    outline: none;
+  }
+
   /* ── 1.4.12 Espaciado del texto ─────────────────────────────────────
      Con interlineado 1.5 / letter-spacing .12em / word-spacing .16em estas
      tres reglas de didasko recortaban texto o lo desbordaban. Se permite el

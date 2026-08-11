@@ -9,7 +9,7 @@ import { getMyAdminDaysSummary } from '@/lib/actions/admin-days'
 import { getUserPreferences } from '@/lib/actions/preferences'
 import { Icono } from '@/components/alumco/ds'
 
-export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
+export const metadata: Metadata = { title: 'Mi perfil' }
 
 export default async function PerfilPage() {
   const supabase = await createClient()

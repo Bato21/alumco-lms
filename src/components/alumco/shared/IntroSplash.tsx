@@ -39,7 +39,6 @@ export function IntroSplash() {
 
   return (
     <div
-      onClick={cerrar}
       style={{
         position: 'fixed', inset: 0, zIndex: 9999, background: '#ffffff',
         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
@@ -47,6 +46,26 @@ export function IntroSplash() {
         transition: 'opacity 0.7s ease, transform 0.7s ease',
       }}
     >
+      {/* 2.1.1 — antes el único modo de saltar la intro era hacer clic en
+          cualquier parte de la pantalla: con teclado no había salida y la
+          animación tapaba la página 3,7 s (incluido el enlace de salto).
+          Ahora el clic vive en un telón decorativo y existe un botón real,
+          visible al enfocarlo, que hace exactamente lo mismo. */}
+      <button
+        type="button"
+        onClick={cerrar}
+        className="skip-link"
+        style={{ position: 'absolute', zIndex: 2 }}
+      >
+        Saltar animación de bienvenida
+      </button>
+
+      <div
+        aria-hidden="true"
+        onClick={cerrar}
+        style={{ position: 'absolute', inset: 0 }}
+      />
+
       <div aria-hidden="true" style={{
         position: 'absolute', width: 'min(118vw, 1040px)', height: 'min(118vw, 1040px)', borderRadius: '50%',
         background: 'radial-gradient(circle, rgba(43,79,160,0.10) 0%, rgba(245,166,35,0.05) 45%, transparent 70%)',

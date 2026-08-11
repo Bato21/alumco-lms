@@ -5,7 +5,7 @@ import { ActivarNotificaciones } from '@/components/alumco/shared/ActivarNotific
 import { AccessibilityPanel } from '@/components/alumco/shared/AccessibilityPanel'
 import { getUserPreferences } from '@/lib/actions/preferences'
 
-export const metadata: Metadata = { title: 'Mi perfil | Alumco LMS' }
+export const metadata: Metadata = { title: 'Mi perfil (administración)' }
 
 export default async function AdminPerfilPage() {
   const supabase = await createClient()

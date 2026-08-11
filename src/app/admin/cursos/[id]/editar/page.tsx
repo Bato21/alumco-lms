@@ -6,7 +6,7 @@ import { CourseBuilder } from '@/components/alumco/admin/CourseBuilder/CourseBui
 import { type ModuleBlock } from '@/components/alumco/admin/CourseBuilder/CourseBuilder'
 import { type Question } from '@/lib/types/database'
 
-export const metadata: Metadata = { title: 'Editar curso | Alumco LMS' }
+export const metadata: Metadata = { title: 'Editar curso' }
 
 interface EditarCursoPageProps {
   params: Promise<{ id: string }>

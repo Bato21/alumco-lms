@@ -19,7 +19,7 @@ import { CertificatesMonthlyChart } from '@/components/alumco/dashboard/Certific
 import { ComplianceByAreaChart } from '@/components/alumco/dashboard/ComplianceByAreaChart'
 
 export const metadata: Metadata = {
-  title: 'Dashboard Administrador | Alumco LMS',
+  title: 'Panel de administración',
 }
 
 export const dynamic = 'force-dynamic'

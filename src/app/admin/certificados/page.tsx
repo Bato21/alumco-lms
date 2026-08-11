@@ -4,7 +4,7 @@ import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import CertificadosClient from './CertificadosClient'
 import { EncabezadoPagina, Vacio } from '@/components/alumco/ds'
 
-export const metadata: Metadata = { title: 'Certificados | Alumco LMS' }
+export const metadata: Metadata = { title: 'Gestión de certificados' }
 export const dynamic = 'force-dynamic'
 
 export default async function AdminCertificadosPage() {

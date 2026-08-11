@@ -13,6 +13,7 @@ export default function LandingNav() {
       }}
     >
       <nav
+        aria-label="Navegación principal"
         style={{
           width: '100%',
           padding: '18px 40px',

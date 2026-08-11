@@ -111,10 +111,11 @@ export default function QuestionForm({
 
       {/* Enunciado */}
       <div className="space-y-1.5">
-        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <label htmlFor="pregunta-enunciado" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           Enunciado
         </label>
         <textarea
+          id="pregunta-enunciado"
           rows={3}
           value={questionText}
           onChange={e => setQuestionText(e.target.value)}
@@ -124,12 +125,15 @@ export default function QuestionForm({
         />
       </div>
 
-      {/* Alternativas */}
-      <div className="space-y-2">
+      {/* Alternativas.
+          El rótulo nombra un CONJUNTO de campos, no un control suelto: como
+          <label> quedaba huérfano (sin `for`) y no lo anunciaba nadie. Ahora
+          es el nombre accesible de un grupo. */}
+      <div className="space-y-2" role="group" aria-labelledby="alternativas-rotulo">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          <span id="alternativas-rotulo" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Alternativas — marca la correcta
-          </label>
+          </span>
           <span className="text-xs text-muted-foreground">
             {options.length}/5
           </span>
@@ -161,6 +165,9 @@ export default function QuestionForm({
                 value={option.text}
                 onChange={e => handleOptionChange(option.id, e.target.value)}
                 disabled={isSubmitting}
+                // 3.3.2: el placeholder desaparece al escribir y no sirve como
+                // única etiqueta.
+                aria-label={`Texto de la alternativa ${option.id.toUpperCase()}`}
                 placeholder={`Alternativa ${option.id.toUpperCase()}`}
                 className={`flex-1 min-w-0 h-9 px-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20 focus:border-[#2B4FA0] transition-colors ${
                   correctOption === option.id

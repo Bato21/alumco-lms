@@ -4,7 +4,7 @@ import SedesClient from './SedesClient'
 import { EncabezadoPagina } from '@/components/alumco/ds'
 
 export const metadata: Metadata = {
-  title: 'Gestión de Sedes | Alumco LMS',
+  title: 'Gestión de sedes',
 }
 
 export const dynamic = 'force-dynamic'

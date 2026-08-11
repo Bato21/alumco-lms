@@ -36,8 +36,8 @@ export async function generateMetadata({ params }: ModulePageProps): Promise<Met
 
   return {
     title: module?.title
-      ? `${module.title} | ${course?.title || 'Curso'} | Alumco LMS`
-      : 'Módulo | Alumco LMS',
+      ? `${module.title} | ${course?.title || 'Curso'}`
+      : 'Módulo',
   }
 }
 

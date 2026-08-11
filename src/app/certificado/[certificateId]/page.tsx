@@ -4,7 +4,7 @@ import { createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { DownloadCertificateButton } from '@/components/alumco/certificado/DownloadCertificateButton'
 
-export const metadata: Metadata = { title: 'Certificado | Alumco LMS' }
+export const metadata: Metadata = { title: 'Certificado' }
 
 interface CertificadoPageProps {
   params: Promise<{ certificateId: string }>
@@ -68,7 +68,7 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
   }).format(new Date(certificate.issued_at))
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] py-8 md:py-12 px-4">
+    <main id="contenido-principal" tabIndex={-1} className="min-h-screen bg-[#F8F9FA] py-8 md:py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-5">
 
         {/* Navegación */}
@@ -200,6 +200,6 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
           </div>
         </div>
       </div>
-    </div>
+    </main>
   )
 }

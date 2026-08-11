@@ -9,7 +9,12 @@ export const metadata: Metadata = {
 
 export default function RegistroPage() {
   return (
-    <main className="flex flex-col items-center justify-center px-4 py-12" style={{ minHeight: '100vh' }}>
+    <main
+      id="contenido-principal"
+      tabIndex={-1}
+      className="flex flex-col items-center justify-center px-4 py-12"
+      style={{ minHeight: '100vh' }}
+    >
       <div className="w-full" style={{ maxWidth: 520 }}>
         <div className="col" style={{ alignItems: 'center', gap: 6, marginBottom: 28, textAlign: 'center' }}>
           <MarcaAlumco />

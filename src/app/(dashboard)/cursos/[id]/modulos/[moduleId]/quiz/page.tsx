@@ -34,8 +34,8 @@ export async function generateMetadata({ params }: QuizPageProps): Promise<Metad
 
   return {
     title: module?.title
-      ? `${module.title} | ${course?.title || 'Curso'} | Alumco LMS`
-      : 'Evaluación | Alumco LMS',
+      ? `${module.title} | ${course?.title || 'Curso'}`
+      : 'Evaluación',
   }
 }
 

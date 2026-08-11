@@ -62,16 +62,22 @@ export default function SedesClient({ sedes, workersPerSede }: SedesClientProps)
       {/* Modal de confirmación de desactivación */}
       {confirmSede && (
         <div
-          onClick={() => setConfirmSede(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(15,31,77,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 20 }}
+          style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 60, padding: 20 }}
         >
+          {/* Telón: sólo decorativo. Cerrar al hacer clic fuera es una
+              comodidad de ratón; con teclado se cierra con Escape y con el
+              botón «Cancelar», que sí están en el orden de tabulación. */}
+          <div
+            aria-hidden="true"
+            onClick={() => setConfirmSede(null)}
+            style={{ position: 'absolute', inset: 0, background: 'rgba(15,31,77,0.4)' }}
+          />
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="confirm-title"
             className="card entra"
-            onClick={(e) => e.stopPropagation()}
-            style={{ width: 420, maxWidth: '100%', padding: 28, boxShadow: 'var(--sombra-3)' }}
+            style={{ position: 'relative', width: 420, maxWidth: '100%', padding: 28, boxShadow: 'var(--sombra-3)' }}
           >
             <div className="fila" style={{ gap: 12, alignItems: 'flex-start' }}>
               <span style={{ width: 40, height: 40, borderRadius: 'var(--radio-m)', flex: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--peligro-bg)', color: 'var(--peligro)' }}>

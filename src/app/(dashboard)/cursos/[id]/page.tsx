@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: CourseDetailPageProps): Promi
     .single() as { data: { title: string } | null }
 
   return {
-    title: course?.title ? `${course.title} | Alumco LMS` : 'Curso | Alumco LMS',
+    title: course?.title ?? 'Curso',
   }
 }
 

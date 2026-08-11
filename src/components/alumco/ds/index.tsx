@@ -129,15 +129,25 @@ export function BadgeEstado({ estado }: { estado: string }) {
   return <Badge tono={tono}>{texto}</Badge>
 }
 
-export function Progreso({ pct, azul = false, alto = 8 }: { pct: number; azul?: boolean; alto?: number }) {
+/**
+ * Barra de progreso.
+ *
+ * `etiqueta` es opcional y sólo añade contexto: sin ella el rol
+ * `progressbar` quedaba sin nombre accesible y un lector de pantalla
+ * anunciaba «55 %» sin decir de qué (A11Y-17, criterios 1.3.1 y 4.1.2).
+ * Pásala siempre que en la pantalla haya más de una barra.
+ */
+export function Progreso({ pct, azul = false, alto = 8, etiqueta }: { pct: number; azul?: boolean; alto?: number; etiqueta?: string }) {
   return (
     <div
       className={'progreso' + (azul ? ' progreso-azul' : '')}
       style={{ height: alto }}
       role="progressbar"
+      aria-label={etiqueta ?? 'Progreso'}
       aria-valuenow={pct}
       aria-valuemin={0}
       aria-valuemax={100}
+      aria-valuetext={`${pct}% completado`}
     >
       <div style={{ width: pct + '%' }}></div>
     </div>

@@ -85,12 +85,19 @@ export function CourseFeedbackForm({
         <legend style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>
           ¿Qué te pareció este curso?
         </legend>
+        {/* La previsualización al pasar el cursor es decorativa: la
+            información real (qué estrella está elegida) la porta el radio
+            marcado y su texto sr-only. Por eso los contenedores no llevan rol
+            ni tabindex: el control accesible es el <input type="radio">, que
+            además replica la previsualización al recibir el foco. */}
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
         <div
           className="fila"
           style={{ gap: 4 }}
           onMouseLeave={() => setHover(0)}
         >
           {[1, 2, 3, 4, 5].map((n) => (
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
             <label
               key={n}
               onMouseEnter={() => setHover(n)}
@@ -109,6 +116,10 @@ export function CourseFeedbackForm({
                 checked={rating === n}
                 disabled={pendiente}
                 onChange={() => setRating(n)}
+                // Paridad teclado/ratón: al tabular por las estrellas se ve
+                // la misma previsualización que al pasar el cursor.
+                onFocus={() => setHover(n)}
+                onBlur={() => setHover(0)}
                 className="sr-only"
               />
               <span aria-hidden="true"><Icono n="estrella" s={30} sw={1.4} /></span>

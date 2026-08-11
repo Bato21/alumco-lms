@@ -5,7 +5,7 @@ import { getViewerIsDemo } from '@/lib/auth/demoScope'
 import { EncabezadoPagina, Badge, Vacio, Icono } from '@/components/alumco/ds'
 import { EVENT_TYPE_LABELS, EVENT_TYPE_EMOJI, type EventRecord } from '@/lib/types/database'
 
-export const metadata: Metadata = { title: 'Eventos | Alumco LMS' }
+export const metadata: Metadata = { title: 'Gestión de eventos' }
 export const dynamic = 'force-dynamic'
 
 const ESTADO_TONO: Record<string, 'neutro' | 'ok' | 'peligro' | 'aviso' | 'info'> = {

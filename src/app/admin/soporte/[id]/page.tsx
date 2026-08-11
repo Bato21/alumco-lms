@@ -9,7 +9,7 @@ import { TicketAdminControls } from '@/components/alumco/support/TicketAdminCont
 import { TicketStatusBadge } from '@/components/alumco/support/TicketStatusBadge'
 import { SUPPORT_CATEGORY_LABELS } from '@/lib/types/database'
 
-export const metadata: Metadata = { title: 'Ticket de soporte | Alumco LMS' }
+export const metadata: Metadata = { title: 'Ticket de soporte (administración)' }
 export const dynamic = 'force-dynamic'
 
 export default async function AdminTicketDetallePage({

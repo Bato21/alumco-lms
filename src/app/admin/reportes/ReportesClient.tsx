@@ -195,6 +195,13 @@ export function ReportesClient({ workers, courses }: ReportesClientProps) {
               const isExpanded = expandedWorker === worker.user_id
               return (
                 <div key={worker.user_id} style={{ borderTop: '1px solid var(--borde-suave)' }}>
+                  {/* El control accesible del plegado es el <button> del
+                      chevron (abajo): tiene foco, aria-expanded y
+                      aria-controls. El clic sobre la fila entera se conserva
+                      como atajo de ratón y por eso no necesita rol ni tabindex
+                      propios — duplicarlo crearía una parada de tabulación
+                      redundante que envuelve a otros controles. */}
+                  {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
                   <div
                     className="fila"
                     style={{ gap: 16, padding: '14px 22px', cursor: 'pointer', flexWrap: 'wrap' }}
@@ -221,15 +228,29 @@ export function ReportesClient({ workers, courses }: ReportesClientProps) {
                         <Progreso pct={worker.progressPct} azul={worker.progressPct >= 50} alto={7} />
                       </div>
                       {worker.pendingCourses.length > 0 && (
-                        <button className="btn btn-ghost btn-icon btn-sm" aria-label={isExpanded ? 'Colapsar' : 'Ver pendientes'}>
-                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-icon btn-sm"
+                          aria-label={`${isExpanded ? 'Ocultar' : 'Ver'} cursos pendientes de ${worker.full_name}`}
+                          aria-expanded={isExpanded}
+                          aria-controls={`pendientes-${worker.user_id}`}
+                          onClick={(e) => {
+                            // Sin esto el clic burbujea a la fila y el
+                            // plegado se dispara dos veces (queda igual).
+                            e.stopPropagation()
+                            setExpandedWorker(isExpanded ? null : worker.user_id)
+                          }}
+                        >
+                          {isExpanded
+                            ? <ChevronUp className="h-4 w-4" aria-hidden="true" />
+                            : <ChevronDown className="h-4 w-4" aria-hidden="true" />}
                         </button>
                       )}
                     </div>
                   </div>
 
                   {isExpanded && worker.pendingCourses.length > 0 && (
-                    <div style={{ padding: '0 22px 16px', background: 'var(--crema)' }}>
+                    <div id={`pendientes-${worker.user_id}`} style={{ padding: '0 22px 16px', background: 'var(--crema)' }}>
                       <p className="texto-s silencio-3" style={{ textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, padding: '12px 0 8px' }}>
                         Cursos pendientes
                       </p>

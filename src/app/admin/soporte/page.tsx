@@ -13,7 +13,7 @@ import {
   type SupportStatus,
 } from '@/lib/types/database'
 
-export const metadata: Metadata = { title: 'Soporte | Alumco LMS' }
+export const metadata: Metadata = { title: 'Gestión de soporte' }
 export const dynamic = 'force-dynamic'
 
 const ESTADOS = Object.keys(SUPPORT_STATUS_LABELS) as SupportStatus[]

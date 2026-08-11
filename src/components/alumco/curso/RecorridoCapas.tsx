@@ -22,7 +22,9 @@ export function RecorridoCapas({ estaciones }: RecorridoCapasProps) {
   }
 
   return (
-    <div className="recorrido-capas" role="list" aria-label="Tu recorrido de cursos">
+    // `role="list"` explícito: con `list-style: none` Safari/VoiceOver deja
+    // de anunciar la lista (WebKit #170179).
+    <ul className="recorrido-capas" role="list" aria-label="Tu recorrido de cursos">
       {estaciones.map((e, i) => {
         const hecho = e.estado === 'completado'
         const actual = i === indiceActual && !hecho
@@ -36,7 +38,11 @@ export function RecorridoCapas({ estaciones }: RecorridoCapasProps) {
         const sub = `Curso ${i + 1}`
 
         return (
-          <Link href={e.href} className="recorrido-col" role="listitem" key={e.id}>
+          // Antes el `role="listitem"` iba sobre el propio <Link> y ANULABA
+          // su rol de enlace: el lector anunciaba «elemento de lista», nunca
+          // «enlace», y la persona no sabía que se podía activar (A11Y-11).
+          <li className="recorrido-item" key={e.id}>
+          <Link href={e.href} className="recorrido-col">
             <div className="recorrido-linea">
               <span className="recorrido-conector" style={{ background: lineaIzq }} />
               <span
@@ -59,8 +65,9 @@ export function RecorridoCapas({ estaciones }: RecorridoCapasProps) {
               <div className="recorrido-sub" style={{ color: subColor }}>{sub}</div>
             </div>
           </Link>
+          </li>
         )
       })}
-    </div>
+    </ul>
   )
 }

@@ -7,7 +7,7 @@ import { CourseBannerImage } from '@/components/alumco/CourseBannerImage'
 import { DuplicateCourseButton } from '@/components/alumco/admin/DuplicateCourseButton'
 
 export const metadata: Metadata = {
-  title: 'Gestión de Cursos | Alumco LMS',
+  title: 'Gestión de cursos',
 }
 
 export default async function AdminCursosPage({

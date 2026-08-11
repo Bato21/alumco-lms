@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: 'Sin conexión' }
 // que se cachea, porque el resto depende de auth y RLS.
 export default function OfflinePage() {
   return (
-    <div className="paleta-azul min-h-screen flex items-center justify-center px-6">
+    <main id="contenido-principal" tabIndex={-1} className="paleta-azul min-h-screen flex items-center justify-center px-6">
       <div className="col" style={{ gap: 18, maxWidth: 420, textAlign: 'center', alignItems: 'center' }}>
         <Gota s={44} />
 
@@ -23,6 +23,6 @@ export default function OfflinePage() {
           Reintentar
         </a>
       </div>
-    </div>
+    </main>
   )
 }

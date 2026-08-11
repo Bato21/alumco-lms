@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getAdminDayRequests, getAdminDaysConfig } from '@/lib/actions/admin-days'
 import { DiasAdminAdminClient } from './DiasAdminAdminClient'
 
-export const metadata: Metadata = { title: 'Días administrativos | Admin Alumco' }
+export const metadata: Metadata = { title: 'Gestión de días administrativos' }
 export const dynamic = 'force-dynamic'
 
 export default async function AdminDiasAdministrativosPage() {

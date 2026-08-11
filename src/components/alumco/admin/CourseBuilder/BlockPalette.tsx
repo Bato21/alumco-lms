@@ -372,11 +372,15 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
             {/* Toggle obligatorio — no aplica a la evaluación, que siempre lo es */}
             {selectedType !== 'quiz' && (
               <div className="flex items-center justify-between py-2">
-                <span className="text-sm font-medium text-[#1A1A2E]">
+                {/* El texto visible ES la etiqueta del interruptor: antes el
+                    <label> envolvía sólo el input sr-only y quedaba sin
+                    nombre accesible (1.3.1 / 4.1.2). */}
+                <label htmlFor="bloque-obligatorio" className="text-sm font-medium text-[#1A1A2E] cursor-pointer">
                   Obligatorio
-                </span>
-                <label className="relative inline-flex items-center cursor-pointer">
+                </label>
+                <span className="relative inline-flex items-center cursor-pointer">
                   <input
+                    id="bloque-obligatorio"
                     type="checkbox"
                     name="is_required"
                     value="true"
@@ -384,8 +388,8 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
                     disabled={isPending}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-muted peer-checked:bg-[#2B4FA0] rounded-full transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"/>
-                </label>
+                  <span aria-hidden="true" className="block w-9 h-5 bg-muted peer-checked:bg-[#2B4FA0] rounded-full transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"/>
+                </span>
               </div>
             )}
 

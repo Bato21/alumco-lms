@@ -86,6 +86,12 @@ export default async function RootLayout({
         }
         className={`${geist.variable} ${fraunces.variable} ${archivo.variable} ${playfair.variable} font-sans antialiased`}
       >
+        {/* 2.4.1 — primer elemento focusable del documento. Cada layout de
+            grupo (y cada página fuera de grupo) expone
+            <main id="contenido-principal" tabIndex={-1}> como destino. */}
+        <a href="#contenido-principal" className="skip-link">
+          Saltar al contenido principal
+        </a>
         {children}
         <ServiceWorkerRegistrar />
 

@@ -13,7 +13,7 @@ import { Anillo, Onda, Icono } from '@/components/alumco/ds'
 import { type EstacionCurso, type EstadoCurso } from '@/components/alumco/curso/CauceCursos'
 import { RecorridoCapas } from '@/components/alumco/curso/RecorridoCapas'
 
-export const metadata: Metadata = { title: 'Inicio | Alumco LMS' }
+export const metadata: Metadata = { title: 'Inicio' }
 
 export default async function InicioPage() {
   const supabase = await createClient()

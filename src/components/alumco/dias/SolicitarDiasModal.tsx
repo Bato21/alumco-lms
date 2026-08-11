@@ -41,18 +41,21 @@ export function SolicitarDiasModal({
       </button>
 
       {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Solicitar días administrativos"
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-          style={{ background: 'rgba(15,31,77,0.45)' }}
-          onClick={() => setOpen(false)}
-        >
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Telón decorativo. El cierre por teclado es Escape (useEffect
+              arriba) y el botón «Cerrar»; el clic fuera es sólo para ratón. */}
           <div
-            className="card card-pad col"
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{ background: 'rgba(15,31,77,0.45)' }}
+            onClick={() => setOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Solicitar días administrativos"
+            className="card card-pad col relative"
             style={{ gap: 16, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', background: 'var(--blanco)' }}
-            onClick={e => e.stopPropagation()}
           >
             <div className="fila" style={{ justifyContent: 'space-between' }}>
               <h2 style={{ fontSize: 18 }}>Solicitar días administrativos</h2>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { setAnnualTargetAction } from '@/lib/actions/analytics'
 import { Icono } from '@/components/alumco/ds'
@@ -13,6 +13,13 @@ export function AnnualTargetForm({ target }: { target: number }) {
   const [abierto, setAbierto] = useState(false)
   const [valor, setValor] = useState(String(target))
   const [pendiente, startTransition] = useTransition()
+  const campoRef = useRef<HTMLInputElement>(null)
+
+  // Antes era `autoFocus`. Mismo comportamiento; explícito como gestión de
+  // foco al abrir el editor inline (2.4.3).
+  useEffect(() => {
+    if (abierto) campoRef.current?.focus()
+  }, [abierto])
 
   function guardar() {
     const n = Number(valor)
@@ -50,11 +57,11 @@ export function AnnualTargetForm({ target }: { target: number }) {
       </label>
       <input
         id="objetivo-anual"
+        ref={campoRef}
         type="number"
         min={1}
         max={100}
         value={valor}
-        autoFocus
         disabled={pendiente}
         onChange={(e) => setValor(e.target.value)}
         onKeyDown={(e) => {

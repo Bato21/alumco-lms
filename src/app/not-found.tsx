@@ -3,7 +3,7 @@ import { Gota } from '@/components/alumco/ds'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center px-4">
+    <main id="contenido-principal" tabIndex={-1} className="min-h-screen bg-[#F8F9FA] flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center space-y-6">
 
         {/* Marca. Antes era un <img> a ongalumco.cl: dependía de un host
@@ -66,6 +66,6 @@ export default function NotFound() {
           KimünKo · ONG Alumco
         </p>
       </div>
-    </div>
+    </main>
   )
 }

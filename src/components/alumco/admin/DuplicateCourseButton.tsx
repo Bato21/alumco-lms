@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { duplicateCourseAction } from '@/lib/actions/courses'
@@ -24,6 +24,14 @@ export function DuplicateCourseButton({
   const [abierto, setAbierto] = useState(false)
   const [titulo, setTitulo] = useState('')
   const [pendiente, startTransition] = useTransition()
+  const campoRef = useRef<HTMLInputElement>(null)
+
+  // Antes era `autoFocus`. El comportamiento es el mismo, pero enfocar desde
+  // un efecto deja explícito que se trata de gestión de foco al abrir un
+  // panel (2.4.3), no de un autofoco al cargar la página.
+  useEffect(() => {
+    if (abierto) campoRef.current?.focus()
+  }, [abierto])
 
   function abrir() {
     setTitulo(`${courseTitle} (copia)`)
@@ -69,9 +77,9 @@ export function DuplicateCourseButton({
       </label>
       <input
         id={`dup-${courseId}`}
+        ref={campoRef}
         type="text"
         value={titulo}
-        autoFocus
         maxLength={200}
         disabled={pendiente}
         onChange={(e) => setTitulo(e.target.value)}

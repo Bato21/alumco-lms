@@ -4,7 +4,7 @@ import { WizardEvento } from '@/components/alumco/eventos/WizardEvento'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getViewerIsDemo, SEDE_DEMO } from '@/lib/auth/demoScope'
 
-export const metadata: Metadata = { title: 'Nuevo evento | Alumco LMS' }
+export const metadata: Metadata = { title: 'Nuevo evento' }
 export const dynamic = 'force-dynamic'
 
 export default async function NuevoEventoPage() {

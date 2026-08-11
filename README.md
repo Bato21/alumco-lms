@@ -33,7 +33,7 @@ La plataforma cubre el ciclo completo de capacitación interna:
 | Auth | **Supabase Auth** (`@supabase/ssr`) | Cookies SSR + middleware Next.js. |
 | Storage | **Supabase Storage** | PDFs de cursos, firmas digitales (`firmas/`). |
 | Estilos | **Tailwind CSS v4** | Paleta corporativa Alumco (`#2B4FA0`, `#F5A623`). |
-| UI base | **shadcn/ui** + **Radix UI** | Componentes accesibles WCAG AA. |
+| UI base | **shadcn/ui** + **Radix UI** | Primitivos con buena base de accesibilidad; la conformidad de la app se mide aparte (ver más abajo). |
 | Iconos | **Lucide React** | — |
 | Forms | **React Hook Form** + **Zod** | Validación cliente + servidor. |
 | Drag & Drop | **@dnd-kit/core** + sortable | Para el constructor de cursos. |
@@ -313,7 +313,9 @@ Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin deb
 | `npm run dev` | Inicia la app en modo desarrollo con hot-reload. |
 | `npm run build` | Compila la aplicación para producción. |
 | `npm run start` | Sirve el build de producción (requiere `build` previo). |
-| `npm run lint` | Ejecuta ESLint sobre todo el código. |
+| `npm run lint` | Ejecuta ESLint sobre todo el código, incluido `jsx-a11y` en modo estricto. |
+| `npm test` | Vitest: lógica de autorización, saneado y verificación de folios. |
+| `npm run typecheck` | `tsc --noEmit`. |
 
 ---
 
@@ -327,9 +329,34 @@ Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin deb
   - Background `#F5F5F5`
   - Dark text `#1A1A2E`
 - **Logo oficial:** `https://ongalumco.cl/wp-content/uploads/2023/11/logo-alumco-completoccc-300x102.png`
-- **Tipografía base:** 18px (priorizando legibilidad para trabajadores de todas las edades).
-- **Accesibilidad:** WCAG AA, targets táctiles ≥ 48×48px, atributos `aria-*` en todos los elementos interactivos.
+- **Tipografía base:** `html { font-size: 112.5% }` ≈ 18px con la configuración por defecto del navegador, y escala si la persona subió el tamaño de fuente del sistema.
 - **Sedes (nomenclatura oficial):** `sede_1` → "Sede Hualpén", `sede_2` → "Sede Coyhaique".
+
+### Accesibilidad — estado verificado
+
+| | |
+|---|---|
+| **Estándar objetivo** | WCAG 2.2, nivel AA (criterios A + AA). No se evalúa AAA. |
+| **Estado actual** | ⚠️ **Parcialmente conforme.** La conformidad AA **todavía no se alcanza**. |
+| **Última verificación** | 2026-08-10 · rama `accesibilidad-AA` |
+| **Método** | Revisión estática de código sobre el 100 % de las vistas + cálculo de contraste sobre los colores efectivos del bundle compilado. **Sin** pruebas con lector de pantalla real ni con usuarios. |
+| **Informe de conformidad** | [`docs/CONFORMIDAD_A11Y.md`](./docs/CONFORMIDAD_A11Y.md) |
+| **Auditoría detallada (31 hallazgos)** | [`docs/AUDITORIA_A11Y.md`](./docs/AUDITORIA_A11Y.md) |
+
+> La afirmación genérica "WCAG AA" que figuraba antes en este README no estaba respaldada por
+> ninguna verificación. La auditoría de 2026-08-10 encontró **31 incumplimientos**, 8 de ellos
+> bloqueantes. Este bloque se mantiene actualizado con el estado real, no con el objetivo.
+
+**Verificación permanente en el repositorio:**
+
+- `npm run lint` incluye `eslint-plugin-jsx-a11y` en preset **`strict`** con todas sus reglas
+  elevadas a `error`, de modo que una regresión de accesibilidad rompe el build. Los tres
+  overrides (dos reglas desactivadas y dos ajustes de opciones) están justificados por escrito
+  en `eslint.config.mjs`.
+- Las normas que debe cumplir todo código nuevo están en la sección
+  **"Normas de accesibilidad"** de [`CLAUDE.md`](./CLAUDE.md).
+- Suite de humo con `@axe-core/playwright` sobre 15 rutas autenticadas: **propuesta, pendiente
+  de aprobación** (ver `docs/CONFORMIDAD_A11Y.md` § 7).
 
 ---
 
@@ -346,5 +373,7 @@ Para auditorías de QA y registro de bugs ver [`src/testing/bugs.md`](./src/test
 
 ## 📚 Documentación adicional
 
-- **`CLAUDE.md`** — Contexto completo del proyecto, normativas de código y fases de desarrollo. Imprescindible para entender decisiones de arquitectura.
+- **`CLAUDE.md`** — Contexto completo del proyecto, normativas de código (incluidas las **normas de accesibilidad** obligatorias) y fases de desarrollo. Imprescindible para entender decisiones de arquitectura.
+- **`docs/CONFORMIDAD_A11Y.md`** — Declaración de conformidad WCAG 2.2 AA: alcance, metodología, criterio por criterio y qué falta. Es el documento de evidencia para la entrega y para el cliente.
+- **`docs/AUDITORIA_A11Y.md`** — Auditoría técnica con los 31 hallazgos, ratios de contraste medidos y fix propuesto para cada uno.
 - **`src/testing/bugs.md`** — Reporte de QA con bugs detectados, severidad y fix paso a paso.

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Gota, BadgeEstado, Icono, Vacio } from '@/components/alumco/ds'
 
-export const metadata: Metadata = { title: 'Mis Certificados | Alumco LMS' }
+export const metadata: Metadata = { title: 'Mis certificados' }
 
 export default async function MisCertificadosPage() {
   const supabase = await createClient()

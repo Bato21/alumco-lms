@@ -37,14 +37,20 @@ export function EditarEventoControl({ event }: { event: EventRecord }) {
       </button>
 
       {abierto && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Editar evento"
-          onClick={(e) => { if (e.target === e.currentTarget && !pending) setAbierto(false) }}
-        >
-          <div className="card card-pad col" style={{ gap: 14, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto' }}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Telón decorativo; el cierre accesible es el botón «Cerrar». */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => { if (!pending) setAbierto(false) }}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Editar evento"
+            className="card card-pad col relative"
+            style={{ gap: 14, width: '100%', maxWidth: 560, maxHeight: '90vh', overflowY: 'auto' }}
+          >
             <div className="fila" style={{ justifyContent: 'space-between' }}>
               <h2 style={{ fontSize: 16.5 }}>Editar evento</h2>
               <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAbierto(false)} disabled={pending}>

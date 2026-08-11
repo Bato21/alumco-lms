@@ -199,9 +199,12 @@ export function WorkerEditPanel({
 
           {/* Áreas de trabajo — dropdown multi-select */}
           <div className="space-y-2">
-            <label className="block text-sm font-semibold text-[#1A1A2E]">
+            {/* El control no es un <input> sino el <button> del desplegable,
+                así que el rótulo se enlaza con aria-labelledby en lugar de
+                `for`: un <label> sin `for` no lo anuncia ningún lector. */}
+            <span id="wep-areas-rotulo" className="block text-sm font-semibold text-[#1A1A2E]">
               Áreas de trabajo
-            </label>
+            </span>
 
             {/* Inputs hidden para el submit */}
             {selectedAreas.map(a => (
@@ -211,10 +214,13 @@ export function WorkerEditPanel({
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
+                id="wep-areas-boton"
                 onClick={() => setDropdownOpen(v => !v)}
                 disabled={isLoading}
                 aria-expanded={dropdownOpen}
                 aria-haspopup="listbox"
+                // Se anuncia «Áreas de trabajo, <selección actual>».
+                aria-labelledby="wep-areas-rotulo wep-areas-boton"
                 className="w-full h-11 px-3 rounded-lg border border-gray-200 bg-white text-sm flex items-center justify-between hover:border-[#2B4FA0] transition-colors disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-[#2B4FA0]/20"
               >
                 <span className={`truncate ${selectedAreas.length === 0 ? 'text-[#6B7280]' : 'text-[#1A1A2E]'}`}>
