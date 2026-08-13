@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Award, BookOpen, CheckCircle2, Clock } from 'lucide-react'
 import { cache } from 'react'
 import { getWorkerDetailAction } from '@/lib/actions/trabajadores'
+import { getWorkerAdminDaysSummary } from '@/lib/actions/admin-days'
 import { createAdminClient } from '@/lib/supabase/server'
+import AdminDaysCard from './AdminDaysCard'
 import WorkerActions from './WorkerActions'
 
 export const dynamic = 'force-dynamic'
@@ -43,13 +45,14 @@ export default async function WorkerDetailPage(
   const { id } = await params
   const adminClient = await createAdminClient()
 
-  const [result, { data: sedesData }] = await Promise.all([
+  const [result, { data: sedesData }, adminDays] = await Promise.all([
     getWorkerDetail(id),
     adminClient
       .from('sedes')
       .select('id, nombre')
       .eq('activa', true)
       .order('created_at', { ascending: true }) as unknown as Promise<{ data: { id: string; nombre: string }[] | null }>,
+    getWorkerAdminDaysSummary(id),
   ])
 
   if ('error' in result) notFound()
@@ -209,6 +212,9 @@ export default async function WorkerDetailPage(
           </div>
         ))}
       </div>
+
+      {/* Días administrativos (se omite si las tablas aún no existen) */}
+      {adminDays && <AdminDaysCard summary={adminDays} />}
 
       {/* Tabla de progreso por curso */}
       <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">

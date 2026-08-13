@@ -2,6 +2,7 @@
 
 import { createClient, createAdminClient, getCachedUser } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { profileInScope } from '@/lib/auth/demoScope'
 import { revalidatePath } from 'next/cache'
 import {
   ADMIN_DAY_MAX_PER_REQUEST,
@@ -97,9 +98,16 @@ function periodStartISO(reset: AdminDayResetPeriod): string {
 
 // ── Cursos vencidos ──────────────────────────────────────────────────────
 
-/** Cursos publicados, visibles según áreas, no completados y con deadline pasado. */
-async function getOverdueCourseTitles(userId: string): Promise<string[]> {
-  const supabase = await createClient()
+/**
+ * Cursos publicados, visibles según áreas, no completados y con deadline pasado.
+ * Recibe el cliente porque el admin consulta a otro usuario y necesita
+ * service-role: con el cliente RLS solo vería sus propias filas de progreso.
+ */
+async function getOverdueCourseTitles(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+): Promise<string[]> {
   const today = todayLocal()
 
   const [{ data: profile }, { data: courses }, { data: progress }] = await Promise.all([
@@ -134,19 +142,22 @@ export interface AdminDaysSummary {
   requests: AdminDayRequest[]
 }
 
-export async function getMyAdminDaysSummary(): Promise<AdminDaysSummary | null> {
-  const user = await getCachedUser()
-  if (!user) return null
-
-  try {
-  const supabase = await createClient()
+/**
+ * Núcleo del resumen de cupo. Lo comparten el trabajador (cliente RLS, sus
+ * propias filas) y el admin viendo la ficha de otro (service-role).
+ */
+async function buildAdminDaysSummary(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  client: any,
+  userId: string,
+): Promise<AdminDaysSummary> {
   const adminClient = await createAdminClient()
 
   const [{ config, areaQuotas }, { data: profile }, { data: requests }, overdueCourses] = await Promise.all([
     loadConfig(adminClient),
-    supabase.from('profiles').select('area_trabajo').eq('id', user.id).single() as unknown as Promise<{ data: { area_trabajo: string[] | null } | null }>,
-    supabase.from('admin_day_requests').select('*').eq('user_id', user.id).order('start_date', { ascending: false }) as unknown as Promise<{ data: AdminDayRequest[] | null }>,
-    getOverdueCourseTitles(user.id),
+    client.from('profiles').select('area_trabajo').eq('id', userId).single() as unknown as Promise<{ data: { area_trabajo: string[] | null } | null }>,
+    client.from('admin_day_requests').select('*').eq('user_id', userId).order('start_date', { ascending: false }) as unknown as Promise<{ data: AdminDayRequest[] | null }>,
+    getOverdueCourseTitles(client, userId),
   ])
 
   const quota = resolveQuota(profile?.area_trabajo ?? [], config, areaQuotas)
@@ -167,9 +178,39 @@ export async function getMyAdminDaysSummary(): Promise<AdminDaysSummary | null> 
     overdueCourses,
     requests: all,
   }
+}
+
+export async function getMyAdminDaysSummary(): Promise<AdminDaysSummary | null> {
+  const user = await getCachedUser()
+  if (!user) return null
+
+  try {
+    const supabase = await createClient()
+    return await buildAdminDaysSummary(supabase, user.id)
   } catch {
     // Si las tablas de días administrativos aún no existen en la DB, no
     // rompemos las páginas centrales (inicio/perfil): devolvemos null.
+    return null
+  }
+}
+
+/**
+ * Mismo resumen pero para un trabajador cualquiera, para la ficha del admin.
+ * Devuelve null si el caller no es staff, si el trabajador está fuera de su
+ * mundo (demo/real) o si las tablas todavía no existen: la ficha simplemente
+ * omite la sección en vez de romperse.
+ */
+export async function getWorkerAdminDaysSummary(
+  profileId: string,
+): Promise<AdminDaysSummary | null> {
+  const auth = await requireAdmin()
+  if (!auth.ok) return null
+
+  try {
+    const adminClient = await createAdminClient()
+    if (!(await profileInScope(adminClient, profileId, auth.isDemo))) return null
+    return await buildAdminDaysSummary(adminClient, profileId)
+  } catch {
     return null
   }
 }
@@ -210,7 +251,7 @@ export async function createAdminDayRequest(input: {
   }
 
   // Cursos vencidos bloquean la solicitud.
-  const overdue = await getOverdueCourseTitles(user.id)
+  const overdue = await getOverdueCourseTitles(await createClient(), user.id)
   if (overdue.length > 0) {
     return { error: `No puedes solicitar días administrativos mientras tengas cursos vencidos (${overdue.length}). Complétalos primero.` }
   }
