@@ -59,8 +59,8 @@ function SuspendidoRow({ worker }: { worker: Worker }) {
         {worker.area_trabajo}
       </td>
       <td className="px-5 lg:px-6 py-4">
-        <span className="flex items-center gap-1.5 font-semibold text-xs text-[#E74C3C]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E74C3C]" aria-hidden="true" />
+        <span className="flex items-center gap-1.5 font-semibold text-xs text-[var(--peligro)]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--peligro)]" aria-hidden="true" />
           Suspendido
         </span>
       </td>
@@ -70,7 +70,7 @@ function SuspendidoRow({ worker }: { worker: Worker }) {
           disabled={isPending}
           aria-label={`Reactivar ${worker.full_name}`}
           aria-busy={isPending}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[#b9740f] text-[#b9740f] text-sm font-semibold hover:bg-[#b9740f]/5 transition-colors min-h-[44px] disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-[var(--ok)] text-[var(--ok)] text-sm font-semibold hover:bg-[var(--ok-bg)] transition-colors min-h-[44px] disabled:opacity-50"
         >
           {isPending ? (
             <>

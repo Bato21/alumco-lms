@@ -769,7 +769,9 @@ section[id] { scroll-margin-top: 80px; }
   /* Acento ámbar Alumco (reemplaza el verde salvia) */
   --ambar:     #F5A623;
   --ambar-600: #e0961a;
-  --ambar-700: #b9740f;
+  /* Ámbar como color de TEXTO (eyebrows y enlaces del landing).
+     #b9740f daba 3.80:1 sobre blanco → fallaba 1.4.3. #b45309 da 5.05:1. */
+  --ambar-700: #b45309;
   --ambar-100: #fdeccc;
   --ambar-50:  #fef6e6;
   /* Neutros fríos con leve tinte azul (sin verde) */

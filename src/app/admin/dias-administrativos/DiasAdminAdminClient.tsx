@@ -73,22 +73,37 @@ export function DiasAdminAdminClient({
       <div className="card card-pad col" style={{ gap: 16 }}>
         <div className="fila" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
           <h2 style={{ fontSize: 18 }}>Solicitudes</h2>
-          <div className="fila" style={{ gap: 6 }}>
-            <button className={'btn btn-sm ' + (tab === 'pendientes' ? 'btn-primary' : 'btn-ghost')} onClick={() => setTab('pendientes')}>
+          {/* Filtro, no navegación: botones de alternancia. El estado activo
+              se marca con aria-pressed porque el relleno azul es la única
+              señal visual y el color solo no basta (1.4.1 / 4.1.2). */}
+          <div className="fila" role="group" aria-label="Filtrar solicitudes" style={{ gap: 6 }}>
+            <button
+              type="button"
+              aria-pressed={tab === 'pendientes'}
+              className={'btn btn-sm ' + (tab === 'pendientes' ? 'btn-primary' : 'btn-ghost')}
+              onClick={() => setTab('pendientes')}
+            >
               Pendientes {pendientes.length > 0 && `(${pendientes.length})`}
             </button>
-            <button className={'btn btn-sm ' + (tab === 'todas' ? 'btn-primary' : 'btn-ghost')} onClick={() => setTab('todas')}>
+            <button
+              type="button"
+              aria-pressed={tab === 'todas'}
+              className={'btn btn-sm ' + (tab === 'todas' ? 'btn-primary' : 'btn-ghost')}
+              onClick={() => setTab('todas')}
+            >
               Todas
             </button>
           </div>
         </div>
 
-        {visibles.length === 0 ? (
-          <p className="texto-s silencio">
-            {tab === 'pendientes' ? 'No hay solicitudes pendientes.' : 'No hay solicitudes.'}
-          </p>
-        ) : (
-          <ul className="col" style={{ gap: 10, listStyle: 'none', margin: 0, padding: 0 }}>
+        {/* El recuento cambia al alternar el filtro: se anuncia (4.1.3). */}
+        <p className="texto-s silencio" aria-live="polite">
+          {visibles.length === 0
+            ? tab === 'pendientes' ? 'No hay solicitudes pendientes.' : 'No hay solicitudes.'
+            : `${visibles.length} ${visibles.length === 1 ? 'solicitud' : 'solicitudes'}.`}
+        </p>
+        {visibles.length > 0 && (
+          <ul role="list" className="col" style={{ gap: 10, listStyle: 'none', margin: 0, padding: 0 }}>
             {visibles.map(r => (
               <li key={r.id} className="fila" style={{ gap: 14, padding: '12px 14px', border: '1px solid var(--borde-suave)', borderRadius: 'var(--radio-m)', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div className="crece" style={{ minWidth: 220 }}>
@@ -109,12 +124,28 @@ export function DiasAdminAdminClient({
                   )}
                 </div>
 
+                {/* "Aprobar" se repite en cada fila: el aria-label dice a
+                    quién, que es lo que la lista de botones no revela. */}
                 {r.status === 'pendiente' && (
                   <div className="fila" style={{ gap: 8 }}>
-                    <button className="btn btn-primary btn-sm" disabled={busyId === r.id} onClick={() => handleReview(r.id, 'aprobada')}>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      disabled={busyId === r.id}
+                      aria-busy={busyId === r.id}
+                      aria-label={`Aprobar la solicitud de ${r.full_name}`}
+                      onClick={() => handleReview(r.id, 'aprobada')}
+                    >
                       <Icono n="check" s={16} /> Aprobar
                     </button>
-                    <button className="btn btn-peligro-ghost btn-sm" disabled={busyId === r.id} onClick={() => handleReview(r.id, 'rechazada')}>
+                    <button
+                      type="button"
+                      className="btn btn-peligro-ghost btn-sm"
+                      disabled={busyId === r.id}
+                      aria-busy={busyId === r.id}
+                      aria-label={`Rechazar la solicitud de ${r.full_name}`}
+                      onClick={() => handleReview(r.id, 'rechazada')}
+                    >
                       <Icono n="cerrar" s={16} /> Rechazar
                     </button>
                   </div>
@@ -205,8 +236,10 @@ function ConfigPanel({ config }: { config: AdminDaysConfigData }) {
         </div>
       </div>
 
-      <div className="col" style={{ gap: 8 }}>
-        <span className="texto-s" style={{ fontWeight: 600 }}>Cupo por área <span className="silencio">(opcional)</span></span>
+      {/* Un rótulo que nombra un conjunto de campos va como grupo, no como
+          <span> suelto: si no, el lector nunca lee "Cupo por área". */}
+      <div className="col" role="group" aria-labelledby="cupo-area-titulo" style={{ gap: 8 }}>
+        <span id="cupo-area-titulo" className="texto-s" style={{ fontWeight: 600 }}>Cupo por área <span className="silencio">(opcional)</span></span>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 10 }}>
           {AREAS_TRABAJO.map(area => (
             <div key={area} className="fila" style={{ gap: 10 }}>
@@ -227,11 +260,25 @@ function ConfigPanel({ config }: { config: AdminDaysConfigData }) {
         </div>
       </div>
 
+      {/* Respuesta de la Server Action: éxito en status, error en alert. */}
       {msg && (
-        <p className="texto-s" style={{ fontWeight: 600, color: msg.ok ? 'var(--ok)' : 'var(--peligro)' }}>{msg.text}</p>
+        <p
+          role={msg.ok ? 'status' : 'alert'}
+          className="texto-s"
+          style={{ fontWeight: 600, color: msg.ok ? 'var(--ok)' : 'var(--peligro)' }}
+        >
+          {msg.text}
+        </p>
       )}
 
-      <button className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={isPending} onClick={handleSave}>
+      <button
+        type="button"
+        className="btn btn-primary"
+        style={{ alignSelf: 'flex-start' }}
+        disabled={isPending}
+        aria-busy={isPending}
+        onClick={handleSave}
+      >
         {isPending ? 'Guardando…' : 'Guardar configuración'}
       </button>
     </div>

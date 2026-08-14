@@ -81,7 +81,7 @@ export function DiasAdminClient({ summary }: { summary: AdminDaysSummary }) {
         {summary.requests.length === 0 ? (
           <p className="texto-s silencio">Aún no has solicitado días administrativos.</p>
         ) : (
-          <ul className="col" style={{ gap: 10, listStyle: 'none', margin: 0, padding: 0 }}>
+          <ul role="list" className="col" style={{ gap: 10, listStyle: 'none', margin: 0, padding: 0 }}>
             {summary.requests.map((r: AdminDayRequest) => (
               <li key={r.id} className="fila" style={{ gap: 14, padding: '12px 14px', border: '1px solid var(--borde-suave)', borderRadius: 'var(--radio-m)', flexWrap: 'wrap' }}>
                 <div className="crece" style={{ minWidth: 200 }}>
@@ -96,10 +96,14 @@ export function DiasAdminClient({ summary }: { summary: AdminDaysSummary }) {
                   )}
                 </div>
                 {r.status === 'pendiente' && (
+                  /* Hay un "Cancelar" por fila: el aria-label dice cuál. */
                   <button
+                    type="button"
                     className="btn btn-peligro-ghost btn-sm"
                     onClick={() => handleCancel(r.id)}
                     disabled={cancelingId === r.id}
+                    aria-busy={cancelingId === r.id}
+                    aria-label={`Cancelar la solicitud del ${formatRange(r.start_date, r.end_date)}`}
                   >
                     <Icono n="cerrar" s={16} /> Cancelar
                   </button>

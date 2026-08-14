@@ -60,7 +60,7 @@ verificada, pero el criterio sigue sin cumplirse por el resto:
 | Estado | Hallazgos |
 | :--- | :--- |
 | **Cerrados** | A11Y-01 (tokens de color en conflicto) · A11Y-03 (`focus:outline-none`) · A11Y-04 (cajón móvil enfocable estando cerrado) · A11Y-09 (enlace de salto) · A11Y-10 (landmarks y `<h1>` del login) · A11Y-12 (foco en los 8 diálogos) · A11Y-14 (mensajes de estado del quiz y del progreso) · A11Y-16 (objetivos táctiles sobre enlaces en línea) · A11Y-21 (títulos de página) |
-| **Parciales** | A11Y-02 (anillo de foco corregido; ~120 literales de color sin migrar) · A11Y-11 (`role="listitem"` sobre `<Link>` corregido; el estado sigue siendo solo color) · A11Y-17 (barra de progreso ya tiene nombre accesible; el riel sigue en 1.54:1) · A11Y-26 (botones, badges y barra de tabs corregidos; quedan `truncate` sobre valores de dato) · A11Y-29 (`aria-hidden` añadido en los iconos tocados en esta pasada, no en todos) |
+| **Parciales** | A11Y-02 (anillo de foco corregido; corregidos además los tokens `--ambar-700`, `--ok` y `--aviso` en las tres paletas con scope —`.paleta-oliva`, `.paleta-azul`, `.landing-page`— que reintroducían el ámbar a 3.80:1 pese al valor base correcto; quedan literales sin migrar en quiz, certificados, notificaciones, constructor de cursos y landing) · A11Y-11 (`role="listitem"` sobre `<Link>` corregido; el estado sigue siendo solo color) · A11Y-17 (barra de progreso ya tiene nombre accesible; el riel sigue en 1.54:1) · A11Y-26 (botones, badges y barra de tabs corregidos; quedan `truncate` sobre valores de dato) · A11Y-29 (`aria-hidden` añadido en los iconos tocados en esta pasada, no en todos) |
 | **Abiertos** | A11Y-05, 06, 07, 08, 13, 15, 18, 19, 20, 22, 23, 24, 25, 27, 28, 30, 31 |
 
 ---

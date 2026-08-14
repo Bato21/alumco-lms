@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Award, BookOpen, CheckCircle2, Clock } from 'lucide-react'
 import { cache } from 'react'
 import { getWorkerDetailAction } from '@/lib/actions/trabajadores'
+import { getWorkerAdminDaysSummary } from '@/lib/actions/admin-days'
 import { createAdminClient } from '@/lib/supabase/server'
+import AdminDaysCard from './AdminDaysCard'
 import WorkerActions from './WorkerActions'
 
 export const dynamic = 'force-dynamic'
@@ -43,13 +45,14 @@ export default async function WorkerDetailPage(
   const { id } = await params
   const adminClient = await createAdminClient()
 
-  const [result, { data: sedesData }] = await Promise.all([
+  const [result, { data: sedesData }, adminDays] = await Promise.all([
     getWorkerDetail(id),
     adminClient
       .from('sedes')
       .select('id, nombre')
       .eq('activa', true)
       .order('created_at', { ascending: true }) as unknown as Promise<{ data: { id: string; nombre: string }[] | null }>,
+    getWorkerAdminDaysSummary(id),
   ])
 
   if ('error' in result) notFound()
@@ -128,9 +131,9 @@ export default async function WorkerDetailPage(
                 {sedes.find(s => s.id === worker.sede)?.nombre ?? worker.sede}
               </span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                isActive ? 'bg-[#fef6e6] text-[#b9740f]' : 'bg-red-50 text-[#E74C3C]'
+                isActive ? 'bg-[var(--ok-bg)] text-[var(--ok)]' : 'bg-[var(--peligro-bg)] text-[var(--peligro)]'
               }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[#b9740f]' : 'bg-[#E74C3C]'}`} aria-hidden="true" />
+                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-[var(--ok)]' : 'bg-[var(--peligro)]'}`} aria-hidden="true" />
                 {isActive ? 'Activo' : 'Suspendido'}
               </span>
             </div>
@@ -173,22 +176,22 @@ export default async function WorkerDetailPage(
             icon: CheckCircle2,
             label: 'Cursos completados',
             value: completedCount,
-            color: 'text-[#b9740f]',
-            bg: 'bg-[#fef6e6]',
+            color: 'text-[var(--ok)]',
+            bg: 'bg-[var(--ok-bg)]',
           },
           {
             icon: BookOpen,
             label: 'En progreso',
             value: inProgressCount,
-            color: 'text-[#F5A623]',
-            bg: 'bg-amber-50',
+            color: 'text-[var(--aviso)]',
+            bg: 'bg-[var(--aviso-bg)]',
           },
           {
             icon: Clock,
             label: 'Sin iniciar',
             value: sinIniciarCount,
-            color: 'text-[#6B7280]',
-            bg: 'bg-gray-100',
+            color: 'text-[var(--tinta-2)]',
+            bg: 'bg-[var(--arena-100)]',
           },
           {
             icon: Award,
@@ -210,6 +213,9 @@ export default async function WorkerDetailPage(
         ))}
       </div>
 
+      {/* Días administrativos (se omite si las tablas aún no existen) */}
+      {adminDays && <AdminDaysCard summary={adminDays} />}
+
       {/* Tabla de progreso por curso */}
       <div className="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
@@ -217,11 +223,15 @@ export default async function WorkerDetailPage(
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
+            <caption className="sr-only">
+              Progreso de {worker.full_name} en cada curso asignado, con su estado y la
+              fecha en que lo completó.
+            </caption>
             <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
               <tr>
-                <th className="px-5 lg:px-6 py-3">Curso</th>
-                <th className="px-5 lg:px-6 py-3 text-center">Estado</th>
-                <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Completado el</th>
+                <th scope="col" className="px-5 lg:px-6 py-3">Curso</th>
+                <th scope="col" className="px-5 lg:px-6 py-3 text-center">Estado</th>
+                <th scope="col" className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Completado el</th>
               </tr>
             </thead>
             <tbody className="text-sm divide-y divide-gray-100">
@@ -242,17 +252,17 @@ export default async function WorkerDetailPage(
                       </td>
                       <td className="px-5 lg:px-6 py-4 text-center">
                         {sinIniciar ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-[#6B7280]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[var(--arena-100)] text-[var(--tinta-2)]">
                             Sin iniciar
                           </span>
                         ) : enProgreso ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-[#F5A623]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#F5A623]" aria-hidden="true" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[var(--aviso-bg)] text-[var(--aviso)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--aviso)]" aria-hidden="true" />
                             En progreso
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#fef6e6] text-[#b9740f]">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#b9740f]" aria-hidden="true" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-[var(--ok-bg)] text-[var(--ok)]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[var(--ok)]" aria-hidden="true" />
                             Completado
                           </span>
                         )}
@@ -275,7 +285,7 @@ export default async function WorkerDetailPage(
           <div className="px-6 py-4 border-b border-gray-100">
             <h2 className="text-base font-bold text-[#1A1A2E]">Certificados obtenidos</h2>
           </div>
-          <ul className="divide-y divide-gray-100">
+          <ul role="list" className="divide-y divide-gray-100">
             {certificates.map(cert => (
               <li
                 key={cert.id}
@@ -292,9 +302,11 @@ export default async function WorkerDetailPage(
                 </div>
                 <Link
                   href={`/certificado/${cert.id}`}
+                  aria-label={`Ver certificado de ${cert.course_title}`}
                   className="shrink-0 text-sm font-semibold text-[#2B4FA0] hover:underline min-h-[44px] flex items-center gap-1"
                 >
-                  Ver →
+                  Ver
+                  <span aria-hidden="true">→</span>
                 </Link>
               </li>
             ))}

@@ -35,12 +35,17 @@
   --tinta-2:   #4b5268;
   --tinta-3:   #6e7488; /* AA: 4.6:1 sobre blanco (antes #7c8198 = 3.85:1, fallaba) */
 
-  /* Estados (cálidos, armonizados) */
-  --ok:       #2e7d5b;
+  /* Estados (cálidos, armonizados)
+     Los tres pares texto/fondo se verifican contra su PROPIO fondo de badge,
+     que es más oscuro que el blanco y por tanto el caso peor:
+       --ok      5.45:1 blanco · 4.74:1 sobre --ok-bg      (antes 5.00 / 4.34 ❌)
+       --peligro 5.59:1 blanco · 4.79:1 sobre --peligro-bg
+       --aviso   5.93:1 blanco · 5.26:1 sobre --aviso-bg   (antes 5.02 / 4.46 ❌) */
+  --ok:       #007a3e;
   --ok-bg:    #e5f2ec;
   --peligro:  #bb3a2e;
   --peligro-bg: #faeae7;
-  --aviso:    #b45309;
+  --aviso:    #a34a08;
   --aviso-bg: #fdf0d8;
   --info:     #2c4a9e;
   --info-bg:  #e7edf9;
@@ -736,7 +741,10 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
      Alumco que el resto de la plataforma. */
   --ambar:       #F5A623;
   --ambar-600:   #e0961a;
-  --ambar-700:   #b9740f;
+  /* --ambar-700 es el ámbar COMO TEXTO (enlaces, tabs, porcentajes, badges).
+     Se alinea con el valor base de DIDASKO: #b9740f daba 3.80:1 sobre blanco
+     y 3.53:1 sobre --ambar-50 → fallaba 1.4.3. #b45309 da 5.05:1 y 4.70:1. */
+  --ambar-700:   #b45309;
   --ambar-100:   #fdeccc;
   --ambar-50:    #fef6e6;
   /* azul marino de marca (secciones oscuras) + ámbar claro (acento sobre azul) */
@@ -749,8 +757,11 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
   --borde:       #ded7c8;
   --borde-suave: #ece6d9;
   --foco-glow:   rgba(245, 166, 35, 0.22); /* glow de foco (ámbar) */
-  /* "éxito/activo" en ámbar de marca (antes verde) para todo el admin */
-  --ok:          #b9740f;
+  /* "éxito/activo" en ámbar de marca (antes verde) para todo el admin.
+     Mismo motivo que --ambar-700: como color de texto sobre --ok-bg el
+     #b9740f daba 3.53:1. #b45309 da 4.70:1 sobre ese fondo y 5.05:1 sobre
+     blanco, así que el badge "Aprobada"/"Activo" del admin cumple 1.4.3. */
+  --ok:          #b45309;
   --ok-bg:       #fef6e6;
 }
 .paleta-oliva .acento-claro { color: var(--oliva-clara) !important; }
@@ -762,7 +773,8 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
 .paleta-azul {
   --ambar:       #F5A623;
   --ambar-600:   #e0961a;
-  --ambar-700:   #b9740f;
+  /* Ver .paleta-oliva: #b9740f fallaba 1.4.3 como color de texto. */
+  --ambar-700:   #b45309;
   --ambar-100:   #fdeccc;
   --ambar-50:    #fef6e6;
   /* azul oscuro de marca (secciones tipo landing) + ámbar claro (acento) */

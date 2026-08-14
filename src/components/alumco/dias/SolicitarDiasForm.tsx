@@ -91,6 +91,11 @@ export function SolicitarDiasForm({
 
   const canSubmit = !hasOverdue && !!startDate && !!endDate && daysCount >= 1 && !localError && !isPending
 
+  // El error del rango describe a los dos campos de fecha a la vez: se
+  // apunta con aria-describedby desde ambos y se marca aria-invalid.
+  const mensajeError = error ?? localError
+  const describedBy = mensajeError ? 'ad-error' : undefined
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -125,7 +130,9 @@ export function SolicitarDiasForm({
     <form onSubmit={handleSubmit} className="col" style={{ gap: 16 }}>
       <div className="fila" style={{ gap: 14, flexWrap: 'wrap' }}>
         <div className="col crece" style={{ gap: 6, minWidth: 160 }}>
-          <label htmlFor="ad-start" className="texto-s" style={{ fontWeight: 600 }}>Fecha de inicio</label>
+          <label htmlFor="ad-start" className="texto-s" style={{ fontWeight: 600 }}>
+            Fecha de inicio <span className="silencio">(obligatorio)</span>
+          </label>
           <input
             id="ad-start"
             type="date"
@@ -137,10 +144,14 @@ export function SolicitarDiasForm({
               if (!endDate || endDate < e.target.value) setEndDate(e.target.value)
             }}
             required
+            aria-invalid={mensajeError ? true : undefined}
+            aria-describedby={describedBy}
           />
         </div>
         <div className="col crece" style={{ gap: 6, minWidth: 160 }}>
-          <label htmlFor="ad-end" className="texto-s" style={{ fontWeight: 600 }}>Fecha de término</label>
+          <label htmlFor="ad-end" className="texto-s" style={{ fontWeight: 600 }}>
+            Fecha de término <span className="silencio">(obligatorio)</span>
+          </label>
           <input
             id="ad-end"
             type="date"
@@ -149,6 +160,8 @@ export function SolicitarDiasForm({
             value={endDate}
             onChange={e => setEndDate(e.target.value)}
             required
+            aria-invalid={mensajeError ? true : undefined}
+            aria-describedby={describedBy}
           />
         </div>
       </div>
@@ -166,22 +179,27 @@ export function SolicitarDiasForm({
         />
       </div>
 
-      {daysCount > 0 && (
-        <div className="fila texto-s" style={{ gap: 8, color: 'var(--tinta-2)' }}>
-          <Icono n="calendario" s={17} />
-          <span>
-            <strong>{daysCount}</strong> {daysCount === 1 ? 'día hábil' : 'días hábiles'} · te quedarán{' '}
-            <strong>{Math.max(0, remainingDays - daysCount)}</strong> de {quota}
-          </span>
-        </div>
-      )}
+      {/* El cálculo cambia con cada fecha elegida: se anuncia sin robar foco. */}
+      <div aria-live="polite">
+        {daysCount > 0 && (
+          <div className="fila texto-s" style={{ gap: 8, color: 'var(--tinta-2)' }}>
+            <Icono n="calendario" s={17} />
+            <span>
+              <strong>{daysCount}</strong> {daysCount === 1 ? 'día hábil' : 'días hábiles'} · te quedarán{' '}
+              <strong>{Math.max(0, remainingDays - daysCount)}</strong> de {quota}
+            </span>
+          </div>
+        )}
+      </div>
 
-      {(localError || error) && (
-        <p className="texto-s" style={{ fontWeight: 600, color: 'var(--peligro)' }}>{error ?? localError}</p>
+      {mensajeError && (
+        <p id="ad-error" role="alert" className="texto-s" style={{ fontWeight: 600, color: 'var(--peligro)' }}>
+          {mensajeError}
+        </p>
       )}
 
       <div className="fila" style={{ gap: 10 }}>
-        <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
+        <button type="submit" className="btn btn-primary" disabled={!canSubmit} aria-busy={isPending}>
           {isPending ? 'Enviando…' : 'Enviar solicitud'}
         </button>
         {onCancel && (

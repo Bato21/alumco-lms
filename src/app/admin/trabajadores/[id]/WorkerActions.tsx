@@ -72,7 +72,7 @@ export default function WorkerActions({ worker, sedes }: WorkerActionsProps) {
             onClick={handleReactivate}
             disabled={isPending}
             aria-busy={isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#b9740f] text-[#b9740f] text-sm font-semibold hover:bg-[#b9740f]/5 transition-colors min-h-[44px] disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--ok)] text-[var(--ok)] text-sm font-semibold hover:bg-[var(--ok-bg)] transition-colors min-h-[44px] disabled:opacity-50"
           >
             {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
             Reactivar
@@ -82,7 +82,7 @@ export default function WorkerActions({ worker, sedes }: WorkerActionsProps) {
             onClick={handleSuspend}
             disabled={isPending}
             aria-busy={isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#E74C3C] text-[#E74C3C] text-sm font-semibold hover:bg-[#E74C3C]/5 transition-colors min-h-[44px] disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--peligro)] text-[var(--peligro)] text-sm font-semibold hover:bg-[var(--peligro-bg)] transition-colors min-h-[44px] disabled:opacity-50"
           >
             {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />}
             Suspender
