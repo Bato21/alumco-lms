@@ -150,7 +150,7 @@ export default async function InicioPage() {
 
       {/* Saludo */}
       <div className="entra">
-        <span className="t-eyebrow">◆ {fechaHoy}</span>
+        <span className="t-eyebrow"><span aria-hidden="true">◆</span> {fechaHoy}</span>
         <h1 className="t-display" style={{ marginTop: 8 }}>
           Hola {firstName},<br />sigamos <em>aprendiendo</em>.
         </h1>
@@ -170,7 +170,7 @@ export default async function InicioPage() {
               <div style={{ padding: '30px 32px 20px', position: 'relative', zIndex: 1 }}>
                 <div className="fila" style={{ gap: 24, flexWrap: 'wrap' }}>
                   <div className="crece" style={{ minWidth: 260 }}>
-                    <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>Continúa donde quedaste</span>
+                    <span className="t-eyebrow" style={{ color: 'var(--ambar-700)' }}>Continúa donde quedaste</span>
                     <h2 className="t-display" style={{ fontSize: 27, color: '#fff', margin: '10px 0 8px' }}>{continuar.title}</h2>
                     <p className="texto-s" style={{ color: 'rgba(255,255,255,0.72)', marginBottom: 18 }}>
                       {continuar.progressPct > 0 ? `Vas en el ${continuar.progressPct}% del curso` : 'Aún no comienzas este curso'}
@@ -197,7 +197,7 @@ export default async function InicioPage() {
         <div className="card card-pad entra entra-2 col" style={{ gap: 20 }}>
           <div className="fila">
             <div className="crece">
-              <span className="t-eyebrow">◆ Tu recorrido · {totalCourses} {totalCourses === 1 ? 'curso' : 'cursos'}</span>
+              <span className="t-eyebrow"><span aria-hidden="true">◆</span> Tu recorrido · {totalCourses} {totalCourses === 1 ? 'curso' : 'cursos'}</span>
               <h2 className="t-display" style={{ fontSize: 23, marginTop: 6 }}>Tu avance por cursos</h2>
             </div>
             <Link href="/cursos" className="btn btn-ghost">Ver todos <Icono n="chevR" s={17} /></Link>

@@ -98,10 +98,10 @@ export function VideoPlayer({
             disabled={isCompletePending}
             className="
               inline-flex items-center gap-2 px-6 py-3
-              bg-[#27AE60] text-white font-semibold
-              rounded-lg hover:bg-[#27AE60]/90
+              bg-[var(--ok)] text-white font-semibold
+              rounded-lg hover:bg-[var(--ok)]/90
               transition-colors disabled:opacity-50 disabled:cursor-not-allowed
-              shadow-md shadow-[#27AE60]/20
+              shadow-md shadow-[var(--ok)]/20
               min-h-[48px]
             "
           >
@@ -149,7 +149,7 @@ export function VideoPlayer({
 
       {/* Completed State */}
       {localCompleted && (
-        <div className="flex items-center gap-2 text-[#27AE60] font-medium">
+        <div className="flex items-center gap-2 text-[var(--ok)] font-medium">
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
             <polyline points="20,6 9,17 4,12" />
           </svg>

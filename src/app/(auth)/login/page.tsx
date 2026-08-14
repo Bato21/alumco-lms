@@ -94,7 +94,7 @@ export default function LoginPage() {
             Sabiduría del agua
           </div>
           <div style={{ width: 56, height: 1, background: 'rgba(255,255,255,0.25)', margin: '30px 0' }} />
-          <span className="t-eyebrow" style={{ color: 'var(--ambar)' }}>◆ Plataforma de capacitación</span>
+          <span className="t-eyebrow" style={{ color: 'var(--ambar-700)' }}><span aria-hidden="true">◆</span> Plataforma de capacitación</span>
           {/* Era un <h1>. Es un eslogan, no el título de la página, y además
               vivía en un panel `hidden md:flex`: en móvil desaparecía del árbol
               de accesibilidad y la página arrancaba en <h2>. El <h1> real es
@@ -144,7 +144,7 @@ export default function LoginPage() {
                 style={{ objectFit: 'contain' }}
               />
               <p className="texto-s silencio-3" style={{ marginTop: 6 }}>
-                Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · plataforma de capacitación de ONG Alumco
+                Kimün<span style={{ color: 'var(--ambar-700)' }}>Ko</span> · plataforma de capacitación de ONG Alumco
               </p>
             </div>
             <h1 className="t-display login-titulo" style={{ fontSize: 27, textAlign: 'center' }}>Ingreso a la plataforma</h1>

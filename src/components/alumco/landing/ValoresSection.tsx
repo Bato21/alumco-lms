@@ -34,7 +34,7 @@ export default function ValoresSection() {
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: 1140, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', maxWidth: 640, margin: '0 auto' }}>
-          <span className="t-eyebrow claro">◆ Lo que nos guía</span>
+          <span className="t-eyebrow claro"><span aria-hidden="true">◆</span> Lo que nos guía</span>
           <h2 className="t-display" style={{ fontSize: 'clamp(30px, 4.6vw, 48px)', marginTop: 14, color: '#fff' }}>
             Nuestros valores
           </h2>
@@ -77,7 +77,7 @@ export default function ValoresSection() {
             fontStyle: 'italic',
           }}
         >
-          <span style={{ color: '#F5A623', fontStyle: 'normal' }}>◆</span>{' '}
+          <span style={{ color: '#F5A623', fontStyle: 'normal' }} aria-hidden="true">◆</span>{' '}
           Cuidar también es actuar con propósito.
         </p>
       </div>

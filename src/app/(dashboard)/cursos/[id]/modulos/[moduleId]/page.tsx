@@ -147,11 +147,11 @@ export default async function ModulePage({ params }: ModulePageProps) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm">
-          <Link href="/cursos" className="text-[var(--tinta-3)] hover:text-[var(--ambar)] transition-colors">
+          <Link href="/cursos" className="text-[var(--tinta-3)] hover:text-[var(--ambar-700)] transition-colors">
             Mis cursos
           </Link>
           <span className="text-[var(--tinta-3)]">›</span>
-          <Link href={`/cursos/${courseId}`} className="text-[var(--tinta-3)] hover:text-[var(--ambar)] transition-colors truncate">
+          <Link href={`/cursos/${courseId}`} className="text-[var(--tinta-3)] hover:text-[var(--ambar-700)] transition-colors truncate">
             {course.title}
           </Link>
           <span className="text-[var(--tinta-3)]">›</span>
@@ -187,11 +187,11 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-sm overflow-x-auto whitespace-nowrap">
-            <Link href="/cursos" className="text-[var(--tinta-3)] hover:text-[var(--ambar)] transition-colors shrink-0">
+            <Link href="/cursos" className="text-[var(--tinta-3)] hover:text-[var(--ambar-700)] transition-colors shrink-0">
               Mis cursos
             </Link>
             <span className="text-[var(--tinta-3)] shrink-0">›</span>
-            <Link href={`/cursos/${courseId}`} className="text-[var(--tinta-3)] hover:text-[var(--ambar)] transition-colors shrink-0 max-w-[120px] truncate">
+            <Link href={`/cursos/${courseId}`} className="text-[var(--tinta-3)] hover:text-[var(--ambar-700)] transition-colors shrink-0 max-w-[120px] truncate">
               {course.title}
             </Link>
             <span className="text-[var(--tinta-3)] shrink-0">›</span>
@@ -304,7 +304,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
               </div>
               <div className="flex items-center gap-2.5 text-sm text-[var(--tinta-3)]">
                 <div className="w-7 h-7 rounded-lg bg-[var(--ok-bg,#EDFAF3)] flex items-center justify-center shrink-0">
-                  <svg className="w-4 h-4 text-[var(--ok,#27AE60)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="w-4 h-4 text-[var(--ok)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <polyline points="20,6 9,17 4,12" />
                   </svg>
                 </div>

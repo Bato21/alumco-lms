@@ -115,7 +115,7 @@ export function ModuleIndex({
               {/* Status Icon */}
               <div className="shrink-0 mt-0.5">
                 {status === 'completed' ? (
-                  <div className="w-6 h-6 rounded-full bg-[#27AE60] text-white flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-[var(--ok)] text-white flex items-center justify-center">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <polyline points="20,6 9,17 4,12" />
                     </svg>

@@ -177,7 +177,7 @@ export function ProfileClient({
                 unoptimized
               />
             ) : (
-              <div className="h-24 w-24 rounded-full bg-[var(--ambar-50)] text-[var(--ambar)] text-3xl font-bold flex items-center justify-center">
+              <div className="h-24 w-24 rounded-full bg-[var(--ambar-50)] text-[var(--ambar-700)] text-3xl font-bold flex items-center justify-center">
                 {initial2}
               </div>
             )}
@@ -346,10 +346,10 @@ export function ProfileClient({
           )}
 
           {firmaError && (
-            <p className="text-sm text-[#E74C3C] font-medium">{firmaError}</p>
+            <p className="text-sm text-[var(--peligro)] font-medium">{firmaError}</p>
           )}
           {firmaSuccess && (
-            <p className="text-sm text-[#27AE60] font-medium">✓ Firma guardada correctamente</p>
+            <p className="text-sm text-[var(--ok)] font-medium"><span aria-hidden="true">✓</span> Firma guardada correctamente</p>
           )}
         </div>
       )}
@@ -359,7 +359,7 @@ export function ProfileClient({
         <div className="card card-pad space-y-4">
           <div className="fila" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
             <div className="fila" style={{ gap: 12 }}>
-              <div className="h-11 w-11 rounded-full bg-[var(--ambar-50)] text-[var(--ambar)] flex items-center justify-center shrink-0">
+              <div className="h-11 w-11 rounded-full bg-[var(--ambar-50)] text-[var(--ambar-700)] flex items-center justify-center shrink-0">
                 <CalendarClock className="w-5 h-5" aria-hidden="true" />
               </div>
               <div>

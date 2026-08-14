@@ -213,7 +213,7 @@ export async function EventoDashboardCard({ userId, isAdmin }: { userId: string;
             {EVENT_TYPE_EMOJI[event.event_type]}
           </span>
           <div>
-            <span className="t-eyebrow">◆ {EVENT_TYPE_LABELS[event.event_type]}</span>
+            <span className="t-eyebrow"><span aria-hidden="true">◆</span> {EVENT_TYPE_LABELS[event.event_type]}</span>
             <h2 style={{ fontSize: 18, fontWeight: 600, marginTop: 4 }}>{event.title}</h2>
           </div>
         </div>

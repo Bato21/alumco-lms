@@ -25,12 +25,12 @@ export default function Error({ error, reset }: ErrorProps) {
 
         {/* Ícono error */}
         <div className="relative">
-          <p className="text-[160px] font-black text-[#E74C3C]/8 leading-none select-none">
+          <p className="text-[160px] font-black text-[var(--peligro)]/8 leading-none select-none">
             500
           </p>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="h-20 w-20 rounded-2xl bg-[#FAECE7] flex items-center justify-center">
-              <svg className="h-10 w-10 text-[#E74C3C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg className="h-10 w-10 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
               </svg>

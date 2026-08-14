@@ -52,7 +52,12 @@ export function WorkerTopBar({ alerts }: WorkerTopBarProps) {
     >
       <div className="flex-1" />
       <div className="flex items-center gap-6">
-        <SearchBar placeholder="Buscar cursos..." className="w-64" />
+        <SearchBar
+          placeholder="Buscar cursos..."
+          className="w-64"
+          id="busqueda-trabajador"
+          etiqueta="Buscar cursos"
+        />
         <div className="flex items-center gap-2">
           <NotificationBell initialAlerts={alerts} role="trabajador" />
           <Link

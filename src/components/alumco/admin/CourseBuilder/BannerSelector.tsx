@@ -94,7 +94,7 @@ export function BannerSelector({
           </p>
         </div>
         {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin text-[#2B4FA0]" aria-hidden="true" />}
-        {!isPending && saved && <CheckCircle2 className="h-3.5 w-3.5 text-[#27AE60]" aria-hidden="true" />}
+        {!isPending && saved && <CheckCircle2 className="h-3.5 w-3.5 text-[var(--ok)]" aria-hidden="true" />}
       </div>
 
       {/* Vista previa: foto completa + línea de color con el degradado */}
@@ -244,7 +244,7 @@ export function BannerSelector({
         </div>
       )}
 
-      {error && <p className="text-[11px] text-[#E74C3C]">{error}</p>}
+      {error && <p className="text-[11px] text-[var(--peligro)]">{error}</p>}
     </div>
   )
 }

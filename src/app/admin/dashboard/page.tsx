@@ -252,7 +252,7 @@ export default async function AdminDashboardPage() {
         >
           <div className="fila" style={{ padding: '30px 32px 24px', gap: 24, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
             <div className="crece" style={{ minWidth: 280 }}>
-              <span className="t-eyebrow" style={{ color: 'var(--oliva-clara, var(--ambar))' }}>◆ {mesLabel}</span>
+              <span className="t-eyebrow" style={{ color: 'var(--oliva-clara, var(--ambar))' }}><span aria-hidden="true">◆</span> {mesLabel}</span>
               <h1 className="t-display" style={{ fontSize: 30, color: '#fff', marginTop: 8 }}>
                 {saludo}, {firstName}.<br />
                 Hay <em style={{ color: 'var(--oliva-clara, var(--ambar))' }}>{adminAlerts.count} vencimiento{adminAlerts.count !== 1 ? 's' : ''}</em> este mes.

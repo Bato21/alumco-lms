@@ -392,7 +392,7 @@ export function ApprovalPanel({
                 type="button"
                 onClick={handleReject}
                 disabled={isPending || isRejecting}
-                className="w-full h-12 flex items-center justify-center rounded-xl border-2 border-[#E74C3C] text-[#E74C3C] font-semibold text-sm hover:bg-[#E74C3C]/5 transition-colors disabled:opacity-50"
+                className="w-full h-12 flex items-center justify-center rounded-xl border-2 border-[var(--peligro)] text-[var(--peligro)] font-semibold text-sm hover:bg-[var(--peligro)]/5 transition-colors disabled:opacity-50"
               >
                 {isRejecting ? (
                   <>

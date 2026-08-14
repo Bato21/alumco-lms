@@ -115,7 +115,7 @@ export function EventNotificationModal({ evento, userId }: { evento: EventoResum
               Centrado para que el título no quede pegado a la izquierda con el
               badge suelto a la derecha (simetría). */}
           <div className="col" style={{ alignItems: 'center', textAlign: 'center', gap: 8 }}>
-            <span className="t-eyebrow">◆ {evento.fechaLabel}</span>
+            <span className="t-eyebrow"><span aria-hidden="true">◆</span> {evento.fechaLabel}</span>
             <h2 className="t-display" style={{ fontSize: 22, lineHeight: 1.2 }}>{evento.title}</h2>
             {evento.categoria && (
               <p className="silencio" style={{ fontSize: 14 }}>{evento.categoria}</p>

@@ -28,7 +28,7 @@ export function CertificateBadge({
       <div className="flex items-center gap-3">
         <div className="h-12 w-12 rounded-xl bg-[#FFF8EC] flex items-center justify-center shrink-0">
           <svg
-            className="h-6 w-6 text-[#F5A623]"
+            className="h-6 w-6 text-[var(--ambar-700)]"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -42,7 +42,7 @@ export function CertificateBadge({
           </svg>
         </div>
         <div>
-          <p className="text-xs font-bold text-[#F5A623] uppercase tracking-widest mb-0.5">
+          <p className="text-xs font-bold text-[var(--ambar-700)] uppercase tracking-widest mb-0.5">
             Certificado obtenido
           </p>
           <h3 className="font-bold text-[#1A1A2E] text-lg leading-tight">
@@ -76,7 +76,7 @@ export function CertificateBadge({
       <div className="flex gap-3 pt-1">
         <a
           href={`/certificado/${certificate.id}`}
-          className="flex-1 h-11 rounded-xl bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#e0961a] transition-colors flex items-center justify-center gap-2"
+          className="flex-1 h-11 rounded-xl bg-[#F5A623] text-[#0f172a] text-sm font-semibold hover:bg-[#e0961a] transition-colors flex items-center justify-center gap-2"
         >
           <svg
             className="h-4 w-4"
@@ -99,7 +99,7 @@ export function CertificateBadge({
             href={certificate.pdf_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 h-11 rounded-xl border border-[#F5A623] text-[#F5A623] text-sm font-semibold hover:bg-[#F5A623]/5 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 h-11 rounded-xl border border-[var(--ambar-700)] text-[var(--ambar-700)] text-sm font-semibold hover:bg-[#F5A623]/5 transition-colors flex items-center justify-center gap-2"
           >
             <svg
               className="h-4 w-4"

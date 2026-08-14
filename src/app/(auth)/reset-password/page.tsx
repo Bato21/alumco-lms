@@ -39,7 +39,7 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
         >
           <MarcaAlumco />
           <p className="texto-s silencio-3" style={{ marginTop: 6 }}>
-            Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · plataforma de capacitación de ONG
+            Kimün<span style={{ color: 'var(--ambar-700)' }}>Ko</span> · plataforma de capacitación de ONG
             Alumco
           </p>
         </div>

@@ -281,7 +281,7 @@ export function CourseBuilder({
             <p className="text-xs lg:text-sm text-muted-foreground truncate">
               {modules.length} {modules.length === 1 ? 'módulo' : 'módulos'}
               {course.deadline && (
-                <span className="ml-2 text-[#F5A623] hidden sm:inline">
+                <span className="ml-2 text-[var(--ambar-700)] hidden sm:inline">
                   · Plazo: {new Date(course.deadline).toLocaleDateString('es-CL')}
                 </span>
               )}
@@ -291,12 +291,12 @@ export function CourseBuilder({
 
         <div className="flex items-center gap-2 lg:gap-3 shrink-0">
           {error && (
-            <p className="text-xs lg:text-sm text-[#E74C3C] hidden md:block">{error}</p>
+            <p className="text-xs lg:text-sm text-[var(--peligro)] hidden md:block">{error}</p>
           )}
 
           <span className={`text-xs font-semibold px-2.5 lg:px-3 py-1 rounded-full whitespace-nowrap ${
             isPublished
-              ? 'bg-[#27AE60]/10 text-[#27AE60]'
+              ? 'bg-[var(--ok)]/10 text-[var(--ok)]'
               : 'bg-slate-100 text-slate-500'
           }`}>
             {isPublished ? 'Publicado' : 'Borrador'}
@@ -305,7 +305,7 @@ export function CourseBuilder({
           <button
             onClick={handleDelete}
             disabled={isPending}
-            className="px-3 lg:px-4 py-2 rounded-lg border border-[#E74C3C] text-[#E74C3C] text-xs lg:text-sm font-semibold hover:bg-[#E74C3C]/5 transition-colors min-h-[44px] min-w-[44px] hidden sm:inline-flex items-center justify-center"
+            className="px-3 lg:px-4 py-2 rounded-lg border border-[var(--peligro)] text-[var(--peligro)] text-xs lg:text-sm font-semibold hover:bg-[var(--peligro)]/5 transition-colors min-h-[44px] min-w-[44px] hidden sm:inline-flex items-center justify-center"
           >
             Eliminar
           </button>

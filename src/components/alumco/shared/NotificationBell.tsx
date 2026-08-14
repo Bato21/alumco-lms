@@ -34,12 +34,12 @@ interface NotificationBellProps {
 
 const urgencyConfig = {
   overdue: {
-    dot: 'bg-[#E74C3C]',
-    labelStyle: 'text-[#E74C3C]',
+    dot: 'bg-[var(--peligro)]',
+    labelStyle: 'text-[var(--peligro)]',
   },
   critical: {
     dot: 'bg-[#F5A623]',
-    labelStyle: 'text-[#F5A623]',
+    labelStyle: 'text-[var(--ambar-700)]',
   },
   warning: {
     dot: 'bg-[#2B4FA0]',
@@ -82,7 +82,7 @@ export function NotificationBell({ initialAlerts, role, evento }: NotificationBe
 
         {hasUnseen && (
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full
-            bg-[#E74C3C] ring-2 ring-white animate-pulse" />
+            bg-[var(--peligro)] ring-2 ring-white animate-pulse" />
         )}
       </button>
 
@@ -98,7 +98,7 @@ export function NotificationBell({ initialAlerts, role, evento }: NotificationBe
               <h3 className="font-bold text-[#1A1A2E] text-sm">Alertas</h3>
               {totalCount > 0 && (
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full
-                  bg-[#FAECE7] text-[#E74C3C]">
+                  bg-[#FAECE7] text-[var(--peligro)]">
                   {totalCount}
                 </span>
               )}
@@ -108,7 +108,7 @@ export function NotificationBell({ initialAlerts, role, evento }: NotificationBe
                 href="/admin/reportes"
                 className="text-xs text-[#2B4FA0] font-semibold hover:underline"
               >
-                Ver reporte →
+                Ver reporte <span aria-hidden="true">→</span>
               </a>
             )}
           </div>
@@ -135,7 +135,7 @@ export function NotificationBell({ initialAlerts, role, evento }: NotificationBe
                         ? `Faltan ${evento.diasRestantes} día${evento.diasRestantes === 1 ? '' : 's'}`
                         : evento.diasRestantes === 0 ? '¡Es hoy!' : 'En curso'
                     }
-                    labelClass="text-[#F5A623]"
+                    labelClass="text-[var(--ambar-700)]"
                     extra={evento.categoria ?? undefined}
                   />
                 )}

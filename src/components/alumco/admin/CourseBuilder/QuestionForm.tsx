@@ -150,7 +150,7 @@ export default function QuestionForm({
                 checked={correctOption === option.id}
                 onChange={e => setCorrectOption(e.target.value)}
                 disabled={isSubmitting}
-                className="h-5 w-5 text-[#27AE60] focus:ring-[#27AE60] cursor-pointer shrink-0 mt-2"
+                className="h-5 w-5 text-[var(--ok)] focus:ring-[var(--ok)] cursor-pointer shrink-0 mt-2"
                 title={`Marcar ${option.id.toUpperCase()} como correcta`}
               />
 
@@ -171,7 +171,7 @@ export default function QuestionForm({
                 placeholder={`Alternativa ${option.id.toUpperCase()}`}
                 className={`flex-1 min-w-0 h-9 px-3 rounded-lg border text-sm focus-visible:border-[#2B4FA0] transition-colors ${
                   correctOption === option.id
-                    ? 'border-[#27AE60] bg-[#EAF3DE]/40'
+                    ? 'border-[var(--ok)] bg-[#EAF3DE]/40'
                     : 'border-input bg-background'
                 }`}
               />
@@ -182,7 +182,7 @@ export default function QuestionForm({
                   type="button"
                   onClick={() => removeOption(option.id)}
                   disabled={isSubmitting}
-                  className="p-1.5 rounded-md hover:bg-[#FAECE7] text-muted-foreground hover:text-[#E74C3C] transition-colors shrink-0 mt-1"
+                  className="p-1.5 rounded-md hover:bg-[#FAECE7] text-muted-foreground hover:text-[var(--peligro)] transition-colors shrink-0 mt-1"
                   aria-label={`Eliminar alternativa ${option.id.toUpperCase()}`}
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -214,8 +214,8 @@ export default function QuestionForm({
 
       {/* Error */}
       {error && (
-        <div className="p-3 rounded-lg bg-[#FAECE7] border border-[#E74C3C]/20">
-          <p className="text-sm text-[#E74C3C]">{error}</p>
+        <div className="p-3 rounded-lg bg-[#FAECE7] border border-[var(--peligro)]/20">
+          <p className="text-sm text-[var(--peligro)]">{error}</p>
         </div>
       )}
 
@@ -225,7 +225,7 @@ export default function QuestionForm({
           type="button"
           onClick={handleSubmit}
           disabled={isSubmitting}
-          className="w-full sm:w-auto px-5 h-10 bg-[#27AE60] text-white text-sm font-semibold rounded-lg hover:bg-[#27AE60]/90 transition-colors disabled:opacity-50"
+          className="w-full sm:w-auto px-5 h-10 bg-[var(--ok)] text-white text-sm font-semibold rounded-lg hover:bg-[var(--ok)]/90 transition-colors disabled:opacity-50"
         >
           {isSubmitting ? 'Guardando...' : 'Guardar pregunta'}
         </button>

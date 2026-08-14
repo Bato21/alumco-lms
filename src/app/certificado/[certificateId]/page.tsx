@@ -88,9 +88,11 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
           {/* Header dorado */}
           <div className="bg-gradient-to-r from-[#F5A623] to-[#e0961a] px-6 md:px-10 py-8 text-center">
             <div className="flex justify-center mb-4">
+              {/* Sobre el dorado va tinta oscura, no blanco: blanco sobre
+                  #F5A623 da 2.03:1 y aquí carga el <h1> de la página. */}
               <div className="h-16 w-16 rounded-full bg-white/20 flex items-center justify-center">
                 <svg
-                  className="h-8 w-8 text-white"
+                  className="h-8 w-8 text-[#0f172a]"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -104,13 +106,13 @@ export default async function CertificadoPage({ params }: CertificadoPageProps) 
                 </svg>
               </div>
             </div>
-            <p className="text-white/80 text-xs font-semibold uppercase tracking-widest mb-1">
+            <p className="text-[#0f172a]/75 text-xs font-semibold uppercase tracking-widest mb-1">
               Certificado de aprobación
             </p>
-            <h1 className="text-white text-2xl md:text-3xl font-extrabold tracking-tight">
+            <h1 className="text-[#0f172a] text-2xl md:text-3xl font-extrabold tracking-tight">
               Alumco LMS
             </h1>
-            <p className="text-white/70 text-xs mt-1 tracking-wide">KimünKo · ELEAM Chile</p>
+            <p className="text-[#0f172a]/70 text-xs mt-1 tracking-wide">KimünKo · ELEAM Chile</p>
           </div>
 
           {/* Contenido */}

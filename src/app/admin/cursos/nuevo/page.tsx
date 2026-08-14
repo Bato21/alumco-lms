@@ -284,7 +284,7 @@ export default function NuevoCursoPage() {
             disabled={isPending}
             className="flex-1 h-12 rounded-lg bg-[#2B4FA0] text-white text-base font-bold hover:bg-[#1A2F6B] transition-colors min-h-[48px] disabled:opacity-50"
           >
-            {isPending ? "Creando..." : "Crear y agregar módulos →"}
+            {isPending ? 'Creando…' : <>Crear y agregar módulos <span aria-hidden="true">→</span></>}
           </button>
         </div>
       </form>

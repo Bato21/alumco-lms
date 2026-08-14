@@ -149,7 +149,7 @@ export function WorkerEditPanel({
 
           {/* Error */}
           {error && (
-            <div className="bg-red-50 border border-[#E74C3C] rounded-lg px-4 py-3 text-sm text-[#E74C3C]" role="alert">
+            <div className="bg-red-50 border border-[var(--peligro)] rounded-lg px-4 py-3 text-sm text-[var(--peligro)]" role="alert">
               {error}
             </div>
           )}
@@ -317,7 +317,7 @@ export function WorkerEditPanel({
             onClick={handleSuspend}
             disabled={isLoading}
             aria-busy={isSuspendPending}
-            className="w-full h-12 flex items-center justify-center rounded-lg border-2 border-[#E74C3C] text-[#E74C3C] font-bold text-sm hover:bg-[#E74C3C]/5 transition-colors disabled:opacity-50"
+            className="w-full h-12 flex items-center justify-center rounded-lg border-2 border-[var(--peligro)] text-[var(--peligro)] font-bold text-sm hover:bg-[var(--peligro)]/5 transition-colors disabled:opacity-50"
           >
             {isSuspendPending ? (
               <>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { submitQuizAction, getQuizStatusAction, getQuizAttemptsHistoryAction } from '@/lib/actions/quiz'
@@ -125,7 +125,7 @@ const handleContinue = async () => {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="flex items-center gap-3">
-          <svg className="w-6 h-6 animate-spin text-[var(--ambar)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 animate-spin text-[var(--ambar-700)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
@@ -141,7 +141,7 @@ const handleContinue = async () => {
       return (
         <div className="min-h-[400px] flex items-center justify-center">
           <div className="flex items-center gap-3">
-            <svg className="w-6 h-6 animate-spin text-[var(--ambar)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 animate-spin text-[var(--ambar-700)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
@@ -155,8 +155,8 @@ const handleContinue = async () => {
     if (quizStatus.isBlocked) {
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-8 text-center">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#E74C3C]/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#E74C3C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--peligro)]/10 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
@@ -169,7 +169,7 @@ const handleContinue = async () => {
             <button
               onClick={handleResetProgress}
               disabled={isPending}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--ambar)] text-white rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors disabled:opacity-50 min-h-[48px]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors disabled:opacity-50 min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
@@ -195,14 +195,14 @@ const handleContinue = async () => {
     if (quizStatus.hasPassedBefore) {
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-8 text-center">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#27AE60]/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[#27AE60]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--ok)]/10 flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--ok)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="20,6 9,17 4,12" />
             </svg>
           </div>
           <h2 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)] mb-3">Ya aprobaste esta evaluación</h2>
           <p className="text-[var(--md-on-surface-variant)] mb-6">
-            Obtuviste <span className="font-bold text-[#27AE60]">{quizStatus.lastScore}%</span> en tu intento anterior.
+            Obtuviste <span className="font-bold text-[var(--ok)]">{quizStatus.lastScore}%</span> en tu intento anterior.
           </p>
 
           {attempts.length > 0 && (
@@ -224,10 +224,10 @@ const handleContinue = async () => {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-[var(--tinta-3)]">{date}</p>
                       </div>
-                      <span className={`text-sm font-extrabold ${isPassed ? 'text-[#27AE60]' : 'text-[#E74C3C]'}`}>
+                      <span className={`text-sm font-extrabold ${isPassed ? 'text-[var(--ok)]' : 'text-[var(--peligro)]'}`}>
                         {attempt.score}%
                       </span>
-                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${isPassed ? 'bg-[#EAF3DE] text-[#27500A]' : 'bg-[#FAECE7] text-[#E74C3C]'}`}>
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${isPassed ? 'bg-[#EAF3DE] text-[#27500A]' : 'bg-[#FAECE7] text-[var(--peligro)]'}`}>
                         {isPassed ? 'Aprobado' : 'Reprobado'}
                       </span>
                     </div>
@@ -240,7 +240,7 @@ const handleContinue = async () => {
           <button
             onClick={handleContinue}
             disabled={isPending || isUpdating}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50 min-h-[48px] sm:min-h-auto"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--ok)] text-white rounded-lg font-semibold hover:bg-[var(--ok)]/90 transition-colors text-lg disabled:opacity-50 min-h-[48px] sm:min-h-auto"
           >
             {isUpdating ? (
               <>
@@ -286,8 +286,8 @@ const handleContinue = async () => {
             <span className={`
               inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium
               ${quizStatus.attemptsUsed > 0
-                ? 'bg-[#F5A623]/10 text-[#F5A623]'
-                : 'bg-[var(--ambar-50)] text-[var(--ambar)]'
+                ? 'bg-[var(--aviso-bg)] text-[var(--aviso)]'
+                : 'bg-[var(--ambar-50)] text-[var(--ambar-700)]'
               }
             `}>
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -296,30 +296,7 @@ const handleContinue = async () => {
               Intento {quizStatus.attemptsUsed + 1} de {maxAttempts}
             </span>
 
-            <div className="relative group">
-              <button
-                type="button"
-                className="p-1 text-[var(--tinta-3)] hover:text-[var(--ambar)] transition-colors rounded-full"
-                aria-label="Información sobre intentos"
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M12 16v-4"/>
-                  <path d="M12 8h.01"/>
-                </svg>
-              </button>
-
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[var(--tinta)] text-white text-xs rounded-xl p-3 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                <p className="font-semibold mb-1">Sistema de intentos</p>
-                <ul className="space-y-1 text-white/80">
-                  <li>• Tienes {maxAttempts} intentos por evaluación</li>
-                  <li>• Al agotar los intentos debes reiniciar el curso</li>
-                  <li>• Tu mejor puntaje queda registrado</li>
-                  <li>• El administrador puede habilitar nuevos intentos</li>
-                </ul>
-                <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--tinta)]" />
-              </div>
-            </div>
+            <InfoIntentos maxAttempts={maxAttempts} />
 
             <span className="text-sm text-[var(--md-on-surface-variant)]">
               Puntaje mínimo: <span className="font-semibold text-[var(--md-on-surface)]">{passingScore}%</span>
@@ -365,10 +342,10 @@ const handleContinue = async () => {
                     <div className="flex-1 min-w-0">
                       <p className="text-xs text-[var(--tinta-3)]">{date}</p>
                     </div>
-                    <span className={`text-sm font-extrabold ${isPassed ? 'text-[#27AE60]' : 'text-[#E74C3C]'}`}>
+                    <span className={`text-sm font-extrabold ${isPassed ? 'text-[var(--ok)]' : 'text-[var(--peligro)]'}`}>
                       {attempt.score}%
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${isPassed ? 'bg-[#EAF3DE] text-[#27500A]' : 'bg-[#FAECE7] text-[#E74C3C]'}`}>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full shrink-0 ${isPassed ? 'bg-[#EAF3DE] text-[#27500A]' : 'bg-[#FAECE7] text-[var(--peligro)]'}`}>
                       {isPassed ? 'Aprobado' : 'Reprobado'}
                     </span>
                   </div>
@@ -488,11 +465,11 @@ const handleContinue = async () => {
         {/* Header de resultado */}
         <div className={`rounded-2xl p-5 sm:p-6 text-center ${
           passed
-            ? 'bg-[#EAF3DE] border border-[#27AE60]/20'
-            : 'bg-[#FAECE7] border border-[#E74C3C]/20'
+            ? 'bg-[#EAF3DE] border border-[var(--ok)]/20'
+            : 'bg-[#FAECE7] border border-[var(--peligro)]/20'
         }`}>
           <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 ${
-            passed ? 'bg-[#27AE60]' : 'bg-[#E74C3C]'
+            passed ? 'bg-[var(--ok)]' : 'bg-[var(--peligro)]'
           }`}>
             {passed ? (
               <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -505,10 +482,10 @@ const handleContinue = async () => {
               </svg>
             )}
           </div>
-          <h2 className={`text-xl font-extrabold mb-1 ${passed ? 'text-[#27500A]' : 'text-[#E74C3C]'}`}>
+          <h2 className={`text-xl font-extrabold mb-1 ${passed ? 'text-[#27500A]' : 'text-[var(--peligro)]'}`}>
             {passed ? '¡Aprobaste!' : 'No aprobaste esta vez'}
           </h2>
-          <p className={`text-sm ${passed ? 'text-[#27500A]/70' : 'text-[#E74C3C]/80'}`}>
+          <p className={`text-sm ${passed ? 'text-[#27500A]/70' : 'text-[var(--peligro)]/80'}`}>
             Obtuviste{' '}
             <span className="font-extrabold text-lg">{quizResult.score}%</span>
             {' '}— {correctCount} de {totalCount} respuestas correctas
@@ -529,13 +506,13 @@ const handleContinue = async () => {
                 key={question.id}
                 className={`rounded-xl border-2 p-4 ${
                   isCorrect
-                    ? 'border-[#27AE60]/30 bg-[#EAF3DE]/50'
-                    : 'border-[#E74C3C]/30 bg-[#FAECE7]/50'
+                    ? 'border-[var(--ok)]/30 bg-[#EAF3DE]/50'
+                    : 'border-[var(--peligro)]/30 bg-[#FAECE7]/50'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                    isCorrect ? 'bg-[#27AE60]' : 'bg-[#E74C3C]'
+                    isCorrect ? 'bg-[var(--ok)]' : 'bg-[var(--peligro)]'
                   }`}>
                     {isCorrect ? (
                       <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -553,8 +530,8 @@ const handleContinue = async () => {
                     <p className="text-sm font-medium text-[var(--tinta)] mb-2">{question.question_text}</p>
                     <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
                       isCorrect
-                        ? 'bg-[#27AE60]/10 text-[#27500A]'
-                        : 'bg-[#E74C3C]/10 text-[#E74C3C]'
+                        ? 'bg-[var(--ok)]/10 text-[#27500A]'
+                        : 'bg-[var(--peligro)]/10 text-[var(--peligro)]'
                     }`}>
                       <span className="font-bold uppercase">{userAnswer})</span>
                       {selectedOption?.text ?? 'Sin respuesta'}
@@ -575,16 +552,18 @@ const handleContinue = async () => {
         <div className="flex flex-col gap-3 pt-2">
           <button
             onClick={() => setQuizState('result')}
-            className={`w-full py-3.5 font-bold rounded-xl text-white transition-colors min-h-[48px] flex items-center justify-center gap-2 ${
+            /* El color de texto va por rama: sobre ámbar el blanco da 2.03:1,
+               así que esa rama lleva tinta oscura (8.81:1). */
+            className={`w-full py-3.5 font-bold rounded-xl transition-colors min-h-[48px] flex items-center justify-center gap-2 ${
               passed
-                ? 'bg-[#27AE60] hover:bg-[#27AE60]/90'
+                ? 'bg-[var(--ok)] hover:bg-[var(--ok)]/90 text-white'
                 : quizResult.attemptsRemaining > 0
-                  ? 'bg-[var(--ambar)] hover:bg-[var(--ambar-600)]'
-                  : 'bg-[#E74C3C] hover:bg-[#E74C3C]/90'
+                  ? 'bg-[var(--ambar)] hover:bg-[var(--ambar-600)] text-[#0f172a]'
+                  : 'bg-[var(--peligro)] hover:bg-[var(--peligro)]/90 text-white'
             }`}
           >
             {passed
-              ? 'Continuar →'
+              ? <>Continuar <span aria-hidden="true">→</span></>
               : quizResult.attemptsRemaining > 0
                 ? `Reintentar (${quizResult.attemptsRemaining} intento${quizResult.attemptsRemaining !== 1 ? 's' : ''} restante${quizResult.attemptsRemaining !== 1 ? 's' : ''})`
                 : 'Ver resultado final'
@@ -593,7 +572,7 @@ const handleContinue = async () => {
           {!passed && (
             <Link
               href={`/cursos/${courseId}/modulos/${moduleId}`}
-              className="w-full py-3.5 font-semibold rounded-xl border-2 border-[var(--borde)] text-[var(--tinta)] hover:border-[var(--ambar)] transition-colors min-h-[48px] flex items-center justify-center gap-2 text-sm"
+              className="w-full py-3.5 font-semibold rounded-xl border-2 border-[var(--borde)] text-[var(--tinta)] hover:border-[var(--ambar-700)] transition-colors min-h-[48px] flex items-center justify-center gap-2 text-sm"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -627,7 +606,7 @@ const handleContinue = async () => {
       // A) Aprobó
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
-          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#27AE60] flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[var(--ok)] flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 sm:w-12 sm:h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M6 9V2h12v7" />
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
@@ -646,7 +625,7 @@ const handleContinue = async () => {
 
           <div className="mb-8">
             <p className="text-sm text-[var(--md-on-surface-variant)] mb-1">Tu puntaje</p>
-            <p className="text-4xl sm:text-5xl font-black text-[#27AE60]">
+            <p className="text-4xl sm:text-5xl font-black text-[var(--ok)]">
               {quizResult.score}%
             </p>
           </div>
@@ -655,7 +634,7 @@ const handleContinue = async () => {
           <button
             onClick={handleContinue}
             disabled={isPending}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-[#27AE60] text-white rounded-lg font-semibold hover:bg-[#27AE60]/90 transition-colors text-lg disabled:opacity-50 min-h-[48px] sm:min-h-auto"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--ok)] text-white rounded-lg font-semibold hover:bg-[var(--ok)]/90 transition-colors text-lg disabled:opacity-50 min-h-[48px] sm:min-h-auto"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               {isCourseCompleted ? (
@@ -682,8 +661,8 @@ const handleContinue = async () => {
       // B) Reprobó pero le quedan intentos
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
-          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#F5A623]/20 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[#F5A623]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[var(--ambar-50)] flex items-center justify-center mx-auto mb-6">
+            <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[var(--ambar-700)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -700,7 +679,7 @@ const handleContinue = async () => {
 
           <div className="mb-8">
             <p className="text-sm text-[var(--md-on-surface-variant)] mb-1">Tu puntaje</p>
-            <p className="text-4xl sm:text-5xl font-black text-[#E74C3C]">
+            <p className="text-4xl sm:text-5xl font-black text-[var(--peligro)]">
               {quizResult.score}%
             </p>
           </div>
@@ -708,7 +687,7 @@ const handleContinue = async () => {
           <div className="flex flex-col gap-3">
             <button
               onClick={handleRetry}
-              className="w-full py-4 bg-[var(--ambar)] text-white rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
+              className="w-full py-4 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
@@ -739,8 +718,8 @@ const handleContinue = async () => {
     // C) Reprobó y agotó intentos
     return (
       <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
-        <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[#E74C3C]/10 flex items-center justify-center mx-auto mb-6">
-          <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[#E74C3C]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[var(--peligro)]/10 flex items-center justify-center mx-auto mb-6">
+          <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
@@ -756,7 +735,7 @@ const handleContinue = async () => {
 
         <div className="mb-8">
           <p className="text-sm text-[var(--md-on-surface-variant)] mb-1">Tu puntaje</p>
-          <p className="text-4xl sm:text-5xl font-black text-[#E74C3C]">
+          <p className="text-4xl sm:text-5xl font-black text-[var(--peligro)]">
             {quizResult.score}%
           </p>
         </div>
@@ -765,7 +744,7 @@ const handleContinue = async () => {
           <button
             onClick={handleResetProgress}
             disabled={isPending}
-            className="w-full py-4 bg-[var(--ambar)] text-white rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg disabled:opacity-50 min-h-[48px]"
+            className="w-full py-4 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg disabled:opacity-50 min-h-[48px]"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M1 4v6h6" />
@@ -794,6 +773,78 @@ const handleContinue = async () => {
   }
 
   return null
+}
+
+/**
+ * Ayuda sobre el sistema de intentos.
+ *
+ * Antes era un panel que solo aparecía con `group-hover` y llevaba
+ * `pointer-events-none`: con teclado no había forma de abrirlo (2.1.1) y con
+ * ratón no se podía llevar el puntero encima (1.4.13). Ahora es un disclosure
+ * con estado — abre por clic o Enter/Espacio, cierra con Escape devolviendo el
+ * foco al botón, y el contenido es hoverable porque persiste hasta cerrarlo.
+ */
+function InfoIntentos({ maxAttempts }: { maxAttempts: number }) {
+  const [abierto, setAbierto] = useState(false)
+  const contenedorRef = useRef<HTMLDivElement>(null)
+  const botonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!abierto) return
+
+    function alPresionarTecla(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return
+      setAbierto(false)
+      botonRef.current?.focus()
+    }
+    function alPulsarFuera(e: PointerEvent) {
+      if (contenedorRef.current?.contains(e.target as Node)) return
+      setAbierto(false)
+    }
+
+    document.addEventListener('keydown', alPresionarTecla)
+    document.addEventListener('pointerdown', alPulsarFuera)
+    return () => {
+      document.removeEventListener('keydown', alPresionarTecla)
+      document.removeEventListener('pointerdown', alPulsarFuera)
+    }
+  }, [abierto])
+
+  return (
+    <div className="relative" ref={contenedorRef}>
+      <button
+        ref={botonRef}
+        type="button"
+        onClick={() => setAbierto(v => !v)}
+        aria-expanded={abierto}
+        aria-controls="info-intentos"
+        aria-label="Información sobre el sistema de intentos"
+        className="flex items-center justify-center min-h-[44px] min-w-[44px] text-[var(--tinta-3)] hover:text-[var(--ambar-700)] transition-colors rounded-full"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 16v-4"/>
+          <path d="M12 8h.01"/>
+        </svg>
+      </button>
+
+      {abierto && (
+        <div
+          id="info-intentos"
+          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-[var(--tinta)] text-white text-xs rounded-xl p-3 shadow-lg z-50"
+        >
+          <p className="font-semibold mb-1">Sistema de intentos</p>
+          <ul role="list" className="space-y-1 text-white/80">
+            <li>Tienes {maxAttempts} intentos por evaluación</li>
+            <li>Al agotar los intentos debes reiniciar el curso</li>
+            <li>Tu mejor puntaje queda registrado</li>
+            <li>El administrador puede habilitar nuevos intentos</li>
+          </ul>
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[var(--tinta)]" aria-hidden="true" />
+        </div>
+      )}
+    </div>
+  )
 }
 
 function QuestionCard({
@@ -830,14 +881,27 @@ function QuestionCard({
           {index + 1}
         </div>
         <div className="crece">
-          <p style={{ fontWeight: 600, fontSize: 16, marginBottom: 16, lineHeight: 1.35 }}>{question.question_text}</p>
+          <p id={`pregunta-${question.id}`} style={{ fontWeight: 600, fontSize: 16, marginBottom: 16, lineHeight: 1.35 }}>{question.question_text}</p>
 
-          <div className="col" style={{ gap: 10 }}>
+          {/* Las cuatro alternativas son un grupo de radios rotulado por el
+              enunciado: sin esto el lector lee cuatro radios sueltos sin saber
+              a qué pregunta responden. */}
+          <div
+            className="col"
+            role="radiogroup"
+            aria-labelledby={`pregunta-${question.id}`}
+            style={{ gap: 10 }}
+          >
             {options.map((option) => {
               const sel = selectedAnswer === option.id
               return (
                 <label
                   key={option.id}
+                  /* El <input> es sr-only, así que su anillo de foco cae sobre
+                     un elemento recortado y no se ve. El anillo se pinta en la
+                     etiqueta, y con has-[:focus-visible] para que no aparezca
+                     al hacer clic con el ratón. */
+                  className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--ring)]"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -848,7 +912,9 @@ function QuestionCard({
                     cursor: 'pointer',
                     fontSize: 15.5,
                     fontWeight: 500,
-                    border: '2px solid ' + (sel ? 'var(--ambar)' : 'var(--borde)'),
+                    /* El borde marca "seleccionada": necesita 3:1 (1.4.11) y
+                       var(--ambar) sobre blanco solo da 2.03:1. */
+                    border: '2px solid ' + (sel ? 'var(--ambar-700)' : 'var(--borde)'),
                     background: sel ? 'var(--ambar-50)' : 'var(--blanco)',
                     transition: 'border-color 0.15s ease, background-color 0.15s ease',
                   }}
@@ -870,7 +936,7 @@ function QuestionCard({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: '2px solid ' + (sel ? 'var(--ambar-600)' : 'var(--borde)'),
+                      border: '2px solid ' + (sel ? 'var(--ambar-700)' : 'var(--borde)'),
                       background: sel ? 'var(--ambar)' : 'transparent',
                       color: '#0f172a',
                     }}

@@ -180,7 +180,7 @@ export function BlockCard({
           {/* Botón eliminar */}
           <button
             onClick={onDelete}
-            className="p-2 lg:p-2 rounded-lg hover:bg-[#FAECE7] text-muted-foreground hover:text-[#E74C3C] transition-colors min-h-[44px] min-w-[44px] lg:min-h-[36px] lg:min-w-[36px] flex items-center justify-center"
+            className="p-2 lg:p-2 rounded-lg hover:bg-[#FAECE7] text-muted-foreground hover:text-[var(--peligro)] transition-colors min-h-[44px] min-w-[44px] lg:min-h-[36px] lg:min-w-[36px] flex items-center justify-center"
             aria-label={`Eliminar ${module.title}`}
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

@@ -117,7 +117,7 @@ function CertificadoValido({
       <div
         className="col"
         style={{
-          background: cert.isDemo ? 'var(--arena-100)' : 'var(--ok, #27AE60)',
+          background: cert.isDemo ? 'var(--arena-100)' : 'var(--ok)',
           color: cert.isDemo ? 'var(--tinta)' : '#fff',
           padding: '26px 24px 18px',
           alignItems: 'center',
@@ -149,7 +149,7 @@ function CertificadoValido({
         </h1>
       </div>
 
-      {!cert.isDemo && <Onda color="var(--ok, #27AE60)" alto={22} voltear />}
+      {!cert.isDemo && <Onda color="var(--ok)" alto={22} voltear />}
 
       <div className="col card-pad" style={{ gap: 18 }}>
         <Dato etiqueta="Titular" valor={cert.workerName} destacado />

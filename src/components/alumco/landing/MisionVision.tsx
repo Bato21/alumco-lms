@@ -113,7 +113,7 @@ export default function MisionVision() {
       {/* Visión — banda suave centrada */}
       <section style={{ padding: '96px 24px', background: 'var(--arena-100)', borderBlock: '1px solid var(--borde-suave)' }}>
         <div style={{ maxWidth: 820, margin: '0 auto', textAlign: 'center' }}>
-          <span className="t-eyebrow">◆ Hacia dónde vamos</span>
+          <span className="t-eyebrow"><span aria-hidden="true">◆</span> Hacia dónde vamos</span>
           <h2 className="t-display" style={{ fontSize: 'clamp(30px, 4.6vw, 48px)', marginTop: 14 }}>
             Nuestra visión
           </h2>

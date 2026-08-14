@@ -100,7 +100,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
             {/* Áreas */}
             <div className="flex items-start gap-3">
               <div className="h-9 w-9 rounded-xl bg-[#EAF3DE] flex items-center justify-center shrink-0">
-                <svg className="h-5 w-5 text-[#27AE60]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="h-5 w-5 text-[var(--ok)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -131,13 +131,14 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
               },
               {
                 icon: 'M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0',
-                color: '#27AE60',
+                color: 'var(--ok)',
                 bg: '#EAF3DE',
                 text: 'Completa evaluaciones y obtén tus certificados digitales',
               },
               {
                 icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9',
-                color: '#F5A623',
+                // #F5A623 sobre #FFF8EC da 1.92:1: no llega al 3:1 de 1.4.11.
+                color: 'var(--ambar-700)',
                 bg: '#FFF8EC',
                 text: 'Recibe alertas cuando tus cursos estén próximos a vencer',
               },
@@ -172,7 +173,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
               </>
             ) : (
               <>
-                Comenzar mi capacitación →
+                Comenzar mi capacitación <span aria-hidden="true">→</span>
               </>
             )}
           </button>

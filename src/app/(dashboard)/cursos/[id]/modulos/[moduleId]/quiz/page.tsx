@@ -107,9 +107,9 @@ export default async function QuizPage({ params }: QuizPageProps) {
           </p>
           <Link
             href="/cursos"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--ambar)] text-white rounded-lg font-semibold text-sm hover:bg-[var(--ambar-600)] transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold text-sm hover:bg-[var(--ambar-600)] transition-colors"
           >
-            ← Volver a mis cursos
+            <span aria-hidden="true">←</span> Volver a mis cursos
           </Link>
         </div>
       )
@@ -142,9 +142,9 @@ export default async function QuizPage({ params }: QuizPageProps) {
         </p>
         <Link
           href={`/cursos/${courseId}`}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--ambar)] text-white rounded-lg font-semibold text-sm hover:bg-[var(--ambar-600)] transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold text-sm hover:bg-[var(--ambar-600)] transition-colors"
         >
-          ← Volver al curso
+          <span aria-hidden="true">←</span> Volver al curso
         </Link>
       </div>
     )

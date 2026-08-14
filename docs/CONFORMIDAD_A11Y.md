@@ -51,17 +51,29 @@ verificada, pero el criterio sigue sin cumplirse por el resto:
 
 | Severidad | Detectados | Cerrados | Parciales | Abiertos |
 | :--- | ---: | ---: | ---: | ---: |
-| Bloqueante | 8 | 3 | 1 | **4** |
+| Bloqueante | 8 | **8** | 0 | **0** |
 | Alta | 11 | 5 | 2 | **4** |
-| Media | 8 | 1 | 1 | **6** |
-| Baja | 4 | 0 | 1 | **3** |
-| **Total** | **31** | **9** | **5** | **17** |
+| Media | 8 | 2 | 1 | **5** |
+| Baja | 4 | 1 | 1 | **2** |
+| **Total** | **31** | **16** | **4** | **11** |
+
+**Ya no queda ningún hallazgo bloqueante abierto.** Los cuatro que faltaban (A11Y-05 a
+A11Y-08) se cerraron en esta pasada.
 
 | Estado | Hallazgos |
 | :--- | :--- |
-| **Cerrados** | A11Y-01 (tokens de color en conflicto) · A11Y-03 (`focus:outline-none`) · A11Y-04 (cajón móvil enfocable estando cerrado) · A11Y-09 (enlace de salto) · A11Y-10 (landmarks y `<h1>` del login) · A11Y-12 (foco en los 8 diálogos) · A11Y-14 (mensajes de estado del quiz y del progreso) · A11Y-16 (objetivos táctiles sobre enlaces en línea) · A11Y-21 (títulos de página) |
-| **Parciales** | A11Y-02 (anillo de foco corregido; corregidos además los tokens `--ambar-700`, `--ok` y `--aviso` en las tres paletas con scope —`.paleta-oliva`, `.paleta-azul`, `.landing-page`— que reintroducían el ámbar a 3.80:1 pese al valor base correcto; quedan literales sin migrar en quiz, certificados, notificaciones, constructor de cursos y landing) · A11Y-11 (`role="listitem"` sobre `<Link>` corregido; el estado sigue siendo solo color) · A11Y-17 (barra de progreso ya tiene nombre accesible; el riel sigue en 1.54:1) · A11Y-26 (botones, badges y barra de tabs corregidos; quedan `truncate` sobre valores de dato) · A11Y-29 (`aria-hidden` añadido en los iconos tocados en esta pasada, no en todos) |
-| **Abiertos** | A11Y-05, 06, 07, 08, 13, 15, 18, 19, 20, 22, 23, 24, 25, 27, 28, 30, 31 |
+| **Cerrados** | A11Y-01 (tokens de color en conflicto) · A11Y-02 (ámbar de marca como texto) · A11Y-03 (`focus:outline-none`) · A11Y-04 (cajón móvil enfocable estando cerrado) · A11Y-05 (tooltip del quiz inalcanzable por teclado) · A11Y-06 (radios `sr-only` sin foco visible ni agrupación) · A11Y-07 (texto blanco sobre ámbar y sobre verde) · A11Y-08 (buscador global sin etiqueta y con atajos falsos) · A11Y-09 (enlace de salto) · A11Y-10 (landmarks y `<h1>` del login) · A11Y-12 (foco en los 8 diálogos) · A11Y-14 (mensajes de estado del quiz y del progreso) · A11Y-16 (objetivos táctiles sobre enlaces en línea) · A11Y-21 (títulos de página) · A11Y-25 (desbordamiento del desplegable a 320 px) · A11Y-28 (glifos decorativos leídos como texto) |
+| **Parciales** | A11Y-11 (`role="listitem"` sobre `<Link>` corregido; el estado sigue siendo solo color) · A11Y-17 (barra de progreso ya tiene nombre accesible; el riel sigue en 1.54:1) · A11Y-26 (botones, badges y barra de tabs corregidos; quedan `truncate` sobre valores de dato) · A11Y-29 (`aria-hidden` añadido en los iconos tocados en las pasadas hechas, no en todos) |
+| **Abiertos** | A11Y-13, 15, 18, 19, 20, 22, 23, 24, 27, 30, 31 |
+
+**Nota sobre A11Y-08.** El hallazgo pedía exponer el rol de `combobox`. Se resolvió por otra
+vía: el campo es un `<input type="search">` con etiqueta real dentro de un `role="search"`, y
+los resultados son listas de botones que se recorren con `Tab`. Se descartó el patrón
+`combobox`/`listbox` con `aria-activedescendant` porque exige navegación por flechas que el
+público objetivo —trabajadores de ELEAM, mayoría en móvil— no usa, y porque el patrón a medias
+es peor que no declararlo. Los tres incumplimientos reales del hallazgo (campo sin nombre
+accesible, cambio de resultados no anunciado, y un pie que prometía «Enter para buscar · Esc
+para cerrar» sin que ninguna de las dos teclas estuviera implementada) sí están corregidos.
 
 ---
 

@@ -192,8 +192,8 @@ export function BlockPalette({ courseId, onModuleCreated }: BlockPaletteProps) {
           </h3>
 
           {error && (
-            <div className="mb-3 lg:mb-4 p-3 rounded-lg bg-[#FAECE7] border border-[#E74C3C]/20">
-              <p className="text-sm text-[#E74C3C]">{error}</p>
+            <div className="mb-3 lg:mb-4 p-3 rounded-lg bg-[#FAECE7] border border-[var(--peligro)]/20">
+              <p className="text-sm text-[var(--peligro)]">{error}</p>
             </div>
           )}
 

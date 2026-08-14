@@ -16,7 +16,7 @@ export default async function DiasAdministrativosPage() {
   return (
     <div className="col max-w-4xl mx-auto" style={{ gap: 22 }} data-screen-label="Trabajador · Días administrativos">
       <div className="entra">
-        <span className="t-eyebrow">◆ Beneficios</span>
+        <span className="t-eyebrow"><span aria-hidden="true">◆</span> Beneficios</span>
         <h1 className="t-display" style={{ fontSize: 32, marginTop: 8 }}>Días administrativos</h1>
         <p className="silencio" style={{ marginTop: 4, fontSize: 15 }}>
           Solicita y revisa tus días administrativos.

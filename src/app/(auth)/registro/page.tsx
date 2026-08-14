@@ -19,7 +19,7 @@ export default function RegistroPage() {
         <div className="col" style={{ alignItems: 'center', gap: 6, marginBottom: 28, textAlign: 'center' }}>
           <MarcaAlumco />
           <p className="texto-s silencio-3" style={{ marginTop: 6 }}>
-            Kimün<span style={{ color: 'var(--ambar)' }}>Ko</span> · plataforma de capacitación de ONG Alumco
+            Kimün<span style={{ color: 'var(--ambar-700)' }}>Ko</span> · plataforma de capacitación de ONG Alumco
           </p>
         </div>
 

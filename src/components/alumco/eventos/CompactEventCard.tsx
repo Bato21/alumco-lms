@@ -20,7 +20,7 @@ export function CompactEventCard({ evento }: { evento: EventoResumen }) {
       data-screen-label="Card evento compacta"
     >
       {/* Etiqueta */}
-      <span className="t-eyebrow">◆ Próximo evento</span>
+      <span className="t-eyebrow"><span aria-hidden="true">◆</span> Próximo evento</span>
 
       {/* Día y mes destacados */}
       <div className="flex items-baseline gap-1.5 lg:mt-1 flex-wrap">

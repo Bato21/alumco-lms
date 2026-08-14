@@ -15,7 +15,7 @@ export default function MemoriasSection() {
   return (
     <section id="memorias" style={{ padding: '96px 24px', maxWidth: 1080, margin: '0 auto' }}>
       <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 48px' }}>
-        <span className="t-eyebrow">◆ Transparencia</span>
+        <span className="t-eyebrow"><span aria-hidden="true">◆</span> Transparencia</span>
         <h2 className="t-display" style={{ fontSize: 'clamp(28px, 4vw, 40px)', marginTop: 12 }}>
           Memorias
         </h2>

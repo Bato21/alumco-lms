@@ -47,7 +47,7 @@ export function DownloadCertificateButton({
       <button
         onClick={handleDownload}
         disabled={isGenerating}
-        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#F5A623] text-white text-sm font-semibold hover:bg-[#e0961a] transition-colors min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
+        className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#F5A623] text-[#0f172a] text-sm font-semibold hover:bg-[#e0961a] transition-colors min-h-[44px] disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isGenerating ? (
           <>
@@ -68,7 +68,7 @@ export function DownloadCertificateButton({
         )}
       </button>
       {error && (
-        <p className="text-xs text-[#E74C3C] font-medium">{error}</p>
+        <p className="text-xs text-[var(--peligro)] font-medium">{error}</p>
       )}
     </div>
   )

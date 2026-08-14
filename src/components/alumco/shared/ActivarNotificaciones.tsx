@@ -227,7 +227,10 @@ export function ActivarNotificaciones() {
       {estado === 'no-soportado' && (
         <p className="texto-s silencio">
           Este navegador no soporta notificaciones. En iPhone: instala la app primero
-          (Compartir → &ldquo;Agregar a pantalla de inicio&rdquo;) y ábrela desde el ícono.
+          {/* Aquí la flecha no adorna: describe una secuencia de menú. Se
+              oculta al lector y se le da la palabra equivalente. */}
+          (Compartir <span aria-hidden="true">→</span><span className="sr-only">y luego</span>{' '}
+          &ldquo;Agregar a pantalla de inicio&rdquo;) y ábrela desde el ícono.
         </p>
       )}
 

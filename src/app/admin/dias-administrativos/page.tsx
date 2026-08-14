@@ -14,7 +14,7 @@ export default async function AdminDiasAdministrativosPage() {
   return (
     <div className="col" style={{ gap: 22 }} data-screen-label="Admin · Días administrativos">
       <div>
-        <span className="t-eyebrow">◆ Gestión</span>
+        <span className="t-eyebrow"><span aria-hidden="true">◆</span> Gestión</span>
         <h1 className="t-display" style={{ fontSize: 30, marginTop: 8 }}>Días administrativos</h1>
         <p className="silencio" style={{ marginTop: 4, fontSize: 15 }}>
           Aprueba o rechaza solicitudes y configura los cupos.

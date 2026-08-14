@@ -66,7 +66,12 @@ export function AdminTopBar({ alerts, role, fullName, evento }: AdminTopBarProps
         transition: 'transform 0.3s ease-in-out',
       }}
     >
-      <SearchBar placeholder="Buscar cursos, trabajadores o sedes…" className="w-full max-w-[480px]" />
+      <SearchBar
+        placeholder="Buscar cursos, trabajadores o sedes…"
+        className="w-full max-w-[480px]"
+        id="busqueda-admin"
+        etiqueta="Buscar cursos, trabajadores o sedes"
+      />
       <div className="crece" />
       <NotificationBell initialAlerts={alerts} role={role} evento={evento} />
       <span style={{ width: 1, height: 26, background: 'var(--borde-suave)' }} />

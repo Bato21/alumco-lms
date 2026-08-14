@@ -82,7 +82,7 @@ export default function QuizQuestionsEditor({
                 <button
                   onClick={() => handleDelete(q.id)}
                   disabled={isPending && deletingId === q.id}
-                  className="p-1.5 rounded-md hover:bg-[#FAECE7] text-muted-foreground hover:text-[#E74C3C] transition-colors shrink-0 disabled:opacity-50"
+                  className="p-1.5 rounded-md hover:bg-[#FAECE7] text-muted-foreground hover:text-[var(--peligro)] transition-colors shrink-0 disabled:opacity-50"
                   aria-label="Eliminar pregunta"
                 >
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

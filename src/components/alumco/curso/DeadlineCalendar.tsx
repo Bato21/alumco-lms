@@ -140,10 +140,10 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
                     {deadlines.slice(0, 2).map(course => {
                       const color =
                         course.deadlineStatus === 'overdue'
-                          ? 'bg-[#FAECE7] text-[#E74C3C] border-[#E74C3C]/20'
+                          ? 'bg-[#FAECE7] text-[var(--peligro)] border-[var(--peligro)]/20'
                           : course.deadlineStatus === 'soon'
                           ? 'bg-[#FFF8E7] text-[#854F0B] border-[#F5A623]/20'
-                          : 'bg-[#EAF3DE] text-[#27500A] border-[#27AE60]/20'
+                          : 'bg-[#EAF3DE] text-[#27500A] border-[var(--ok)]/20'
 
                       return (
                         <Link
@@ -174,7 +174,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
       {/* Leyenda */}
       <div className="px-4 sm:px-5 py-3 border-t flex items-center gap-3 sm:gap-4 flex-wrap">
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-sm bg-[#FAECE7] border border-[#E74C3C]/20"/>
+          <div className="h-2.5 w-2.5 rounded-sm bg-[#FAECE7] border border-[var(--peligro)]/20"/>
           <span className="text-xs text-muted-foreground">Vencido</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -182,7 +182,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
           <span className="text-xs text-muted-foreground">Por vencer</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-sm bg-[#EAF3DE] border border-[#27AE60]/20"/>
+          <div className="h-2.5 w-2.5 rounded-sm bg-[#EAF3DE] border border-[var(--ok)]/20"/>
           <span className="text-xs text-muted-foreground">A tiempo</span>
         </div>
       </div>

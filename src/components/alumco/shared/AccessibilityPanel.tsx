@@ -74,9 +74,15 @@ export function AccessibilityPanel({ initial }: { initial: PreferencesValues }) 
         <legend style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Tamaño del contenido</legend>
         <div className="fila" style={{ gap: 8, flexWrap: 'wrap' }}>
           {ESCALAS.map((escala, i) => (
+            /* El radio va sr-only: su anillo de foco cae sobre un elemento
+               recortado y no se ve. Se pinta en la etiqueta, igual que en las
+               alternativas del quiz. */
             <label
               key={escala}
-              className={prefs.font_scale === escala ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm'}
+              className={
+                (prefs.font_scale === escala ? 'btn btn-primary btn-sm' : 'btn btn-secondary btn-sm') +
+                ' has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--ring)]'
+              }
               style={{ cursor: 'pointer', fontSize: 13 + i * 2 }}
             >
               <input
