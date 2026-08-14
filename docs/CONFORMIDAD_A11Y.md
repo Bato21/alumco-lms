@@ -37,14 +37,19 @@ cliente.
 
 | | Antes de esta fase | A la fecha de esta declaración |
 | :--- | ---: | ---: |
-| Criterios conformes | 15 | **19** |
+| Criterios conformes | 15 | **22** |
 | Conformes con observación | 3 | **4** |
-| Criterios **no** conformes | 22 | **17** |
+| Criterios **no** conformes | 22 | **14** |
 | No aplicables | 0 | 0 |
 
 Pasaron a conformes **2.4.1** (Evitar bloques), **2.4.2** (Titulado de páginas), **2.1.2** (Sin
-trampas de teclado) y **2.4.3** (Orden del foco); **1.4.12** (Espaciado del texto) pasó de no
-conforme a conforme con observación.
+trampas de teclado), **2.4.3** (Orden del foco), **1.4.10** (Reflujo), **2.4.7** (Foco visible) y
+**4.1.3** (Mensajes de estado); **1.4.12** (Espaciado del texto) pasó de no conforme a conforme
+con observación.
+
+De los 14 que siguen sin cumplirse, **9 están parcialmente corregidos** y fallan por un resto
+acotado: 1.1.1, 1.3.1, 1.4.3, 1.4.11, 1.4.13, 2.1.1, 2.4.6, 3.3.2 y 4.1.2. El § 5 detalla en
+cada uno qué quedó cerrado y qué falta.
 
 **Hallazgos de la auditoría** (31 en total). "Parcial" = una parte del hallazgo está corregida y
 verificada, pero el criterio sigue sin cumplirse por el resto:
@@ -165,25 +170,25 @@ Los identificadores `A11Y-nn` remiten a [`AUDITORIA_A11Y.md`](./AUDITORIA_A11Y.m
 
 | Criterio | Nivel | Estado | Justificación |
 | :--- | :---: | :---: | :--- |
-| 1.1.1 Contenido no textual | A | ❌ | SVG inline sin `aria-hidden` fuera del componente `Icono`; glifos decorativos (`◆`, `←`, `→`) leídos como texto. **A11Y-28, A11Y-29** |
+| 1.1.1 Contenido no textual | A | ❌ | **Parcialmente corregido.** Cerrado: los glifos decorativos (`◆`, `←`, `→`, `✓`) van en `<span aria-hidden>`; la flecha de `ActivarNotificaciones`, que describe una secuencia de menú, lleva además su equivalente textual (A11Y-28). Abierto: quedan SVG inline sin `aria-hidden` fuera del componente `Icono`. **A11Y-29** |
 | 1.2.2 Subtítulos (grabado) | A | ❌ | Los videos se sirven desde YouTube y el código no puede garantizar subtítulos. Requiere control editorial — ver § 6 |
-| 1.3.1 Información y relaciones | A | ❌ | **Parcialmente corregido.** Cerrado: landmarks del login, `role="listitem"` sobre `<Link>` en "Tu recorrido", etiquetas huérfanas en constructor de cursos y edición de trabajador. Abierto: quiz sin `<fieldset>/<legend>`, 5 de 7 tablas sin `scope`/`caption`, 15 páginas sin `<h1>`. **A11Y-06, 15, 20, 31** |
+| 1.3.1 Información y relaciones | A | ❌ | **Parcialmente corregido.** Cerrado: landmarks del login, `role="listitem"` sobre `<Link>` en "Tu recorrido", etiquetas huérfanas en constructor de cursos y edición de trabajador, y las alternativas del quiz agrupadas en `role="radiogroup"` rotulado por el enunciado (A11Y-06). Abierto: 4 de 7 tablas sin `scope`/`caption`, 15 páginas sin `<h1>`, secciones del sidebar sin semántica. **A11Y-15, 20, 31** |
 | 1.3.2 Secuencia significativa | A | ✅ | Orden DOM = orden visual en todas las vistas revisadas |
 | 1.3.4 Orientación | AA | ✅ | `manifest.ts` no fija `orientation`; sin bloqueos en CSS |
 | 1.3.5 Identificar propósito de entrada | AA | ✅ | `autoComplete` correcto en login, registro y recuperación. `rut` usa `off` por no existir token HTML para el identificador chileno |
 | 1.4.1 Uso del color | A | ❌ | El estado de curso en "Tu recorrido", la urgencia de las notificaciones y las áreas de los gráficos se distinguen solo por color. **A11Y-11, 13, 19** |
-| 1.4.3 Contraste (mínimo) | AA | ❌ | **Parcialmente corregido.** Los 24 pares token/fondo del sistema cumplen (A11Y-01 cerrado). Siguen abiertos ~120 literales usados como color de texto: 37 `#F5A623` (2.03:1), 37 `#27AE60` (2.87:1), 48 `#E74C3C` (3.82:1). **A11Y-02, 07, 18, 23** |
+| 1.4.3 Contraste (mínimo) | AA | ❌ | **Parcialmente corregido.** Los pares token/fondo del sistema cumplen (A11Y-01). Migrados los ~120 literales usados como color de texto y los botones con texto blanco sobre ámbar y sobre verde (A11Y-02, A11Y-07); corregidos además `--ambar-700`, `--ok` y `--aviso` en las tres paletas con scope y los pares `--ok`/`--ok-bg` (4.34:1) y `--aviso`/`--aviso-bg` (4.46:1), que fallaban contra su propio fondo de badge. Abierto: los módulos bloqueados con `opacity-50` y `--tinta-3` sobre el fondo crema (4.46:1). **A11Y-18, A11Y-23** |
 | 1.4.4 Cambio de tamaño del texto | AA | ⚠️ | Se cumple: el zoom al 200 % escala y el layout responde. Pero el sistema mide casi todo en `px`, muchos inline, así que la app ignora en gran medida el tamaño de fuente configurado en el navegador. `html` ya pasó a `112.5%` |
-| 1.4.10 Reflujo | AA | ❌ | El desplegable del buscador fuerza 320 px mínimos y desborda en pantallas de 320 px. **A11Y-25** (A11Y-16 cerrado) |
-| 1.4.11 Contraste no textual | AA | ❌ | **Parcialmente corregido.** Bordes de campo (1.26:1 → 3.34:1), anillo de foco del sistema (2.03:1 → 7.14:1 sobre crema) y los 26 controles que lo anulaban (A11Y-03) cerrados. Abierto: radios `sr-only` del quiz, riel de la barra de progreso (1.54:1) y objetivos del calendario. **A11Y-06, 17, 19** |
+| 1.4.10 Reflujo | AA | ✅ | **Cerrado.** El desplegable del buscador ya no fuerza `min-w-[320px]`, que con el margen del contenedor desbordaba horizontalmente en pantallas de 320 px. **A11Y-25** (A11Y-16 ya estaba cerrado) |
+| 1.4.11 Contraste no textual | AA | ❌ | **Parcialmente corregido.** Bordes de campo (1.26:1 → 3.34:1), anillo de foco del sistema (2.03:1 → 7.14:1 sobre crema) y los 26 controles que lo anulaban (A11Y-03) cerrados; el foco de los radios `sr-only` ya se ve y el borde de alternativa seleccionada pasa de 2.03:1 a 5.05:1 (A11Y-06). Abierto: riel de la barra de progreso (1.54:1) y objetivos del calendario. **A11Y-17, A11Y-19** |
 | 1.4.12 Espaciado del texto | AA | ⚠️ | Corregido en botones, badges y barra de tabs. Quedan `truncate` sobre valores de dato (nombres, títulos), aceptados por tener vía alternativa de acceso. **A11Y-26** |
-| 1.4.13 Contenido al pasar el cursor o al enfocar | AA | ❌ | El tooltip "Sistema de intentos" del quiz es solo-hover: no descartable, no hoverable, no persistente, e inalcanzable por teclado y en móvil. **A11Y-05, A11Y-27** |
+| 1.4.13 Contenido al pasar el cursor o al enfocar | AA | ❌ | **Parcialmente corregido.** Cerrado: el tooltip "Sistema de intentos" del quiz es ahora un disclosure con estado — descartable con `Escape`, hoverable y persistente hasta cerrarlo (A11Y-05). Abierto: el atributo `title` usado como tooltip informativo sobre texto truncado, que sigue sin ser ninguna de las tres cosas. **A11Y-27** |
 
 ### 5.2 Principio 2 — Operable
 
 | Criterio | Nivel | Estado | Justificación |
 | :--- | :---: | :---: | :--- |
-| 2.1.1 Teclado | A | ❌ | **Parcialmente corregido.** Cerrado: la intro de la landing ya se puede saltar con teclado; el plegado de filas en reportes tiene botón con `aria-expanded`. Abierto: tooltip del quiz, cierre del buscador global. **A11Y-05, 08, 13** |
+| 2.1.1 Teclado | A | ❌ | **Parcialmente corregido.** Cerrado: la intro de la landing ya se puede saltar con teclado; el plegado de filas en reportes tiene botón con `aria-expanded`; el tooltip del quiz abre con Enter/Espacio (A11Y-05) y el buscador global cierra con `Escape` devolviendo el foco al campo (A11Y-08). Abierto: la campana de notificaciones no se cierra con teclado. **A11Y-13** |
 | 2.1.2 Sin trampas de teclado | A | ✅ | **Cerrado.** El hook `useAccessibleDialog` (`src/hooks/useAccessibleDialog.ts`) atrapa el foco en los 8 diálogos y cierra con `Escape`; los cajones móviles de admin y de trabajador llevan `inert` estando cerrados, así que dejan de aportar paradas de foco fantasma. **A11Y-04, A11Y-12** |
 | 2.2.1 Tiempo ajustable | A | ✅ | **Sin contenido aplicable.** Verificado: no hay ningún `setInterval` ni cuenta atrás en el flujo de evaluación (`QuizClient.tsx`), y el quiz no tiene límite de tiempo. El único `setInterval` del repositorio está en el carrusel de la landing, que no impone plazos. Si en el futuro se añade un temporizador al quiz, este criterio pasa a aplicar y exige poder ajustarlo, extenderlo o desactivarlo |
 | 2.3.1 Destellos | A | ✅ | No se detectó ninguna animación que supere tres destellos por segundo. Además, todas respetan `prefers-reduced-motion` y hay preferencia de usuario propia |
@@ -193,7 +198,7 @@ Los identificadores `A11Y-nn` remiten a [`AUDITORIA_A11Y.md`](./AUDITORIA_A11Y.m
 | 2.4.4 Propósito del enlace (en contexto) | A | ✅ | Sin `href="#"` en el repositorio. Regla `anchor-ambiguous-text` activa con vocabulario en español |
 | 2.4.5 Múltiples vías | AA | ✅ | Navegación por menú + buscador global en ambas vistas |
 | 2.4.6 Encabezados y etiquetas | AA | ❌ | **Parcialmente corregido.** Cerrado: el `<h1>` del login (antes un eslogan oculto en móvil). Abierto: 14 páginas sin `<h1>`, `<iframe>` de video titulado "Video player" en inglés. **A11Y-20, A11Y-22** |
-| 2.4.7 Foco visible | AA | ❌ | **Parcialmente corregido.** El anillo del sistema ya cumple (7.14:1 sobre crema) y los 26 controles que lo anulaban con `focus:outline-none` lo recuperan (A11Y-03 cerrado). Abierto: los radios del quiz y del panel de accesibilidad son `sr-only` y el foco se dibuja sobre un píxel invisible. **A11Y-06** |
+| 2.4.7 Foco visible | AA | ✅ | **Cerrado.** El anillo del sistema cumple (7.14:1 sobre crema) y los 26 controles que lo anulaban con `focus:outline-none` lo recuperan (A11Y-03). Los radios `sr-only` del quiz y del panel de accesibilidad dibujaban el foco sobre un elemento recortado: el anillo se pinta ahora en la etiqueta con `has-[:focus-visible]`, que además evita que aparezca al pulsar con ratón. **A11Y-03, A11Y-06** |
 | 2.4.11 Foco no oscurecido (mínimo) | AA | ❌ | El elemento enfocado puede quedar bajo la barra superior fija o la barra de tabs inferior. **A11Y-30** |
 | 2.5.3 Etiqueta en el nombre | A | ⚠️ | Los controles solo-icono no tienen etiqueta visible, así que el criterio no aplica a ellos. Observación: `WorkersTable` usa `title` donde debería usar `aria-label`. **A11Y-27** |
 | 2.5.7 Movimientos de arrastre | AA | ✅ | El constructor de cursos registra `KeyboardSensor` junto a `PointerSensor` y expone el asa como `<button>` con `aria-label`: reordenar por teclado funciona. Observación menor: dnd-kit emite sus anuncios en inglés |
@@ -218,8 +223,8 @@ Los identificadores `A11Y-nn` remiten a [`AUDITORIA_A11Y.md`](./AUDITORIA_A11Y.m
 
 | Criterio | Nivel | Estado | Justificación |
 | :--- | :---: | :---: | :--- |
-| 4.1.2 Nombre, rol, valor | A | ❌ | **Parcialmente corregido.** Cerrado: `role="listitem"` que anulaba el rol de enlace, nombre accesible de la barra de progreso, tres etiquetas huérfanas, cuatro controles sin nombre, y el rol y nombre del modal de bienvenida (que no declaraba ninguno). Abierto: el buscador no expone rol de combobox y la campana de notificaciones no expone estado ni conteo. **A11Y-05, 06, 08, 13, 15, 22** |
-| 4.1.3 Mensajes de estado | AA | ❌ | **Parcialmente corregido.** Cerrado: el resultado de la evaluación (las cuatro ramas: revisión, aprobado, reprobado con intentos y sin intentos) y la confirmación de progreso en video y PDF se anuncian en `role="status"` (A11Y-14). Abierto: los resultados del buscador global siguen sin anunciarse. **A11Y-08** |
+| 4.1.2 Nombre, rol, valor | A | ❌ | **Parcialmente corregido.** Cerrado: `role="listitem"` que anulaba el rol de enlace, nombre accesible de la barra de progreso, tres etiquetas huérfanas, cuatro controles sin nombre, el rol y nombre del modal de bienvenida, el `aria-expanded`/`aria-controls` del disclosure del quiz (A11Y-05), el `role="radiogroup"` de las alternativas (A11Y-06) y el nombre accesible del buscador (A11Y-08 — resuelto como campo de búsqueda etiquetado, no como combobox; ver nota del § 2). Abierto: la campana de notificaciones no expone estado ni conteo, falta `aria-sort` en las tablas y el `<iframe>` del video sigue titulado en inglés. **A11Y-13, 15, 22** |
+| 4.1.3 Mensajes de estado | AA | ✅ | **Cerrado.** El resultado de la evaluación (las cuatro ramas: revisión, aprobado, reprobado con intentos y sin intentos) y la confirmación de progreso en video y PDF se anuncian en `role="status"` (A11Y-14). El buscador global anuncia el número de resultados y el estado "Buscando…" (A11Y-08); días administrativos anuncia el recuento al filtrar, el cálculo de días hábiles y la respuesta de la Server Action de configuración. **A11Y-08, A11Y-14** |
 
 ---
 
@@ -352,21 +357,26 @@ Orden por relación beneficio/coste. Estimaciones en jornadas de una persona.
 
 | # | Hallazgo | Qué cierra | Esfuerzo |
 | :-: | :--- | :--- | :---: |
-| 1 | **A11Y-02 + A11Y-07** — migrar ~120 literales a los tokens de texto | Grueso de 1.4.3. Los tokens ya existen y están verificados | 1,5 d |
-| 2 | **A11Y-15** — `scope`, `caption` y `aria-sort` en 5 tablas | 1.3.1 y 4.1.2. Hoy: 6 `scope="col"`, 2 `<caption>`, 0 `aria-sort` | 0,5 d |
-| 3 | **A11Y-06** — `<fieldset>/<legend>` y foco visible en los radios del quiz | 1.3.1, 2.4.7 y 4.1.2 en el flujo crítico | 0,5 d |
-| 4 | **A11Y-05** — convertir el tooltip del quiz en disclosure | 2.1.1, 1.4.13 y 4.1.2 | 0,25 d |
-| 5 | **A11Y-08** — etiqueta y semántica de combobox en el buscador global | 3.3.2, 4.1.2, 4.1.3 y 2.1.1 | 0,5 d |
-| 6 | **A11Y-20 + A11Y-22 + A11Y-28 + A11Y-29 + A11Y-30 + A11Y-23** — `<h1>`, título del iframe, `aria-hidden`, `scroll-margin`, `--tinta-3` | 1.1.1, 2.4.6, 2.4.11 y el resto de 1.4.3 | 0,75 d |
-| 7 | **A11Y-11, 13, 19** — canal no cromático en recorrido, notificaciones y gráficos | 1.4.1 completo | 0,75 d |
-| 8 | **A11Y-24, 25, 26, 27, 31** — instrucciones de campo, reflujo del buscador, `title`, grupos del sidebar | 3.3.2, 3.3.3, 1.4.10, 1.4.13 | 1 d |
+| 1 | **A11Y-20** — `<h1>` en las 15 páginas que no lo tienen | Grueso de 2.4.6, y parte de 1.3.1 | 0,5 d |
+| 2 | **A11Y-15** — `scope`, `caption` y `aria-sort` en las 4 tablas que faltan | 1.3.1 y el resto de 4.1.2 | 0,5 d |
+| 3 | **A11Y-11, 13, 19** — canal no cromático en recorrido, notificaciones y gráficos. A11Y-13 cierra además el teclado de la campana | **1.4.1 completo**, y el resto de 2.1.1 y 4.1.2 | 0,75 d |
+| 4 | **A11Y-18 + A11Y-23** — módulos bloqueados con `opacity-50`, `--tinta-3` sobre crema (4.46:1) | **1.4.3 completo** | 0,25 d |
+| 5 | **A11Y-17 + A11Y-19** — riel de la barra de progreso (1.54:1) y objetivos táctiles del calendario | **1.4.11 y 2.5.8 completos** | 0,5 d |
+| 6 | **A11Y-22 + A11Y-29 + A11Y-30** — título del `<iframe>` en español, `aria-hidden` en los SVG restantes, `scroll-margin` bajo las barras fijas | **1.1.1 y 2.4.11 completos**, y el resto de 2.4.6 | 0,5 d |
+| 7 | **A11Y-24 + A11Y-27** — requisitos fuera del `placeholder`, mensajes que digan cómo corregir, `title` sustituido por disclosure | **3.3.2, 3.3.3 y 1.4.13 completos** | 0,75 d |
+| 8 | **A11Y-26 + A11Y-31** — `truncate` sobre valores de dato, secciones del sidebar con semántica | 1.4.12 y 1.3.1 | 0,5 d |
 
-**Total estimado: ~5,75 jornadas** de código, más las tres decisiones del § 6 y la validación de
+**Total estimado: ~4,25 jornadas** de código, más las tres decisiones del § 6 y la validación de
 diseño con la clienta.
 
-Los cuatro puntos que encabezaban esta lista —A11Y-03, A11Y-14, A11Y-12 y A11Y-04— se cerraron el
-2026-08-11 y ya no figuran aquí. Ninguno requería validación de diseño: no alteran la interfaz
-aprobada.
+Cerrar los puntos 1 a 5 deja **11 criterios más en conforme** y no quedaría ningún principio con
+incumplimientos de contraste ni de color.
+
+Los puntos que encabezaban esta lista ya no figuran aquí porque están cerrados: A11Y-03, A11Y-04,
+A11Y-12 y A11Y-14 el 2026-08-11; A11Y-02, A11Y-05, A11Y-06, A11Y-07, A11Y-08, A11Y-25 y A11Y-28
+el 2026-08-13. De estos últimos, **A11Y-02 y A11Y-07 sí alteran la interfaz aprobada** —cambian
+el color de texto de badges y botones en toda la plataforma— y están pendientes de validación
+visual con la clienta.
 
 A esto hay que sumar, para que la declaración pase de "revisión de código" a "verificado":
 
@@ -384,16 +394,35 @@ A esto hay que sumar, para que la declaración pase de "revisión de código" a 
 | 2026-08-10 | Emisión inicial. Estado: **parcialmente conforme** — 17 de 40 criterios conformes (+4 con observación), 5 de 31 hallazgos cerrados y 5 parciales, análisis estático de accesibilidad instalado y en verde en el pipeline |
 | 2026-08-11 | Cerrados **A11Y-03** (26 controles recuperan el indicador de foco del sistema), **A11Y-14** (`role="status"` en las cuatro ramas de resultado del quiz y en la confirmación de progreso de video y PDF), **A11Y-12** (hook `useAccessibleDialog` en los 8 diálogos: trampa de foco, `Escape` y devolución al disparador) y **A11Y-04** (`inert` y gestión de foco en los cajones móviles). **2.1.2** y **2.4.3** pasan a conformes: 19 de 40 criterios (+4 con observación), 9 de 31 hallazgos cerrados. Hallazgos adicionales corregidos de paso: el modal de bienvenida no declaraba `role="dialog"` ni nombre accesible y duplicaba el `<h1>` de `/inicio` (promovido a `<h2>`); el cajón móvil de la vista de trabajador tenía el mismo defecto que el de admin y se corrigió con él |
 
+| 2026-08-13 (1/2) | Integrada la rama `main` (tarjeta de días administrativos en la ficha del trabajador) y corregida a AA. **Causa de fondo detectada:** el valor base de `--ambar-700` ya era correcto (#b45309), pero las tres paletas con scope —`.paleta-oliva` (admin), `.paleta-azul` (trabajador) y `.landing-page`— lo re-sobrescribían a #b9740f (3.80:1), así que la corrección no llegaba a ninguna vista real. Corregidos también los pares `--ok`/`--ok-bg` (4.34:1) y `--aviso`/`--aviso-bg` (4.46:1), que fallaban contra su propio fondo de badge y no contra blanco. Commit `2bfbcac` |
+| 2026-08-13 (2/2) | Cerrados **A11Y-05** (tooltip del quiz → disclosure con `Escape` y contenido hoverable), **A11Y-06** (`role="radiogroup"` y anillo de foco sobre la etiqueta en los radios `sr-only` del quiz y del panel de accesibilidad), **A11Y-07** (tinta oscura sobre ámbar siguiendo el patrón que ya usaba `.btn-primary`; verdes a `var(--ok)`), **A11Y-08** (buscador global: etiqueta real, `role="search"`, `Escape` funcional y anuncio de resultados), **A11Y-02** (literales de color migrados), **A11Y-25** y **A11Y-28**. **No queda ningún hallazgo bloqueante abierto.** **1.4.10**, **2.4.7** y **4.1.3** pasan a conformes: 22 de 40 criterios (+4 con observación), 16 de 31 hallazgos cerrados. Commit `8c14854` |
+
 **Próxima revisión:** al cerrar los puntos 1 a 3 del § 8, o ante cualquier cambio que afecte al
 sistema de color, al foco o a la estructura de landmarks.
+
+**Pendiente de verificación empírica.** Todo lo anterior es revisión de código: `tsc`, el análisis
+estático de `jsx-a11y` en preset `strict` y los cálculos de contraste. **Nada se ha probado en un
+navegador real ni con lector de pantalla**, y las correcciones de contraste cambian la apariencia
+de badges y botones en toda la plataforma. Mientras eso no se haga, esta declaración no puede
+pasar de "revisión de código" a "verificado" — ver los tres puntos al final del § 8.
 
 ---
 
 ## 10 · Documentos relacionados
 
+**Cómo se reparten estos dos documentos.** No dicen lo mismo y no se mantienen igual:
+
+- **Este documento es el estado vigente.** Es el que hay que actualizar en cada pasada: el § 5
+  (criterio por criterio), el § 8 (lo que falta y cuánto cuesta) y el § 9 (qué se hizo y cuándo).
+  Si solo vas a leer uno, lee este.
+- **La auditoría es el hallazgo tal como se detectó**, con su medición original. No se reescribe
+  —es el registro de lo que se midió el 2026-08-11—, pero cada hallazgo lleva ahora una línea
+  `**Estado:**` al principio que dice si está cerrado, parcial o abierto, y con qué commit. Eso
+  evita "arreglar" algo ya arreglado leyendo un fix propuesto que ya se aplicó.
+
 - [`AUDITORIA_A11Y.md`](./AUDITORIA_A11Y.md) — auditoría técnica completa: los 31 hallazgos con
-  archivo:línea, ratio medido, impacto en el usuario, fix propuesto y riesgo de regresión; más
-  las tablas de contraste de la corrección de la base de estilos.
+  archivo:línea, ratio medido, impacto en el usuario, fix propuesto, riesgo de regresión y estado
+  actual; más las tablas de contraste de la corrección de la base de estilos.
 - [`../CLAUDE.md`](../CLAUDE.md) § "Normas de accesibilidad" — reglas obligatorias para código
   nuevo.
 - [`../eslint.config.mjs`](../eslint.config.mjs) — configuración de verificación automática y

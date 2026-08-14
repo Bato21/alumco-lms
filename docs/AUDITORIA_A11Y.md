@@ -93,6 +93,7 @@ como A11Y-23, no como H5.
 ## Hallazgos bloqueantes
 
 ### A11Y-01 — Dos bloques `:root` en conflicto: la paleta Alumco no llega al runtime
+- **Estado:** ✅ **Cerrado** — tokens de color unificados (80077f4)
 - **Criterio WCAG:** 1.4.11 Contraste de elementos no textuales (Nivel AA) · 2.4.7 Foco visible (Nivel AA)
 - **Severidad:** Bloqueante
 - **Archivo:** `src/app/globals.css:11-40` (bloque 1), `src/app/globals.css:164-197` (bloque 2), `src/app/globals.css:233-243` (segundo `@layer base`)
@@ -241,6 +242,7 @@ lista de fixes con decisión de diseño al final.
 ---
 
 ### A11Y-02 — El ámbar de marca `#F5A623` se usa como color de texto y como anillo de foco (2.03:1)
+- **Estado:** ✅ **Cerrado** — literales migrados a tokens de texto (8c14854)
 - **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA) · 1.4.11 Contraste de elementos no textuales (Nivel AA)
 - **Severidad:** Bloqueante
 - **Archivo:** `src/app/didasko.css:82-86` (anillo de foco global) + 38 ocurrencias de `#F5A623`
@@ -422,6 +424,7 @@ en esos dos contextos.
 ---
 
 ### A11Y-03 — `focus:outline-none` destruye el indicador de foco en 26 controles
+- **Estado:** ✅ **Cerrado** — indicador de foco recuperado (e79972c)
 - **Criterio WCAG:** 2.4.7 Foco visible (Nivel AA) · 1.4.11 Contraste de elementos no textuales (Nivel AA)
 - **Severidad:** Bloqueante
 - **Archivo:** 9 archivos, 26 ocurrencias (tabla abajo)
@@ -501,6 +504,7 @@ hacer clic con el mouse — mejora, no regresión.
 ---
 
 ### A11Y-04 — El menú lateral móvil del admin es enfocable estando cerrado, y no atrapa el foco estando abierto
+- **Estado:** ✅ **Cerrado** — `inert` y gestión de foco en cajones móviles (e79972c)
 - **Criterio WCAG:** 2.4.3 Orden del foco (Nivel A) · 2.1.2 Sin trampas de teclado (Nivel A) · 4.1.2 Nombre, rol, valor (Nivel A)
 - **Severidad:** Bloqueante
 - **Archivo:** `src/components/alumco/nav/AdminSidebar.tsx:156-190`
@@ -613,6 +617,7 @@ de scroll; se mitiga con `preventScroll: true`, ya incluido arriba.
 ---
 
 ### A11Y-05 — El tooltip "Sistema de intentos" del quiz es inalcanzable por teclado
+- **Estado:** ✅ **Cerrado** — tooltip convertido en disclosure (8c14854)
 - **Criterio WCAG:** 2.1.1 Teclado (Nivel A) · 1.4.13 Contenido al pasar el cursor o al enfocar (Nivel AA) · 4.1.2 Nombre, rol, valor (Nivel A)
 - **Severidad:** Bloqueante
 - **Archivo:** `src/app/(dashboard)/cursos/[id]/modulos/[moduleId]/quiz/QuizClient.tsx:299-322`
@@ -720,6 +725,7 @@ quede cortado por el borde superior del contenedor en pantallas de 320 px.
 ---
 
 ### A11Y-06 — Los radios del quiz y del panel de accesibilidad son `sr-only`: sin foco visible y sin agrupación
+- **Estado:** ✅ **Cerrado** — `role="radiogroup"` y anillo de foco en la etiqueta (8c14854)
 - **Criterio WCAG:** 2.4.7 Foco visible (Nivel AA) · 1.3.1 Información y relaciones (Nivel A) · 4.1.2 Nombre, rol, valor (Nivel A)
 - **Severidad:** Bloqueante
 - **Archivo:** `src/app/(dashboard)/cursos/[id]/modulos/[moduleId]/quiz/QuizClient.tsx:812-861` · `src/components/alumco/shared/AccessibilityPanel.tsx:76-95`
@@ -848,6 +854,7 @@ El borde de 3 px en el estado seleccionado desplaza 1 px el contenido de la tarj
 ---
 
 ### A11Y-07 — Botones principales con texto blanco sobre ámbar (2.03:1) y sobre verde (2.87:1)
+- **Estado:** ✅ **Cerrado** — tinta oscura sobre ámbar, `var(--ok)` bajo blanco (8c14854)
 - **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
 - **Severidad:** Bloqueante
 - **Archivo:** `QuizClient.tsx:172,243,495,538,580,621,649,695,747` · `curso/VideoPlayer.tsx:101` · `curso/ModuleIndex.tsx:118` · `certificado/CertificateBadge.tsx:79` · `certificado/DownloadCertificateButton.tsx:50`
@@ -936,6 +943,7 @@ que `#27AE60`. Reemplazar por `.btn btn-primary` además cambia el radio de esqu
 ---
 
 ### A11Y-08 — El buscador global no tiene etiqueta, no expone su rol de combobox y anuncia atajos que no existen
+- **Estado:** ✅ **Cerrado** — etiqueta real, `role="search"`, Escape y anuncio de resultados (8c14854)
 - **Criterio WCAG:** 3.3.2 Etiquetas o instrucciones (Nivel A) · 4.1.2 Nombre, rol, valor (Nivel A) · 2.1.1 Teclado (Nivel A) · 4.1.3 Mensajes de estado (Nivel AA)
 - **Severidad:** Bloqueante
 - **Archivo:** `src/components/alumco/shared/SearchBar.tsx:90-214`
@@ -1058,6 +1066,7 @@ campo; si molesta, quitar el `blur()` y sólo cerrar la lista.
 ## Hallazgos de severidad alta
 
 ### A11Y-09 — No existe enlace "Saltar al contenido principal" (el destino sí existe)
+- **Estado:** ✅ **Cerrado** — enlace de salto al contenido principal (66aa19c)
 - **Criterio WCAG:** 2.4.1 Evitar bloques (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `src/app/(dashboard)/layout.tsx:50-53` · `src/app/admin/layout.tsx:59` · `src/app/layout.tsx:77-88`
@@ -1146,6 +1155,7 @@ demo (`--demo-banner-h`), que también usa `position: fixed`.
 ---
 
 ### A11Y-10 — El login no tiene landmarks y su `<h1>` está oculto en móvil
+- **Estado:** ✅ **Cerrado** — landmarks y `<h1>` del login (66aa19c)
 - **Criterio WCAG:** 1.3.1 Información y relaciones (Nivel A) · 2.4.6 Encabezados y etiquetas (Nivel AA)
 - **Severidad:** Alta
 - **Archivo:** `src/app/(auth)/login/page.tsx:23,26-27,98,141` · `src/app/(auth)/layout.tsx:7`
@@ -1242,6 +1252,7 @@ DIDASKO (`didasko.css:498`). Cambiar el `<div>` exterior a `<main>` no altera es
 ---
 
 ### A11Y-11 — "Tu recorrido": el estado del curso se comunica sólo por color, y `role="listitem"` anula el rol de enlace
+- **Estado:** ⚠️ **Parcial** — `role="listitem"` corregido; el estado del curso sigue siendo solo color
 - **Criterio WCAG:** 1.4.1 Uso del color (Nivel A) · 4.1.2 Nombre, rol, valor (Nivel A) · 1.3.1 Información y relaciones (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/curso/RecorridoCapas.tsx:25-62`
@@ -1343,6 +1354,7 @@ decisión de contenido que conviene confirmar con la clienta (ver lista final).
 ---
 
 ### A11Y-12 — Los ocho diálogos declaran `aria-modal` pero ninguno atrapa ni devuelve el foco
+- **Estado:** ✅ **Cerrado** — hook `useAccessibleDialog` en los 8 diálogos (e79972c)
 - **Criterio WCAG:** 2.4.3 Orden del foco (Nivel A) · 2.1.2 Sin trampas de teclado (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `admin/sedes/SedesClient.tsx:69` · `admin/ApprovalPanel.tsx:134` · `admin/WorkerEditPanel.tsx:116` · `dias/SolicitarDiasModal.tsx:45` · `eventos/EditarEventoPanel.tsx:42` · `eventos/EventNotificationModal.tsx:60` · `eventos/GaleriaFotos.tsx:186` · `shared/WelcomeModal.tsx`
@@ -1467,6 +1479,7 @@ hoy un clic dentro del modal puede cerrarlo. Mover `role="dialog"` no altera nad
 ---
 
 ### A11Y-13 — La campana de notificaciones no expone su estado ni su conteo, y no se cierra con teclado
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 4.1.2 Nombre, rol, valor (Nivel A) · 1.4.1 Uso del color (Nivel A) · 2.1.1 Teclado (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/shared/NotificationBell.tsx:55-87`
@@ -1565,6 +1578,7 @@ debería desplazar nada, pero conviene medirlo. El texto blanco sobre `--peligro
 ---
 
 ### A11Y-14 — El resultado de la evaluación y el progreso guardado no se anuncian
+- **Estado:** ✅ **Cerrado** — `role="status"` en resultado de quiz y progreso (e79972c)
 - **Criterio WCAG:** 4.1.3 Mensajes de estado (Nivel AA)
 - **Severidad:** Alta
 - **Archivo:** `QuizClient.tsx:79-89,479-516,610-767` · `curso/VideoPlayer.tsx:151-158` · `curso/PdfViewer.tsx:156`
@@ -1667,6 +1681,7 @@ se sustituyen por el color pleno — sube el contraste, cambia levemente el tono
 ---
 
 ### A11Y-15 — Cinco de siete tablas no declaran `scope` ni `caption`, y el ordenamiento no expone `aria-sort`
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 1.3.1 Información y relaciones (Nivel A) · 4.1.2 Nombre, rol, valor (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `admin/trabajadores/WorkersTable.tsx:138-188` · `admin/trabajadores/page.tsx:92-99` · `admin/trabajadores/SuspendedTable.tsx:95-102` · `admin/trabajadores/SuspendidosTable.tsx:93-101` · `admin/trabajadores/[id]/page.tsx:219-224` · `admin/certificados/CertificadosClient.tsx:118-126`
@@ -1773,6 +1788,7 @@ visibles — cambio menor y deseable.
 ---
 
 ### A11Y-16 — `min-height/min-width: 48px` aplicado a **todo** `<a>`, incluidos los enlaces dentro de párrafos
+- **Estado:** ✅ **Cerrado** — objetivos táctiles fuera de los enlaces en línea (66aa19c)
 - **Criterio WCAG:** 1.4.10 Reflujo (Nivel AA) · 1.4.12 Espaciado del texto (Nivel AA) · 2.5.8 Tamaño del objetivo (mínimo) (Nivel AA — cumplido en exceso)
 - **Severidad:** Alta
 - **Archivo:** `src/app/globals.css:78-94`
@@ -1889,6 +1905,7 @@ seguiría cumpliendo 2.5.8 si supera 24 px).
 ---
 
 ### A11Y-17 — La barra de progreso no tiene nombre accesible y su relleno contrasta 1.54:1 con el riel
+- **Estado:** ⚠️ **Parcial** — la barra ya tiene nombre accesible; el riel sigue en 1.54:1
 - **Criterio WCAG:** 4.1.2 Nombre, rol, valor (Nivel A) · 1.4.11 Contraste de elementos no textuales (Nivel AA)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/ds/index.tsx:132-145` · `src/app/didasko.css:300-312,630-640`
@@ -1993,6 +2010,7 @@ es más visible aún. Ambas opciones requieren decisión de diseño (ver lista f
 ---
 
 ### A11Y-18 — Los módulos bloqueados usan `opacity-50`: el texto queda en ~3:1
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/curso/ModuleIndex.tsx:103-113,153-175`
@@ -2077,6 +2095,7 @@ altera el layout. Verificar que el `[&_p]:` de Tailwind alcance ambos párrafos 
 ---
 
 ### A11Y-19 — Objetivos táctiles bajo 24 px y áreas de gráfico identificadas sólo por color
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 2.5.8 Tamaño del objetivo (mínimo) (Nivel AA) · 1.4.1 Uso del color (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `curso/DeadlineCalendar.tsx:149-158,176-187` · `lib/utils.ts:114-125` · `dashboard/ComplianceByAreaChart.tsx` · `dashboard/CertificatesMonthlyChart.tsx`
@@ -2178,6 +2197,7 @@ adyacentes.
 ## Hallazgos de severidad media
 
 ### A11Y-20 — Quince páginas no tienen `<h1>`
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 1.3.1 Información y relaciones (Nivel A) · 2.4.6 Encabezados y etiquetas (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** ver lista
@@ -2236,6 +2256,7 @@ tengan clase de tamaño explícita.
 ---
 
 ### A11Y-21 — El `<title>` sale duplicado en 20 páginas por interacción con la plantilla de Next
+- **Estado:** ✅ **Cerrado** — títulos de página únicos, sin sufijo duplicado (66aa19c)
 - **Criterio WCAG:** 2.4.2 Titulado de páginas (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/app/layout.tsx:40-43` + 20 `page.tsx`
@@ -2294,6 +2315,7 @@ marcador.
 ---
 
 ### A11Y-22 — El `<iframe>` del video se titula "Video player", en inglés y sin identificar el módulo
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 4.1.2 Nombre, rol, valor (Nivel A) · 2.4.6 Encabezados y etiquetas (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/components/alumco/curso/VideoPlayer.tsx:67-73`
@@ -2355,6 +2377,7 @@ Ninguno. Prop opcional con valor por defecto; ninguna llamada existente se rompe
 ---
 
 ### A11Y-23 — `--tinta-3` cumple sobre las tarjetas pero falla sobre el fondo crema (4.31:1)
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/app/didasko.css:36` · usos vía `.silencio-3`, `.ayuda`, `.tabla th`, `::placeholder`, `.tab-inferior`
@@ -2404,6 +2427,7 @@ Muy bajo. Cambio de un token; el texto auxiliar se ve marginalmente más oscuro.
 ---
 
 ### A11Y-24 — Los requisitos de los campos viven sólo en el `placeholder` y los errores no dicen cómo corregir
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 3.3.2 Etiquetas o instrucciones (Nivel A) · 3.3.3 Sugerencia ante errores (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/components/alumco/auth/RegisterForm.tsx:43-63` · `src/components/alumco/auth/LoginForm.tsx:40-60`
@@ -2475,6 +2499,7 @@ sólo en los dos campos donde el formato importa (RUT y contraseña).
 ---
 
 ### A11Y-25 — El desplegable del buscador fuerza 320 px de ancho mínimo y desborda en pantallas de 320 px
+- **Estado:** ✅ **Cerrado** — `min-w-[320px]` eliminado del desplegable (8c14854)
 - **Criterio WCAG:** 1.4.10 Reflujo (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/components/alumco/shared/SearchBar.tsx:118` · `src/app/admin/layout.tsx:53`
@@ -2520,6 +2545,7 @@ que se desborde al otro extremo.
 ---
 
 ### A11Y-26 — `white-space: nowrap`, `truncate` y alturas fijas rompen con el espaciado de texto de 1.4.12
+- **Estado:** ⚠️ **Parcial** — botones, badges y tabs corregidos; quedan `truncate` sobre valores de dato
 - **Criterio WCAG:** 1.4.12 Espaciado del texto (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `didasko.css:124,184,276,458,1274-1281` · 20 componentes con `truncate` / `line-clamp`
@@ -2611,6 +2637,7 @@ por pantalla.
 ---
 
 ### A11Y-27 — El atributo `title` se usa como tooltip informativo sobre texto truncado
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 1.4.13 Contenido al pasar el cursor o al enfocar (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `curso/DeadlineCalendar.tsx:153` · `nav/WorkerTopNav.tsx:88` · `admin/trabajadores/WorkersTable.tsx:234,242`
@@ -2679,6 +2706,7 @@ de las celdas (mismo efecto que en A11Y-19; conviene abordarlos juntos).
 ## Hallazgos de severidad baja
 
 ### A11Y-28 — Glifos decorativos (`◆`, `←`, `→`) leídos como texto
+- **Estado:** ✅ **Cerrado** — glifos decorativos en `<span aria-hidden>` (8c14854)
 - **Criterio WCAG:** 1.1.1 Contenido no textual (Nivel A)
 - **Severidad:** Baja
 - **Archivo:** `(dashboard)/inicio/page.tsx:153,200` · `(auth)/login/page.tsx:97` · `landing/ValoresSection.tsx:80` · `shared/NotificationBell.tsx:111` · `QuizClient.tsx:587`
@@ -2725,6 +2753,7 @@ patrón.
 ---
 
 ### A11Y-29 — SVG inline sin `aria-hidden` fuera del componente `Icono`
+- **Estado:** ⚠️ **Parcial** — `aria-hidden` añadido en los iconos ya tocados, no en todos
 - **Criterio WCAG:** 1.1.1 Contenido no textual (Nivel A)
 - **Severidad:** Baja
 - **Archivo:** `curso/ModuleIndex.tsx:33-64,119,129` · `QuizClient.tsx:128,144,174,184,247,255,293,305,333,340,383,414,421,453,461` · `curso/VideoPlayer.tsx:77,110,134,153` · `shared/NotificationBell.tsx:77`
@@ -2763,6 +2792,7 @@ competiría con la etiqueta.
 ---
 
 ### A11Y-30 — El foco puede quedar bajo la barra superior fija y la barra de tabs inferior
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 2.4.11 Foco no oscurecido (mínimo) (Nivel AA)
 - **Severidad:** Baja
 - **Archivo:** `nav/WorkerTopNav.tsx:56,110,126-143` · `didasko.css:394-403` · `admin/layout.tsx:56`
@@ -2816,6 +2846,7 @@ no afecta al layout. Puede notarse como un desplazamiento algo más generoso al 
 ---
 
 ### A11Y-31 — Encabezados de sección del sidebar sin semántica, y dos landmarks de navegación duplicados
+- **Estado:** ❌ **Abierto**
 - **Criterio WCAG:** 1.3.1 Información y relaciones (Nivel A)
 - **Severidad:** Baja
 - **Archivo:** `nav/AdminSidebar.tsx:109,111,140-146,176-183` · `didasko.css:387-391`
