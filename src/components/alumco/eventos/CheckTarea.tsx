@@ -47,7 +47,7 @@ export function CheckTarea({ checked, disabled, onToggle, label }: {
         }}
       >
         {checked && (
-          <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden="true" width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}

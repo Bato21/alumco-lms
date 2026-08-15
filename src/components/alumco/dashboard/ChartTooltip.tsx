@@ -55,9 +55,12 @@ export function ChartTooltip({
 export function TablaDatos({
   columnas,
   filas,
+  titulo,
 }: {
   columnas: [string, string]
   filas: [string, string][]
+  /** Descripción de la tabla para lector de pantalla (`<caption>`). */
+  titulo: string
 }) {
   return (
     <details style={{ marginTop: 10 }}>
@@ -74,6 +77,7 @@ export function TablaDatos({
       </summary>
       <div className="tabla-envoltura" style={{ marginTop: 8, maxHeight: 220, overflowY: 'auto' }}>
         <table className="tabla">
+          <caption className="sr-only">{titulo}</caption>
           <thead>
             <tr>
               <th scope="col">{columnas[0]}</th>

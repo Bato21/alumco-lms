@@ -10,6 +10,8 @@ interface VideoPlayerProps {
   courseId: string
   isCompleted: boolean
   thumbnailUrl?: string | null
+  /** Título del módulo: identifica el `<iframe>` en español (2.4.6, 4.1.2). */
+  moduleTitle: string
 }
 
 function extractYouTubeId(url: string): string | null {
@@ -40,6 +42,7 @@ export function VideoPlayer({
   courseId,
   isCompleted,
   thumbnailUrl,
+  moduleTitle,
 }: VideoPlayerProps) {
   const [isCompletePending, startCompleteTransition] = useTransition()
   const [localCompleted, setLocalCompleted] = useState(isCompleted)
@@ -66,7 +69,7 @@ export function VideoPlayer({
         {embedUrl ? (
           <iframe
             src={embedUrl}
-            title="Video player"
+            title={`Video del módulo: ${moduleTitle}`}
             className="absolute inset-0 w-full h-full rounded-lg"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -74,7 +77,7 @@ export function VideoPlayer({
         ) : (
           <div className="absolute inset-0 w-full h-full bg-black rounded-lg flex items-center justify-center text-white">
             <div className="text-center px-4">
-              <svg
+              <svg aria-hidden="true"
                 className="w-16 h-16 mx-auto mb-4 text-white/50"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -107,7 +110,7 @@ export function VideoPlayer({
           >
             {isCompletePending ? (
               <>
-                <svg
+                <svg aria-hidden="true"
                   className="w-5 h-5 animate-spin"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -131,7 +134,7 @@ export function VideoPlayer({
               </>
             ) : (
               <>
-                <svg
+                <svg aria-hidden="true"
                   className="w-5 h-5"
                   viewBox="0 0 24 24"
                   fill="none"

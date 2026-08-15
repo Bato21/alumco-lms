@@ -115,6 +115,7 @@ export function ComplianceByAreaChart({ data }: { data: AreaCompliance[] }) {
       </p>
 
       <TablaDatos
+        titulo="Cumplimiento de capacitaciones por área de trabajo"
         columnas={['Área de trabajo', 'Cumplimiento']}
         filas={data.map((d) => [
           `${d.area} (${d.workers})`,

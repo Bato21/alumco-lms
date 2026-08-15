@@ -93,13 +93,17 @@ export function SuspendedTable({ workers }: { workers: Worker[] }) {
   return (
     <div className="card entra entra-2 tabla-envoltura">
       <table className="tabla">
+        <caption className="sr-only">
+          Trabajadores suspendidos. {workers.length}{' '}
+          {workers.length === 1 ? 'trabajador suspendido' : 'trabajadores suspendidos'}.
+        </caption>
         <thead>
           <tr>
-            <th>Trabajador</th>
-            <th className="hidden lg:table-cell">Sede</th>
-            <th className="hidden lg:table-cell">Áreas</th>
-            <th className="hidden lg:table-cell">Suspendido desde</th>
-            <th style={{ textAlign: 'right' }}>Acciones</th>
+            <th scope="col">Trabajador</th>
+            <th scope="col" className="hidden lg:table-cell">Sede</th>
+            <th scope="col" className="hidden lg:table-cell">Áreas</th>
+            <th scope="col" className="hidden lg:table-cell">Suspendido desde</th>
+            <th scope="col" style={{ textAlign: 'right' }}>Acciones</th>
           </tr>
         </thead>
         <tbody>

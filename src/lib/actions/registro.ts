@@ -40,27 +40,29 @@ function validarRut(rut: string): boolean {
 
 // ── Schemas de validación ──────────────────────────────────
 
+// A11Y-24 · 3.3.3 exige que el mensaje incluya la sugerencia de corrección
+// cuando se conoce, no sólo la constatación del error.
 const RegisterSchema = z.object({
   full_name: z
     .string()
-    .min(2, 'Ingresa tu nombre completo'),
+    .min(2, 'Ingresa tu nombre completo, con nombre y apellido.'),
   rut: z
     .string()
-    .min(1, 'Ingresa tu RUT')
-    .refine(validarRut, 'El RUT ingresado no es válido'),
+    .min(1, 'Ingresa tu RUT.')
+    .refine(validarRut, 'El RUT ingresado no es válido. Revisa el dígito verificador y escríbelo como 12.345.678-9.'),
   email: z
     .string()
-    .email('Ingresa un correo válido'),
+    .email('Ingresa un correo válido, con @ y dominio — por ejemplo nombre@ejemplo.cl.'),
   password: z
     .string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres'),
+    .min(8, 'La contraseña debe tener al menos 8 caracteres. Añade más caracteres hasta llegar a 8.'),
   confirm_password: z
     .string()
-    .min(1, 'Confirma tu contraseña'),
+    .min(1, 'Vuelve a escribir la contraseña para confirmarla.'),
 }).refine(
   (data) => data.password === data.confirm_password,
   {
-    message: 'Las contraseñas no coinciden',
+    message: 'Las contraseñas no coinciden. Vuelve a escribirlas asegurándote de que sean idénticas.',
     path: ['confirm_password'],
   }
 )
@@ -89,6 +91,13 @@ const ApproveSchema = z.object({
 export interface ActionResult {
   error?: string
   success?: boolean
+  /**
+   * A11Y-24 · Nombre del campo que originó el error, para que el formulario pueda
+   * marcarlo con `aria-invalid` y apuntarle el `aria-describedby` (3.3.1). Sin
+   * esto, el mensaje llegaba al `role="alert"` pero quien navega por campos con
+   * lector de pantalla no sabía cuál corregir.
+   */
+  field?: string
 }
 
 type ActionState = ActionResult | undefined
@@ -123,7 +132,8 @@ export async function registerRequestAction(
 
   const parsed = RegisterSchema.safeParse(raw)
   if (!parsed.success) {
-    return { error: parsed.error.issues[0].message }
+    const issue = parsed.error.issues[0]
+    return { error: issue.message, field: String(issue.path[0] ?? '') }
   }
 
   const supabase = await createClient()
@@ -140,7 +150,10 @@ export async function registerRequestAction(
     .maybeSingle()
 
   if (rutExists) {
-    return { error: 'Ya existe una cuenta registrada con ese RUT' }
+    return {
+      error: 'Ya existe una cuenta registrada con ese RUT. Si es tuya, inicia sesión; si no la recuerdas, usa «¿Olvidó su clave?».',
+      field: 'rut',
+    }
   }
 
   const { error } = await supabase.auth.signUp({
@@ -161,7 +174,10 @@ export async function registerRequestAction(
       status: error.status,
     })
     if (error.code === 'user_already_exists') {
-      return { error: 'Ya existe una cuenta con ese correo electrónico' }
+      return {
+        error: 'Ya existe una cuenta con ese correo electrónico. Inicia sesión o usa otro correo.',
+        field: 'email',
+      }
     }
     return { error: `Error al enviar la solicitud: ${error.message}` }
   }

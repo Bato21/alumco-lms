@@ -30,7 +30,7 @@ export default function Error({ error, reset }: ErrorProps) {
           </p>
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="h-20 w-20 rounded-2xl bg-[#FAECE7] flex items-center justify-center">
-              <svg className="h-10 w-10 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <svg aria-hidden="true" className="h-10 w-10 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                 <path strokeLinecap="round" strokeLinejoin="round"
                   d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
               </svg>
@@ -60,7 +60,7 @@ export default function Error({ error, reset }: ErrorProps) {
             onClick={reset}
             className="px-6 py-3 bg-[#2B4FA0] text-white rounded-xl font-semibold text-sm hover:bg-[#2B4FA0]/90 transition-colors min-h-[44px] flex items-center justify-center gap-2"
           >
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M1 4v6h6"/>
               <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
             </svg>

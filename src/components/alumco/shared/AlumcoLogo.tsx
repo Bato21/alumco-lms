@@ -21,7 +21,7 @@ export function AlumcoLogo({ className = '', size = 'md', showText = true }: Alu
     <div className={`flex flex-col items-center gap-4 ${className}`}>
       <div className={`relative ${sizeClasses[size]} flex items-center justify-center`}>
         {/* Geometric Diamond Icon */}
-        <svg className="w-full h-full" viewBox="0 0 100 100">
+        <svg aria-hidden="true" className="w-full h-full" viewBox="0 0 100 100">
           <path d="M50 5 L95 50 L50 95 L5 50 Z" fill="none" />
           <path d="M50 5 L95 50 L50 50 Z" fill="#9e3f4e" />
           {/* Red section */}

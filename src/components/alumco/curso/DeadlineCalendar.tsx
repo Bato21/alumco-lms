@@ -77,6 +77,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
       {/* Header del calendario */}
       <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b">
         <button
+          type="button"
           onClick={prevMonth}
           className="p-2 sm:p-2 min-h-[48px] min-w-[48px] rounded-lg hover:bg-[#F5F5F5] transition-colors"
           aria-label="Mes anterior"
@@ -84,11 +85,14 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
           <ChevronLeft className="h-5 w-5 text-muted-foreground" aria-hidden="true"/>
         </button>
 
-        <h3 className="font-bold text-[#1A1A2E] text-sm sm:text-base">
+        {/* 4.1.3 · Al cambiar de mes no cambia nada más en pantalla: sin región
+            viva, quien no ve el calendario no sabe que la navegación funcionó. */}
+        <h3 aria-live="polite" className="font-bold text-[#1A1A2E] text-sm sm:text-base">
           {MONTHS[month]} {year}
         </h3>
 
         <button
+          type="button"
           onClick={nextMonth}
           className="p-2 sm:p-2 min-h-[48px] min-w-[48px] rounded-lg hover:bg-[#F5F5F5] transition-colors"
           aria-label="Mes siguiente"
@@ -118,7 +122,10 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
           return (
             <div
               key={i}
-              className={`min-h-[60px] sm:min-h-[80px] p-1 sm:p-1.5 border-r border-b relative ${
+              // 2.5.8 · La celda sube de 60 a 76 px: es lo que ocupan el número del
+              // día más dos píldoras de 24 px separadas 4 px. La alternativa era
+              // esconder una píldora en móvil, que oculta información.
+              className={`min-h-[76px] sm:min-h-[88px] p-1 sm:p-1.5 border-r border-b relative ${
                 !day ? 'bg-[#F5F5F5]/50' : ''
               } ${i % 7 === 6 ? 'border-r-0' : ''}`}
             >
@@ -136,7 +143,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
                   </div>
 
                   {/* Eventos del día */}
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     {deadlines.slice(0, 2).map(course => {
                       const color =
                         course.deadlineStatus === 'overdue'
@@ -145,12 +152,25 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
                           ? 'bg-[#FFF8E7] text-[#854F0B] border-[#F5A623]/20'
                           : 'bg-[#EAF3DE] text-[#27500A] border-[var(--ok)]/20'
 
+                      const estado =
+                        course.deadlineStatus === 'overdue'
+                          ? 'vencido'
+                          : course.deadlineStatus === 'soon'
+                          ? 'por vencer'
+                          : 'a tiempo'
+
                       return (
                         <Link
                           key={course.id}
                           href={`/cursos/${course.id}`}
-                          className={`block text-[11px] sm:text-[10px] font-medium px-1 sm:px-1.5 py-0.5 rounded border truncate leading-tight ${color} hover:opacity-80 transition-opacity min-h-[20px]`}
-                          title={course.title}
+                          className={`flex items-center text-[11px] font-medium px-1.5 py-1 rounded border truncate leading-tight ${color} hover:opacity-80 transition-opacity min-h-[24px]`}
+                          // 1.4.1 · Dentro de la retícula, el estado del plazo sólo se
+                          // veía por el color de la píldora: la leyenda del pie no llega
+                          // al lector de pantalla celda a celda.
+                          // A11Y-27 · Sustituye al `title`, que como tooltip informativo
+                          // no es alcanzable por teclado (1.4.13); además da el nombre
+                          // completo cuando el texto va truncado.
+                          aria-label={`${course.title} — plazo ${estado}, ${day} de ${MONTHS[month].toLowerCase()}`}
                         >
                           {course.title}
                         </Link>
@@ -159,7 +179,7 @@ export function DeadlineCalendar({ courses }: DeadlineCalendarProps) {
 
                     {/* Si hay más de 2 */}
                     {deadlines.length > 2 && (
-                      <span className="text-[11px] sm:text-[10px] text-muted-foreground px-1">
+                      <span className="block text-[11px] text-muted-foreground px-1">
                         +{deadlines.length - 2} más
                       </span>
                     )}

@@ -123,9 +123,12 @@ const handleContinue = async () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
+      <div className="min-h-[400px] flex items-center justify-center" aria-busy="true">
+        {/* La pantalla de carga es un estado de página completo: necesita su propio
+            <h1> para que la jerarquía no arranque vacía (1.3.1). */}
+        <h1 className="sr-only">Evaluación del módulo</h1>
         <div className="flex items-center gap-3">
-          <svg className="w-6 h-6 animate-spin text-[var(--ambar-700)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-6 h-6 animate-spin text-[var(--ambar-700)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
@@ -139,9 +142,10 @@ const handleContinue = async () => {
   if (quizState === 'pre-quiz') {
     if (!quizStatus) {
       return (
-        <div className="min-h-[400px] flex items-center justify-center">
+        <div className="min-h-[400px] flex items-center justify-center" aria-busy="true">
+          <h1 className="sr-only">Evaluación del módulo</h1>
           <div className="flex items-center gap-3">
-            <svg className="w-6 h-6 animate-spin text-[var(--ambar-700)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-6 h-6 animate-spin text-[var(--ambar-700)]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
@@ -156,12 +160,12 @@ const handleContinue = async () => {
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-8 text-center">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--peligro)]/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
           </div>
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)] mb-3">Evaluación bloqueada</h2>
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)] mb-3">Evaluación bloqueada</h1>
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Has agotado todos tus intentos. Debes volver a revisar el contenido del módulo antes de continuar.
           </p>
@@ -171,7 +175,7 @@ const handleContinue = async () => {
               disabled={isPending}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors disabled:opacity-50 min-h-[48px]"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
                 <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
               </svg>
@@ -181,7 +185,7 @@ const handleContinue = async () => {
               href={`/cursos/${courseId}/modulos/${moduleId}`}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors min-h-[48px]"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7" />
               </svg>
               Volver al módulo
@@ -196,11 +200,11 @@ const handleContinue = async () => {
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-8 text-center">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[var(--ok)]/10 flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--ok)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-8 h-8 sm:w-10 sm:h-10 text-[var(--ok)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="20,6 9,17 4,12" />
             </svg>
           </div>
-          <h2 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)] mb-3">Ya aprobaste esta evaluación</h2>
+          <h1 className="text-lg sm:text-xl font-bold text-[var(--md-on-surface)] mb-3">Ya aprobaste esta evaluación</h1>
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Obtuviste <span className="font-bold text-[var(--ok)]">{quizStatus.lastScore}%</span> en tu intento anterior.
           </p>
@@ -208,7 +212,7 @@ const handleContinue = async () => {
           {attempts.length > 0 && (
             <div className="card overflow-hidden mb-6 text-left">
               <div className="px-5 py-3 border-b border-[var(--borde-suave)]">
-                <h3 className="text-sm font-bold text-[var(--tinta)]">Historial de intentos</h3>
+                <h2 className="text-sm font-bold text-[var(--tinta)]">Historial de intentos</h2>
               </div>
               <div className="divide-y divide-[var(--borde-suave)]">
                 {attempts.map(attempt => {
@@ -244,7 +248,7 @@ const handleContinue = async () => {
           >
             {isUpdating ? (
               <>
-                <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
@@ -252,7 +256,7 @@ const handleContinue = async () => {
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
                 Continuar al siguiente módulo
@@ -270,7 +274,7 @@ const handleContinue = async () => {
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--md-tertiary-container)] flex items-center justify-center">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -290,7 +294,7 @@ const handleContinue = async () => {
                 : 'bg-[var(--ambar-50)] text-[var(--ambar-700)]'
               }
             `}>
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 2v20M2 12h20" />
               </svg>
               Intento {quizStatus.attemptsUsed + 1} de {maxAttempts}
@@ -307,14 +311,14 @@ const handleContinue = async () => {
         {/* Info del quiz */}
         <div className="flex items-center gap-4 text-sm text-[var(--md-on-surface-variant)] px-2">
           <span className="flex items-center gap-1">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M9 11l3 3L22 4" />
               <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
             </svg>
             {questions.length} preguntas
           </span>
           <span className="flex items-center gap-1">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12,6 12,12 16,14" />
             </svg>
@@ -326,7 +330,7 @@ const handleContinue = async () => {
         {attempts.length > 0 && (
           <div className="card overflow-hidden">
             <div className="px-5 py-3 border-b border-[var(--borde-suave)]">
-              <h3 className="text-sm font-bold text-[var(--tinta)]">Historial de intentos</h3>
+              <h2 className="text-sm font-bold text-[var(--tinta)]">Historial de intentos</h2>
             </div>
             <div className="divide-y divide-[var(--borde-suave)]">
               {attempts.map(attempt => {
@@ -357,7 +361,7 @@ const handleContinue = async () => {
 
         {/* Botón comenzar */}
         <button onClick={() => setQuizState('taking-quiz')} className="btn btn-primary btn-lg" style={{ width: '100%' }}>
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polygon points="5,3 19,12 5,21" />
           </svg>
           Comenzar evaluación
@@ -374,7 +378,7 @@ const handleContinue = async () => {
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.04)] p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[var(--md-tertiary-container)] flex items-center justify-center">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--md-on-tertiary-container)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
                 <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -388,14 +392,14 @@ const handleContinue = async () => {
 
           <div className="flex items-center gap-4 text-sm text-[var(--md-on-surface-variant)]">
             <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M9 11l3 3L22 4" />
                 <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
               </svg>
               {questions.length} preguntas
             </span>
             <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12,6 12,12 16,14" />
               </svg>
@@ -427,7 +431,7 @@ const handleContinue = async () => {
           >
             {isSubmitting ? (
               <>
-                <svg className="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
@@ -435,7 +439,7 @@ const handleContinue = async () => {
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M9 11l3 3L22 4" />
                   <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                 </svg>
@@ -472,19 +476,19 @@ const handleContinue = async () => {
             passed ? 'bg-[var(--ok)]' : 'bg-[var(--peligro)]'
           }`}>
             {passed ? (
-              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg aria-hidden="true" className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <polyline points="20,6 9,17 4,12"/>
               </svg>
             ) : (
-              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <svg aria-hidden="true" className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <line x1="18" y1="6" x2="6" y2="18"/>
                 <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             )}
           </div>
-          <h2 className={`text-xl font-extrabold mb-1 ${passed ? 'text-[#27500A]' : 'text-[var(--peligro)]'}`}>
+          <h1 className={`text-xl font-extrabold mb-1 ${passed ? 'text-[#27500A]' : 'text-[var(--peligro)]'}`}>
             {passed ? '¡Aprobaste!' : 'No aprobaste esta vez'}
-          </h2>
+          </h1>
           <p className={`text-sm ${passed ? 'text-[#27500A]/70' : 'text-[var(--peligro)]/80'}`}>
             Obtuviste{' '}
             <span className="font-extrabold text-lg">{quizResult.score}%</span>
@@ -494,7 +498,7 @@ const handleContinue = async () => {
 
         {/* Resumen por pregunta */}
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-[var(--tinta)] px-1">Revisión de respuestas</h3>
+          <h2 className="text-sm font-bold text-[var(--tinta)] px-1">Revisión de respuestas</h2>
           {questions.map((question, index) => {
             const isCorrect = questionResults[question.id] ?? false
             const userAnswer = answers[question.id]
@@ -515,11 +519,11 @@ const handleContinue = async () => {
                     isCorrect ? 'bg-[var(--ok)]' : 'bg-[var(--peligro)]'
                   }`}>
                     {isCorrect ? (
-                      <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <svg aria-hidden="true" className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                         <polyline points="20,6 9,17 4,12"/>
                       </svg>
                     ) : (
-                      <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <svg aria-hidden="true" className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                         <line x1="18" y1="6" x2="6" y2="18"/>
                         <line x1="6" y1="6" x2="18" y2="18"/>
                       </svg>
@@ -574,7 +578,7 @@ const handleContinue = async () => {
               href={`/cursos/${courseId}/modulos/${moduleId}`}
               className="w-full py-3.5 font-semibold rounded-xl border-2 border-[var(--borde)] text-[var(--tinta)] hover:border-[var(--ambar-700)] transition-colors min-h-[48px] flex items-center justify-center gap-2 text-sm"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
               Revisar contenido del módulo
@@ -607,7 +611,7 @@ const handleContinue = async () => {
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
           <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[var(--ok)] flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 sm:w-12 sm:h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <svg aria-hidden="true" className="w-8 h-8 sm:w-12 sm:h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M6 9V2h12v7" />
               <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
               <path d="M6 14h12v8H6z" />
@@ -615,9 +619,9 @@ const handleContinue = async () => {
           </div>
 
           {/* TÍTULO DINÁMICO */}
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
             {isCourseCompleted ? '¡Felicitaciones, completaste el curso!' : '¡Felicitaciones, aprobaste!'}
-          </h2>
+          </h1>
 
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Obtuviste sobre el {passingScore}% requerido.
@@ -636,7 +640,7 @@ const handleContinue = async () => {
             disabled={isPending}
             className="inline-flex items-center gap-2 px-8 py-4 bg-[var(--ok)] text-white rounded-lg font-semibold hover:bg-[var(--ok)]/90 transition-colors text-lg disabled:opacity-50 min-h-[48px] sm:min-h-auto"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               {isCourseCompleted ? (
                 <path d="M12 15l-2 5l9-5l-9-5l2 5z" />
               ) : (
@@ -662,16 +666,16 @@ const handleContinue = async () => {
       return (
         <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
           <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[var(--ambar-50)] flex items-center justify-center mx-auto mb-6">
-            <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[var(--ambar-700)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-8 h-8 sm:w-12 sm:h-12 text-[var(--ambar-700)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
             No alcanzaste el puntaje mínimo
-          </h2>
+          </h1>
 
           <p className="text-[var(--md-on-surface-variant)] mb-6">
             Necesitas {passingScore}% para aprobar. Te quedan <span className="font-bold">{attemptsRemaining}</span> intento(s).
@@ -689,7 +693,7 @@ const handleContinue = async () => {
               onClick={handleRetry}
               className="w-full py-4 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg min-h-[48px]"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 4v6h6" />
                 <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
               </svg>
@@ -699,7 +703,7 @@ const handleContinue = async () => {
               href={`/cursos/${courseId}/modulos/${moduleId}`}
               className="w-full py-4 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors flex items-center justify-center gap-2 min-h-[48px]"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12,6 12,12 16,14" />
               </svg>
@@ -719,15 +723,15 @@ const handleContinue = async () => {
     return (
       <div className="bg-[var(--md-surface-container-lowest)] rounded-xl shadow-[0_4px_20px_rgba(42,52,57,0.08)] p-4 sm:p-8 text-center">
         <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full bg-[var(--peligro)]/10 flex items-center justify-center mx-auto mb-6">
-          <svg className="w-8 h-8 sm:w-12 sm:h-12 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="w-8 h-8 sm:w-12 sm:h-12 text-[var(--peligro)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </div>
 
-        <h2 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
+        <h1 className="text-xl sm:text-2xl font-bold text-[var(--md-on-surface)] mb-2">
           Has agotado todos tus intentos
-        </h2>
+        </h1>
 
         <p className="text-[var(--md-on-surface-variant)] mb-6">
           Debes repasar el contenido del módulo y contactar a tu administrador para habilitar un nuevo intento.
@@ -746,7 +750,7 @@ const handleContinue = async () => {
             disabled={isPending}
             className="w-full py-4 bg-[var(--ambar)] text-[#0f172a] rounded-lg font-semibold hover:bg-[var(--ambar-600)] transition-colors flex items-center justify-center gap-2 text-lg disabled:opacity-50 min-h-[48px]"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M1 4v6h6" />
               <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
             </svg>
@@ -756,7 +760,7 @@ const handleContinue = async () => {
             href={`/cursos/${courseId}/modulos/${moduleId}`}
             className="w-full py-4 bg-[var(--md-surface-container-high)] text-[var(--md-primary)] rounded-lg font-semibold hover:bg-[var(--md-surface-container-highest)] transition-colors flex items-center justify-center gap-2 min-h-[48px]"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             Volver al módulo
@@ -942,7 +946,7 @@ function QuestionCard({
                     }}
                   >
                     {sel && (
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <svg aria-hidden="true" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                         <polyline points="20,6 9,17 4,12" />
                       </svg>
                     )}

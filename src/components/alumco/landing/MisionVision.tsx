@@ -27,7 +27,12 @@ export default function MisionVision() {
         <CursorGlow />
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
-          <span
+          {/* A11Y-37 · Era un `<span>`, mientras su sección hermana rotula
+              «Nuestra visión» con un `<h2>`. La misión quedaba fuera del esquema
+              de encabezados, que es la vía principal para recorrer una página
+              larga con lector de pantalla (1.3.1). Los estilos son explícitos,
+              así que el aspecto no cambia. */}
+          <h2
             style={{
               display: 'inline-block',
               fontSize: 12,
@@ -38,7 +43,7 @@ export default function MisionVision() {
             }}
           >
             Nuestra misión
-          </span>
+          </h2>
 
           <p
             style={{

@@ -9,7 +9,8 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '12px 14px',
   borderRadius: 'var(--radio-m)',
-  border: '1px solid var(--borde)',
+  // A11Y-37 · `--borde` es decorativo y daba 1.28:1 contra el relleno del campo.
+  border: '1px solid var(--borde-control)',
   background: 'var(--blanco)',
   color: 'var(--tinta)',
   fontFamily: 'var(--fuente-cuerpo)',

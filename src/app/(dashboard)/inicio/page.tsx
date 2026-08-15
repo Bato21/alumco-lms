@@ -170,7 +170,10 @@ export default async function InicioPage() {
               <div style={{ padding: '30px 32px 20px', position: 'relative', zIndex: 1 }}>
                 <div className="fila" style={{ gap: 24, flexWrap: 'wrap' }}>
                   <div className="crece" style={{ minWidth: 260 }}>
-                    <span className="t-eyebrow" style={{ color: 'var(--ambar-700)' }}>Continúa donde quedaste</span>
+                    {/* A11Y-35 · Sin `style` en línea: pedía `--ambar-700`, que sobre
+                        este bloque navy da 2.69:1. El color lo decide ahora la regla
+                        de `.bloque-marca` (ámbar claro, 8.24:1). */}
+                    <span className="t-eyebrow">Continúa donde quedaste</span>
                     <h2 className="t-display" style={{ fontSize: 27, color: '#fff', margin: '10px 0 8px' }}>{continuar.title}</h2>
                     <p className="texto-s" style={{ color: 'rgba(255,255,255,0.72)', marginBottom: 18 }}>
                       {continuar.progressPct > 0 ? `Vas en el ${continuar.progressPct}% del curso` : 'Aún no comienzas este curso'}

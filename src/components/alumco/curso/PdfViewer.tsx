@@ -52,14 +52,14 @@ export function PdfViewer({
         {pdfUrl ? (
           <iframe
             src={`${pdfUrl}#view=FitH`}
-            title={moduleTitle}
+            title={`Documento del módulo: ${moduleTitle}`}
             className="w-full h-[60vh] md:h-[75vh]"
             style={{ border: 'none' }}
           />
         ) : (
           <div className="w-full h-[60vh] md:h-[75vh] flex items-center justify-center">
             <div className="text-center px-4">
-              <svg
+              <svg aria-hidden="true"
                 className="w-20 h-20 text-[var(--md-primary)] mx-auto mb-4"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -95,7 +95,7 @@ export function PdfViewer({
               min-h-[48px]
             "
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7,10 12,15 17,10" />
               <line x1="12" y1="15" x2="12" y2="3" />
@@ -121,7 +121,7 @@ export function PdfViewer({
           >
             {isCompletePending ? (
               <>
-                <svg
+                <svg aria-hidden="true"
                   className="w-5 h-5 animate-spin"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -145,7 +145,7 @@ export function PdfViewer({
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <polyline points="20,6 9,17 4,12" />
                 </svg>
                 Marcar como leído

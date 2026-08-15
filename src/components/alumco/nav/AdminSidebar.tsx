@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useId } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Avatar, Icono, Gota, type IconoNombre } from '@/components/alumco/ds'
 import { LogoutButton } from '@/components/alumco/auth/LogoutButton'
@@ -47,6 +47,9 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
   // Gota indicadora: se desliza hasta el tab activo (mide su posición en el nav)
   const navRef = useRef<HTMLElement>(null)
   const itemRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
+  // `SidebarContent` se monta dos veces —barra de escritorio y cajón móvil—, así
+  // que los id de los rótulos de grupo tienen que ser únicos por instancia.
+  const idGrupo = useId()
   const [gotaY, setGotaY] = useState<number | null>(null)
   const activeHref = [...gestion, ...cuenta].find((i) => i.show && isActivo(i.href))?.href
 
@@ -107,10 +110,20 @@ function SidebarContent({ fullName, role, onClose }: AdminSidebarProps & { onClo
             <span className="gota-idle"><Gota s={24} color="var(--ambar)" /></span>
           </span>
         )}
-        <div className="nav-seccion">Gestión</div>
-        {gestion.filter((i) => i.show).map(renderItem)}
-        <div className="nav-seccion">Cuenta</div>
-        {cuenta.filter((i) => i.show).map(renderItem)}
+        {/* A11Y-31 · «Gestión» y «Cuenta» agrupaban los enlaces sólo para la vista:
+            eran `<div>` sin rol, así que un lector recorría los 9 enlaces seguidos
+            sin saber que hay dos bloques. `role="group"` + `aria-labelledby` da la
+            agrupación sin meter dos `<h2>` en el esquema de encabezados de todas las
+            páginas de administración. El grupo va sin `position`, para no cambiar el
+            `offsetParent` del que depende la gota indicadora. */}
+        <div className="nav-grupo" role="group" aria-labelledby={`${idGrupo}-gestion`}>
+          <div className="nav-seccion" id={`${idGrupo}-gestion`}>Gestión</div>
+          {gestion.filter((i) => i.show).map(renderItem)}
+        </div>
+        <div className="nav-grupo" role="group" aria-labelledby={`${idGrupo}-cuenta`}>
+          <div className="nav-seccion" id={`${idGrupo}-cuenta`}>Cuenta</div>
+          {cuenta.filter((i) => i.show).map(renderItem)}
+        </div>
       </nav>
 
       <div className="col" style={{ padding: '14px 18px 20px', gap: 12, position: 'relative', zIndex: 2 }}>
@@ -139,7 +152,7 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
   // fuera de la pantalla. `inert` lo saca del recorrido y del árbol accesible;
   // el hook aporta el foco al abrir, Escape y la devolución al botón «Abrir
   // menú».
-  const drawerRef = useAccessibleDialog<HTMLElement>(
+  const drawerRef = useAccessibleDialog<HTMLDivElement>(
     isDrawerOpen,
     () => setIsDrawerOpen(false)
   )
@@ -147,13 +160,17 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside
+      {/* A11Y-31 · Era un `<aside aria-label="Navegación principal">`: `<aside>` mapea
+          a `complementary`, no a `navigation`, así que el rótulo prometía un landmark
+          de navegación que no era, y encima duplicaba el del `<nav>` de dentro. Es un
+          contenedor de cromo, no contenido complementario: `<div>`. El único landmark
+          de navegación es el `<nav>` de `SidebarContent`. */}
+      <div
         className="sidebar hidden lg:flex fixed left-0 h-screen z-40"
         style={{ top: 'var(--demo-banner-h, 0px)', height: 'calc(100vh - var(--demo-banner-h, 0px))' }}
-        aria-label="Navegación principal"
       >
         <SidebarContent fullName={fullName} role={role} />
-      </aside>
+      </div>
 
       {/* Mobile Header */}
       <header
@@ -183,7 +200,9 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
       )}
 
       {/* Mobile Drawer */}
-      <aside
+      {/* `role="dialog"` ya sustituía el rol implícito de `<aside>`; se usa `<div>`
+          para que el elemento y su rol digan lo mismo. */}
+      <div
         ref={drawerRef}
         tabIndex={-1}
         inert={!isDrawerOpen}
@@ -202,7 +221,7 @@ export function AdminSidebar({ fullName, role }: AdminSidebarProps) {
           </button>
         </div>
         <SidebarContent fullName={fullName} role={role} onClose={() => setIsDrawerOpen(false)} />
-      </aside>
+      </div>
     </>
   )
 }

@@ -35,14 +35,22 @@ export default function LandingFooter() {
               minWidth: 300,
             }}
           >
+            {/* A11Y-37 · El campo no tenía nombre accesible: sólo `placeholder`,
+                que ni es etiqueta ni sobrevive a la escritura. Y `outline: none`
+                anulaba el indicador de foco, igual que A11Y-32 hacía en la app. */}
+            <label htmlFor="footer-newsletter" className="sr-only">
+              Tu correo electrónico, para recibir novedades
+            </label>
             <input
+              id="footer-newsletter"
+              name="email"
               type="email"
+              autoComplete="email"
               placeholder="Tu correo electrónico"
               style={{
                 flex: 1,
                 background: 'transparent',
                 border: 'none',
-                outline: 'none',
                 color: '#fff',
                 padding: '10px 14px',
                 fontFamily: 'var(--fuente-cuerpo)',

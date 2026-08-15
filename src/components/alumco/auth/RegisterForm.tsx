@@ -24,10 +24,17 @@ export function RegisterForm() {
     )
   }
 
+  // A11Y-24 · El error llega del servidor con el campo que lo originó, para
+  // marcarlo con `aria-invalid` y apuntarle el `aria-describedby` (3.3.1).
+  const campoConError = state.field
+  const describedBy = (campo: string, ayudaId?: string) =>
+    [campoConError === campo ? 'registro-error' : null, ayudaId].filter(Boolean).join(' ') || undefined
+
   return (
     <form action={formAction} className="col" style={{ gap: 16 }} noValidate>
       {state.error && (
         <div
+          id="registro-error"
           role="alert"
           aria-live="assertive"
           className="fila"
@@ -38,29 +45,64 @@ export function RegisterForm() {
         </div>
       )}
 
+      {/* 3.3.2 · La obligatoriedad tiene que constar en texto, no sólo en el
+          atributo `required` ni en un asterisco de color. */}
+      <p className="texto-s silencio-3" style={{ margin: 0 }}>
+        Todos los campos son obligatorios.
+      </p>
+
       <div className="campo">
         <label htmlFor="full_name">Nombre completo</label>
-        <input id="full_name" name="full_name" type="text" autoComplete="name" required disabled={isPending} placeholder="María González" className="input" />
+        <input
+          id="full_name" name="full_name" type="text" autoComplete="name" required disabled={isPending}
+          placeholder="María González" className="input"
+          aria-invalid={campoConError === 'full_name' || undefined}
+          aria-describedby={describedBy('full_name')}
+        />
       </div>
 
       <div className="campo">
         <label htmlFor="rut">RUT</label>
-        <input id="rut" name="rut" type="text" autoComplete="off" required disabled={isPending} placeholder="12.345.678-9" className="input" />
+        <input
+          id="rut" name="rut" type="text" autoComplete="off" required disabled={isPending}
+          className="input"
+          aria-invalid={campoConError === 'rut' || undefined}
+          aria-describedby={describedBy('rut', 'rut-ayuda')}
+        />
+        {/* 3.3.2 · El formato vivía sólo en el `placeholder`, que desaparece en
+            cuanto se empieza a escribir. */}
+        <p id="rut-ayuda" className="ayuda">Con puntos y guion, por ejemplo 12.345.678-9.</p>
       </div>
 
       <div className="campo">
         <label htmlFor="email">Correo electrónico</label>
-        <input id="email" name="email" type="email" autoComplete="email" required disabled={isPending} placeholder="nombre@ejemplo.cl" className="input" />
+        <input
+          id="email" name="email" type="email" autoComplete="email" required disabled={isPending}
+          placeholder="nombre@ejemplo.cl" className="input"
+          aria-invalid={campoConError === 'email' || undefined}
+          aria-describedby={describedBy('email')}
+        />
       </div>
 
       <div className="campo">
         <label htmlFor="password">Contraseña</label>
-        <input id="password" name="password" type="password" autoComplete="new-password" required disabled={isPending} placeholder="Mínimo 8 caracteres" className="input" />
+        <input
+          id="password" name="password" type="password" autoComplete="new-password" required disabled={isPending}
+          className="input"
+          aria-invalid={campoConError === 'password' || undefined}
+          aria-describedby={describedBy('password', 'password-ayuda')}
+        />
+        <p id="password-ayuda" className="ayuda">Mínimo 8 caracteres.</p>
       </div>
 
       <div className="campo">
         <label htmlFor="confirm_password">Confirmar contraseña</label>
-        <input id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" required disabled={isPending} placeholder="Repite tu contraseña" className="input" />
+        <input
+          id="confirm_password" name="confirm_password" type="password" autoComplete="new-password" required disabled={isPending}
+          placeholder="Repite tu contraseña" className="input"
+          aria-invalid={campoConError === 'confirm_password' || undefined}
+          aria-describedby={describedBy('confirm_password')}
+        />
       </div>
 
       <div

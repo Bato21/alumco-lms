@@ -90,13 +90,17 @@ export default async function TrabajadoresPage(props: { searchParams: SearchPara
   const solicitudesContent = (
     <div className="card entra entra-2 tabla-envoltura">
           <table className="tabla">
+            <caption className="sr-only">
+              Solicitudes de acceso pendientes de aprobación. {pendingCount}{' '}
+              {pendingCount === 1 ? 'solicitud' : 'solicitudes'}.
+            </caption>
             <thead>
               <tr>
-                <th>Trabajador</th>
-                <th className="hidden lg:table-cell">RUT</th>
-                <th className="hidden lg:table-cell">Correo electrónico</th>
-                <th className="hidden lg:table-cell">Sede declarada</th>
-                <th style={{ textAlign: 'right' }}>Acciones</th>
+                <th scope="col">Trabajador</th>
+                <th scope="col" className="hidden lg:table-cell">RUT</th>
+                <th scope="col" className="hidden lg:table-cell">Correo electrónico</th>
+                <th scope="col" className="hidden lg:table-cell">Sede declarada</th>
+                <th scope="col" style={{ textAlign: 'right' }}>Acciones</th>
               </tr>
             </thead>
             <tbody>

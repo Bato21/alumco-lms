@@ -85,7 +85,6 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
         <NotificationBell initialAlerts={alerts} role="trabajador" />
         <Link
           href="/perfil"
-          title="Mi perfil"
           className="fila"
           style={{
             gap: 10,
@@ -100,6 +99,11 @@ export function WorkerTopNav({ fullName, avatarUrl, alerts }: WorkerTopNavProps)
           ) : (
             <Avatar nombre={fullName} s={36} tono="ambar" />
           )}
+          {/* A11Y-27 · Sustituye al `title="Mi perfil"`, que no es descartable ni
+              persistente y no existe en táctil. Va como prefijo `sr-only` y no como
+              `aria-label` para que el nombre accesible siga conteniendo el texto
+              visible, que es lo que exige 2.5.3. */}
+          <span className="sr-only">Mi perfil: </span>
           <span style={{ fontWeight: 600, fontSize: 14.5 }}>{fullName.split(' ')[0]}</span>
         </Link>
         <span style={{ width: 1, height: 26, background: 'var(--borde-suave)' }} />

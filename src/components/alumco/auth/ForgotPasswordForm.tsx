@@ -53,6 +53,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
 
       {state.error && (
         <div
+          id="recuperar-error"
           role="alert"
           aria-live="assertive"
           className="fila"
@@ -85,6 +86,9 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
             disabled={isPending}
             placeholder="nombre@alumco.cl"
             className="input"
+            // A11Y-24 · El mensaje de error queda asociado al campo que lo originó.
+            aria-invalid={state.field === 'email' || undefined}
+            aria-describedby={state.field === 'email' ? 'recuperar-error' : undefined}
           />
         </div>
 

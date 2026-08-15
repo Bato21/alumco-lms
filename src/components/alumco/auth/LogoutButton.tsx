@@ -34,7 +34,7 @@ export function LogoutButton({ compact = false, variant = 'light' }: LogoutButto
         className={cn(baseClasses, 'p-2 rounded-lg')}
       >
         {isPending ? (
-          <svg
+          <svg aria-hidden="true"
             className="h-5 w-5 animate-spin"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -55,7 +55,7 @@ export function LogoutButton({ compact = false, variant = 'light' }: LogoutButto
             />
           </svg>
         ) : (
-          <svg
+          <svg aria-hidden="true"
             className="h-5 w-5"
             viewBox="0 0 24 24"
             fill="none"
@@ -85,7 +85,7 @@ export function LogoutButton({ compact = false, variant = 'light' }: LogoutButto
     >
       {isPending ? (
         <>
-          <svg
+          <svg aria-hidden="true"
             className="h-4 w-4 animate-spin"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -109,7 +109,7 @@ export function LogoutButton({ compact = false, variant = 'light' }: LogoutButto
         </>
       ) : (
         <>
-          <svg
+          <svg aria-hidden="true"
             className="h-5 w-5"
             viewBox="0 0 24 24"
             fill="none"

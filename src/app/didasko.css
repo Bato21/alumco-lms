@@ -33,7 +33,12 @@
   --borde-suave: #f0eadf;
   --tinta:     #21283b;
   --tinta-2:   #4b5268;
-  --tinta-3:   #6e7488; /* AA: 4.6:1 sobre blanco (antes #7c8198 = 3.85:1, fallaba) */
+  /* A11Y-23 · El valor anterior (#6e7488) se midió contra blanco puro, que no es
+     un fondo real de la plataforma: sobre la crema de página (#FAF6ED) daba 4.31:1
+     y fallaba en todo texto auxiliar fuera de una .card — pie del login, subtítulos
+     del sidebar, etiquetas de la barra de tabs. Verificado que ninguna paleta con
+     scope lo re-sobrescribe (la trampa de --ambar-700 en A11Y-01). */
+  --tinta-3:   #666c80; /* 4.84:1 sobre #FAF6ED · 5.09:1 sobre #FFFDF6 · 5.22:1 sobre blanco */
 
   /* Estados (cálidos, armonizados)
      Los tres pares texto/fondo se verifican contra su PROPIO fondo de badge,
@@ -214,10 +219,17 @@ button { font-family: inherit; }
 }
 .textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
 .input:hover, .select:hover, .textarea:hover { border-color: #d5cdbd; }
+/* A11Y-32 · Esta regla anulaba el anillo de foco del sistema en TODOS los campos
+   de la plataforma. `.input:focus` es (0,2,0) y `:focus-visible` (0,1,0), y ambos
+   viven en @layer components: la posición posterior de globals.css no desempata
+   porque la especificidad no es igual. Lo que quedaba como indicador era un halo
+   ámbar al 22 % (1.15:1) y un cambio de borde a ámbar (1.88:1 contra el fondo,
+   1.41:1 entre estado normal y enfocado): ninguno llega al 3:1 de 1.4.11.
+   Ahora no se toca `outline` ni `box-shadow`, así que manda el anillo de doble
+   contorno de `globals.css` (7.14:1 sobre crema). El cambio de borde se conserva
+   como señal secundaria, en `--ambar-700` para que también contraste por sí solo. */
 .input:focus, .select:focus, .textarea:focus {
-  outline: none;
-  border-color: var(--ambar);
-  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.22);
+  border-color: var(--ambar-700);
 }
 .input::placeholder, .textarea::placeholder { color: var(--tinta-3); }
 
@@ -257,12 +269,16 @@ button { font-family: inherit; }
   color: var(--tinta-3);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+/* A11Y-32 · Mismo caso que `.input:focus`: el halo al 22 % no llega a 3:1. El
+   anillo lo dibuja `:focus-visible` sobre el `<input>`, que es el elemento que
+   realmente recibe el foco; aquí queda sólo el realce del contorno de la píldora. */
 .input-busqueda:focus-within {
-  border-color: var(--ambar);
-  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.22);
+  border-color: var(--ambar-700);
 }
 .input-busqueda input {
-  border: none; outline: none; background: transparent;
+  /* Sin `outline: none`: esta regla es (0,1,1) y ganaba a `:focus-visible`,
+     dejando el campo de búsqueda sin ningún indicador de foco. */
+  border: none; background: transparent;
   font: inherit; font-size: 15px; color: var(--tinta); width: 100%;
 }
 
@@ -308,13 +324,25 @@ button { font-family: inherit; }
   background: var(--arena-200);
   overflow: hidden;
 }
+/* A11Y-17 · El relleno ámbar sobre el riel de arena daba 1.54:1: no se veía dónde
+   termina el avance. El fix propuesto en la auditoría (oscurecer el riel a #C9BB99)
+   está mal calculado —da 1.07:1, porque acerca el riel a la luminancia del ámbar en
+   vez de alejarla—. Para llegar a 3:1 oscureciendo el riel haría falta un marrón
+   oscuro (~#6B6045), que convierte la barra en otra cosa; y oscurecer el relleno a
+   --ambar-700 pierde el ámbar de marca en toda la plataforma.
+   Vía elegida: un anillo interior de --ambar-700 que delimita el relleno. El borde
+   que porta la información —dónde acaba el avance— contrasta 4.01:1 con el riel, y
+   el ámbar de marca se conserva. Con pct=0 la caja no tiene ancho y no se pinta. */
 .progreso > div {
   height: 100%; border-radius: 999px;
   background: var(--ambar);
+  box-shadow: inset 0 0 0 1.5px var(--ambar-700);
   transform-origin: left center;
   transition: width 0.4s ease;
 }
-.progreso-azul > div { background: var(--azul-700); }
+/* El relleno azul ya contrasta 4.28:1 con el riel: no necesita anillo, y uno
+   ámbar sobre azul sería ruido. */
+.progreso-azul > div { background: var(--azul-700); box-shadow: none; }
 
 /* ---------- Skeleton (pulso de opacidad: solo opacity) ---------- */
 .skeleton {
@@ -367,6 +395,10 @@ button { font-family: inherit; }
   pointer-events: none;
 }
 .sidebar-nav { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; flex: 1; }
+/* A11Y-31 · El `role="group"` mete un contenedor entre .sidebar-nav y los .nav-item,
+   así que el `gap: 4px` del nav dejaría de separarlos: se replica aquí. Sin
+   `position`, para no convertirse en offsetParent de la gota indicadora. */
+.nav-grupo { display: flex; flex-direction: column; gap: 4px; }
 .nav-item {
   display: flex; align-items: center; gap: 12px;
   padding: 11px 14px;
@@ -623,12 +655,14 @@ body[data-tema="didasko"] .input-busqueda {
   background: var(--blanco);
 }
 body[data-tema="didasko"] .input-busqueda { border-radius: 10px; }
+/* A11Y-32 · La sombra dura de 3px era decorativa, pero al declarar `box-shadow`
+   pisaba el separador interior del anillo de doble contorno. Se retira: el
+   indicador de foco lo pone `:focus-visible`. */
 body[data-tema="didasko"] .input:focus,
 body[data-tema="didasko"] .select:focus,
 body[data-tema="didasko"] .textarea:focus,
 body[data-tema="didasko"] .input-busqueda:focus-within {
   border-color: var(--azul-800);
-  box-shadow: 3px 3px 0 var(--ambar);
 }
 
 /* ---------- Progreso ---------- */
@@ -753,10 +787,21 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
   --oliva-800:   #152a66;
   --oliva-clara: #F5C26B;
   --grad-oliva:  linear-gradient(168deg, #0f1f4d 0%, #152a66 100%);
-  /* bordes neutros suaves */
+  /* bordes neutros suaves — DECORATIVOS: contorno de tarjeta, separadores.
+     1.4.11 no les aplica (no portan información de estado ni delimitan un
+     control), así que conservan el hairline que pide el diseño. */
   --borde:       #ded7c8;
   --borde-suave: #ece6d9;
-  --foco-glow:   rgba(245, 166, 35, 0.22); /* glow de foco (ámbar) */
+  /* A11Y-34 · Borde de CONTROL (campos, botón secundario, chip). El `--borde`
+     decorativo daba 1.41:1 contra el interior del campo: no se veía dónde
+     empieza y acaba un control, que es justo lo que exige 1.4.11. Es la opción
+     (b) que recomendaba la auditoría en su § 3 —token aparte en vez de oscurecer
+     el borde de las tarjetas—. Medido: 3.67:1 contra el interior del campo,
+     3.47:1 contra la crema y 3.18:1 contra `--arena-100`. */
+  --borde-control: #8f8369;
+  /* A11Y-32 · `--foco-glow` (ámbar al 22 %) queda retirado: daba 1.15:1 y se
+     usaba como indicador de foco de los campos. El indicador es el anillo de
+     doble contorno de `globals.css`; no reintroducir un glow propio. */
   /* "éxito/activo" en ámbar de marca (antes verde) para todo el admin.
      Mismo motivo que --ambar-700: como color de texto sobre --ok-bg el
      #b9740f daba 3.53:1. #b45309 da 4.70:1 sobre ese fondo y 5.05:1 sobre
@@ -783,10 +828,14 @@ body[data-tema="didasko"]::-webkit-scrollbar-thumb { background: #cfc4a4; border
   --oliva-800:   #152a66;
   --oliva-clara: #F5C26B;
   --grad-oliva:  linear-gradient(168deg, #0f1f4d 0%, #152a66 100%);
-  /* bordes neutros fríos */
+  /* bordes neutros fríos — DECORATIVOS, ver la nota de .paleta-oliva */
   --borde:       #DCE2EC;
   --borde-suave: #E8EDF4;
-  --foco-glow:   rgba(245, 166, 35, 0.22); /* glow de foco (ambar) */
+  /* A11Y-34 · Borde de control. El decorativo daba 1.28:1 contra el interior del
+     campo. Medido: 3.60:1 contra el campo, 3.40:1 contra la crema, 3.12:1 contra
+     `--arena-100`. */
+  --borde-control: #7c8699;
+  /* A11Y-32 · Ver la nota de .paleta-oliva: --foco-glow retirado. */
 }
 .paleta-azul .acento-claro { color: var(--oliva-clara) !important; }
 
@@ -832,19 +881,36 @@ body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .card.bloque-marca {
   box-shadow: 0 4px 16px rgba(21, 42, 102, 0.14);
 }
 
-/* Eyebrow: texto plano (didasko fuerza color navy con !important → !important) */
+/* Eyebrow: texto plano (didasko fuerza color navy con !important → !important).
+   A11Y-35 · Esta regla forzaba `--oliva-clara` (#F5C26B) en TODO `.t-eyebrow`.
+   Ese tono está pensado para los bloques navy, donde da 8.24:1; sobre la crema
+   da **1.52:1** y sobre tarjeta 1.61:1. Afectaba a la fecha del saludo de
+   /inicio, «Tu recorrido», «Beneficios», «Gestión», las tarjetas de evento y el
+   modal de evento. Peor: al llevar `!important` **anulaba los `style` en línea
+   con `var(--ambar-700)`** que ya se habían puesto en el login y en «Continúa
+   donde quedaste» — un `!important` de autor gana a un estilo en línea normal,
+   así que aquellos arreglos nunca llegaron a pintarse.
+   Ahora el color claro se aplica sólo donde hay fondo oscuro. */
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-eyebrow {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
   padding: 0 !important;
-  color: var(--oliva-clara) !important;
+  color: var(--ambar-700) !important;   /* 4.85:1 sobre crema */
+}
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .bloque-marca .t-eyebrow {
+  color: var(--oliva-clara) !important; /* 8.24:1 sobre el navy del bloque */
 }
 
-/* "9 vencimientos": ámbar marca de texto, sin caja (didasko fuerza navy → !important) */
+/* "9 vencimientos": ámbar de marca como texto, sin caja (didasko fuerza navy → !important).
+   A11Y-33 · El literal #F5A623 daba 1.88:1 sobre la crema — falla incluso el umbral
+   de 3:1 de texto grande. Es el mismo defecto que A11Y-02, que barrió los literales
+   de JSX y los tokens base pero no esta regla con scope y `!important`. `--ambar-700`
+   (#b45309) da 4.8:1 sobre crema y 5.0:1 sobre tarjeta: cumple también como texto
+   normal, por si el display baja de tamaño en móvil. */
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-display em {
   background: none !important;
-  color: #F5A623 !important;
+  color: var(--ambar-700) !important;
   box-shadow: none !important;
   padding: 0 !important;
   border-radius: 0 !important;
@@ -854,7 +920,9 @@ body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-display em {
 
 /* Botones: planos, borde hairline, sin sombra dura ni salto */
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn { border-width: 1px; }
-body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-secondary { border: 1px solid var(--borde); box-shadow: none; }
+/* A11Y-34 · El botón secundario es `--blanco` sobre `--crema` (1.02:1): sin un
+   borde a 3:1 no hay forma de ver que es un control. */
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-secondary { border: 1px solid var(--borde-control); box-shadow: none; }
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-primary { box-shadow: none; }
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-secondary:hover { transform: none; background: var(--ambar-50); }
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .btn-primary:hover { transform: none; }
@@ -871,15 +939,21 @@ body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .badge {
 /* Tabla / avatar / chips / inputs: bordes hairline, sin navy duro */
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .tabla th { border-bottom: 1px solid var(--borde-suave); color: var(--tinta-3); }
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .avatar { border: none; }
-body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .chip { border: 1px solid var(--borde); box-shadow: none; }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .chip { border: 1px solid var(--borde-control); box-shadow: none; }
+/* A11Y-34 · Estas cuatro clases son controles, no decoración: su contorno es la
+   única señal de dónde empieza y acaba el campo —el relleno `--blanco` y el fondo
+   `--crema` se diferencian en 1.02:1—, así que necesita 3:1 (1.4.11). Con
+   `--borde` daba 1.41:1 en oliva y 1.28:1 en azul. */
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input,
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .select,
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .textarea,
-body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input-busqueda { border: 1px solid var(--borde); }
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input-busqueda { border: 1px solid var(--borde-control); }
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input-busqueda:focus-within,
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input:focus,
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .select:focus,
-body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .textarea:focus { border-color: var(--ambar); box-shadow: 0 0 0 3px var(--foco-glow); }
+/* A11Y-32 · `--foco-glow` es ámbar al 22 % (1.15:1): no puede ser el indicador
+   de foco. Se retira el `box-shadow` para que mande el anillo del sistema. */
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .textarea:focus { border-color: var(--ambar-700); }
 
 /* Sidebar / topbar: separadores finos; activo sin sombra dura */
 body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .sidebar { border-right: 1px solid var(--borde-suave); }
@@ -1539,3 +1613,21 @@ body[data-movimiento="reducido"] * {
   vertical-align: top;
 }
 .contenido-modulo th { background: var(--arena-100); color: var(--tinta); font-weight: 650; }
+
+/* ---------- Foco no oscurecido (2.4.11) ---------- */
+/* A11Y-30 · Tres capas fijas se superponen al contenido: la topbar sticky (~68 px),
+   el header fijo de administración y la barra de tabs inferior del móvil (56 px más
+   el área segura). Cuando el navegador desplaza para revelar el elemento enfocado,
+   éste puede quedar debajo de cualquiera de ellas. Los espaciadores que ya existen
+   en los layouts protegen el FINAL del contenido, no un control alcanzado a media
+   página. `scroll-margin` sólo interviene en ese desplazamiento: no toca el layout. */
+:is(a, button, input, select, textarea, summary, [tabindex]) {
+  scroll-margin-top: 88px;
+  scroll-margin-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 1024px) {
+  /* En escritorio no hay barra de tabs inferior. */
+  :is(a, button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-bottom: 24px;
+  }
+}

@@ -40,6 +40,13 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
   const [sortField, setSortField] = useState<SortField>('full_name')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
+  // Estado de orden expuesto en el `<th>` (4.1.2): sin esto, el lector de pantalla
+  // no anuncia por qué columna está ordenada la tabla ni en qué dirección.
+  function ariaSort(field: SortField): 'ascending' | 'descending' | 'none' {
+    if (sortField !== field) return 'none'
+    return sortDir === 'asc' ? 'ascending' : 'descending'
+  }
+
   function handleSort(field: SortField) {
     if (sortField === field) {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -133,13 +140,23 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
           </select>
         </div>
 
+        {/* Recuento de resultados al filtrar (4.1.3): el `<caption>` no es región viva */}
+        <p role="status" className="sr-only">
+          {sorted.length} {sorted.length === 1 ? 'trabajador encontrado' : 'trabajadores encontrados'} con los filtros aplicados.
+        </p>
+
         {/* Tabla */}
         <div className="card tabla-envoltura min-w-0">
             <table className="tabla">
+              <caption className="sr-only">
+                Trabajadores activos. {sorted.length} {sorted.length === 1 ? 'resultado' : 'resultados'} con
+                los filtros aplicados. Tabla ordenable por trabajador, sede, áreas, rol y estado.
+              </caption>
               <thead>
                 <tr>
-                  <th className="px-5 lg:px-6 py-3 cursor-pointer select-none">
+                  <th scope="col" aria-sort={ariaSort('full_name')} className="px-5 lg:px-6 py-3 select-none">
                     <button
+                      type="button"
                       onClick={() => handleSort('full_name')}
                       className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
                     >
@@ -147,9 +164,10 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                       <SortIcon field="full_name" currentField={sortField} direction={sortDir} />
                     </button>
                   </th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
-                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell cursor-pointer select-none">
+                  <th scope="col" className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
+                  <th scope="col" aria-sort={ariaSort('sede')} className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell select-none">
                     <button
+                      type="button"
                       onClick={() => handleSort('sede')}
                       className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
                     >
@@ -157,8 +175,9 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                       <SortIcon field="sede" currentField={sortField} direction={sortDir} />
                     </button>
                   </th>
-                  <th className="px-5 lg:px-6 py-3 hidden lg:table-cell cursor-pointer select-none">
+                  <th scope="col" aria-sort={ariaSort('area_trabajo')} className="px-5 lg:px-6 py-3 hidden lg:table-cell select-none">
                     <button
+                      type="button"
                       onClick={() => handleSort('area_trabajo')}
                       className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
                     >
@@ -166,8 +185,9 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                       <SortIcon field="area_trabajo" currentField={sortField} direction={sortDir} />
                     </button>
                   </th>
-                  <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell cursor-pointer select-none">
+                  <th scope="col" aria-sort={ariaSort('role')} className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell select-none">
                     <button
+                      type="button"
                       onClick={() => handleSort('role')}
                       className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
                     >
@@ -175,8 +195,9 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                       <SortIcon field="role" currentField={sortField} direction={sortDir} />
                     </button>
                   </th>
-                  <th className="px-5 lg:px-6 py-3 cursor-pointer select-none">
+                  <th scope="col" aria-sort={ariaSort('status')} className="px-5 lg:px-6 py-3 select-none">
                     <button
+                      type="button"
                       onClick={() => handleSort('status')}
                       className="flex items-center gap-1 group text-[11px] uppercase tracking-widest text-[#6B7280] font-bold hover:text-[#1A1A2E] transition-colors"
                     >
@@ -184,7 +205,7 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                       <SortIcon field="status" currentField={sortField} direction={sortDir} />
                     </button>
                   </th>
-                  <th className="px-5 lg:px-6 py-3 text-right">Acciones</th>
+                  <th scope="col" className="px-5 lg:px-6 py-3 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -230,8 +251,11 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                           <Link
                             href={`/admin/trabajadores/${worker.id}`}
                             className="btn btn-ghost btn-sm"
+                            // A11Y-27 · Sin `title="Ver detalle"`: el tooltip nativo no se
+                            // descarta con Escape, no es hoverable ni persistente, y no
+                            // existe en táctil. Además introducía una segunda cadena
+                            // distinta del `aria-label`, que confunde al control por voz.
                             aria-label={`Ver detalle de ${worker.full_name}`}
-                            title="Ver detalle"
                           >
                             <Icono n="ojo" s={16} />
                           </Link>
@@ -239,7 +263,6 @@ export function WorkersTable({ workers, sedes }: { workers: Worker[]; sedes: { i
                             onClick={() => setSelectedWorker(worker)}
                             className="btn btn-secondary btn-sm"
                             aria-label={`Editar ${worker.full_name}`}
-                            title="Editar"
                           >
                             <Icono n="editar" s={16} />
                           </button>
@@ -267,14 +290,16 @@ function SortIcon({
 }) {
   const isActive = field === currentField
   return (
-    <span className="inline-flex flex-col ml-1 opacity-40 group-hover:opacity-100 transition-opacity">
-      <svg
+    // El estado de orden ya lo expone `aria-sort` en el `<th>`: aquí es decoración.
+    // Opacidad al 70 % para que el indicador visual llegue a 3:1 (1.4.11).
+    <span aria-hidden="true" className="inline-flex flex-col ml-1 opacity-70 group-hover:opacity-100 transition-opacity">
+      <svg aria-hidden="true"
         className={`h-3 w-3 -mb-1 ${isActive && direction === 'asc' ? 'text-[#2B4FA0] opacity-100' : ''}`}
         viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
       >
         <path d="M18 15l-6-6-6 6"/>
       </svg>
-      <svg
+      <svg aria-hidden="true"
         className={`h-3 w-3 ${isActive && direction === 'desc' ? 'text-[#2B4FA0] opacity-100' : ''}`}
         viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"
       >

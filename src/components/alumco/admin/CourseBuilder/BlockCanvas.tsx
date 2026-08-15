@@ -133,7 +133,7 @@ export function BlockCanvas({
                   {/* Conector entre bloques */}
                   {index < modules.length - 1 && (
                     <div className="flex justify-center my-1" aria-hidden="true">
-                      <svg
+                      <svg aria-hidden="true"
                         className="h-4 w-4 text-muted-foreground/40"
                         viewBox="0 0 24 24"
                         fill="none"

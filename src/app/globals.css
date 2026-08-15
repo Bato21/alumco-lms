@@ -461,6 +461,16 @@
   .tab-inferior {
     min-block-size: 60px;
   }
+
+  /* A11Y-26 · Último `white-space: nowrap` que quedaba sobre texto de interfaz.
+     No llegaba a incumplir —`.tabla-envoltura` tiene `overflow-x: auto`, así que
+     con más espaciado la tabla se desplaza en vez de recortar—, pero dejar que
+     el encabezado salte de línea evita empujar la tabla a scroll horizontal por
+     una preferencia de lectura. Los `<th>` son rótulos cortos y de dos palabras
+     como mucho. */
+  .tabla th {
+    white-space: normal;
+  }
 }
 
 /* ============================================================================
@@ -780,6 +790,12 @@ section[id] { scroll-margin-top: 80px; }
   --arena-200:   #E2E7F0;
   --borde:       #DCE2EC;
   --borde-suave: #E8EDF4;
+  /* A11Y-37 · Mismo caso que A11Y-34 en las paletas de la app: `--borde` es
+     decorativo (1.26:1 contra el fondo de la landing) y no puede delimitar un
+     control. El formulario de contacto usa este token para el contorno de sus
+     campos. Medido: 3.60:1 contra el relleno del campo, 3.54:1 contra la crema
+     de la landing y 3.24:1 contra `--arena-100`. */
+  --borde-control: #7c8699;
   --tinta:       #1B2233;
   /* Secciones oscuras → azul Alumco del footer (antes oliva) */
   --oliva-950:   #0b1838;

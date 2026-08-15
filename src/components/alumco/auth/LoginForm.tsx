@@ -50,6 +50,7 @@ export function LoginForm() {
     <form ref={formRef} action={formAction} className="col" style={{ gap: 18 }} noValidate>
       {state.error && (
         <div
+          id="login-error"
           role="alert"
           aria-live="assertive"
           className="fila"
@@ -70,6 +71,12 @@ export function LoginForm() {
         </div>
       )}
 
+      {/* 3.3.2 · La obligatoriedad tiene que constar en texto, no sólo en el
+          atributo `required`. */}
+      <p className="texto-s silencio-3" style={{ margin: 0 }}>
+        Ambos campos son obligatorios.
+      </p>
+
       <div className="campo">
         <label htmlFor="email">Correo electrónico</label>
         <input
@@ -82,6 +89,12 @@ export function LoginForm() {
           disabled={isPending}
           placeholder="nombre@alumco.cl"
           className="input"
+          // A11Y-24 · El error se asocia al campo que lo originó. Cuando el
+          // rechazo viene de Supabase no se dice cuál de los dos falló —sería un
+          // oráculo de cuentas—, así que `state.field` llega vacío y no se marca
+          // ninguno como inválido.
+          aria-invalid={state.field === 'email' || undefined}
+          aria-describedby={state.field === 'email' ? 'login-error' : undefined}
         />
       </div>
 
@@ -111,6 +124,13 @@ export function LoginForm() {
             onBlur={() => setCapsLockOn(false)}
             className="input"
             style={{ paddingRight: 48 }}
+            aria-invalid={state.field === 'password' || undefined}
+            aria-describedby={
+              [
+                state.field === 'password' ? 'login-error' : null,
+                capsLockOn ? 'login-caps' : null,
+              ].filter(Boolean).join(' ') || undefined
+            }
           />
           <button
             type="button"
@@ -136,7 +156,7 @@ export function LoginForm() {
           </button>
         </div>
         {capsLockOn && (
-          <p className="texto-s fila" style={{ gap: 6, color: 'var(--aviso)' }} aria-live="polite">
+          <p id="login-caps" className="texto-s fila" style={{ gap: 6, color: 'var(--aviso)' }} aria-live="polite">
             <AlertCircle className="h-4 w-4" aria-hidden="true" />
             Mayúsculas activadas
           </p>

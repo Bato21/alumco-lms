@@ -65,6 +65,7 @@ export function ResetPasswordForm({ code, tokenHash }: ResetPasswordFormProps) {
 
       {state.error && (
         <div
+          id="reset-error"
           role="alert"
           aria-live="assertive"
           className="fila"
@@ -97,8 +98,10 @@ export function ResetPasswordForm({ code, tokenHash }: ResetPasswordFormProps) {
             required
             minLength={8}
             disabled={isPending}
-            aria-describedby="password-ayuda"
-            aria-invalid={state.error ? true : undefined}
+            // A11Y-24 · Antes cualquier error marcaba inválidos LOS DOS campos,
+            // aunque el fallo fuera sólo de uno. `state.field` dice cuál.
+            aria-describedby={state.field === 'password' ? 'reset-error password-ayuda' : 'password-ayuda'}
+            aria-invalid={state.field === 'password' || undefined}
             placeholder="••••••••"
             onKeyUp={(e) => setMayusculas(e.getModifierState('CapsLock'))}
             onBlur={() => setMayusculas(false)}
@@ -153,7 +156,8 @@ export function ResetPasswordForm({ code, tokenHash }: ResetPasswordFormProps) {
           required
           minLength={8}
           disabled={isPending}
-          aria-invalid={state.error ? true : undefined}
+          aria-invalid={state.field === 'confirm' || undefined}
+          aria-describedby={state.field === 'confirm' ? 'reset-error' : undefined}
           placeholder="••••••••"
           className="input"
         />

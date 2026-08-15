@@ -30,35 +30,35 @@ export function ModuleIndex({
     switch (type) {
       case 'video':
         return (
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M5 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" />
             <path d="m9 9 6 3-6 3V9z" />
           </svg>
         )
       case 'pdf':
         return (
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14,2 14,8 20,8" />
           </svg>
         )
       case 'slides':
         return (
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="3" width="18" height="18" rx="2" />
             <path d="M3 9h18" />
           </svg>
         )
       case 'quiz':
         return (
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M9 11l3 3L22 4" />
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
         )
       case 'texto':
         return (
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M4 6h16M4 11h16M4 16h9" />
           </svg>
         )
@@ -107,7 +107,11 @@ export function ModuleIndex({
                   : status === 'completed'
                     ? 'bg-[var(--md-surface-container-low)]'
                     : status === 'locked'
-                      ? 'opacity-50'
+                      /* A11Y-18 · `opacity-50` atenuaba el texto junto con todo lo
+                         demás y lo dejaba en ~3:1. Se atenúa el fondo, no la tinta:
+                         el estado ya se comunica con el candado y la palabra
+                         «Bloqueado». La opacidad se conserva sólo en el icono. */
+                      ? 'bg-[var(--md-surface-container-low)]'
                       : 'hover:bg-[var(--md-surface-container-low)]'
                 }
               `}
@@ -116,7 +120,7 @@ export function ModuleIndex({
               <div className="shrink-0 mt-0.5">
                 {status === 'completed' ? (
                   <div className="w-6 h-6 rounded-full bg-[var(--ok)] text-white flex items-center justify-center">
-                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <polyline points="20,6 9,17 4,12" />
                     </svg>
                   </div>
@@ -125,8 +129,8 @@ export function ModuleIndex({
                     {index + 1}
                   </div>
                 ) : status === 'locked' ? (
-                  <div className="w-6 h-6 rounded-full bg-[var(--md-surface-container)] text-[var(--md-outline)] flex items-center justify-center">
-                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div className="w-6 h-6 rounded-full bg-[var(--md-surface-container)] text-[var(--md-outline)] flex items-center justify-center opacity-70">
+                    <svg aria-hidden="true" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
@@ -154,7 +158,9 @@ export function ModuleIndex({
                   <span className={`
                     inline-flex items-center gap-1 text-xs
                     ${status === 'active'
-                      ? 'text-[var(--md-on-primary-container)]/70'
+                      /* A11Y-18 · El `/70` dejaba #334C9D sobre #DCE1FF en 3.25:1
+                         a 12 px. A opacidad plena son 6.11:1. */
+                      ? 'text-[var(--md-on-primary-container)]'
                       : 'text-[var(--md-on-surface-variant)]'
                     }
                   `}>
@@ -166,7 +172,7 @@ export function ModuleIndex({
                     <span className={`
                       text-xs
                       ${status === 'active'
-                        ? 'text-[var(--md-on-primary-container)]/70'
+                        ? 'text-[var(--md-on-primary-container)]'
                         : 'text-[var(--md-on-surface-variant)]'
                       }
                     `}>

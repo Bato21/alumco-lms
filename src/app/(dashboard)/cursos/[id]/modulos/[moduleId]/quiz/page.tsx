@@ -97,11 +97,11 @@ export default async function QuizPage({ params }: QuizPageProps) {
       return (
         <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
           <div className="h-16 w-16 rounded-2xl bg-[var(--arena-100)] flex items-center justify-center mx-auto">
-            <svg className="h-8 w-8 text-[var(--tinta-3)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg aria-hidden="true" className="h-8 w-8 text-[var(--tinta-3)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-[var(--tinta)]">Acceso no permitido</h2>
+          <h1 className="text-xl font-bold text-[var(--tinta)]">Acceso no permitido</h1>
           <p className="text-[var(--tinta-3)]">
             Esta evaluación pertenece a un curso que no está asignado a tu área de trabajo.
           </p>
@@ -131,12 +131,12 @@ export default async function QuizPage({ params }: QuizPageProps) {
     return (
       <div className="max-w-2xl mx-auto py-16 text-center space-y-4">
         <div className="h-16 w-16 rounded-2xl bg-[var(--arena-100)] flex items-center justify-center mx-auto">
-          <svg className="h-8 w-8 text-[var(--tinta-3)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg aria-hidden="true" className="h-8 w-8 text-[var(--tinta-3)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-[var(--tinta)]">Evaluación bloqueada</h2>
+        <h1 className="text-xl font-bold text-[var(--tinta)]">Evaluación bloqueada</h1>
         <p className="text-[var(--tinta-3)]">
           Necesitas completar los módulos anteriores antes de rendir esta evaluación.
         </p>

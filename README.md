@@ -337,15 +337,18 @@ Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin deb
 | | |
 |---|---|
 | **Estándar objetivo** | WCAG 2.2, nivel AA (criterios A + AA). No se evalúa AAA. |
-| **Estado actual** | ⚠️ **Parcialmente conforme.** La conformidad AA **todavía no se alcanza**. |
-| **Última verificación** | 2026-08-10 · rama `accesibilidad-AA` |
+| **Estado actual** | ⚠️ **Parcialmente conforme.** 37 de 41 criterios conformes (+3 con observación) y **38 de 38 hallazgos cerrados** —31 de la auditoría y 7 de tres barridos de verificación posteriores—: no queda deuda de código conocida. El único criterio no conforme es **1.2.2 (subtítulos de video)**, que no se resuelve programando —depende del flujo editorial— y que, siendo de nivel A, impide alcanzar tanto A como AA. |
+| **Última verificación** | 2026-08-14 · rama `accesibilidad-AA` |
 | **Método** | Revisión estática de código sobre el 100 % de las vistas + cálculo de contraste sobre los colores efectivos del bundle compilado. **Sin** pruebas con lector de pantalla real ni con usuarios. |
 | **Informe de conformidad** | [`docs/CONFORMIDAD_A11Y.md`](./docs/CONFORMIDAD_A11Y.md) |
-| **Auditoría detallada (31 hallazgos)** | [`docs/AUDITORIA_A11Y.md`](./docs/AUDITORIA_A11Y.md) |
+| **Auditoría detallada (38 hallazgos)** | [`docs/AUDITORIA_A11Y.md`](./docs/AUDITORIA_A11Y.md) |
 
 > La afirmación genérica "WCAG AA" que figuraba antes en este README no estaba respaldada por
 > ninguna verificación. La auditoría de 2026-08-10 encontró **31 incumplimientos**, 8 de ellos
-> bloqueantes. Este bloque se mantiene actualizado con el estado real, no con el objetivo.
+> bloqueantes; tres barridos posteriores encontraron 7 más, uno de ellos de nivel A. Los 38 están corregidos. Este bloque se
+> mantiene actualizado con el estado real, no con el objetivo — y el estado real sigue siendo
+> **revisión de código**: nada se ha probado con lector de pantalla, con axe en navegador ni con
+> usuarios.
 
 **Verificación permanente en el repositorio:**
 
@@ -375,5 +378,5 @@ Para auditorías de QA y registro de bugs ver [`src/testing/bugs.md`](./src/test
 
 - **`CLAUDE.md`** — Contexto completo del proyecto, normativas de código (incluidas las **normas de accesibilidad** obligatorias) y fases de desarrollo. Imprescindible para entender decisiones de arquitectura.
 - **`docs/CONFORMIDAD_A11Y.md`** — Declaración de conformidad WCAG 2.2 AA: alcance, metodología, criterio por criterio y qué falta. Es el documento de evidencia para la entrega y para el cliente.
-- **`docs/AUDITORIA_A11Y.md`** — Auditoría técnica con los 31 hallazgos, ratios de contraste medidos y fix propuesto para cada uno.
+- **`docs/AUDITORIA_A11Y.md`** — Auditoría técnica con los 38 hallazgos, ratios de contraste medidos y fix propuesto para cada uno.
 - **`src/testing/bugs.md`** — Reporte de QA con bugs detectados, severidad y fix paso a paso.

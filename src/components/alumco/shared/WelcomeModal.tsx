@@ -84,7 +84,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
             {/* Sede */}
             <div className="flex items-start gap-3 mb-4">
               <div className="h-9 w-9 rounded-xl bg-[#E6F1FB] flex items-center justify-center shrink-0">
-                <svg className="h-5 w-5 text-[#2B4FA0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" className="h-5 w-5 text-[#2B4FA0]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                   <circle cx="12" cy="10" r="3"/>
                 </svg>
@@ -100,7 +100,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
             {/* Áreas */}
             <div className="flex items-start gap-3">
               <div className="h-9 w-9 rounded-xl bg-[#EAF3DE] flex items-center justify-center shrink-0">
-                <svg className="h-5 w-5 text-[var(--ok)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" className="h-5 w-5 text-[var(--ok)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -148,7 +148,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
                   className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
                   style={{ backgroundColor: item.bg }}
                 >
-                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke={item.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke={item.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d={item.icon} />
                   </svg>
                 </div>
@@ -166,7 +166,7 @@ export default function WelcomeModal({ fullName, areas, sede }: WelcomeModalProp
           >
             {isPending ? (
               <>
-                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg aria-hidden="true" className="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                 </svg>
                 Un momento...

@@ -116,14 +116,18 @@ export default function CertificadosClient({ certificates, total }: Certificados
       {/* Tabla */}
       <div className="card entra entra-2 tabla-envoltura">
         <table className="tabla">
+          <caption className="sr-only">
+            Certificados emitidos. {filtered.length} de {total}{' '}
+            {total === 1 ? 'certificado' : 'certificados'} con los filtros aplicados.
+          </caption>
           <thead>
             <tr>
-              <th>Trabajador</th>
-              <th className="hidden sm:table-cell">Curso</th>
-              <th className="hidden lg:table-cell">Sede</th>
-              <th className="hidden lg:table-cell">Fecha emisión</th>
-              <th className="hidden lg:table-cell">Folio</th>
-              <th style={{ textAlign: 'right' }}>Acciones</th>
+              <th scope="col">Trabajador</th>
+              <th scope="col" className="hidden sm:table-cell">Curso</th>
+              <th scope="col" className="hidden lg:table-cell">Sede</th>
+              <th scope="col" className="hidden lg:table-cell">Fecha emisión</th>
+              <th scope="col" className="hidden lg:table-cell">Folio</th>
+              <th scope="col" style={{ textAlign: 'right' }}>Acciones</th>
             </tr>
           </thead>
           <tbody>

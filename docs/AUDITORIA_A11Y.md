@@ -35,6 +35,12 @@ puro, se indica explícitamente.
 | Baja | 4 |
 | **Total** | **31** |
 
+> **Este recuento es el de la auditoría del 2026-08-10 y no se reescribe.** Un barrido de
+> verificación posterior (2026-08-14) encontró **dos hallazgos más**, A11Y-32 y A11Y-33, que
+> tienen su propia sección al final del documento. El total vigente es **33**. Nótese que los dos
+> nuevos corresponden a los puntos 2 y 3 de la lista de aquí abajo: el alcance original cubría los
+> literales escritos en JSX, pero no las reglas base de CSS ni las paletas con scope.
+
 Tres problemas explican la mayoría del resto:
 
 1. **La cascada de `globals.css` está rota** (A11Y-01). El segundo bloque `:root` vive fuera de
@@ -1252,7 +1258,13 @@ DIDASKO (`didasko.css:498`). Cambiar el `<div>` exterior a `<main>` no altera es
 ---
 
 ### A11Y-11 — "Tu recorrido": el estado del curso se comunica sólo por color, y `role="listitem"` anula el rol de enlace
-- **Estado:** ⚠️ **Parcial** — `role="listitem"` corregido; el estado del curso sigue siendo solo color
+- **Estado:** ✅ **Cerrado** — `role="listitem"` corregido antes; el estado del curso viaja ahora en
+  texto (2026-08-14). **Matiz:** se cerró por la vía alternativa que el propio hallazgo contempla,
+  sin tocar el texto visible. El nodo distingue los tres estados por **forma** (visto bueno / gota /
+  punto), que ya es un canal no cromático; lo que faltaba era el equivalente textual, porque el nodo
+  va `aria-hidden`. La subetiqueta añade `<span class="sr-only"> de N · Completado|En curso|
+  Pendiente</span>`. Sustituir el «Curso N» visible por el estado sigue **pendiente de decisión de
+  la clienta** (§ 3, decisión 4) — es una mejora de contenido, ya no un incumplimiento
 - **Criterio WCAG:** 1.4.1 Uso del color (Nivel A) · 4.1.2 Nombre, rol, valor (Nivel A) · 1.3.1 Información y relaciones (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/curso/RecorridoCapas.tsx:25-62`
@@ -1479,7 +1491,14 @@ hoy un clic dentro del modal puede cerrarlo. Mover `role="dialog"` no altera nad
 ---
 
 ### A11Y-13 — La campana de notificaciones no expone su estado ni su conteo, y no se cierra con teclado
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — insignia numérica, nombre accesible con conteo, `aria-expanded` y
+  cierre con `Escape` (2026-08-14). Se aplicaron los cuatro puntos: el punto de 8 px pasó a insignia
+  con el número (1.4.1); el `aria-label` incluye el conteo y se añadieron `aria-expanded`,
+  `aria-haspopup="dialog"` y `aria-controls` (4.1.2); `Escape` cierra y devuelve el foco a la campana
+  (2.1.1); y los dos `text-slate-400` (2.56:1) pasaron a `--tinta-3` y `--tinta-2` (1.4.3). De paso,
+  el panel declara `role="dialog"` con `aria-labelledby`, la lista de alertas es un `<ul role="list">`
+  con `<li>` reales, y el punto de color, el separador «·» y la barra de progreso de cada alerta van
+  `aria-hidden` por ser redundantes con su texto
 - **Criterio WCAG:** 4.1.2 Nombre, rol, valor (Nivel A) · 1.4.1 Uso del color (Nivel A) · 2.1.1 Teclado (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/shared/NotificationBell.tsx:55-87`
@@ -1681,7 +1700,15 @@ se sustituyen por el color pleno — sube el contraste, cambia levemente el tono
 ---
 
 ### A11Y-15 — Cinco de siete tablas no declaran `scope` ni `caption`, y el ordenamiento no expone `aria-sort`
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — `caption`, `scope="col"` y `aria-sort` en todas las tablas
+  (2026-08-14). `admin/trabajadores/[id]/page.tsx` ya se había corregido en una pasada anterior;
+  quedaban `WorkersTable`, solicitudes (`admin/trabajadores/page.tsx`), `SuspendedTable`,
+  `SuspendidosTable`, `CertificadosClient` y `TablaDatos` (esta última recibe ahora un prop `titulo`
+  obligatorio, que ambos gráficos rellenan). En `WorkersTable`, las cinco columnas ordenables
+  exponen `aria-sort` vía la función `ariaSort()`, el indicador de flechas sube de `opacity-40` a
+  `opacity-70` y va `aria-hidden` (el estado lo da `aria-sort`), y se eliminó el `cursor-pointer`
+  del `<th>`, que prometía un área clicable mayor que el `<button>` real. Se añadió además un
+  `role="status"` que anuncia el recuento al filtrar
 - **Criterio WCAG:** 1.3.1 Información y relaciones (Nivel A) · 4.1.2 Nombre, rol, valor (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `admin/trabajadores/WorkersTable.tsx:138-188` · `admin/trabajadores/page.tsx:92-99` · `admin/trabajadores/SuspendedTable.tsx:95-102` · `admin/trabajadores/SuspendidosTable.tsx:93-101` · `admin/trabajadores/[id]/page.tsx:219-224` · `admin/certificados/CertificadosClient.tsx:118-126`
@@ -1905,7 +1932,17 @@ seguiría cumpliendo 2.5.8 si supera 24 px).
 ---
 
 ### A11Y-17 — La barra de progreso no tiene nombre accesible y su relleno contrasta 1.54:1 con el riel
-- **Estado:** ⚠️ **Parcial** — la barra ya tiene nombre accesible; el riel sigue en 1.54:1
+- **Estado:** ✅ **Cerrado** — nombre accesible ya resuelto; el relleno se delimita con un anillo
+  de `--ambar-700` (2026-08-14). **El fix propuesto más abajo está mal calculado y no se aplicó:**
+  `#C9BB99` sobre `#F5A623` da **1.07:1**, no 3.05:1. Oscurecer el riel hacia la arena *acerca* su
+  luminancia a la del ámbar (L=0.468) en vez de alejarla; para llegar a 3:1 por esa vía haría falta
+  un marrón oscuro (~`#6B6045`, 3.06:1), que convierte la barra en otra cosa. La opción (b) de § 3
+  —oscurecer el relleno a `--ambar-700`— sí cumple (4.01:1) pero pierde el ámbar de marca en toda
+  la plataforma. Vía elegida: `box-shadow: inset 0 0 0 1.5px var(--ambar-700)` sobre el relleno. El
+  borde que porta la información —dónde termina el avance— contrasta **4.01:1** con el riel base
+  (`#ece5d8`), 3.82:1 con el de la paleta con scope (`#E9E0CA`) y 4.93:1 con el riel blanco del
+  tema DIDASKO, y el ámbar se conserva. Con `pct=0` la caja no tiene ancho y no se pinta. El
+  relleno azul (`.progreso-azul`) ya daba 4.28:1 y se excluye del anillo
 - **Criterio WCAG:** 4.1.2 Nombre, rol, valor (Nivel A) · 1.4.11 Contraste de elementos no textuales (Nivel AA)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/ds/index.tsx:132-145` · `src/app/didasko.css:300-312,630-640`
@@ -2010,7 +2047,12 @@ es más visible aún. Ambas opciones requieren decisión de diseño (ver lista f
 ---
 
 ### A11Y-18 — Los módulos bloqueados usan `opacity-50`: el texto queda en ~3:1
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — se atenúa el fondo, no la tinta (2026-08-14). Aplicado el fix
+  propuesto en sus dos partes: `opacity-50` sobre la fila bloqueada sustituido por
+  `bg-[var(--md-surface-container-low)]`, conservando la opacidad sólo en el icono del candado
+  (`opacity-70`), y retirado el `/70` del subtexto de la fila activa, que dejaba `#334C9D` sobre
+  `#DCE1FF` en 3.25:1 a 12 px — a opacidad plena son **6.11:1**. El estado sigue comunicándose con
+  el candado y la palabra «Bloqueado», así que 1.4.1 no se toca
 - **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
 - **Severidad:** Alta
 - **Archivo:** `src/components/alumco/curso/ModuleIndex.tsx:103-113,153-175`
@@ -2095,7 +2137,18 @@ altera el layout. Verificar que el `[&_p]:` de Tailwind alcance ambos párrafos 
 ---
 
 ### A11Y-19 — Objetivos táctiles bajo 24 px y áreas de gráfico identificadas sólo por color
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — píldoras del calendario a 24 px y gráficos con canal no cromático
+  (2026-08-14). **La mitad de gráficos ya no aplicaba:** los charts se reescribieron después de la
+  auditoría y hoy no usan color como clave de serie —`ComplianceByAreaChart` es de un solo tono con
+  el área rotulada en el eje Y y el porcentaje impreso junto a cada barra, más un resumen en texto y
+  una `TablaDatos` alternativa—; `AREA_COLORS` de `lib/utils.ts` sólo alimenta ya los degradados
+  decorativos de las tarjetas de curso (`getCourseGradient`), donde no identifica nada.
+  **Calendario:** se tomó la opción (a) de § 3 —celda de 60 → 76 px (88 px en `sm`)— en vez de la
+  (b), porque ocultar una píldora en móvil esconde un vencimiento. Píldora a `min-h-[24px]` con
+  `py-1` y separación `space-y-1` (4 px). Además cada píldora lleva `aria-label` con el nombre
+  completo y el estado del plazo en texto —cierra también el `title` como tooltip (A11Y-27) en este
+  componente— y el rótulo de mes es `aria-live="polite"`, porque al navegar de mes no cambia nada
+  más en pantalla
 - **Criterio WCAG:** 2.5.8 Tamaño del objetivo (mínimo) (Nivel AA) · 1.4.1 Uso del color (Nivel A)
 - **Severidad:** Alta
 - **Archivo:** `curso/DeadlineCalendar.tsx:149-158,176-187` · `lib/utils.ts:114-125` · `dashboard/ComplianceByAreaChart.tsx` · `dashboard/CertificatesMonthlyChart.tsx`
@@ -2197,7 +2250,17 @@ adyacentes.
 ## Hallazgos de severidad media
 
 ### A11Y-20 — Quince páginas no tienen `<h1>`
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — verificado página a página; el hueco real era el quiz (2026-08-14).
+  **La cifra de 15 era un falso positivo en su mayor parte**, tal como este hallazgo anticipaba al
+  pedir "verificar cuáles usan `EncabezadoPagina`": 13 de las 15 sí emiten `<h1>`, en unos casos vía
+  `EncabezadoPagina` (`ds/index.tsx`), en otros desde el componente cliente al que delegan
+  (`SoporteClient`, `ReportesClient`, `CertificadosClient`, `CourseBuilder`, `HeroSection`). El
+  incumplimiento real estaba en el flujo de evaluación: **siete estados** arrancaban la jerarquía en
+  `<h2>` —bloqueado, ya aprobado, revisión de respuestas y los tres de resultado en `QuizClient`,
+  más «Acceso no permitido» y «Evaluación bloqueada» en `quiz/page.tsx`—. Todos promovidos a `<h1>`,
+  y los `<h3>` que colgaban de ellos bajados a `<h2>` para no dejar saltos de nivel. Los dos estados
+  de carga de `QuizClient`, que no tenían ningún encabezado, llevan `<h1 className="sr-only">` y
+  `aria-busy="true"`
 - **Criterio WCAG:** 1.3.1 Información y relaciones (Nivel A) · 2.4.6 Encabezados y etiquetas (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** ver lista
@@ -2315,7 +2378,11 @@ marcador.
 ---
 
 ### A11Y-22 — El `<iframe>` del video se titula "Video player", en inglés y sin identificar el módulo
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — `title` en español y con el nombre del módulo (2026-08-14). Se aplicó
+  el fix propuesto, con `moduleTitle` **obligatorio** en vez de opcional: sólo hay una llamada y así
+  `tsc` impide que un futuro consumidor deje el `<iframe>` sin identificar. Por paridad, el
+  `<iframe>` de `PdfViewer` pasa de anunciar sólo el título a «Documento del módulo: …». **La nota
+  sobre subtítulos (1.2.2) sigue vigente y no se cierra con esto** — ver § 6 de la declaración
 - **Criterio WCAG:** 4.1.2 Nombre, rol, valor (Nivel A) · 2.4.6 Encabezados y etiquetas (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/components/alumco/curso/VideoPlayer.tsx:67-73`
@@ -2377,7 +2444,12 @@ Ninguno. Prop opcional con valor por defecto; ninguna llamada existente se rompe
 ---
 
 ### A11Y-23 — `--tinta-3` cumple sobre las tarjetas pero falla sobre el fondo crema (4.31:1)
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — `--tinta-3` de `#6e7488` a `#666c80` (2026-08-14). Medido:
+  **4.84:1** sobre la crema de página `#FAF6ED`, **5.13:1** sobre la tarjeta `#FFFDF6` y 5.22:1
+  sobre blanco. Verificado que **ninguna paleta con scope lo re-sobrescribe** —la trampa que hizo
+  fallar la primera corrección de `--ambar-700` en A11Y-01—: sólo existen la declaración base y el
+  override de alto contraste (`#454b60`). De paso arregla el rótulo de sección del sidebar
+  (`.nav-seccion`, que en el tema activo usa este token sobre fondo blanco)
 - **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/app/didasko.css:36` · usos vía `.silencio-3`, `.ayuda`, `.tabla th`, `::placeholder`, `.tab-inferior`
@@ -2427,7 +2499,21 @@ Muy bajo. Cambio de un token; el texto auxiliar se ve marginalmente más oscuro.
 ---
 
 ### A11Y-24 — Los requisitos de los campos viven sólo en el `placeholder` y los errores no dicen cómo corregir
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — ayuda persistente, obligatoriedad en texto y errores asociados al
+  campo (2026-08-14). **3.3.2:** `.ayuda` persistente con `aria-describedby` en RUT («Con puntos y
+  guion, por ejemplo 12.345.678-9.») y contraseña («Mínimo 8 caracteres.») —sólo esos dos, como
+  recomendaba el apartado de riesgo, para no añadir ~90 px al formulario—, y una línea «Todos los
+  campos son obligatorios» en registro y login, porque `required` sin indicación textual no basta.
+  **3.3.3:** reescritos los mensajes de los tres schemas Zod para que digan **cómo** corregir, no
+  sólo qué falló; el rechazo de credenciales del login no revela cuál de los dos campos falló —sería
+  un oráculo de cuentas— pero sí remite a «¿Olvidó su clave?». **3.3.1:** `ActionResult` gana un
+  campo `field?: string` opcional —los schemas ya lo tienen en `issue.path[0]`— y los cuatro
+  formularios de autenticación marcan con `aria-invalid` y apuntan el `aria-describedby` sólo al
+  control culpable. Esto corrige de paso un defecto de `ResetPasswordForm`, que marcaba inválidos
+  **los dos** campos ante cualquier error. Nota de alcance: el hallazgo declaraba
+  `src/lib/actions/**` fuera del alcance modificable de la auditoría original; asociar el error a su
+  campo exige tocar el tipo de retorno, así que se hizo con un campo opcional que no rompe ningún
+  consumidor
 - **Criterio WCAG:** 3.3.2 Etiquetas o instrucciones (Nivel A) · 3.3.3 Sugerencia ante errores (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `src/components/alumco/auth/RegisterForm.tsx:43-63` · `src/components/alumco/auth/LoginForm.tsx:40-60`
@@ -2545,7 +2631,19 @@ que se desborde al otro extremo.
 ---
 
 ### A11Y-26 — `white-space: nowrap`, `truncate` y alturas fijas rompen con el espaciado de texto de 1.4.12
-- **Estado:** ⚠️ **Parcial** — botones, badges y tabs corregidos; quedan `truncate` sobre valores de dato
+- **Estado:** ✅ **Cerrado** — `.tabla th` era el último `nowrap` sobre texto de interfaz
+  (2026-08-14). `.btn`, `.badge` y `.tab-inferior-label` ya se habían corregido en `globals.css`,
+  en una capa posterior que gana a las reglas de didasko. Ahora `.tabla th` también permite el
+  salto: no llegaba a incumplir —`.tabla-envoltura` tiene `overflow-x: auto`, así que con más
+  espaciado la tabla se desplaza en vez de recortar—, pero empujaba a scroll horizontal por una
+  preferencia de lectura. **Los `truncate` y `.recorte` sobre valores de dato se aceptan como
+  residual**, con el criterio que fija este mismo hallazgo («es aceptable siempre que exista una
+  forma de acceder al texto completo»), ahora verificado: el `text-overflow: ellipsis` es puramente
+  visual —la cadena completa sigue en el DOM, así que **el lector de pantalla la lee entera**— y
+  cada valor truncado cuelga de un enlace o fila que abre el registro completo. La única excepción
+  que dependía del `title` era el calendario de plazos, resuelta en A11Y-19 con `aria-label`.
+  Verificación pendiente: el bookmarklet de espaciado de texto de WCAG sobre `/inicio`, `/cursos` y
+  `/admin/trabajadores` — es prueba en navegador, no revisión de código (§ 4.2 de la declaración)
 - **Criterio WCAG:** 1.4.12 Espaciado del texto (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `didasko.css:124,184,276,458,1274-1281` · 20 componentes con `truncate` / `line-clamp`
@@ -2637,7 +2735,16 @@ por pantalla.
 ---
 
 ### A11Y-27 — El atributo `title` se usa como tooltip informativo sobre texto truncado
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — no queda ningún `title` usado como tooltip (2026-08-14). En
+  `DeadlineCalendar`, sustituido por `aria-label` con el nombre completo y el estado del plazo: ahí
+  no cabía un disclosure —son celdas de 76 px— y el destino del enlace ya da el contexto. En
+  `WorkersTable`, eliminados los `title="Ver detalle"` y `title="Editar"`: eran redundantes con un
+  `aria-label` más específico e introducían una segunda cadena distinta, que es lo que confunde al
+  control por voz. En `WorkerTopNav`, el `title="Mi perfil"` pasa a un prefijo `<span class="sr-only">`
+  dentro del enlace y **no** a un `aria-label`: el nombre accesible tiene que seguir conteniendo el
+  texto visible —el nombre de pila— o se incumpliría 2.5.3. Verificado: los únicos `title` que
+  quedan en el repositorio son los dos `<iframe>`, donde el atributo **sí** es el nombre accesible
+  del elemento y no genera tooltip
 - **Criterio WCAG:** 1.4.13 Contenido al pasar el cursor o al enfocar (Nivel AA)
 - **Severidad:** Media
 - **Archivo:** `curso/DeadlineCalendar.tsx:153` · `nav/WorkerTopNav.tsx:88` · `admin/trabajadores/WorkersTable.tsx:234,242`
@@ -2753,7 +2860,12 @@ patrón.
 ---
 
 ### A11Y-29 — SVG inline sin `aria-hidden` fuera del componente `Icono`
-- **Estado:** ⚠️ **Parcial** — `aria-hidden` añadido en los iconos ya tocados, no en todos
+- **Estado:** ✅ **Cerrado** — 70 SVG inline marcados en 16 archivos (2026-08-14). Barrido sobre
+  todo `src/**/*.tsx`: se añadió `aria-hidden="true"` a **todo `<svg>` que no declarase ya
+  `aria-hidden`, `role` o `aria-label`** — el criterio de exclusión evita tocar los que sí son
+  significativos. Verificado después: **0 SVG sin marcar** en el repositorio. Nota operativa: el
+  script normalizó los saltos de línea a LF en los archivos tocados y hubo que devolverlos a CRLF,
+  que es lo que usa el repositorio
 - **Criterio WCAG:** 1.1.1 Contenido no textual (Nivel A)
 - **Severidad:** Baja
 - **Archivo:** `curso/ModuleIndex.tsx:33-64,119,129` · `QuizClient.tsx:128,144,174,184,247,255,293,305,333,340,383,414,421,453,461` · `curso/VideoPlayer.tsx:77,110,134,153` · `shared/NotificationBell.tsx:77`
@@ -2792,7 +2904,10 @@ competiría con la etiqueta.
 ---
 
 ### A11Y-30 — El foco puede quedar bajo la barra superior fija y la barra de tabs inferior
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — regla global de `scroll-margin` (2026-08-14). Aplicado el fix
+  propuesto, con `env(safe-area-inset-bottom)` sumado al margen inferior en vez de un valor fijo:
+  en iPhone con barra de gestos el alto real de la tab bar depende del área segura, y el
+  `(dashboard)/layout.tsx` ya usa ese mismo `env()` para su relleno
 - **Criterio WCAG:** 2.4.11 Foco no oscurecido (mínimo) (Nivel AA)
 - **Severidad:** Baja
 - **Archivo:** `nav/WorkerTopNav.tsx:56,110,126-143` · `didasko.css:394-403` · `admin/layout.tsx:56`
@@ -2846,7 +2961,19 @@ no afecta al layout. Puede notarse como un desplazamiento algo más generoso al 
 ---
 
 ### A11Y-31 — Encabezados de sección del sidebar sin semántica, y dos landmarks de navegación duplicados
-- **Estado:** ❌ **Abierto**
+- **Estado:** ✅ **Cerrado** — grupos con nombre accesible y un solo landmark de navegación
+  (2026-08-14). **Dos desviaciones del fix propuesto, ambas deliberadas:** (1) el rótulo del grupo
+  se deja como `<div>` referenciado por `aria-labelledby`, no como `<h2>` — un `<h2>` en el sidebar
+  se cuela en el esquema de encabezados de **todas** las páginas de administración, y el rol de
+  grupo no lo necesita; (2) los `id` se generan con `useId()`, porque `SidebarContent` se monta dos
+  veces —barra de escritorio y cajón móvil— y con literales habría `id` duplicados en el DOM.
+  Replicado `display:flex; flex-direction:column; gap:4px` en `.nav-grupo`, y dejado sin
+  `position` para no cambiar el `offsetParent` del que depende la gota indicadora, tal como
+  advertía el apartado de riesgo. **Landmarks:** el contenedor de escritorio era un
+  `<aside aria-label="Navegación principal">` — `<aside>` mapea a `complementary`, no a
+  `navigation`, así que el rótulo prometía un landmark que no era y encima duplicaba el del `<nav>`
+  interno. Pasa a `<div>` sin rótulo; el cajón móvil, que ya llevaba `role="dialog"` sustituyendo
+  el rol implícito de `<aside>`, pasa también a `<div>`. Queda un único landmark de navegación
 - **Criterio WCAG:** 1.3.1 Información y relaciones (Nivel A)
 - **Severidad:** Baja
 - **Archivo:** `nav/AdminSidebar.tsx:109,111,140-146,176-183` · `didasko.css:387-391`
@@ -2910,6 +3037,418 @@ replicar `display: flex; flex-direction: column; gap: 4px` en el grupo. Además,
 (`didasko.css:886`) se posiciona con `el.offsetTop` relativo al nav: el contenedor nuevo cambia
 el `offsetParent` sólo si tiene `position` distinto de `static`, así que dejándolo estático no
 se rompe — **verificar la posición de la gota indicadora tras el cambio**.
+
+---
+
+## Hallazgos de las pasadas de verificación del 2026-08-14
+
+Estos siete **no** proceden de la auditoría del 2026-08-10. Salieron de tres barridos posteriores:
+
+1. **A11Y-32, A11Y-33** — al responder a "¿queda algo más de código?" una vez cerrados los 31.
+2. **A11Y-34, A11Y-35** — al revisar **regla a regla las paletas con scope**, que es donde se
+   habían escondido los dos anteriores.
+3. **A11Y-36, A11Y-37, A11Y-38** — al revisar **regla a regla la landing**, cuyo grueso no vive en
+   CSS con scope sino en estilos en línea y bloques `<style jsx>` de nueve componentes.
+
+Se numeran a continuación de los originales y se documentan con el mismo formato. Hay un anexo por
+barrido con lo que se midió y no presentó hallazgo, para no repetir el trabajo.
+
+**Lo que enseña la progresión.** Cada barrido encontró cosas que el anterior no podía ver, porque
+cada uno miraba un sitio distinto: primero las reglas base de CSS, luego los scopes, luego los
+estilos en línea. Y el tercero encontró además un **criterio que no estaba en la lista** (2.2.2),
+lo que significa que el recuento de "40 criterios aplicables" era incompleto.
+
+**Los cuatro comparten causa raíz y conviene leerlos juntos:** todos sobreviven dentro de las
+paletas con scope (`.paleta-oliva`, `.paleta-azul`), donde una re-declaración de token o una regla
+con `!important` anula la corrección global. Es el mismo mecanismo que hizo fallar la primera
+corrección de `--ambar-700` (ver el registro del 2026-08-13), y **los cuatro corresponden a
+hallazgos ya dados por cerrados** — A11Y-03, A11Y-02 y A11Y-01 respectivamente—, cuyo alcance
+cubría los literales de JSX y los tokens de shadcn pero no las reglas base de didasko ni sus
+scopes. **Toda corrección de color o de foco debe verificarse dentro de las paletas con scope y
+sobre el bundle compilado, no sobre el fuente.**
+
+### A11Y-32 — `.input:focus` anula el anillo del sistema en todos los campos de formulario
+- **Estado:** ✅ **Cerrado** — retirados `outline: none` y los halos de baja opacidad (2026-08-14)
+- **Criterio WCAG:** 1.4.11 Contraste no textual (Nivel AA) · 2.4.7 Foco visible (Nivel AA)
+- **Severidad:** Alta
+- **Archivo:** `didasko.css:222,265,269,647-652,900-903,780,810`
+- **Vistas afectadas:** todos los formularios de la plataforma — login, registro, recuperación y
+  restablecimiento de clave, buscador global, filtros de reportes y de trabajadores, constructor de
+  cursos, ficha de trabajador, soporte, panel de accesibilidad.
+
+**Descripción**
+
+```css
+/* didasko.css:222 */
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;                                    /* ← anula el anillo del sistema */
+  border-color: var(--ambar);
+  box-shadow: 0 0 0 3px rgba(245, 166, 35, 0.22);   /* ← el sustituto, al 22 % */
+}
+```
+
+El comentario de `globals.css:381` daba por hecho que el anillo del sistema ganaba por "posición
+posterior". **La posición sólo desempata a igual especificidad:** `.input:focus` es (0,2,0) y
+`:focus-visible` es (0,1,0), y ambos viven en `@layer components` —`didasko.css` se importa con
+`layer(components)`—, así que gana `outline: none`. Verificado en el bundle compilado.
+
+Lo que quedaba como indicador, medido en las paletas reales:
+
+| Elemento del indicador | Ratio | AA exige |
+| :--- | ---: | ---: |
+| Borde ámbar vs interior del campo `#FFFDF6` | 1.99:1 | 3:1 |
+| Borde ámbar vs fondo de página `#FAF6ED` | 1.88:1 | 3:1 |
+| Cambio entre borde normal y enfocado (`#ded7c8` → ámbar) | 1.41:1 | 3:1 |
+| Cambio entre borde normal y enfocado (`#DCE2EC` → ámbar) | 1.56:1 | 3:1 |
+| Halo de 3 px `rgba(245,166,35,0.22)` sobre crema | **1.15:1** | 3:1 |
+
+Ninguno alcanza el umbral. Hay tres capas que repiten el patrón: la regla base, la del tema
+DIDASKO (`box-shadow: 3px 3px 0 var(--ambar)`) y la de las paletas con scope
+(`box-shadow: 0 0 0 3px var(--foco-glow)`, siendo `--foco-glow` el mismo ámbar al 22 %). Además,
+`.input-busqueda input` declara `outline: none` **sin condicionar a `:focus`** y con especificidad
+(0,1,1), que también gana a `:focus-visible`.
+
+**Relación con A11Y-03.** Es el mismo defecto, y A11Y-03 se dio por cerrado. Aquel hallazgo
+enumeraba las 26 ocurrencias de `focus:outline-none` escritas como utilidad de Tailwind en JSX;
+**estas reglas base de CSS nunca estuvieron en su alcance**. El halo al 22 % es, además,
+exactamente lo que prohíbe la norma del proyecto en `CLAUDE.md` ("si hace falta uno propio, va a
+opacidad plena, nunca `/20`, `/30`").
+
+**Impacto en el usuario**
+
+Quien navega con teclado no ve dónde está al tabular por un formulario. En el registro son cinco
+campos seguidos; en el constructor de cursos, más. Es el criterio que separa "se puede usar sin
+ratón" de "no se puede".
+
+**Fix aplicado**
+
+Las reglas de foco dejan de declarar `outline` y `box-shadow`, así que manda el anillo de doble
+contorno de `globals.css` (7.14:1 sobre crema). Se conserva el cambio de borde como señal
+secundaria, migrado a `--ambar-700`, que además **cumple por sí solo**: 4.93:1 contra el interior
+del campo, 4.66:1 contra la crema, y 3.51:1 / 3.86:1 de contraste entre el estado normal y el
+enfocado en cada paleta. El token `--foco-glow` se retira para que no vuelva a usarse.
+
+**Riesgo de regresión**
+
+Medio y **visual en toda la plataforma**: el foco de los campos pasa de un halo ámbar difuso al
+anillo navy de doble contorno que ya usa el resto de controles. Es más visible y más coherente,
+pero cambia el aspecto de cada formulario. Pendiente de validación con la clienta.
+
+---
+
+### A11Y-33 — El ámbar de marca sigue como color de texto en el `<em>` del display
+- **Estado:** ✅ **Cerrado** — `#F5A623` → `var(--ambar-700)` (2026-08-14)
+- **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
+- **Severidad:** Media
+- **Archivo:** `didasko.css:880-888`
+- **Vistas afectadas:** `/inicio` — el `<h1>` de bienvenida del trabajador.
+
+**Descripción**
+
+```css
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-display em {
+  color: #F5A623 !important;
+}
+```
+
+Es el `<em>` de `«Hola {nombre}, sigamos aprendiendo.»` (`inicio/page.tsx:155`). `#F5A623` sobre la
+crema da **1.88:1**: falla incluso el umbral de 3:1 reservado a texto grande, y con más razón el
+de 4.5:1 si el display baja de tamaño en móvil (`clamp(25px, 6.6vw, 34px)`).
+
+**Relación con A11Y-02.** Mismo defecto, y A11Y-02 se dio por cerrado. Aquel barrido migró los
+~120 literales escritos en JSX y los tokens base, pero **no esta regla, que vive dentro de las
+paletas con scope y lleva `!important`**, así que ninguna corrección global podía alcanzarla.
+
+**Fix aplicado**
+
+`var(--ambar-700)` (#b45309): **4.66:1** sobre crema y 4.93:1 sobre tarjeta. Cumple también como
+texto normal, no sólo como texto grande.
+
+**Riesgo de regresión**
+
+Bajo y visual: la palabra destacada del saludo pasa de ámbar brillante a ámbar tostado, el mismo
+tono que ya usa `.landing-page .t-display em`. Aumenta la coherencia entre landing y app.
+
+---
+
+### A11Y-34 — El borde de los campos y controles es imperceptible en las dos paletas de la app
+- **Estado:** ✅ **Cerrado** — token `--borde-control` a 3:1 (2026-08-14)
+- **Criterio WCAG:** 1.4.11 Contraste no textual (Nivel AA)
+- **Severidad:** Alta
+- **Archivo:** `didasko.css:791,832` (tokens) · `911,928,929-932` (reglas)
+- **Vistas afectadas:** todos los formularios y controles de `/admin/**` y de la vista de
+  trabajador — campos, desplegables, áreas de texto, buscadores, botones secundarios y chips.
+
+**Descripción**
+
+```css
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .input,
+… .select, … .textarea, … .input-busqueda { border: 1px solid var(--borde); }
+/* --borde: #ded7c8 en .paleta-oliva · #dce2ec en .paleta-azul */
+```
+
+El relleno del campo es `--blanco` (#FFFDF6) y el fondo de página es `--crema` (#FAF6ED): se
+diferencian en **1.02:1**, o sea nada. El contorno es, por tanto, **la única señal de dónde
+empieza y acaba el control**, y es exactamente el caso que 1.4.11 exige a 3:1.
+
+| Paleta | `--borde` | vs interior del campo | vs fondo de página |
+| :--- | :--- | ---: | ---: |
+| `.paleta-oliva` (admin) | `#ded7c8` | **1.41:1** | **1.33:1** |
+| `.paleta-azul` (trabajador) | `#dce2ec` | **1.28:1** | **1.21:1** |
+
+Lo mismo en `.btn-secondary` —que es `--blanco` sobre `--crema`, sin más señal que el borde— y
+en `.chip`.
+
+**Relación con A11Y-01.** A11Y-01 dio por corregidos los bordes de campo, de 1.26:1 a **3.34:1**.
+Pero lo que arregló fueron los tokens **de shadcn** (`--border` / `--input`) en `globals.css`. Los
+campos que ve el usuario en admin y en la vista de trabajador no usan esos tokens: usan la clase
+`.input` de didasko con `var(--borde)`, y las paletas con scope lo re-declaran a un tono casi
+invisible. **Es la quinta vez que una corrección global no llega a ninguna vista real por este
+mismo mecanismo.**
+
+**Impacto en el usuario**
+
+Con visión reducida o en una pantalla con brillo alto —un ELEAM con ventanales, por ejemplo— no
+se distingue dónde hay un campo que rellenar. Es el defecto que A11Y-01 describía como "un borde
+a 1.26:1 es literalmente invisible", vigente durante toda la fase pese a darse por cerrado.
+
+**Fix aplicado**
+
+La **opción (b)** que recomendaba el § 3 de esta misma auditoría: un token aparte para el
+contorno de los controles, en vez de oscurecer `--borde` y engrosar visualmente el hairline de
+las tarjetas. `--borde` queda para lo decorativo —contorno de tarjeta, separadores de sidebar y
+topbar—, donde 1.4.11 no aplica.
+
+| Paleta | `--borde-control` | vs campo | vs crema | vs `--arena-100` |
+| :--- | :--- | ---: | ---: | ---: |
+| `.paleta-oliva` | `#8f8369` | 3.67:1 | 3.47:1 | 3.18:1 |
+| `.paleta-azul` | `#7c8699` | 3.60:1 | 3.40:1 | 3.12:1 |
+
+**Riesgo de regresión**
+
+Medio y **visual en toda la aplicación**: los campos, botones secundarios y chips pasan de un
+contorno casi invisible a uno gris medio claramente perceptible. Es el cambio que hace que un
+formulario se lea como un formulario. Pendiente de validación con la clienta.
+
+---
+
+### A11Y-35 — `.t-eyebrow` se pinta con el ámbar claro de los bloques navy también sobre fondo claro
+- **Estado:** ✅ **Cerrado** — el color claro se aplica sólo dentro de `.bloque-marca` (2026-08-14)
+- **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
+- **Severidad:** Media
+- **Archivo:** `didasko.css:885-891` · `(auth)/login/page.tsx:27,97` · `(dashboard)/inicio/page.tsx:173`
+- **Vistas afectadas:** `/inicio`, `/dias-administrativos`, `/admin/dias-administrativos`, tarjetas
+  y modal de evento — es decir, casi todas las cabeceras de sección de la app.
+
+**Descripción**
+
+```css
+body[data-tema="didasko"] :is(.paleta-oliva, .paleta-azul) .t-eyebrow {
+  color: var(--oliva-clara) !important;   /* #F5C26B */
+}
+```
+
+`--oliva-clara` está pensado para los bloques navy, donde da **8.24:1**. La regla lo aplicaba a
+**todo** `.t-eyebrow` de la aplicación, incluidos los que están sobre crema (**1.52:1**) y sobre
+tarjeta (**1.61:1**): la fecha del saludo de `/inicio`, «Tu recorrido», «Beneficios», «Gestión»,
+las tarjetas de evento y el modal de evento.
+
+**El agravante.** Al llevar `!important`, la regla **anulaba los `style` en línea con
+`var(--ambar-700)`** que ya se habían escrito en el login y en «Continúa donde quedaste» — una
+declaración `!important` de autor gana a un estilo en línea normal. Esos dos arreglos existían en
+el código y no llegaban a pintarse nunca.
+
+Al desactivarlos salió a la luz el problema inverso: el `style` en línea de «Continúa donde
+quedaste» pedía `--ambar-700` **sobre un bloque navy**, que da 2.69:1. El `!important` que causaba
+el fallo general estaba tapando ese otro fallo. Lo mismo en el panel de marca del login.
+
+**Fix aplicado**
+
+La regla base pasa a `--ambar-700` (4.66:1 sobre crema) y el ámbar claro se reserva a
+`.bloque-marca .t-eyebrow`. Se retiran los dos `style` en línea, que ahora sobran y apuntaban al
+color equivocado. Al panel de marca del login se le añade `bloque-marca`, que es lo que ya era:
+así la regla de "fondo oscuro" es declarativa y no depende de enumerar contenedores.
+
+**Riesgo de regresión**
+
+Bajo y visual: los rótulos de sección de la app pasan de ámbar claro a ámbar tostado, que es el
+tono que ya usan la landing y el resto de la interfaz. Verificado que los cuatro `.t-eyebrow`
+sobre fondo oscuro —login, «Continúa donde quedaste», y los dos del dashboard admin— siguen
+recibiendo el claro.
+
+---
+
+### A11Y-36 — El texto blanco del héroe va sobre fotografía con un velo insuficiente
+- **Estado:** ✅ **Cerrado** — velo radial de 0.38 a 0.55 (2026-08-14)
+- **Criterio WCAG:** 1.4.3 Contraste (mínimo) (Nivel AA)
+- **Severidad:** Alta
+- **Archivo:** `landing/HeroSection.tsx:82-91,118-127`
+- **Vistas afectadas:** `/` — la portada pública, primera pantalla de la plataforma.
+
+**Descripción**
+
+El héroe rota cuatro fotografías de fondo con `objectFit: cover` y `blur(2px)`, y encima pone el
+`<h1>` y un párrafo en `#fff`. La legibilidad la sostenía un halo radial
+`rgba(8,14,35,0.38)`. **Con fondo fotográfico el contraste no es un valor fijo: depende del
+píxel**, así que se midieron las cuatro imágenes reales aplicando el mismo desenfoque y
+composición que hace el navegador, sobre la banda vertical donde vive el texto.
+
+| Slide | `<h1>` ≥44 px (umbral 3:1) | Párrafo 16 px (umbral 4.5:1) |
+| :--- | ---: | ---: |
+| `hero-home.webp` | 3.78 ✅ | **3.52** ❌ |
+| `hero-2.jpg` | **2.72** ❌ | 6.67 ✅ |
+| `hero-3.jpg` | 3.86 ✅ | **3.94** ❌ |
+| `hero-4.jpg` | 4.24 ✅ | **4.11** ❌ |
+
+*(percentil 5 del área tras el texto; el peor píxel baja hasta 2.52:1)*
+
+El párrafo falla en tres de las cuatro slides y el `<h1>` en una. El criterio se incumple en
+cuanto una sola slide falla, porque el carrusel las muestra todas.
+
+**Fix aplicado**
+
+Velo al **0.55**. Verificado sobre las cuatro imágenes: el peor percentil 5 pasa de 2.99:1 a
+**4.96:1**, y el peor píxel absoluto a 4.27:1 — cumple el umbral de texto normal en las cuatro.
+
+**Riesgo de regresión**
+
+Visual y notorio: la fotografía del héroe se ve más oscura. Es el precio de poner texto encima.
+La alternativa —una caja sólida tras el texto— cambia más el diseño. Pendiente de validación.
+
+---
+
+### A11Y-37 — Controles y estructura de la landing: campo sin nombre, foco anulado, objetivo de 7 px, borde invisible
+- **Estado:** ✅ **Cerrado** (2026-08-14)
+- **Criterio WCAG:** 4.1.2 · 3.3.2 · 2.4.7 · 1.4.11 · 2.5.8 · 1.3.1
+- **Severidad:** Alta
+- **Archivo:** `landing/LandingFooter.tsx:38-51` · `landing/HeroSection.tsx:149-169` ·
+  `landing/ContactoSection.tsx:8-17` · `landing/MisionVision.tsx:30-41` · `globals.css:791`
+- **Vistas afectadas:** `/`.
+
+**Descripción**
+
+Cinco defectos agrupados por ser todos de la portada:
+
+1. **Campo de novedades sin nombre accesible** (`LandingFooter`). Sólo `placeholder`, que no es
+   etiqueta y desaparece al escribir. Sin `id`, sin `name`, sin `autoComplete`.
+2. **`outline: none` en ese mismo campo**, que anula el indicador de foco — el mismo defecto que
+   A11Y-32 corrigió en la aplicación, aquí escrito como estilo en línea.
+3. **Puntos del carrusel de 7×7 px**, con `minWidth: 0; minHeight: 0` anulando cualquier mínimo
+   heredado. Muy por debajo de los 24×24 de 2.5.8, y con `gap: 10` tampoco aplica la excepción
+   por separación.
+4. **Punto inactivo a `rgba(255,255,255,0.32)`** = **2.83:1** contra el fondo: por debajo del 3:1
+   que 1.4.11 exige a un control.
+5. **Borde de los campos del formulario de contacto** con `var(--borde)` = `#DCE2EC`, que da
+   **1.28:1** contra el relleno. Es el gemelo de A11Y-34 en el scope de la landing, que la
+   corrección de aquél no alcanzaba.
+
+Y una sexta, estructural: **«Nuestra misión» era un `<span>`** mientras su sección hermana rotula
+«Nuestra visión» con un `<h2>`. La sección de misión quedaba fuera del esquema de encabezados,
+que es la vía principal para recorrer una página larga con lector de pantalla.
+
+**Fix aplicado**
+
+`<label class="sr-only">` + `id`/`name`/`autoComplete` en el campo, y fuera el `outline: none`.
+Los puntos del carrusel pasan a un área de 24×24 con relleno transparente y el punto visible
+dentro de un `<span aria-hidden>`, así que **el diseño no cambia**; el inactivo sube a `0.45`
+(4.25:1). Se añade `--borde-control` a `.landing-page` (#7c8699: 3.60:1 contra el campo, 3.54:1
+contra la crema, 3.24:1 contra `--arena-100`) y el formulario lo usa. «Nuestra misión» pasa a
+`<h2>` conservando sus estilos explícitos.
+
+**Riesgo de regresión**
+
+Bajo. El único cambio perceptible es el contorno de los tres campos del formulario de contacto y
+el punto inactivo del carrusel, algo más visible.
+
+---
+
+### A11Y-38 — El carrusel del héroe se mueve solo y no se puede detener
+- **Estado:** ✅ **Cerrado** — botón de pausa (2026-08-14)
+- **Criterio WCAG:** **2.2.2 Poner en pausa, detener, ocultar (Nivel A)**
+- **Severidad:** Alta
+- **Archivo:** `landing/HeroSection.tsx:16-29,170-195`
+- **Vistas afectadas:** `/`.
+
+**Descripción**
+
+El héroe cambia de imagen con `setInterval` cada 5 s, en cross-fade, indefinidamente y en
+paralelo con el texto de la portada. 2.2.2 exige un mecanismo para pausar, detener u ocultar todo
+movimiento automático que arranque solo, dure más de 5 segundos y conviva con otro contenido.
+
+El componente respeta `prefers-reduced-motion` —si está activo no arranca el intervalo—, y eso es
+correcto, pero **no satisface 2.2.2**: el criterio pide un mecanismo *en la página*, disponible
+para quien no tiene esa preferencia configurada. Los puntos del carrusel tampoco servían: cambian
+de slide pero no detienen la rotación, que vuelve a avanzar 5 s después.
+
+**Nota de alcance — este criterio no estaba en la declaración.** El § 5 de `CONFORMIDAD_A11Y.md`
+enumeraba 2.2.1 (Tiempo ajustable) y anotaba de pasada que "el único `setInterval` del repositorio
+está en el carrusel de la landing, que no impone plazos". Eso resuelve 2.2.1, pero **2.2.2 es un
+criterio distinto, de nivel A, y no figuraba en la lista de 40 aplicables**. El recuento pasa a
+41.
+
+**Fix aplicado**
+
+Estado `enPausa` que corta el intervalo, y un botón junto a los puntos con `aria-label` que
+describe la acción concreta y cambia según el estado. Se conserva el respeto a
+`prefers-reduced-motion`.
+
+**Riesgo de regresión**
+
+Bajo. Un control más de 24×24 px en la fila de puntos del héroe.
+
+---
+
+## Anexo · Barrido regla a regla de la landing (2026-08-14)
+
+Se revisaron los nueve componentes de `landing/` más `IntroSplash`, midiendo cada color de texto
+sobre su fondo real —incluidas las fotografías— y cada control. Resultado: 3 incumplimientos
+(A11Y-36 a A11Y-38). Lo que se midió y **no** presentó hallazgo:
+
+| Elemento | Medición | Veredicto |
+| :--- | :--- | :--- |
+| `LandingFooter` — texto base, descripción, enlaces y legal, en blanco al 50–72 % sobre `#0b1838` | 5.18 – 9.40:1 | ✅ |
+| `MisionVision` — párrafo del héroe y texto de tarjeta, blanco al 70–82 % sobre `#0f1f4d` | 8.36 y 11.02:1 | ✅ |
+| `ValoresSection` — bajada, destacada, texto de tarjeta y pie, blanco al 62–78 % | 6.94 – 9.69:1 | ✅ |
+| `ContactoSection` — párrafo blanco al 82 % sobre el velo navy | 11.38:1 | ✅ |
+| `MisionVision` — `#E2B673` sobre `#0f1f4d` | 8.44:1 | ✅ |
+| `LandingNav` — `#1A1A2E` sobre la crema de la landing | 16.46:1 | ✅ |
+| `ContactoSection` — los tres campos del formulario | `<label>` envolvente: asociación implícita válida | ✅ |
+| `ValoresSection` — badge ámbar `#F5A623` | icono decorativo con `aria-hidden`; 1.4.11 no aplica | ✅ |
+| Punto **activo** del carrusel y distinción activo/inactivo | 11.69:1 contra el fondo; 4.14:1 entre estados, más la diferencia de ancho | ✅ |
+| Jerarquía de encabezados | `h1` → `h2` → `h3` sin saltos, una vez promovida «Nuestra misión» | ✅ |
+| `LandingNav` | `<nav aria-label="Navegación principal">`, enlaces con `href` real | ✅ |
+
+**Observación que no es incumplimiento.** Los dos formularios de la landing —contacto y
+novedades— son **sólo visuales**: su `onSubmit` hace `preventDefault()` y no envían nada, sin
+mensaje alguno al usuario. No viola ningún criterio WCAG (no hay error que identificar), pero
+quien rellene y envíe no recibe respuesta. Conviene resolverlo como producto, o retirarlos.
+
+---
+
+## Anexo · Barrido regla a regla de las paletas con scope (2026-08-14)
+
+Se revisaron las **50 reglas** que el bundle compilado emite bajo `.paleta-oliva`, `.paleta-azul`
+y `.landing-page`, más sus tokens. Resultado: 2 incumplimientos (A11Y-34 y A11Y-35) y el resto
+conforme. Lo que se midió y **no** presentó hallazgo, para que no se vuelva a revisar:
+
+| Regla | Medición | Veredicto |
+| :--- | :--- | :--- |
+| `.tabla th { color: var(--tinta-3) }` | 5.13:1 sobre tarjeta | ✅ |
+| `.nav-item.activo { background: #1e3a8ab3 }` con texto blanco | compuesto `#6274aa` → 4.57:1 | ✅ ajustado pero cumple |
+| `.card { border: 1px solid #ece7dd }` | decorativo, 1.4.11 no aplica (decisión (b) del § 3) | ✅ |
+| `.sidebar` / `.topbar` `border: var(--borde-suave)` | separadores decorativos | ✅ |
+| `.landing-page .t-eyebrow { color: var(--ambar-700) }` | 4.85:1 sobre `#fafbfc` | ✅ |
+| `.landing-page .t-eyebrow.claro { color: #f5c26b }` | 9.68:1 sobre el navy de sus dos secciones | ✅ |
+| `.landing-page .t-display em { color: var(--ambar-700) }` | 4.85:1 | ✅ |
+| `--ok` / `--ok-bg` en `.paleta-oliva` | 4.67:1 | ✅ |
+| `.badge { border: none }` | el color va sobre `--*-bg` propio, ya verificado en A11Y-01 | ✅ |
+| `.paleta-*/.acento-claro { color: var(--oliva-clara) }` | **sin consumidores en el código**: CSS muerto | n/a |
+| Reglas de tipografía, tamaño mínimo de objetivo y `text-decoration` | sin implicación de contraste | n/a |
+
+**Conclusión del barrido.** Las paletas con scope han producido **cinco** incumplimientos que
+sobrevivieron a correcciones dadas por cerradas: `--ambar-700` (2026-08-13), A11Y-32, A11Y-33,
+A11Y-34 y A11Y-35. El mecanismo es siempre el mismo —re-declaración de token o regla con
+`!important` dentro del scope— y la lección operativa está recogida en `CLAUDE.md`.
 
 ---
 

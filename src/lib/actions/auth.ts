@@ -9,22 +9,23 @@ import { z } from 'zod'
 
 // ── Schemas de validación ──────────────────────────────────
 
+// A11Y-24 · 3.3.3 pide que el mensaje diga cómo corregir, no sólo qué falló.
 const LoginSchema = z.object({
   email: z
     .string()
-    .email('Ingresa un correo válido'),
+    .email('Ingresa un correo válido, con @ y dominio — por ejemplo nombre@alumco.cl.'),
   password: z
     .string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres'),
+    .min(8, 'La contraseña debe tener al menos 8 caracteres. Revisa que no falten caracteres al escribirla.'),
 })
 
 const ResetPasswordSchema = z
   .object({
-    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+    password: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres. Añade más caracteres hasta llegar a 8.'),
     confirm: z.string(),
   })
   .refine((d) => d.password === d.confirm, {
-    message: 'Las dos contraseñas no coinciden',
+    message: 'Las dos contraseñas no coinciden. Vuelve a escribirlas asegurándote de que sean idénticas.',
     path: ['confirm'],
   })
 
@@ -42,6 +43,13 @@ const RegisterSchema = z.object({
 export interface ActionResult {
   error?: string
   success?: boolean
+  /**
+   * A11Y-24 · Nombre del campo que originó el error, para que el formulario pueda
+   * marcarlo con `aria-invalid` y apuntarle el `aria-describedby` (3.3.1). Sin
+   * esto, el mensaje llegaba al `role="alert"` pero quien navega por campos con
+   * lector de pantalla no sabía cuál corregir.
+   */
+  field?: string
 }
 
 interface AuthProfileStatusRole {
@@ -83,14 +91,19 @@ export async function loginAction(
 
   const parsed = LoginSchema.safeParse(raw)
   if (!parsed.success) {
-    return { error: parsed.error.issues[0].message }
+    const issue = parsed.error.issues[0]
+    return { error: issue.message, field: String(issue.path[0] ?? '') }
   }
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signInWithPassword(parsed.data)
 
   if (error || !data.user) {
-    return { error: 'Correo o contraseña incorrectos' }
+    // No se dice cuál de los dos falló —sería un oráculo de cuentas—, pero sí
+    // qué hacer a continuación (3.3.3).
+    return {
+      error: 'Correo o contraseña incorrectos. Revisa ambos campos; si no recuerdas tu clave, usa «¿Olvidó su clave?».',
+    }
   }
 
   // Verificar estado del perfil antes de permitir acceso
@@ -198,9 +211,12 @@ export async function forgotPasswordAction(
 ): Promise<ActionResult> {
   const email = formData.get('email')
 
-  const parsed = z.string().email('Ingresa un correo válido').safeParse(email)
+  const parsed = z
+    .string()
+    .email('Ingresa un correo válido, con @ y dominio — por ejemplo nombre@alumco.cl.')
+    .safeParse(email)
   if (!parsed.success) {
-    return { error: parsed.error.issues[0].message }
+    return { error: parsed.error.issues[0].message, field: 'email' }
   }
 
   const supabase = await createClient()
@@ -231,7 +247,8 @@ export async function resetPasswordAction(
     confirm: formData.get('confirm'),
   })
   if (!parsed.success) {
-    return { error: parsed.error.issues[0].message }
+    const issue = parsed.error.issues[0]
+    return { error: issue.message, field: String(issue.path[0] ?? '') }
   }
 
   const tokenHash = formData.get('token_hash')

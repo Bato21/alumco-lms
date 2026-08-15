@@ -23,8 +23,11 @@ export default function LoginPage() {
     <div className="login-shell paleta-azul flex flex-col md:flex-row">
 
       {/* Panel de marca — "Amanecer sobre agua" */}
+      {/* A11Y-35 · `bloque-marca` no es decorativa: es la que le dice al CSS que
+          esto es fondo oscuro, para que el `.t-eyebrow` de más abajo use el ámbar
+          claro (8.24:1 sobre navy) y no el tostado que se usa sobre crema. */}
       <div
-        className="hidden md:flex film-grain"
+        className="hidden md:flex film-grain bloque-marca"
         style={{
           flex: '0 0 44%',
           background: 'var(--grad-marca)',
@@ -94,7 +97,7 @@ export default function LoginPage() {
             Sabiduría del agua
           </div>
           <div style={{ width: 56, height: 1, background: 'rgba(255,255,255,0.25)', margin: '30px 0' }} />
-          <span className="t-eyebrow" style={{ color: 'var(--ambar-700)' }}><span aria-hidden="true">◆</span> Plataforma de capacitación</span>
+          <span className="t-eyebrow"><span aria-hidden="true">◆</span> Plataforma de capacitación</span>
           {/* Era un <h1>. Es un eslogan, no el título de la página, y además
               vivía en un panel `hidden md:flex`: en móvil desaparecía del árbol
               de accesibilidad y la página arrancaba en <h2>. El <h1> real es

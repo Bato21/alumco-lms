@@ -91,14 +91,18 @@ export function SuspendidosTable({ workers }: { workers: Worker[] }) {
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-300 bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-left">
+          <caption className="sr-only">
+            Trabajadores suspendidos. {workers.length}{' '}
+            {workers.length === 1 ? 'trabajador suspendido' : 'trabajadores suspendidos'}.
+          </caption>
           <thead className="bg-gray-50 text-[11px] uppercase tracking-widest text-[#6B7280] font-bold">
             <tr>
-              <th className="px-5 lg:px-6 py-3">Trabajador</th>
-              <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
-              <th className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Sede</th>
-              <th className="px-5 lg:px-6 py-3 hidden lg:table-cell">Área</th>
-              <th className="px-5 lg:px-6 py-3">Estado</th>
-              <th className="px-5 lg:px-6 py-3 text-right">Acciones</th>
+              <th scope="col" className="px-5 lg:px-6 py-3">Trabajador</th>
+              <th scope="col" className="px-5 lg:px-6 py-3 hidden lg:table-cell">RUT</th>
+              <th scope="col" className="px-5 lg:px-6 py-3 text-center hidden lg:table-cell">Sede</th>
+              <th scope="col" className="px-5 lg:px-6 py-3 hidden lg:table-cell">Área</th>
+              <th scope="col" className="px-5 lg:px-6 py-3">Estado</th>
+              <th scope="col" className="px-5 lg:px-6 py-3 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody className="text-sm divide-y divide-gray-100">

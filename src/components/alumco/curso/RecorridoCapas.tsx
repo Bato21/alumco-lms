@@ -36,6 +36,14 @@ export function RecorridoCapas({ estaciones }: RecorridoCapasProps) {
 
         const subColor = hecho ? 'var(--ok)' : actual ? 'var(--ambar-700)' : 'var(--tinta-3)'
         const sub = `Curso ${i + 1}`
+        // 1.4.1 · «Curso 1 / 2 / 3» es idéntico en los tres estados. Visualmente el
+        // estado se distingue además por la FORMA del nodo (visto bueno / gota /
+        // punto), no sólo por color; pero el nodo va `aria-hidden`, así que sin este
+        // texto los tres estados se anuncian iguales.
+        // Sustituir el «Curso N» visible por el estado sigue pendiente de validación
+        // con la clienta (AUDITORIA_A11Y.md § 3, decisión 4): entretanto el estado
+        // viaja en el nombre accesible del enlace, sin tocar el texto aprobado.
+        const estadoTexto = hecho ? 'Completado' : actual ? 'En curso' : 'Pendiente'
 
         return (
           // Antes el `role="listitem"` iba sobre el propio <Link> y ANULABA
@@ -62,7 +70,10 @@ export function RecorridoCapas({ estaciones }: RecorridoCapasProps) {
             </div>
             <div className="recorrido-texto">
               <div className="recorrido-titulo">{e.titulo}</div>
-              <div className="recorrido-sub" style={{ color: subColor }}>{sub}</div>
+              <div className="recorrido-sub" style={{ color: subColor }}>
+                {sub}
+                <span className="sr-only"> de {estaciones.length} · {estadoTexto}</span>
+              </div>
             </div>
           </Link>
           </li>

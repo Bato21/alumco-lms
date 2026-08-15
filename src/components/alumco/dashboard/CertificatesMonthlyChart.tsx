@@ -101,6 +101,7 @@ export function CertificatesMonthlyChart({ data }: { data: MonthlyCertificates[]
       </p>
 
       <TablaDatos
+        titulo="Certificados emitidos mes a mes"
         columnas={['Mes', 'Certificados']}
         filas={data.map((d) => [d.label, String(d.count)])}
       />
