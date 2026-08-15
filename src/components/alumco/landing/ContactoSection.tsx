@@ -77,7 +77,11 @@ export default function ContactoSection() {
             </h3>
             <label style={{ fontSize: 14, color: 'var(--tinta-2)', fontWeight: 500 }}>
               Nombre
+              {/* 1.3.5 · `autoComplete` identifica el propósito del campo para que
+                  el agente de usuario pueda autocompletarlo. Es nivel AA, igual
+                  que en el formulario de novedades del pie. */}
               <input
+                autoComplete="name"
                 style={{ ...inputStyle, marginTop: 6 }}
                 value={form.nombre}
                 onChange={(e) => setForm((f) => ({ ...f, nombre: e.target.value }))}
@@ -87,6 +91,7 @@ export default function ContactoSection() {
               Correo electrónico
               <input
                 type="email"
+                autoComplete="email"
                 style={{ ...inputStyle, marginTop: 6 }}
                 value={form.correo}
                 onChange={(e) => setForm((f) => ({ ...f, correo: e.target.value }))}

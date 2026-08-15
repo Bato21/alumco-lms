@@ -3398,6 +3398,48 @@ Bajo. Un control más de 24×24 px en la fila de puntos del héroe.
 
 ---
 
+### A11Y-39 — El formulario de contacto de la landing no identifica el propósito de sus campos
+- **Estado:** ✅ **Cerrado** — `autoComplete` en nombre y correo (2026-08-15)
+- **Criterio WCAG:** **1.3.5 Identificar el propósito de la entrada (Nivel AA)**
+- **Severidad:** Media
+- **Archivo:** `landing/ContactoSection.tsx:78-103`
+- **Vistas afectadas:** `/`.
+
+**Descripción**
+
+El formulario de «Envíanos un mensaje» recoge **nombre** y **correo electrónico** —dos campos que
+1.3.5 lista explícitamente entre los propósitos de entrada de usuario— sin atributo
+`autoComplete`. Quien depende del autocompletado del navegador (movilidad reducida, carga
+cognitiva, o simplemente el teclado de un teléfono) tiene que teclear ambos a mano.
+
+Los tres controles **sí** tienen nombre accesible: van envueltos en un `<label>`, que es etiqueta
+implícita y válida. El incumplimiento es solo de 1.3.5.
+
+**Nota de alcance — el criterio figuraba como conforme.** El § 5 de `CONFORMIDAD_A11Y.md`
+justificaba 1.3.5 con «`autoComplete` correcto en login, registro y recuperación»: se verificó en
+los cuatro formularios de autenticación y no en los de la landing. A11Y-37 sí barrió la landing,
+pero buscando contraste, tamaño táctil y nombre accesible — no propósito de entrada. Es la **cuarta
+vez** que la landing queda fuera del alcance de una revisión que se creía completa, y la **sexta**
+que un criterio dado por conforme lo estaba solo en una capa.
+
+**Fix aplicado**
+
+`autoComplete="name"` y `autoComplete="email"`, alineado con lo que ya hacía el formulario de
+novedades de `LandingFooter`. El `<textarea>` del mensaje no lleva ninguno: su contenido no es
+información *sobre el usuario* y 1.3.5 no le aplica.
+
+**Verificado también** que el resto de campos `type="text"` de la plataforma —título de curso,
+nombre de sede, texto de pregunta, buscadores, asunto de ticket— son campos de contenido de
+administración y no recogen información sobre quien los rellena, por lo que quedan fuera de 1.3.5.
+Los campos de `WorkerEditPanel` los rellena un administrador sobre el perfil de *otra* persona:
+poner `autoComplete` ahí sería incorrecto.
+
+**Riesgo de regresión**
+
+Ninguno. Dos atributos en un formulario que no envía datos.
+
+---
+
 ## Anexo · Barrido regla a regla de la landing (2026-08-14)
 
 Se revisaron los nueve componentes de `landing/` más `IntroSplash`, midiendo cada color de texto

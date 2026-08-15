@@ -73,23 +73,24 @@ observación (1.4.4, 1.4.12 y 3.2.4) **sí cumplen**, y la observación anota un
 una verificación empírica pendiente, no un incumplimiento.
 
 **Hallazgos** (31 de la auditoría del 2026-08-10 + 7 de los tres barridos de verificación del
-2026-08-14). "Parcial" = una parte del hallazgo está corregida y
-verificada, pero el criterio sigue sin cumplirse por el resto:
+2026-08-14 + 1 de la verificación previa al despliegue del 2026-08-15). "Parcial" = una parte del
+hallazgo está corregida y verificada, pero el criterio sigue sin cumplirse por el resto:
 
 | Severidad | Detectados | Cerrados | Parciales | Abiertos |
 | :--- | ---: | ---: | ---: | ---: |
 | Bloqueante | 8 | **8** | 0 | **0** |
 | Alta | 16 | **16** | 0 | **0** |
-| Media | 10 | **10** | 0 | **0** |
+| Media | 11 | **11** | 0 | **0** |
 | Baja | 4 | **4** | 0 | **0** |
-| **Total** | **38** | **38** | **0** | **0** |
+| **Total** | **39** | **39** | **0** | **0** |
 
-> ### **Los 38 hallazgos están cerrados**
+> ### **Los 39 hallazgos están cerrados**
 >
-> Son 38 y no 31: **A11Y-32 a A11Y-38 no vienen de la auditoría del 2026-08-10**, sino de tres
-> barridos posteriores del mismo día. Cada uno miraba un sitio distinto y por eso cada uno encontró
+> Son 39 y no 31: **A11Y-32 a A11Y-39 no vienen de la auditoría del 2026-08-10**, sino de cuatro
+> barridos posteriores. Cada uno miraba un sitio distinto y por eso cada uno encontró
 > lo que el anterior no podía ver: primero las reglas base de CSS, luego las paletas con scope,
-> luego los estilos en línea de la landing. Los siete son incumplimientos reales, cinco de
+> luego los estilos en línea de la landing, y por último los formularios de la landing frente a la
+> lista de criterios. Los ocho son incumplimientos reales, cinco de
 > severidad alta, y uno de ellos —el carrusel sin pausa— es de **nivel A**.
 >
 > Conviene leer el resto con precisión: significa que **no queda deuda de código conocida**. **No**
@@ -97,9 +98,9 @@ verificada, pero el criterio sigue sin cumplirse por el resto:
 > empíricamente: todo lo anterior es revisión de código, sin lector de pantalla, sin axe en
 > navegador y sin usuarios reales. Ver § 4.2 y el cierre del § 8.
 
-### Lección de los siete hallazgos tardíos
+### Lección de los ocho hallazgos tardíos
 
-**Cinco de los siete correspondían a criterios o hallazgos ya dados por conformes**, y sobrevivían
+**Seis de los ocho correspondían a criterios o hallazgos ya dados por conformes**, y sobrevivían
 en la capa que el arreglo original no alcanzaba:
 
 | Hallazgo tardío | Se creía cubierto por | Qué cubría realmente |
@@ -111,6 +112,7 @@ en la capa que el arreglo original no alcanzaba:
 | **A11Y-36** — texto del héroe sobre foto | 1.4.3 «conforme» | El cálculo de contraste se hizo sobre tokens; con fondo fotográfico el contraste depende del píxel y hay que medir la imagen |
 | **A11Y-37** — controles de la landing | 1.4.11, 2.5.8, 4.1.2 | El barrido de controles cubrió el CSS y los componentes de la app, no los estilos en línea de la landing |
 | **A11Y-38** — carrusel sin pausa | — | **El criterio 2.2.2 no estaba en la lista de aplicables** |
+| **A11Y-39** — contacto de la landing sin `autoComplete` | 1.3.5 «conforme» | Los cuatro formularios de autenticación. La landing tiene formularios propios y no se revisaron contra este criterio: A11Y-37 sí miró la landing, pero buscando contraste, tamaño táctil y nombre accesible, no propósito de entrada |
 
 Tres conclusiones operativas, todas recogidas ya en `CLAUDE.md`:
 
@@ -127,7 +129,7 @@ no repetir el trabajo.
 
 | Estado | Hallazgos |
 | :--- | :--- |
-| **Cerrados** | A11Y-01 (tokens de color en conflicto) · A11Y-02 (ámbar de marca como texto) · A11Y-03 (`focus:outline-none`) · A11Y-04 (cajón móvil enfocable estando cerrado) · A11Y-05 (tooltip del quiz inalcanzable por teclado) · A11Y-06 (radios `sr-only` sin foco visible ni agrupación) · A11Y-07 (texto blanco sobre ámbar y sobre verde) · A11Y-08 (buscador global sin etiqueta y con atajos falsos) · A11Y-09 (enlace de salto) · A11Y-10 (landmarks y `<h1>` del login) · A11Y-11 (estado del curso en "Tu recorrido") · A11Y-12 (foco en los 8 diálogos) · A11Y-13 (campana de notificaciones) · A11Y-14 (mensajes de estado del quiz y del progreso) · A11Y-15 (`caption`, `scope` y `aria-sort` en las tablas) · A11Y-16 (objetivos táctiles sobre enlaces en línea) · A11Y-17 (riel de la barra de progreso) · A11Y-18 (módulos bloqueados con `opacity-50`) · A11Y-19 (píldoras del calendario y series de gráfico) · A11Y-20 (`<h1>` del flujo de evaluación) · A11Y-21 (títulos de página) · A11Y-22 (`<iframe>` titulado en inglés) · A11Y-23 (`--tinta-3` sobre el fondo crema) · A11Y-24 (requisitos en el `placeholder` y errores sin sugerencia) · A11Y-25 (desbordamiento del desplegable a 320 px) · A11Y-26 (`nowrap` sobre texto de interfaz) · A11Y-27 (`title` como tooltip informativo) · A11Y-28 (glifos decorativos leídos como texto) · A11Y-29 (SVG inline sin `aria-hidden`) · A11Y-30 (foco bajo las barras fijas) · A11Y-31 (semántica del sidebar y landmarks duplicados) · **A11Y-32** (`.input:focus` anulaba el anillo del sistema en todos los campos) · **A11Y-33** (ámbar de marca como texto en el `<em>` del display) · **A11Y-34** (borde de campos y controles a 1.28–1.41:1) · **A11Y-35** (`.t-eyebrow` con el ámbar claro de los bloques navy sobre fondo claro) · **A11Y-36** (texto blanco del héroe sobre fotografía, hasta 2.52:1) · **A11Y-37** (controles y estructura de la landing) · **A11Y-38** (carrusel sin mecanismo de pausa — nivel A) |
+| **Cerrados** | A11Y-01 (tokens de color en conflicto) · A11Y-02 (ámbar de marca como texto) · A11Y-03 (`focus:outline-none`) · A11Y-04 (cajón móvil enfocable estando cerrado) · A11Y-05 (tooltip del quiz inalcanzable por teclado) · A11Y-06 (radios `sr-only` sin foco visible ni agrupación) · A11Y-07 (texto blanco sobre ámbar y sobre verde) · A11Y-08 (buscador global sin etiqueta y con atajos falsos) · A11Y-09 (enlace de salto) · A11Y-10 (landmarks y `<h1>` del login) · A11Y-11 (estado del curso en "Tu recorrido") · A11Y-12 (foco en los 8 diálogos) · A11Y-13 (campana de notificaciones) · A11Y-14 (mensajes de estado del quiz y del progreso) · A11Y-15 (`caption`, `scope` y `aria-sort` en las tablas) · A11Y-16 (objetivos táctiles sobre enlaces en línea) · A11Y-17 (riel de la barra de progreso) · A11Y-18 (módulos bloqueados con `opacity-50`) · A11Y-19 (píldoras del calendario y series de gráfico) · A11Y-20 (`<h1>` del flujo de evaluación) · A11Y-21 (títulos de página) · A11Y-22 (`<iframe>` titulado en inglés) · A11Y-23 (`--tinta-3` sobre el fondo crema) · A11Y-24 (requisitos en el `placeholder` y errores sin sugerencia) · A11Y-25 (desbordamiento del desplegable a 320 px) · A11Y-26 (`nowrap` sobre texto de interfaz) · A11Y-27 (`title` como tooltip informativo) · A11Y-28 (glifos decorativos leídos como texto) · A11Y-29 (SVG inline sin `aria-hidden`) · A11Y-30 (foco bajo las barras fijas) · A11Y-31 (semántica del sidebar y landmarks duplicados) · **A11Y-32** (`.input:focus` anulaba el anillo del sistema en todos los campos) · **A11Y-33** (ámbar de marca como texto en el `<em>` del display) · **A11Y-34** (borde de campos y controles a 1.28–1.41:1) · **A11Y-35** (`.t-eyebrow` con el ámbar claro de los bloques navy sobre fondo claro) · **A11Y-36** (texto blanco del héroe sobre fotografía, hasta 2.52:1) · **A11Y-37** (controles y estructura de la landing) · **A11Y-38** (carrusel sin mecanismo de pausa — nivel A) · **A11Y-39** (contacto de la landing sin `autoComplete` — 1.3.5) |
 | **Parciales** | — |
 | **Abiertos** | — |
 
@@ -253,7 +255,7 @@ Los identificadores `A11Y-nn` remiten a [`AUDITORIA_A11Y.md`](./AUDITORIA_A11Y.m
 | 1.3.1 Información y relaciones | A | ✅ | **Cerrado.** Landmarks del login, `role="listitem"` sobre `<Link>` en "Tu recorrido", etiquetas huérfanas en constructor de cursos y edición de trabajador, alternativas del quiz en `role="radiogroup"` (A11Y-06), `<caption>` y `scope="col"` en las seis tablas que faltaban (A11Y-15), jerarquía de encabezados del flujo de evaluación (A11Y-20), lista de alertas de la campana como `<ul>`/`<li>` reales, y las dos secciones del sidebar como `role="group"` con nombre accesible, con un único landmark de navegación (A11Y-31) |
 | 1.3.2 Secuencia significativa | A | ✅ | Orden DOM = orden visual en todas las vistas revisadas |
 | 1.3.4 Orientación | AA | ✅ | `manifest.ts` no fija `orientation`; sin bloqueos en CSS |
-| 1.3.5 Identificar propósito de entrada | AA | ✅ | `autoComplete` correcto en login, registro y recuperación. `rut` usa `off` por no existir token HTML para el identificador chileno |
+| 1.3.5 Identificar propósito de entrada | AA | ✅ | `autoComplete` correcto en login, registro y recuperación. `rut` usa `off` por no existir token HTML para el identificador chileno. **Corregido el 2026-08-15:** el criterio se había dado por conforme mirando solo los formularios de autenticación; el formulario de contacto de la landing recogía nombre y correo sin `autoComplete` (**A11Y-39**). Los `type="text"` restantes son campos de contenido de administración —título de curso, nombre de sede, buscadores— y no recogen información *sobre el usuario*, así que el criterio no les aplica |
 | 1.4.1 Uso del color | A | ✅ | **Cerrado.** Los tres focos del hallazgo tienen ya un canal no cromático: el estado de curso en "Tu recorrido" viaja en texto además de en la forma del nodo (A11Y-11); el punto rojo de la campana pasó a insignia con el número de alertas, y el conteo va también en el nombre accesible del botón (A11Y-13); las píldoras del calendario declaran su estado de plazo en el `aria-label`, y los gráficos identifican cada serie por rótulo de eje y valor impreso, no por color (A11Y-19) |
 | 1.4.3 Contraste (mínimo) | AA | ✅ | **Cerrado.** Los pares token/fondo del sistema cumplen (A11Y-01). Migrados los ~120 literales usados como color de texto y los botones con texto blanco sobre ámbar y sobre verde (A11Y-02, A11Y-07); corregidos `--ambar-700`, `--ok` y `--aviso` en las tres paletas con scope y los pares `--ok`/`--ok-bg` (4.34:1) y `--aviso`/`--aviso-bg` (4.46:1). En esta pasada: `--tinta-3` de `#6e7488` a `#666c80` —4.84:1 sobre la crema de página, que es el fondo real y donde antes daba 4.31:1 (A11Y-23)— y los módulos bloqueados, que ahora atenúan el fondo en vez de la tinta; el subtexto de la fila activa pasa de 3.25:1 a 6.11:1 (A11Y-18) |
 | 1.4.4 Cambio de tamaño del texto | AA | ⚠️ | Se cumple: el zoom al 200 % escala y el layout responde. Pero el sistema mide casi todo en `px`, muchos inline, así que la app ignora en gran medida el tamaño de fuente configurado en el navegador. `html` ya pasó a `112.5%` |
@@ -432,8 +434,9 @@ por el requisito de poblar la burbuja demo.
 
 ## 8 · Trabajo pendiente para alcanzar la conformidad AA
 
-**No queda trabajo de código conocido.** Los 38 hallazgos —31 de la auditoría y 7 de los tres barridos
-de verificación posteriores— están cerrados, y 37 de los 41 criterios son conformes, más 3 con
+**No queda trabajo de código conocido.** Los 39 hallazgos —31 de la auditoría, 7 de los tres barridos
+de verificación del 2026-08-14 y 1 de la verificación previa al despliegue del 2026-08-15— están
+cerrados, y 37 de los 41 criterios son conformes, más 3 con
 observación. Lo que falta para la conformidad AA es de otra naturaleza:
 
 | # | Qué | Por qué no es código | Esfuerzo |
@@ -469,6 +472,7 @@ Los que alteran la interfaz aprobada y siguen **pendientes de validación visual
 | **A11Y-36** | **La fotografía del héroe de la portada se ve más oscura** (velo de 0.38 a 0.55). Es el precio de poner texto blanco encima |
 | **A11Y-37** | Contorno visible en los campos del formulario de contacto; punto inactivo del carrusel algo más claro |
 | **A11Y-38** | Un botón de pausa más en la fila de puntos del héroe |
+| **A11Y-39** | Ninguno. El navegador ofrecerá autocompletar nombre y correo en el formulario de contacto |
 
 **A11Y-11 se cerró sin tocar el texto visible**: la sustitución de «Curso N» por el estado sigue
 sobre la mesa como mejora de contenido, ya no como incumplimiento.
@@ -495,6 +499,8 @@ sobre la mesa como mejora de contenido, ya no como incumplimiento.
 
 | 2026-08-14 (6/6) | **Barrido regla a regla de la landing**, cuyo grueso no vive en CSS con scope sino en estilos en línea y `<style jsx>` de nueve componentes. Tres hallazgos: **A11Y-36** —el texto blanco del héroe va sobre fotografía con un velo del 38 % que no basta; medidas las cuatro slides con su desenfoque, el párrafo de 16 px fallaba en tres y el `<h1>` en una, bajando a 2.52:1—, **A11Y-37** —campo de novedades sin nombre accesible y con `outline: none`, puntos del carrusel de 7×7 px y a 2.83:1, borde de formulario a 1.28:1, y «Nuestra misión» fuera del esquema de encabezados— y **A11Y-38** —el carrusel se mueve solo cada 5 s sin mecanismo de pausa: **2.2.2, nivel A, y el criterio ni siquiera figuraba en la lista de aplicables**—. El denominador pasa de 40 a **41 criterios** y el total de hallazgos a **38, todos cerrados**. Velo al 0.55 (peor caso 4.96:1 verificado sobre las imágenes reales), áreas táctiles de 24 px, `--borde-control` también en `.landing-page`, y botón de pausa en el héroe |
 
+| 2026-08-15 | **Verificación previa al despliegue a producción**, sobre la rama `testeo` (merge de `accesibilidad-AA` y `main`; `main` ya estaba contenida, el merge no aportó commits). Se midió el contraste **sobre el bundle compilado** en las cinco combinaciones reales de scope —`.paleta-oliva`, `.paleta-azul`, `.landing-page` y las dos bajo `data-tema=didasko`—: **198 pares, ninguno bajo el mínimo**. Se verificó que no reaparece A11Y-32: el único `outline: none` del bundle sigue siendo el intencionado de `main:focus`, y de las dos reglas `:focus-visible` que conviven en `@layer components` gana la posterior, la del anillo navy de doble contorno (6.33–6.82:1 contra las superficies claras, 3.37:1 contra el botón ámbar). Un hallazgo nuevo: **A11Y-39** —el formulario de contacto de la landing recogía nombre y correo sin `autoComplete`, **1.3.5, nivel AA**, criterio que figuraba como conforme por haberse comprobado solo en los formularios de autenticación—. Es la **cuarta vez** que la landing queda fuera del alcance de una revisión que se creía completa. Total: **39 hallazgos, todos cerrados**; el recuento de criterios no cambia. Verificado con `npm run lint` (0 errores), `npm run build`, `vitest` (42/42) y comprobación estructural sobre el HTML servido por el build de producción (idioma, título, enlace de salto, jerarquía de encabezados, `alt`, nombres accesibles y etiquetas de control) |
+
 **Próxima revisión:** al tomar la decisión sobre subtítulos (§ 6.1), tras la validación visual con
 la clienta, tras reconciliar la lista de criterios aplicables contra los 55 de WCAG 2.2, o ante
 cualquier cambio que afecte al sistema de color, al foco o a la estructura de landmarks.
@@ -520,7 +526,7 @@ pasar de "revisión de código" a "verificado" — ver los tres puntos al final 
   evita "arreglar" algo ya arreglado leyendo un fix propuesto que ya se aplicó.
 
 - [`AUDITORIA_A11Y.md`](./AUDITORIA_A11Y.md) — auditoría técnica completa: los 31 hallazgos
-  originales más los 7 de los barridos posteriores (A11Y-32 a A11Y-38, en su propia sección), con
+  originales más los 8 de los barridos posteriores (A11Y-32 a A11Y-39, en su propia sección), con
   archivo:línea, ratio medido, impacto en el usuario, fix propuesto, riesgo de regresión y estado
   actual; más las tablas de contraste de la corrección de la base de estilos.
 - [`../CLAUDE.md`](../CLAUDE.md) § "Normas de accesibilidad" — reglas obligatorias para código
