@@ -65,8 +65,14 @@ export default async function AdminDashboardPage() {
       .eq('is_demo', isDemo) as unknown as Promise<{ data: { id: string; title: string; target_areas: string[] | null }[] | null }>,
     adminClient
       .from('course_progress')
-      .select('user_id, course_id, is_completed, completed_at, updated_at')
-      .eq('is_demo', isDemo) as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null; updated_at: string | null }[] | null }>,
+      // OJO: `course_progress` NO tiene `updated_at`. Pedirla hacía que PostgREST
+      // respondiera 400 y `data` llegara null, con lo que TODA métrica derivada del
+      // avance colapsaba a cero (cumplimiento, "sin iniciar", cumplimiento por curso
+      // y por sede). No la vuelvas a añadir: las columnas reales son id, user_id,
+      // course_id, last_module_id, completed_modules, is_completed, started_at,
+      // completed_at, last_quiz_reset_at, is_demo.
+      .select('user_id, course_id, is_completed, completed_at')
+      .eq('is_demo', isDemo) as unknown as Promise<{ data: { user_id: string; course_id: string; is_completed: boolean; completed_at: string | null }[] | null }>,
     adminClient
       .from('certificates')
       .select('user_id, issued_at')

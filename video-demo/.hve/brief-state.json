@@ -1,0 +1,17 @@
+{
+  "audio": null,
+  "phases": {
+    "phase-1": {
+      "fingerprint": "sha256:098cbb1f6126ea65a1763277a8b7de584ac044d7ef7321ba5ee3fb5ac0247602",
+      "revision": 1,
+      "stage": "story",
+      "stamped_at": "2026-08-16T15:52:24+00:00"
+    }
+  },
+  "schema_version": 1,
+  "story": {
+    "confirmed_at": "2026-08-16T15:46:14+00:00",
+    "fingerprint": "sha256:098cbb1f6126ea65a1763277a8b7de584ac044d7ef7321ba5ee3fb5ac0247602",
+    "revision": 1
+  }
+}

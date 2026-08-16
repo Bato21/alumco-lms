@@ -8,7 +8,53 @@ sin improvisar. **No es un storyboard.** La skill escribe `storyboard.md` ella m
 después de que el brief se confirme, y cada decisión creativa la responde una persona,
 no este archivo.
 
-Última actualización: 2026-08-15
+Última actualización: 2026-08-16
+
+---
+
+## 0. Estado de la producción — leer primero
+
+Bloque de retome. **Se actualiza al cerrar cada sesión de trabajo**, para que
+cualquiera (o cualquier sesión nueva de agente) sepa en un vistazo dónde quedó
+todo sin releer el documento entero.
+
+### Dónde va la producción
+
+| Fase del pipeline | Estado |
+| :--- | :--- |
+| 0 — Discovery | Respondida por este documento (§ 1, § 2). Falta que la skill escriba `context.md` |
+| 1 — Storytelling | Respondida por este documento (§ 3, § 4, § 5). Falta que la skill escriba `storyboard.md` |
+| **2 — Capture** | **Siguiente.** Entorno listo; no se ha capturado nada todavía |
+| 3 — Design | No iniciada |
+| 4 — Production | No iniciada |
+| 5 — Audio & Render | No iniciada. Voz resuelta (locución propia); música pendiente |
+
+### Entorno — verificado el 2026-08-16
+
+| Pieza | Estado |
+| :--- | :--- |
+| ffmpeg | ✅ Gyan.FFmpeg 9.0 instalado y en PATH |
+| Skills (`hve-video-director`, familia `hyperframes`) | ✅ instaladas globalmente |
+| MCP `chrome-devtools` | ✅ declarado en `.mcp.json` (ver `GUIA_GRABACION.md` § 2) |
+| `NEXT_PUBLIC_MODO_GRABACION` | ✅ **definida y desplegada.** Verificado desde fuera: `/certificados/verificar/D3N9MPFVPEXC` rotula la sede "Hualpén", no "Demostración" |
+| Seed demo | ✅ verificado: Camila Fuentes Ortega · "Prevención y manejo de caídas en adultos mayores" |
+| `/admin/trabajadores` sin nombres reales | ✅ verificado a ojo |
+| Push en el móvil de grabación | ✅ reactivadas |
+| Cron `reset-demo-world` | ✅ desactivado (y así se queda — ver § 8, BUG-73) |
+| Certificado del beat 6 | ⏳ sigue en `is_demo = true`, que es lo correcto. La ventana se abre justo antes de esa toma |
+| Voz | ✅ decidida: la graba el equipo (§ 3) |
+| Música | ⏳ `FREESOUND_API_KEY` sin definir, o pista propia. No bloquea capturar |
+| `NEXT_PUBLIC_SITE_URL` | ⏳ sin confirmar. **Solo importa si el beat 6 filma el escaneo del QR**; irrelevante en las otras dos resoluciones que plantea § 5 |
+
+### Próximo paso concreto
+
+Invocar la skill `hve-video-director`. Las Fases 0 y 1 se despachan rápido porque
+este documento ya tiene las respuestas; el trabajo real empieza en la Fase 2.
+
+**El orden de captura importa.** El quiz del beat 3 se graba **de una sola vez y de
+último entre las tomas de la sesión de Camila**: `quiz_attempts` es inmutable y
+quedan 3 intentos. Cualquier toma que lo toque antes de tiempo consume uno para
+siempre (ver `GUIA_GRABACION.md` § 1).
 
 ---
 
@@ -140,7 +186,7 @@ Cada beat debería servir a las dos a la vez.
 | `theme` | Claro, derivado de la propia UI | La plataforma es de fondo claro (`#F5F5F5`) |
 | Identidad visual | **Derivar desde screenshots. NO usar preset de marca ajena** | Ver nota abajo |
 | `music_strategy` | `freesound`, **priorizando CC0** | CC0 evita la obligación de atribución en pantalla, que en 90 s cuesta caro. Requiere `FREESOUND_API_KEY`, hoy sin configurar |
-| Voz | **PENDIENTE** | Ver nota abajo |
+| Voz | **Locución propia del equipo** (decidido 2026-08-16) | Ver nota abajo |
 
 ### Sobre la identidad visual
 
@@ -155,17 +201,39 @@ La paleta se deriva de las capturas, no de un preset. Razones concretas:
   Importar un preset de marca ajena pisaría colores ya medidos y verificados, y podría
   reintroducir en el video justo lo que se corrigió en la plataforma.
 
-### Sobre la voz — PENDIENTE
+### Sobre la voz — RESUELTA: locución propia
 
-Decisión abierta entre dos rutas:
+**El equipo graba la voz en off.** No se usa TTS. Eso cierra el bloqueo que había
+(`espeak-ng` ausente para kokoro, `ELEVENLABS_API_KEY` sin definir para elevenlabs):
+ninguna de las dos claves hace falta ya.
 
-| Opción | A favor | En contra |
-| :--- | :--- | :--- |
-| **kokoro** (local) | Gratis, sin clave de API, sin enviar el guion a un tercero | Para español **requiere `espeak-ng`**, que hoy no está instalado. Calidad menor |
-| **elevenlabs** | Calidad de voz superior | Requiere `ELEVENLABS_API_KEY` (hoy sin configurar) y envía el guion a un servicio externo |
+Es una ruta de primera clase en el pipeline, pero **tiene forma propia** y conviene
+saberla antes de grabar la locución, no después:
 
-Estado del entorno hoy: `espeak-ng` ausente, `ELEVENLABS_API_KEY` sin definir. **Ninguna
-de las dos rutas está lista todavía**; hay que habilitar una antes de la Fase 5.
+- **El brief no admite un valor "voz humana".** `scripts/validate_brief.py:356` solo
+  acepta `elevenlabs:<nombre>:<voice-id>` o `kokoro:<voice-id>`. Se declara un valor
+  `elevenlabs:` — precisamente el camino cuyas tomas la skill espera recibir del
+  usuario, no generar ella.
+- **Las tomas van por sección, no como un archivo único.** Una por beat, transcodificada
+  a mono 44,1 kHz MP3 con el nombre exacto que espera el ensamblador:
+  `ffmpeg -y -i assets/voice/00.wav -ac 1 -ar 44100 -c:a libmp3lame -q:a 2 vo_section_00.mp3`
+- **Hay que sellarlas antes de ensamblar**, o el ensamblador falla con exit 2 (un archivo
+  existente no es prueba de que sea la toma correcta):
+  `python3 "$SKILL_DIR/scripts/verify_vo_sections.py" --project-dir . seal --attest user-supplied`
+- Recién entonces `python3 ./voiceover.py --assemble-only`, que las coloca en sus tiempos
+  de inicio y rellena hasta `VIDEO_DURATION`.
+
+> ⚠️ **El guion es un contrato de tiempos, no solo un texto.** Cada beat tiene su ventana
+> fija (0-10, 10-20, 20-38…). El aire calculado en la sección 5 es **por beat y no es
+> transferible**: si la locución del beat 3 se pasa de sus 18 segundos, no se compensa
+> con lo que sobra en el 4 — se descuadra la costura. Grabar contra el cronómetro del
+> guion, beat por beat.
+
+### Sobre la música — PENDIENTE
+
+`FREESOUND_API_KEY` sigue sin definir. No bloquea la captura. Dos salidas: configurar la
+clave (Freesound es la ruta de música sin motor) o entregar una pista propia. En los dos
+casos la skill exige confirmar el track exacto y su licencia antes de mezclar.
 
 ---
 
@@ -361,6 +429,16 @@ está en un estado preparado para cámara, no en su estado real.
 
 ### Antes de grabar
 
+- [x] **`ffmpeg` instalado** (Gyan.FFmpeg 9.0, el 2026-08-16) y visible en el PATH
+      (`ffmpeg -version`). Bloquea la Fase 2: las capturas crudas se normalizan con
+      `stitch_clip.py`, en Windows el adaptador de grabación de pantalla es FFmpeg
+      `gdigrab`, y el screencast del MCP de Chrome también lo exige.
+- [x] **Servidor MCP `chrome-devtools` declarado** en `.mcp.json` con `--isolated`,
+      `--experimentalScreencast` y `--viewport=1920x1080`. Sin él no hay ninguna
+      captura web. Detalle de por qué cada flag, en `GUIA_GRABACION.md` § 2.
+- [ ] **Claude Code reiniciado** después de instalar ffmpeg y de crear `.mcp.json`.
+      El proceso arrastra el PATH con el que arrancó y no relee `.mcp.json` en
+      caliente: sin reinicio, ffmpeg "no existe" y el servidor MCP no está montado.
 - [x] Cron `reset-demo-world` **desactivado** (hecho el 2026-08-16). Si estuviera
       activo borraría el contenido de cámara en menos de 6 horas (`0 */6 * * *`).
 - [ ] `NEXT_PUBLIC_MODO_GRABACION='true'` **y deploy hecho** (ver aviso abajo).

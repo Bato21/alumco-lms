@@ -97,8 +97,13 @@ Procedimiento completo, si hay que llegar a esto:
   fallar los chequeos aunque Python esté instalado. Se apaga en
   *Configuración → Aplicaciones → Alias de ejecución de aplicaciones*.
 - `ffmpeg` no viene con el sistema: `winget install Gyan.FFmpeg` y abrir una
-  terminal nueva para que el PATH se refresque. **Sin ffmpeg no hay render**, el
-  pipeline se detiene ahí.
+  terminal nueva para que el PATH se refresque.
+
+> 🔴 **ffmpeg bloquea la captura, no solo el render.** Es fácil postergarlo creyendo
+> que se necesita al final. No: la Fase 2 (Capture) normaliza las grabaciones crudas
+> con `stitch_clip.py`, que es un envoltorio de `ffmpeg`/`ffprobe`, y en **Windows el
+> adaptador nativo de grabación de pantalla *es* FFmpeg `gdigrab`**. Sin ffmpeg no hay
+> primera toma. Instalarlo antes de convocar a nadie a grabar.
 
 ### Instalación
 
@@ -122,6 +127,29 @@ npx hyperframes doctor
 npx skills list -g
 ```
 
+### El servidor MCP de Chrome — sin esto no hay capturas web
+
+La skill maneja el navegador por **`chrome-devtools` MCP**. No venía configurado, y
+sin él la Fase 2 no puede sacar ni un screenshot: los beats 2, 3 y 4 quedan fuera.
+Ya está declarado en `.mcp.json` del repositorio, así que basta con abrir el
+proyecto — pero conviene entender los tres flags, porque ninguno es opcional:
+
+| Flag | Por qué |
+| :--- | :--- |
+| `--isolated` | Crea un perfil temporal que se destruye al cerrar. **Es la forma limpia de cumplir la regla del perfil dedicado y desechable** de `VIDEO_BRIEF.md` § 7, y además evita abrir un puerto de depuración remota: el navegador lo lanza el propio servidor, no hay que exponer nada |
+| `--experimentalScreencast` | `screencast_start` / `screencast_stop` están **detrás de este flag**. Sin él, el servidor solo ofrece screenshots y los dos beats de screencast (3 y 4) no se pueden capturar |
+| `--viewport=1920x1080` | Fija el encuadre en el 16:9 de destino desde la captura, en vez de reescalar después |
+
+> `--experimentalScreencast` **exige ffmpeg en el PATH del servidor MCP**, que es
+> otra razón por la que ffmpeg va antes que todo lo demás. Si se instaló ffmpeg con
+> la sesión ya abierta, hay que **reiniciar Claude Code**: el proceso arrastra el
+> PATH viejo y el servidor MCP lo hereda.
+
+**No se usa `--autoConnect`.** Serviría para engancharse a una pestaña ya
+autenticada, pero obliga a levantar depuración remota — justo lo que
+`VIDEO_BRIEF.md` § 7 pide evitar. No hace falta: el login tiene botones de acceso
+directo a las dos cuentas demo, así que el navegador aislado inicia sesión solo.
+
 > Al instalar, el CLI muestra una evaluación de riesgo de terceros. Para
 > `nebrass/hve-video-director` marcaba **Snyk: Critical Risk** (con Gen: Safe y
 > Socket: 0 alerts). Las skills corren con permisos completos del agente. Está
@@ -130,12 +158,18 @@ npx skills list -g
 
 ### Lo que queda pendiente en el entorno
 
-Tres piezas de la Fase 5 (audio) siguen sin configurar. Ninguna bloquea grabar,
-pero sí bloquean el render final con narración:
+- **ffmpeg**: sin instalar. **Es el único bloqueo duro para grabar** (ver aviso
+  arriba). Todo lo demás de esta lista es de la Fase 5 y no impide la captura.
+- **Voz**: ✅ resuelto — **la graba el equipo**. No se usa TTS, así que ya no hacen
+  falta ni `espeak-ng` ni `ELEVENLABS_API_KEY`. El procedimiento de entrega de las
+  tomas está en [`VIDEO_BRIEF.md` § 3 → "Sobre la voz"](./VIDEO_BRIEF.md).
+- **Música**: `FREESOUND_API_KEY` sin definir. O se configura, o se entrega una pista
+  propia. Decisión abierta, no bloquea grabar.
 
-- **Voz**: sin decidir entre `kokoro` (local; para español necesita `espeak-ng`,
-  que no está instalado) y `elevenlabs` (necesita `ELEVENLABS_API_KEY`).
-- **Música**: `FREESOUND_API_KEY` sin definir.
+> **Al grabar la voz en off, hacerlo beat por beat y con cronómetro.** El guion
+> asigna una ventana fija a cada beat y el margen sobrante **no se traspasa** de uno a
+> otro. Una locución que se pasa de su ventana descuadra la costura con el beat
+> siguiente, y eso se arregla regrabando, no en la mezcla.
 
 ---
 
