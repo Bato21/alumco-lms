@@ -207,35 +207,52 @@ personal donde efectivamente está, en turno y con el celular en el bolsillo.
 
 ## 5. Guion de narración
 
-> **PENDIENTE — falta el texto.** El guion se entrega aparte y aún no está en el
-> repositorio. Al recibirlo se transcribe aquí beat por beat, literal, sin reescribir:
-> el conteo de palabras depende de la redacción exacta y la Fase 5 lo usa para calzar la
-> narración con los cortes.
+Guion definitivo. Los nombres coinciden con el seed aplicado el 2026-08-16
+(Camila Fuentes Ortega, auxiliar de enfermería; sede "Hualpén").
 
-| Beat | Tiempo | Narración | Palabras |
-| :--- | :--- | :--- | :--- |
-| 1 | — | — | — |
-| 2 | — | — | — |
-| 3 | — | — | — |
-| 4 | — | — | — |
-| 5 | — | — | — |
-| 6 | 70–84 s | — | — |
-| 7 | — | — | — |
-| | | **Total** | **—** |
+| # | Tiempo | Imagen | Voz en off | Palabras |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 0-10 s | Planillas, correos, carpetas físicas | En un ELEAM, cada trabajador debe cumplir horas de capacitación obligatoria al año. Hoy eso vive en planillas, correos y papeles sueltos. | 22 |
+| 2 | 10-20 s | Logo → dashboard → sede | KimünKo reúne todo en un solo lugar: capacitación, coordinación y seguimiento, para las dos sedes de ONG Alumco. | 18 |
+| 3 | 20-38 s | Login Camila → cursos → "Técnicas de movilización" → quiz → avance actualizado | Camila es auxiliar de enfermería en Hualpén. Entra y ve los cursos asignados a su rol. Revisa el material, responde la evaluación, y su avance queda registrado al instante. Sin planillas, sin recordatorios manuales. | 34 |
+| 4 | 38-54 s | Admin: Fiestas Patrias 2026, cuatro secciones, tareas con fecha | Llega septiembre. La administradora arma la celebración por sede: secciones, encargados y tareas con fecha. Las restricciones alimentarias quedan visibles antes de comprar. | 23 |
+| 5 | 54-70 s | **PLANO FÍSICO**: notebook + teléfono sobre la mesa, misma tarea | La administradora asigna desde el computador. A Camila le llega al teléfono — es la misma plataforma, instalada como app, sin bajar nada de ninguna tienda. | 25 |
+| 6 | 70-84 s | `/certificados/verificar/D3N9MPFVPEXC` | Cuando completa un curso se emite un certificado con folio verificable. Un fiscalizador puede comprobarlo desde su propio teléfono, sin cuenta y sin pedirle nada a nadie. | 27 |
+| 7 | 84-90 s | Placa final: logo, URL, equipo | KimünKo. Sabiduría del agua. | 4 |
+| | **90 s** | | **Total** | **153** |
 
-**Referencia de ritmo:** en español neutro, una locución cómoda va entre 2,2 y 2,5
-palabras por segundo. Para 90 s el total debería caer aproximadamente entre **200 y 225
-palabras**. Pasado ese techo la voz se acelera y el video se siente apurado — que es
-justo el defecto que arruina una defensa.
+### Ritmo — hay aire de sobra
 
-### Advertencia sobre el beat 70–84 s
+**153 palabras en 90 s = 1,70 palabras por segundo.** En español neutro una locución
+cómoda va entre 2,2 y 2,5 pal/s, así que el guion queda **por debajo del rango**: no hay
+riesgo de que la voz suene apurada, y sobra margen para pausas y para que la imagen
+respire. Desglose:
 
-> **PENDIENTE — falta el contenido de la advertencia.** Se anota aquí en cuanto llegue
-> junto con el guion.
+| Beat | pal/s | Lectura |
+| :--- | :--- | :--- |
+| 1 | 2,20 | El más apretado. Es el único que roza el límite cómodo |
+| 3 | 1,89 | Holgado pese a ser el beat más largo de texto |
+| 6 | 1,93 | Holgado |
+| 2 · 4 · 5 | 1,80 · 1,44 · 1,56 | Muy holgados |
+| 7 | 0,67 | Placa final: la lentitud es deliberada |
 
-Ese beat dura **14 segundos**, el tramo más largo del video si los otros seis se reparten
-los 76 restantes. Un beat largo cerca del cierre es donde se pierde la atención, así que
-conviene revisar que ahí ocurra algo — no solo que se diga algo.
+Solo el beat 1 exige dicción firme. El resto admite pausas sin recortar nada.
+
+### Advertencia sobre el beat 70-84 s
+
+Son **14 segundos sobre una página estática** — la verificación pública del certificado.
+Es el tramo más largo del video después del beat 3, y el único en el que **no pasa nada
+en pantalla**: no hay clic, ni scroll, ni transición de vista.
+
+A 14 segundos, un plano fijo se siente muerto y es donde se pierde la atención justo
+antes del cierre. Hay que darle movimiento en Fase 4 sin cambiar de página: un zoom lento
+sobre el folio, la aparición escalonada de los campos (titular, curso, fecha, sede), o el
+plano del teléfono escaneando el QR y la página resolviéndose. **La decisión es creativa y
+la responde una persona**, pero el beat no puede quedarse quieto los 14 segundos.
+
+Además, este beat es el que exige la ventana del certificado
+(`scripts/ventana-certificado.sql`): sin voltear `is_demo` la página muestra "Certificado
+de demostración" en beige, no la de certificado válido.
 
 ---
 
@@ -258,13 +275,25 @@ Tipos según el pipeline:
 | `/eventos/[id]` — secciones y tareas | `screencast` | Marcar una tarea como completada es la acción del beat |
 | `/admin/dashboard` — cumplimiento | `screenshot` | Cierra el argumento normativo con datos |
 | `/admin/reportes` (si entra en el corte final) | `screenshot` | Refuerza trazabilidad y exportación |
-| **Notificación push en el teléfono** | **`supplied`** | **Grabación de pantalla de un celular real.** El pipeline controla Chrome de escritorio; no puede capturar ni la bandeja de notificaciones del sistema operativo móvil ni la PWA instalada. Hay que grabarlo a mano y entregarlo como archivo |
+| **Beat 5 (54-70 s) — notebook + teléfono sobre la mesa** | **`supplied`** | **Grabación física con cámara**, no captura de pantalla. Es un plano de dos dispositivos a la vez: el pipeline controla Chrome de escritorio y no puede filmar una mesa. Hay que grabarlo y entregarlo como archivo |
+| **Beat 6 (70-84 s) — `/certificados/verificar/D3N9MPFVPEXC`** | **`supplied`** | Se captura **fuera del pipeline**, durante la ventana de `scripts/ventana-certificado.sql`: la UI de "Certificado válido" solo existe mientras `is_demo = false`, y esa ventana dura minutos. Automatizarlo dentro del pipeline obligaría a mantener la bandera volteada toda la producción |
 
-**Sobre el material `supplied`:** conviene grabarlo en vertical y decidir en Fase 4 cómo
-entra en un lienzo 16:9 — dentro de un marco de teléfono, o con fondo desenfocado. Es una
-decisión creativa y la responde una persona, no este documento.
+### Asignación por beat
 
-La asignación definitiva de captura por número de beat se cierra cuando llegue el guion.
+| Beat | Tiempo | Tipo |
+| :--- | :--- | :--- |
+| 1 | 0-10 s | `supplied` o material de archivo (planillas, carpetas físicas) |
+| 2 | 10-20 s | `screenshot` (logo, dashboard, sede) |
+| 3 | 20-38 s | `screencast` — login, listado, módulo, quiz, avance |
+| 4 | 38-54 s | `screencast` — evento con sus cuatro secciones |
+| 5 | 54-70 s | **`supplied`** — grabación física |
+| 6 | 70-84 s | **`supplied`** — ventana del certificado |
+| 7 | 84-90 s | Composición en Fase 4, sin captura |
+
+**Sobre el material `supplied`:** el del beat 5 conviene grabarlo con el encuadre ya
+pensado para 16:9, porque es un plano físico y no se puede recomponer después. El del beat
+6 es una página de escritorio y entra directo. Cómo se integran —marco de teléfono, fondo
+desenfocado, zoom— es decisión creativa y la responde una persona, no este documento.
 
 ---
 
@@ -321,3 +350,161 @@ no sobre las personas mayores.
 - La URL en la barra de direcciones delata el entorno: debe mostrar el dominio demo.
 - Revisar el material antes de publicar. Un frame con un nombre real obliga a recortar o
   regrabar, y a esa altura sale caro.
+
+---
+
+## 8. Checklist de producción y reversión
+
+Estado del ambiente demo durante la grabación. **Todo lo marcado como REVERTIR
+vuelve a su estado normal al terminar**; mientras no se revierta, la plataforma
+está en un estado preparado para cámara, no en su estado real.
+
+### Antes de grabar
+
+- [x] Cron `reset-demo-world` **desactivado** (hecho el 2026-08-16). Si estuviera
+      activo borraría el contenido de cámara en menos de 6 horas (`0 */6 * * *`).
+- [ ] `NEXT_PUBLIC_MODO_GRABACION='true'` **y deploy hecho** (ver aviso abajo).
+- [ ] Verificar en `/admin/trabajadores` que solo aparecen nombres ficticios. Si
+      aparece un solo nombre real, el entorno está mal apuntado: detener.
+- [ ] Notificaciones push reactivadas en el dispositivo de grabación desde
+      Mi perfil (el cron las borra; hay que volver a activarlas tras desactivarlo).
+
+### Dominio de grabación: `kimunko.vercel.app`
+
+**No grabar en `alumcotest.vercel.app`.** Ese deploy sirve una rama de julio
+(`testandy` / `deploytestvercel`): devuelve `307 → /login` tanto en
+`/certificados/verificar/…` como en `/reset-password`, porque le faltan los
+commits que abrieron esas rutas. Filmar ahí significa filmar una versión sin la
+verificación pública de certificados, sin restablecimiento de contraseña, sin las
+correcciones de accesibilidad y **sin la bandera `NEXT_PUBLIC_MODO_GRABACION`**.
+
+`kimunko.vercel.app` sirve `main` y está verificado: resuelve
+`/certificados/verificar/D3N9MPFVPEXC` con los datos del seed (Camila Fuentes
+Ortega, "Prevención y manejo de caídas en adultos mayores"), lo que confirma
+además que apunta al proyecto Supabase `eaodsaiwzhbgehhfnegj`.
+
+> **Pendiente de confirmar a mano:** a qué apunta `NEXT_PUBLIC_SITE_URL` en el
+> proyecto Vercel. Importa porque `verificationUrl()`
+> (`src/lib/certificates/verify.ts:98-103`) construye con esa variable **la URL que
+> va dentro del QR del PDF del certificado**, con fallback a
+> `https://kimunko.vercel.app`. Si apunta a `alumcotest`, el QR del certificado
+> lleva a un deploy que redirige a login. Comprobar con `vercel env ls`.
+
+### Rutas a revisar a ojo antes de grabar
+
+Base: `https://kimunko.vercel.app`. Credenciales demo en
+`src/components/alumco/auth/LoginForm.tsx:14-15` (botones de acceso directo en el
+login).
+
+**Vista trabajadora — sesión de Camila**
+
+| Beat | URL | Qué verificar |
+| :--- | :--- | :--- |
+| 3 | `/login` | Los dos botones de acceso demo funcionan |
+| 2-3 | `/inicio` | Portada con su nombre y sede "Hualpén" |
+| 3 | `/cursos` | **Tres** cursos: uno completo, uno al 2/3, uno sin iniciar |
+| 3 | `/cursos/b0645620-d04f-4d0a-8fa1-483de5bf1207` | Detalle del curso 2: video ✓, texto ✓, quiz pendiente |
+| 3 | `/cursos/b0645620-d04f-4d0a-8fa1-483de5bf1207/modulos/0a5ff306-9bc2-4126-a28c-29a891a7f4c4` | Video de movilización carga (no el rickroll) |
+| 3 | `/cursos/b0645620-d04f-4d0a-8fa1-483de5bf1207/modulos/e350542e-3641-436b-8f57-5da3fb873d87` | Módulo de texto renderiza el protocolo |
+| 3 | `/cursos/b0645620-d04f-4d0a-8fa1-483de5bf1207/modulos/08e7998b-2229-435d-935d-a603dd22c1de/quiz` | **El quiz por rendir.** No tocar hasta la toma real |
+| — | `/mis-certificados` | Un certificado, del curso de caídas |
+| 4-5 | `/eventos/7cb8c686-eafb-4653-a6a2-ecac7823ef33` | Cuatro secciones, tareas asignadas a Camila |
+
+**Vista administradora — sesión de Marcela**
+
+| Beat | URL | Qué verificar |
+| :--- | :--- | :--- |
+| 2 | `/admin/dashboard` | Métricas del mundo demo, sin nombres reales |
+| 4 | `/admin/eventos/7cb8c686-eafb-4653-a6a2-ecac7823ef33` | Cuatro secciones, 13 tareas, documento de restricciones visible y descargable |
+| — | `/admin/cursos` | Tres cursos demo |
+| **⚠️** | `/admin/trabajadores` | **Verificación obligatoria previa: solo deben aparecer Camila y Marcela.** Un solo nombre real → detener la grabación |
+| — | `/admin/reportes` | Solo si entra en el corte final |
+
+**Público, sin sesión**
+
+| Beat | URL | Qué verificar |
+| :--- | :--- | :--- |
+| 6 | `/certificados/verificar/D3N9MPFVPEXC` | Con la ventana abierta: "Certificado válido" en verde y sede "Hualpén" |
+
+#### Rutas que NO se graban
+
+| Ruta | Motivo |
+| :--- | :--- |
+| `/admin/sedes` | **BUG-71.** No filtra por `is_demo`: la cuenta demo ve las sedes reales de ONG Alumco y además las de prueba acumuladas ("Hua", "Nueva sede", "Sede de prueba", "Sede Concepción"). Delata el entorno y se ve descuidado |
+| `/perfil` | Muestra el correo `demo-colab@kimunko.demo`, que revela que la cuenta es de demostración |
+| `/admin/perfil` | Igual, con `demo-admin@kimunko.demo` |
+
+> **Nota sobre el PDF de restricciones alimentarias.** El archivo vive en
+> `public/demo/restricciones-alimentarias.pdf` y **requiere sesión**: el matcher
+> del middleware (`src/proxy.ts:13`) excluye `svg|png|jpg|…` pero **no `pdf`**, así
+> que un `.pdf` sin sesión recibe `307 → /login`. Dentro de la app, con la cuenta
+> demo iniciada, descarga normalmente. Verificarlo en el paso previo a grabar el
+> beat 4.
+
+### ⚠️ La bandera de grabación necesita deploy, no basta con recargar
+
+`NEXT_PUBLIC_MODO_GRABACION` es una variable `NEXT_PUBLIC_*`: Next.js la
+**incrusta en el bundle durante el build**, no la lee en cada request. Por lo
+tanto:
+
+- **Al activarla**: definirla en Vercel y **redesplegar**. Refrescar la página,
+  cerrar sesión o limpiar caché **no cambia nada** — el valor viejo sigue
+  compilado en el JS servido.
+- **Al revertirla**: borrarla (o dejarla en cualquier valor distinto de `'true'`)
+  y **redesplegar otra vez**. Quitarla del panel de Vercel sin redeploy deja el
+  banner oculto en producción por tiempo indefinido, que es exactamente el estado
+  peligroso: una persona con cuenta demo creyendo que trabaja sobre datos
+  permanentes.
+- En local, reiniciar `npm run dev`.
+
+Regla práctica: **la reversión no está hecha hasta que el deploy termina y se
+verifica el banner en pantalla con una cuenta demo.**
+
+### Después de grabar — REVERTIR
+
+#### Bloque A — Revisar primero: dejan rastro **fuera** de la burbuja demo
+
+| # | Qué | Cómo | Por qué importa |
+| :--- | :--- | :--- | :--- |
+| 1 | Certificado filmado en `is_demo = false` | `scripts/ventana-certificado.sql` PASO 2 | Aparece en `/admin/certificados` y en el gráfico del dashboard del admin **real**, y el cron no lo limpia nunca |
+| 2 | `NEXT_PUBLIC_MODO_GRABACION` | Borrar la variable **+ redeploy** | Devuelve dos cosas a la vez: el banner de MODO DEMO y el rótulo "Demostración" de la sede en la verificación pública |
+| 3 | Sede Demo renombrada a "Hualpén" | `scripts/rollback-seed-demo.sql` § 3 | Ver aviso abajo |
+
+**Por qué la sede va en este bloque y no con el resto.** Mientras se llame
+"Hualpén" convive con la sede real "Sede Hualpén" (`sede_1`), y lo único que
+impide que aparezca como opción asignable en el desplegable de
+`/admin/trabajadores` es que tenga `activa = false` — no un filtro de scope
+(BUG-72). Esa bandera la puede cambiar cualquier admin desde `SedesClient`, sin
+advertencia y con una acción perfectamente legítima. Si eso pasa mientras el
+nombre sigue cambiado, un admin real puede asignar a un trabajador real a la sede
+demo. Es rastro fuera de la burbuja, no dentro.
+
+#### Bloque B — Lo cubre `scripts/rollback-seed-demo.sql` en una sola pasada
+
+| # | Qué | Sección del archivo |
+| :--- | :--- | :--- |
+| 4 | Contenido demo de cámara → set original con sus UUID | § 4 |
+| 5 | `reset_demo_world()` → definición previa (**no se modificó**, ver abajo) | § 5 |
+
+#### El cron NO se reactiva
+
+`reset-demo-world` **queda desactivado a propósito y así se deja.** No es un paso
+pendiente del checklist: es el estado correcto hasta que se resuelva **BUG-73**.
+
+La función `reset_demo_world()` está rota desde el 2026-07-23: su
+`delete from quiz_attempts where is_demo` es un no-op silencioso —la regla
+`no_delete_attempts` lo anula— y el `delete from courses` posterior choca contra
+la FK del intento que sobrevive. **93 corridas fallidas consecutivas** entre el
+2026-07-24 y el 2026-08-16, todas con rollback completo. Reactivar el cron hoy no
+repone nada: solo vuelve a fallar cada 6 horas.
+
+Por eso esta producción **no modificó la función** (se descartó el Ajuste B: su
+premisa era poder reactivar el cron después de grabar, y esa premisa no se
+sostiene). La sección § 5 del rollback existe solo como red de seguridad; si la
+función no se tocó, restaurarla es un no-op inofensivo.
+
+> Consecuencia colateral favorable: mientras el cron siga apagado, **las
+> suscripciones push de las cuentas demo no se borran**. Es lo que hace que el
+> beat de la notificación se pueda grabar. Cuando BUG-73 se resuelva y el cron
+> vuelva, el primer ciclo borrará esas suscripciones — comportamiento esperado, no
+> un bug.

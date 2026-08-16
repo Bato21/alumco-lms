@@ -40,7 +40,11 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen flex flex-col paleta-azul" style={{ paddingTop: 'var(--demo-banner-h, 0px)' }}>
       {enPreview && <PreviewModeBanner role={profile.role as 'admin' | 'profesor'} />}
-      {profile.is_demo && <DemoBanner />}
+      {/* Modo grabación: con NEXT_PUBLIC_MODO_GRABACION='true' la barra no se
+          monta. Cualquier otro valor —o la variable ausente— mantiene el
+          comportamiento normal, que es mostrarla. Ver README § Variables de
+          entorno. */}
+      {profile.is_demo && process.env.NEXT_PUBLIC_MODO_GRABACION !== 'true' && <DemoBanner />}
       <CursorBlobs />
       <WorkerTopNav
         fullName={profile.full_name ?? 'Usuario'}

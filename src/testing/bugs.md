@@ -663,6 +663,262 @@ Revisión: nueva pasada de QA estática (post-fixes de la pasada 2026-04-25).
 
 ---
 
+## Pasada 2026-08-16 — aislamiento del modo demo
+
+Detectado durante la preparación del ambiente para el video demo. **No bloquea la
+grabación** y se difiere a después de la entrega.
+
+### BUG-71 — `/admin/sedes` no filtra por `is_demo`: el admin demo ve las sedes reales
+
+- **Severidad:** Media (fuga de contexto entre burbujas, sin datos personales)
+- **Archivo:** `src/app/admin/sedes/page.tsx` (líneas 15-21)
+- **Descripción:** La consulta que alimenta la página de Sedes hace
+  `adminClient.from('sedes').select('id, nombre, activa')` **sin ninguna condición
+  de scope demo**. Como el panel admin usa service-role (ignora RLS), una cuenta
+  demo autenticada ve el listado completo de sedes reales de ONG Alumco —
+  incluyendo "Sede Hualpén" (`sede_1`), con su conteo de trabajadores activos.
+
+  Rompe la premisa de burbuja total descrita en
+  `docs/superpowers/plans/2026-07-23-acceso-demo-burbuja.md`, donde toda lectura
+  admin debe filtrar por `is_demo` = (el admin es demo). El resto del panel sí lo
+  hace: `admin/certificados/page.tsx:26` usa `.eq('is_demo', isDemo)`, y
+  `admin/eventos/nuevo/page.tsx:18` excluye explícitamente la sede demo con
+  `.neq('id', SEDE_DEMO)`.
+
+  No expone datos personales (la tabla `sedes` solo tiene `id`, `nombre`, `activa`),
+  pero sí revela la estructura organizacional real a una cuenta pública compartida.
+
+- **Complicación:** `sedes` **no tiene columna `is_demo`**. El scope hay que
+  derivarlo del id reservado (`SEDE_DEMO = 'sede_demo'`, definido en
+  `src/lib/auth/demoScope.ts:6`), no de una bandera.
+
+#### Fix paso a paso
+
+1. En `src/app/admin/sedes/page.tsx`, obtener el scope del viewer:
+   ```ts
+   import { getViewerIsDemo, SEDE_DEMO } from '@/lib/auth/demoScope'
+   const isDemo = await getViewerIsDemo()
+   ```
+2. Acotar la consulta de sedes según el mundo del viewer:
+   ```ts
+   const sedesQuery = adminClient.from('sedes').select('id, nombre, activa')
+   const { data: sedesData } = await (isDemo
+     ? sedesQuery.eq('id', SEDE_DEMO)
+     : sedesQuery.neq('id', SEDE_DEMO)
+   ).order('created_at', { ascending: true })
+   ```
+   Nótese que también oculta la sede demo al admin **real**, que es la otra mitad
+   de la burbuja y hoy tampoco se cumple.
+3. Revisar el conteo de perfiles por sede que acompaña a la consulta (mismo
+   archivo): debe filtrarse por `is_demo` del viewer para no mezclar poblaciones.
+
+Ver también BUG-72, que es el mismo problema de scope en otra consulta de sedes.
+
+---
+
+### BUG-72 — El desplegable de sedes de `/admin/trabajadores` se protege por accidente
+
+- **Severidad:** Media (riesgo latente de contaminación de datos reales)
+- **Archivo:** `src/app/admin/trabajadores/page.tsx` (líneas 38-41)
+- **Descripción:** La consulta que alimenta el desplegable de sedes al aprobar o
+  editar un trabajador filtra por `.eq('activa', true)` **y por nada más**:
+
+  ```ts
+  adminClient
+    .from('sedes')
+    .select('id, nombre')
+    .eq('activa', true)
+    .order('created_at', { ascending: true })
+  ```
+
+  No hay filtro de scope demo. Hoy la Sede Demo no aparece ahí **únicamente
+  porque tiene `activa = false`** — es decir, la burbuja se sostiene sobre una
+  bandera que existe para otra cosa (activar/desactivar sedes desde
+  `/admin/sedes`), no sobre una condición de aislamiento.
+
+  Basta con que alguien active la Sede Demo desde la UI de Sedes —una acción
+  legítima, disponible en `SedesClient.tsx:176`, sin ninguna advertencia— para
+  que un admin **real** empiece a ver la sede demo como opción asignable en el
+  desplegable, junto a las sedes reales. Si además la sede demo tiene un nombre
+  parecido al de una real, la confusión es casi inevitable y el resultado es un
+  trabajador real asignado a la sede demo.
+
+  Es distinto de BUG-71: ahí el problema es que el admin demo ve datos reales;
+  acá es que el admin real puede escribir contra la sede demo. Misma raíz —
+  ausencia de scope por `SEDE_DEMO`—, direcciones opuestas.
+
+- **Por qué no se arregló ahora:** la producción del video renombra la Sede Demo
+  a "Hualpén", que colisiona a propósito con la sede real "Sede Hualpén"
+  (`sede_1`). Durante ese periodo la sede demo se mantiene deliberadamente en
+  `activa = false` **precisamente** para no disparar este bug. Es una mitigación
+  temporal, no un fix.
+
+#### Fix paso a paso
+
+1. Importar el id reservado:
+   ```ts
+   import { SEDE_DEMO } from '@/lib/auth/demoScope'
+   ```
+2. Añadir el scope explícito, sin depender de `activa`:
+   ```ts
+   adminClient
+     .from('sedes')
+     .select('id, nombre')
+     .eq('activa', true)
+     .neq('id', SEDE_DEMO)          // ← el admin real nunca asigna a la sede demo
+     .order('created_at', { ascending: true })
+   ```
+   Es el mismo patrón que ya usa `src/app/admin/eventos/nuevo/page.tsx:18`.
+3. Si en algún momento el admin **demo** necesita este desplegable, invertir la
+   condición según `getViewerIsDemo()` en vez de excluir siempre, como en el fix
+   de BUG-71.
+4. Considerar una guarda en `SedesClient` que impida activar la Sede Demo desde
+   la UI, o al menos advierta: hoy nada indica que esa fila es especial.
+
+---
+
+### BUG-73 — `reset_demo_world()` lleva 93 corridas fallidas: el mundo demo no se reinicia desde el 2026-07-23
+
+- **Severidad:** Alta (el mecanismo de reinicio del entorno demo no funciona)
+- **Archivo:** función `public.reset_demo_world()` (BD), job `reset-demo-world` de `cron.job`
+- **Evidencia:** `cron.job_run_details` para `jobid = 1`:
+
+  | status | veces | primera | última |
+  | :--- | :--- | :--- | :--- |
+  | `succeeded` | 1 | 2026-07-23 18:00 | 2026-07-23 18:00 |
+  | `failed` | **93** | 2026-07-24 00:00 | 2026-08-16 00:00 |
+
+- **Descripción:** La función arranca borrando los intentos de quiz demo:
+
+  ```sql
+  delete from quiz_attempts where is_demo;   -- línea 12
+  ...
+  delete from courses where is_demo;         -- línea 16
+  ```
+
+  Pero `quiz_attempts` tiene una regla de reescritura que **anula el DELETE en
+  silencio**, sin error y sin filas afectadas:
+
+  ```sql
+  CREATE RULE no_delete_attempts AS ON DELETE TO public.quiz_attempts DO INSTEAD NOTHING;
+  ```
+
+  El intento sobrevive. Cuando la línea 16 borra los cursos demo, la cascada
+  llega a `modules` → `quizzes` y choca con `quiz_attempts_quiz_id_fkey`, que es
+  `ON DELETE RESTRICT`:
+
+  ```
+  23503: update or delete on table "quizzes" violates foreign key constraint
+         "quiz_attempts_quiz_id_fkey" on table "quiz_attempts"
+  ```
+
+  La excepción aborta la función y **revierte la transacción completa**: no se
+  borra nada, no se resiembra nada. El único ciclo exitoso fue el de las 18:00
+  del 2026-07-23, antes de que la cuenta demo rindiera su primer quiz a las 18:37.
+  Desde entonces, todas las corridas fallan.
+
+  Síntoma observable: contenido demo de julio (intento, certificados y un curso
+  "Curso de ejemplo" creado a mano) seguía vivo el 2026-08-16, tras 24 días de
+  resets supuestamente cada 6 horas.
+
+- **Estado actual:** el job está **desactivado** (`active = false`) desde el
+  2026-08-16 por la producción del video demo. Mientras siga apagado el bug no
+  causa daño, pero tampoco hay reinicio del entorno demo.
+
+#### Fix propuesto — **a probar, no a asumir**
+
+La alternativa evidente (`alter table ... disable rule` alrededor del delete) se
+**descarta**: toma `ACCESS EXCLUSIVE` sobre la tabla de auditoría cada 6 horas y
+deja una `SECURITY DEFINER` con poder de suspender la inmutabilidad de los
+intentos. Demasiado poder para una tarea de mantenimiento.
+
+Camino preferido: hacer la regla **condicional**, de modo que la inmutabilidad
+siga siendo absoluta para los intentos reales y no aplique a los demo.
+
+```sql
+create rule no_delete_attempts as on delete to quiz_attempts
+  where not is_demo do instead nothing;
+```
+
+1. Verificar en una rama de base de datos que la regla condicional se comporta
+   como se espera: que un `delete ... where is_demo` sí borra, y que un
+   `delete` que alcance filas con `is_demo = false` sigue siendo un no-op.
+2. **Ojo con la semántica de las reglas:** son reescritura de la consulta, no
+   ejecución fila a fila. Una regla con `WHERE` **no filtra filas**: decide si la
+   acción alternativa se aplica, y la condición se evalúa dentro de la consulta
+   reescrita. Un `delete from quiz_attempts` sin `WHERE` podría comportarse de
+   forma distinta a la esperada. Hay que probarlo, no darlo por hecho.
+3. **Si la regla condicional da problemas, lo idiomático es un trigger
+   `BEFORE DELETE`**, que sí evalúa fila a fila y permite expresar la excepción
+   sin ambigüedad:
+
+   ```sql
+   create or replace function public.bloquear_delete_attempts_reales()
+     returns trigger language plpgsql as $$
+   begin
+     if old.is_demo then return old; end if;   -- deja pasar el borrado demo
+     return null;                              -- cancela el borrado real
+   end $$;
+   ```
+
+   Requiere quitar la regla `no_delete_attempts` y sustituirla por el trigger.
+   Es un cambio en la garantía de inmutabilidad de una tabla de auditoría: no
+   hacerlo a días de una entrega, y dejarlo registrado en `CLAUDE.md`, donde hoy
+   se documenta la tabla como "sin UPDATE ni DELETE".
+4. Mientras no se resuelva, **el cron debe quedar desactivado**. Reactivarlo solo
+   consigue una corrida fallida cada 6 horas.
+
+---
+
+### BUG-74 — Un job programado falló 93 veces sin alertar a nadie
+
+- **Severidad:** Alta (fallo silencioso de infraestructura; afecta a funcionalidad futura)
+- **Archivo:** infraestructura — `cron.job` / `cron.job_run_details`, sin consumidor
+- **Descripción:** BUG-73 no es solo un error de SQL: es un error que **estuvo 24
+  días fallando cada 6 horas sin que nadie se enterara**. `pg_cron` registra cada
+  corrida en `cron.job_run_details` con su `status` y `return_message`, pero
+  **nada lee esa tabla**: no hay alerta, ni panel, ni revisión periódica. El fallo
+  se descubrió por casualidad, al intentar reutilizar la función para otra cosa.
+
+  El problema de fondo es que **el proyecto ejecuta trabajo programado sin
+  ninguna señal de que dejó de ejecutarse.**
+
+- **Por qué importa más allá del entorno demo:** el plan de PWA contempla un
+  **cron diario de recordatorios de plazos de cursos**. Si se construye con el
+  mismo patrón, un fallo silencioso significa que **los avisos de vencimiento
+  dejan de enviarse sin que nadie lo note**. En una plataforma cuyo propósito es
+  acreditar el cumplimiento de las 22 horas anuales de capacitación exigidas a un
+  ELEAM, un trabajador podría llegar a la fiscalización de SENAMA con un plazo
+  vencido porque el recordatorio nunca salió. El daño no lo absorbe el equipo de
+  desarrollo: lo absorbe la persona que se queda sin acreditar.
+
+#### Fix paso a paso
+
+1. **Antes de crear el cron de recordatorios**, resolver la observabilidad. Un
+   job nuevo con el mismo patrón multiplica el problema.
+2. Consulta base para detectar fallos recientes:
+   ```sql
+   select jobid, status, start_time, return_message
+   from cron.job_run_details
+   where status <> 'succeeded'
+     and start_time > now() - interval '24 hours'
+   order by start_time desc;
+   ```
+3. Elegir un consumidor de esa señal. En orden de esfuerzo:
+   - Panel interno en `/admin` visible solo para admin, con el conteo de fallos
+     de las últimas 24 h. Barato y suficiente para empezar.
+   - Notificación push al admin usando la infraestructura VAPID que ya existe
+     (`src/lib/push/send.ts`).
+   - Alerta externa (correo/webhook) si se quiere señal fuera de la plataforma.
+4. Complementar con **heartbeat**: registrar la última corrida exitosa de cada
+   job y alertar por *ausencia* de ejecución, no solo por error. Un job que deja
+   de dispararse del todo no genera ninguna fila en `job_run_details` y sería
+   invisible incluso con el punto 3 implementado.
+5. Registrar en `CLAUDE.md` la regla: **todo job programado necesita un
+   consumidor de su estado antes de entrar a producción.**
+
+---
+
 ## Notas adicionales / observaciones (no son bugs en sí pero conviene revisar)
 
 - ~~**Falta de página `/auth/reset-password`:** `forgotPasswordAction` (BUG-62) redirige al usuario allí, pero no encontré la ruta en el árbol. Si no existe, todos los enlaces de "olvidé mi clave" terminan en 404 al hacer clic en el correo de Supabase.~~ ✅ **Confirmado y resuelto.** La ruta no existía: `(auth)` es un route group y no aporta segmento a la URL, así que bajo ese grupo solo vivían `/login` y `/registro`. Creada `src/app/(auth)/reset-password/page.tsx` + `ResetPasswordForm` + `resetPasswordAction`, y el `redirectTo` corregido a `/reset-password`. También hubo que abrir la ruta en el middleware: no estaba en `isPublic`, así que el enlace del correo rebotaba a `/login` perdiendo el token.

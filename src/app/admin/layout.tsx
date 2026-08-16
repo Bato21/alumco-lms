@@ -46,7 +46,11 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen paleta-oliva" style={{ paddingTop: 'var(--demo-banner-h, 0px)' }}>
-      {profile.is_demo && <DemoBanner />}
+      {/* Modo grabación: con NEXT_PUBLIC_MODO_GRABACION='true' la barra no se
+          monta. Cualquier otro valor —o la variable ausente— mantiene el
+          comportamiento normal, que es mostrarla. Ver README § Variables de
+          entorno. */}
+      {profile.is_demo && process.env.NEXT_PUBLIC_MODO_GRABACION !== 'true' && <DemoBanner />}
       <CursorBlobs />
       <AdminSidebar fullName={profile.full_name} role={profile.role as UserRole} />
 

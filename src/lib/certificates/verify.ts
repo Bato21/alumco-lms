@@ -90,7 +90,14 @@ export async function verifyCertificateByCode(
 function sedeNombre(sede: string | undefined): string {
   if (sede === 'sede_1') return 'Hualpén'
   if (sede === 'sede_2') return 'Coyhaique'
-  if (sede === 'sede_demo') return 'Demostración'
+  // El nombre se resuelve acá por id, no con un join a `sedes`, así que
+  // renombrar esa tabla no afecta a esta página. En modo grabación la sede demo
+  // se rotula como una sede real: este certificado es el plano de cierre del
+  // video y "Demostración" contradice lo que el plano quiere mostrar. Fuera de
+  // modo grabación el rótulo honesto se mantiene intacto.
+  if (sede === 'sede_demo') {
+    return process.env.NEXT_PUBLIC_MODO_GRABACION === 'true' ? 'Hualpén' : 'Demostración'
+  }
   return 'No registrada'
 }
 

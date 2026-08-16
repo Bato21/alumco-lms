@@ -292,6 +292,37 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>   # solo en server, nunca exponer
 
 > El `SUPABASE_SERVICE_ROLE_KEY` es necesario para `createAdminClient()` (operaciones administrativas que bypassan RLS). **Nunca** se debe importar desde un Client Component.
 
+#### Variables opcionales
+
+| Variable | Efecto | Por defecto |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_MODO_GRABACION` | Con el valor exacto `'true'` activa el modo grabación. Cualquier otro valor, o la variable ausente, deja la plataforma en su comportamiento normal. | Ausente → comportamiento **normal** |
+
+Con `NEXT_PUBLIC_MODO_GRABACION='true'` cambian dos cosas, ambas solo para cuentas demo:
+
+1. **No se monta la barra amarilla de MODO DEMO** (`src/app/(dashboard)/layout.tsx`,
+   `src/app/admin/layout.tsx`).
+2. **La sede demo se rotula "Hualpén"** en la página pública de verificación de
+   certificado, en vez de "Demostración" (`src/lib/certificates/verify.ts`).
+
+> ⚠️ **`NEXT_PUBLIC_MODO_GRABACION` es exclusivamente para producir material
+> audiovisual.** La barra de MODO DEMO es información real y necesaria para
+> cualquier persona que use una cuenta demo: le avisa que su contenido es privado
+> y que se reinicia cada pocas horas. Ocultarla deja a esa persona creyendo que
+> trabaja sobre datos permanentes. Y rotular la sede demo como una sede real hace
+> que un certificado de demostración se vea como uno auténtico ante quien lo
+> verifique.
+>
+> **Hay que devolverla a su estado normal en cuanto termine la grabación**:
+> borrar la variable (o dejarla en cualquier valor distinto de `'true'`) y
+> redesplegar. Al ser una variable `NEXT_PUBLIC_*` queda incrustada en el build,
+> así que **el cambio no surte efecto hasta un nuevo deploy**; en local, reiniciar
+> `npm run dev`.
+>
+> El componente `DemoBanner` y su botón de ocultar por sesión (`sessionStorage`)
+> siguen intactos: esta variable es un interruptor de grabación, no una
+> eliminación de la funcionalidad.
+
 ### 5. Configurar Supabase Storage
 Crear (si no existen) los siguientes buckets:
 - `firmas` — público, para firmas digitales del personal.
