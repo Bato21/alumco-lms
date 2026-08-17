@@ -1,0 +1,100 @@
+<!-- Cuadro 6 — «El folio verificable» · 14s
+     Captura real de la verificación pública, tomada durante la ventana de
+     `scripts/ventana-certificado.sql` (rama «Certificado válido», verde).
+     camera: push-in · motion: `coordinate-target-zoom`, `waterfall-entry`.
+
+     Catorce segundos sobre una página que no se mueve sola. El movimiento se pone
+     sin cambiar de página, que es lo que exige el brief:
+       · empuje lento hacia el folio, que NO está centrado (de ahí
+         `coordinate-target-zoom` y no un zoom al centro),
+       · los campos aparecen en cascada en el orden en que un fiscalizador los lee.
+
+     La cascada se hace con tapas del color del propio papel que se retiran en orden:
+     la captura NO se redibuja ni se reconstruye. Es el sujeto del cuadro.
+
+     La quietud previa al empuje es deliberada: en un plano fijo, el movimiento solo
+     se nota si antes hubo reposo. -->
+<template id="scene-05-certificado-template">
+  <div data-composition-id="scene-05-certificado" data-width="1920" data-height="1080">
+
+    <div class="ct-stage">
+      <!-- Desplazamiento ESTÁTICO, nunca animado: sube la tarjeta hasta el centro del
+           cuadro. Combinado con transform-origin en el centro de la tarjeta, ese punto
+           queda fijo a cualquier escala y el empuje no arrastra el encuadre. -->
+      <div class="ct-holder" data-layout-allow-overflow>
+        <div class="ct-shot" data-layout-allow-overflow>
+          <img class="ct-img" src="public/screenshots/scene-05-certificado-valido.png" alt="">
+          <!-- Tapas en el crema del papel. Cubren cada campo hasta que le toca. -->
+          <div class="ct-mask" data-f="titular"></div>
+          <div class="ct-mask" data-f="curso"></div>
+          <div class="ct-mask" data-f="fecha"></div>
+          <div class="ct-mask" data-f="folio"></div>
+        </div>
+      </div>
+    </div>
+    <div class="ct-vignette"></div>
+
+    <style>
+      [data-composition-id="scene-05-certificado"]{position:absolute;inset:0;overflow:hidden;
+        display:flex;align-items:center;justify-content:center;
+        background:radial-gradient(120% 120% at 50% 10%,#FFFDF6 0%,#FAF6ED 100%);
+        font-family:"Geist",system-ui,sans-serif}
+      [data-composition-id="scene-05-certificado"] .ct-stage{position:absolute;inset:0;
+        display:flex;align-items:center;justify-content:center;overflow:hidden}
+      /* La tarjeta ocupa la mitad superior de la captura: su centro está al 30% de la
+         altura de la imagen (324px de 1080). Bajando el conjunto 216px, ese centro cae
+         justo en el centro del lienzo. */
+      [data-composition-id="scene-05-certificado"] .ct-holder{position:relative;width:100%;
+        transform:translateY(216px)}
+      /* El envoltorio animado. Origen FIJO en el centro de la tarjeta: es el punto que
+         no se mueve al escalar, así que el empuje no arrastra el encuadre. */
+      [data-composition-id="scene-05-certificado"] .ct-shot{position:relative;width:100%;
+        transform-origin:50% 30%;visibility:hidden;opacity:0}
+      [data-composition-id="scene-05-certificado"] .ct-img{display:block;width:100%;height:auto}
+
+      /* Tapas: mismas coordenadas relativas que los campos de la tarjeta. */
+      [data-composition-id="scene-05-certificado"] .ct-mask{position:absolute;
+        left:35.6%;width:29.2%;background:#FFFDF6}
+      [data-composition-id="scene-05-certificado"] .ct-mask[data-f="titular"]{top:26.4%;height:5.4%}
+      [data-composition-id="scene-05-certificado"] .ct-mask[data-f="curso"]{top:32.4%;height:4.8%}
+      [data-composition-id="scene-05-certificado"] .ct-mask[data-f="fecha"]{top:37.6%;height:5.0%}
+      [data-composition-id="scene-05-certificado"] .ct-mask[data-f="folio"]{top:42.8%;height:7.6%;
+        background:#FFFDF6}
+
+      [data-composition-id="scene-05-certificado"] .ct-vignette{position:absolute;inset:0;
+        pointer-events:none;
+        background:radial-gradient(115% 105% at 50% 42%,rgba(250,246,237,0) 52%,rgba(250,246,237,.80) 100%)}
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        var ROOT = '[data-composition-id="scene-05-certificado"]';
+        var SHOT = ROOT + ' .ct-shot';
+        var tl = gsap.timeline({ paused: true });
+
+        /* Un solo origen para toda la escena. Animar el transformOrigin era el error
+           anterior: GSAP lo interpola y el encuadre se desplaza mientras escala, con lo
+           que la tarjeta salía descentrada y con la cabecera cortada. */
+        tl.fromTo(SHOT,
+          { scale: 1.55, autoAlpha: 0 },
+          { scale: 1.55, autoAlpha: 1, duration: 0.7, ease: 'power2.out' }, 0);
+
+        /* Cascada: titular → curso → fecha/sede → folio. El orden en que se lee un
+           certificado, no el orden en que están dibujados. */
+        ['titular', 'curso', 'fecha', 'folio'].forEach(function (campo, i) {
+          tl.to(ROOT + ' .ct-mask[data-f="' + campo + '"]',
+            { autoAlpha: 0, duration: 0.45, ease: 'power2.out' }, 1.35 + i * 0.62);
+        });
+
+        /* Quietud, y solo entonces el empuje: 6.2s de reposo antes de moverse.
+           Termina en 13.4s, antes de la ventana de costura. */
+        tl.to(SHOT,
+          { scale: 1.92, duration: 7.2, ease: 'power1.inOut' }, 6.2);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines['scene-05-certificado'] = tl;
+      })();
+    </script>
+  </div>
+</template>

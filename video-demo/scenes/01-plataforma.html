@@ -1,0 +1,78 @@
+<!-- Cuadro 2 — «La plataforma» · 10s
+     Captura real enmarcada. Blueprint `zoom-out-workspace-reveal`, camera: pull-out.
+     La costura anterior (zoom-through) aterriza DENTRO del logotipo: la escena abre
+     cerrada sobre él y retrocede hasta descubrir el dashboard entero.
+     El retroceso es la respuesta formal al empuje del cuadro 1: aquello se cerraba,
+     esto se abre. La captura no se redibuja: es el sujeto del cuadro. -->
+<template id="scene-01-plataforma-template">
+  <div data-composition-id="scene-01-plataforma" data-width="1920" data-height="1080">
+
+    <div class="pl-stage">
+      <div class="pl-browser" data-layout-allow-overflow>                       <!-- ENVOLTORIO ANIMADO — nunca el <img> -->
+        <div class="pl-bar">
+          <span class="pl-dot pl-r"></span><span class="pl-dot pl-y"></span><span class="pl-dot pl-g"></span>
+          <span class="pl-host" data-layout-allow-overlap>kimunko.vercel.app</span>
+        </div>
+        <div class="pl-view">
+          <img class="pl-img" src="public/screenshots/scene-01-dashboard.png" alt="">
+        </div>
+      </div>
+    </div>
+    <div class="pl-vignette"></div>
+
+    <style>
+      [data-composition-id="scene-01-plataforma"]{position:absolute;inset:0;overflow:hidden;
+        display:flex;align-items:center;justify-content:center;
+        background:radial-gradient(120% 120% at 50% 0%,#FFFDF6 0%,#FAF6ED 100%);
+        font-family:"Geist",system-ui,sans-serif}
+      [data-composition-id="scene-01-plataforma"] .pl-stage{position:relative;z-index:1;width:100%;display:flex;
+        align-items:center;justify-content:center}
+      [data-composition-id="scene-01-plataforma"] .pl-browser{width:74%;max-width:1430px;
+        border-radius:14px;overflow:hidden;background:#FFFDF6;visibility:hidden;opacity:0;
+        box-shadow:0 0 0 1px rgba(17,23,40,.06),3px 2px 6px rgba(17,23,40,.05),
+                   9px 40px 90px rgba(17,23,40,.18),inset 0 1px 0 rgba(255,255,255,.5)}
+      [data-composition-id="scene-01-plataforma"] .pl-bar{display:flex;align-items:center;gap:9px;
+        padding:14px 18px;background:#F4F1EA;border-bottom:1px solid #E3E2E0}
+      [data-composition-id="scene-01-plataforma"] .pl-dot{width:13px;height:13px;border-radius:50%}
+      [data-composition-id="scene-01-plataforma"] .pl-r{background:#BB3A2E}
+      [data-composition-id="scene-01-plataforma"] .pl-y{background:#D3A467}
+      [data-composition-id="scene-01-plataforma"] .pl-g{background:#1C5C40}
+      [data-composition-id="scene-01-plataforma"] .pl-host{margin-left:14px;color:#4A647F;
+        font:18px ui-monospace,SFMono-Regular,Menlo,monospace}
+      [data-composition-id="scene-01-plataforma"] .pl-view{position:relative;width:100%;
+        overflow:hidden;background:#FFFDF6}
+      [data-composition-id="scene-01-plataforma"] .pl-img{display:block;width:100%;height:auto}
+      [data-composition-id="scene-01-plataforma"] .pl-vignette{position:absolute;inset:0;z-index:0;
+        pointer-events:none;
+        background:radial-gradient(120% 110% at 50% 50%,rgba(250,246,237,0) 58%,rgba(250,246,237,.72) 100%)}
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        var ROOT = '[data-composition-id="scene-01-plataforma"]';
+        var tl = gsap.timeline({ paused: true });
+
+        /* Origen del retroceso: el logotipo de la barra lateral del dashboard.
+           Medido sobre la captura — esquina superior izquierda, ya por debajo del
+           cromo del navegador. */
+        var LOGO_ORIGIN = '7% 12%';
+
+        /* El logo se sostiene solo en cuadro y desde ahí la cámara retrocede en un
+           movimiento continuo. Un solo gesto, repartido: 0.4s de aparición y 7.2s de
+           retroceso, con 2.4s de reposo antes de la costura. */
+        tl.fromTo(ROOT + ' .pl-browser',
+          { scale: 3.45, autoAlpha: 0, transformOrigin: LOGO_ORIGIN },
+          { scale: 3.45, autoAlpha: 1, transformOrigin: LOGO_ORIGIN,
+            duration: 0.45, ease: 'power2.out' }, 0);
+
+        tl.to(ROOT + ' .pl-browser',
+          { scale: 1.0, transformOrigin: LOGO_ORIGIN,
+            duration: 7.15, ease: 'power1.inOut' }, 0.45);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines['scene-01-plataforma'] = tl;
+      })();
+    </script>
+  </div>
+</template>

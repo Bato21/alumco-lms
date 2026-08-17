@@ -88,10 +88,10 @@ Use `skipped` when a phase is intentionally unnecessary (for example, Phase 2 wh
 |-------|--------|---------|-----------|
 | 0. Discovery | ✅ complete | 2026-08-16 | 2026-08-16 |
 | 1. Storytelling | ✅ complete | 2026-08-16 | 2026-08-16 |
-| 2. Capture | 🔄 in progress | 2026-08-16 | — |
-| 3. Design | ⬜ pending | — | — |
-| 4. Production | ⬜ pending | — | — |
-| 5. Audio & Render | ⬜ pending | — | — |
+| 2. Capture | ✅ complete | 2026-08-16 | 2026-08-16 |
+| 3. Design | ✅ complete | 2026-08-16 | 2026-08-16 |
+| 4. Production | ✅ complete | 2026-08-16 | 2026-08-16 |
+| 5. Audio & Render | ✅ complete (muda) | 2026-08-16 | 2026-08-16 |
 
 ## Decision Log
 
@@ -109,3 +109,11 @@ Use `skipped` when a phase is intentionally unnecessary (for example, Phase 2 wh
 | 2026-08-16 | `web_capture_source: navigate` contra `kimunko.vercel.app` | Fijado por `VIDEO_BRIEF.md` § 8, que además descarta la sesión adjunta (`--autoConnect`) por no abrir depuración remota. |
 | 2026-08-16 | Se descartó sembrar datos demo; era un bug de código | El dashboard marcaba 0 % porque pedía `updated_at` a `course_progress`, columna inexistente → PostgREST 400 → `allProgress` null. Corregido en `src/app/admin/dashboard/page.tsx`. **Requiere deploy antes de capturar el beat 2.** |
 | 2026-08-16 | Pendiente: "Cumplimiento por sede" seguirá en 0 % tras el fix | Agrupa por `sede_1`/`sede_2` y las cuentas demo son `sede_demo`. Decisión abierta para el encuadre del beat 2. |
+| 2026-08-16 | Beat 2 capturado **antes** del beat 3, a propósito | El dashboard quedó registrado con 33 % y Camila en 2 pendientes. Rendir la evaluación lo movió a 67 % / 1 pendiente. Recapturar el beat 2 ahora ya no coincidiría con lo grabado. |
+| 2026-08-16 | Beat 3 grabado: evaluación enviada, 100 %, aprobado | Consumió el intento 1 de 3 del quiz `aa2b6ffa` (quedan 2). Camila pasó a 2 cursos completados y se emitió un segundo certificado demo. Irreversible por diseño (`quiz_attempts` inmutable). |
+| 2026-08-16 | Beat 6 capturado; ventana del certificado **abierta y cerrada** | `ventana-certificado.sql` PASO 1 → captura → PASO 2, en menos de un minuto. Cierre verificado: `is_demo = true` y `certificados_reales = 0`. **El ítem 1 del bloque A de reversión ya está saldado.** |
+| 2026-08-16 | F1 y F5 dejan de necesitar cámara | F5 se compone con dos capturas reales (escritorio + PWA móvil a 390×844) y un rack-focus; F1 pasa a escena construida, que es lo que ya pedía su blueprint `overwhelm-surround`. Desbloquea la Fase 2 sin material inventado. |
+| 2026-08-16 | Costuras: `inverse zoom-through`, corriente z− en todo el film | La escena 2 retrocede (3.45 → 1.0). Un zoom-through en sentido de empuje habría peleado con su propia entrada y el `z-sign-scan` lo habría marcado. Cuatro costuras verificadas, 0 fallos. |
+| 2026-08-16 | Los dos límites internos (38s y 54s) son `crossfade` y **no se verifican** | Una disolución no puede ser fila del ledger: no tiene solapamiento cero ni portador. Es lo esperado para un corte conectivo dentro de una sección, pero conviene saber que pasan sin medir. |
+| 2026-08-16 | Bloques `logo-outro` y `device-frame-stage` retirados | Instalados como referencia y no cableados. `logo-outro` es genérico (dice "figma.com") y rebrandearlo era reescribirlo; `device-frame-stage` aporta flotación en reposo, que este contrato prohíbe. |
+| 2026-08-16 | Render entregado: `renders/video-demo_2026-08-16_15-18-48.mp4` | H.264 1920×1080 yuv420p, 30 fps, 2700 fotogramas, **90.000000 s exactos**, 21 MB, **sin pista de audio**. Verificado que el metraje de los dos clips avanza dentro del render. |

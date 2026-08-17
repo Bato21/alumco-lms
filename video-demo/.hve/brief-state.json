@@ -1,11 +1,41 @@
 {
-  "audio": null,
+  "audio": {
+    "confirmed_at": "2026-08-16T19:40:40+00:00",
+    "fingerprint": "sha256:44fce0248b12539ecd66269ed87c591fc6e36a24c4c127ba87dff2b9be673234",
+    "revision": 1,
+    "story_fingerprint": "sha256:098cbb1f6126ea65a1763277a8b7de584ac044d7ef7321ba5ee3fb5ac0247602",
+    "story_revision": 1
+  },
   "phases": {
     "phase-1": {
       "fingerprint": "sha256:098cbb1f6126ea65a1763277a8b7de584ac044d7ef7321ba5ee3fb5ac0247602",
       "revision": 1,
       "stage": "story",
       "stamped_at": "2026-08-16T15:52:24+00:00"
+    },
+    "phase-2": {
+      "fingerprint": "sha256:098cbb1f6126ea65a1763277a8b7de584ac044d7ef7321ba5ee3fb5ac0247602",
+      "revision": 1,
+      "stage": "story",
+      "stamped_at": "2026-08-16T16:42:59+00:00"
+    },
+    "phase-3": {
+      "fingerprint": "sha256:098cbb1f6126ea65a1763277a8b7de584ac044d7ef7321ba5ee3fb5ac0247602",
+      "revision": 1,
+      "stage": "story",
+      "stamped_at": "2026-08-16T19:08:59+00:00"
+    },
+    "phase-4": {
+      "fingerprint": "sha256:098cbb1f6126ea65a1763277a8b7de584ac044d7ef7321ba5ee3fb5ac0247602",
+      "revision": 1,
+      "stage": "story",
+      "stamped_at": "2026-08-16T19:18:30+00:00"
+    },
+    "phase-5": {
+      "fingerprint": "sha256:44fce0248b12539ecd66269ed87c591fc6e36a24c4c127ba87dff2b9be673234",
+      "revision": 1,
+      "stage": "audio",
+      "stamped_at": "2026-08-16T19:40:40+00:00"
     }
   },
   "schema_version": 1,

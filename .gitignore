@@ -1,7 +1,8 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # Configuracion CLAUDE CODE
-CLAUDE.md
+# CLAUDE.md SÍ se versiona: contiene las normas de accesibilidad obligatorias
+# del proyecto y el README lo enlaza como documento de referencia.
 .claude
 
 # Configuracion local de Codex
@@ -57,3 +58,9 @@ mensaje_commit.txt
 
 # Salidas locales de auditoría (capturas de scripts/audit-mobile.mjs)
 tmp/
+
+# Salidas binarias de la producción del video demo. Los artefactos de texto
+# (guion, escenas, storyboard) sí se versionan; los renders no.
+video-demo/renders/
+video-demo/snapshots/
+video-demo/public/clips/*.mp4

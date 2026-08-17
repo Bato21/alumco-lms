@@ -1,0 +1,33 @@
+{
+  "fps": 30,
+  "seams": [
+    {
+      "id": "papeleo→plataforma",
+      "cut": 10,
+      "technique": "inverse zoom-through",
+      "exit":  { "selector": "#ld-00", "axis": "z", "dir": -1 },
+      "entry": { "selector": "#ld-01", "axis": "z", "dir": -1, "scanRoot": "#ld-01" }
+    },
+    {
+      "id": "plataforma→camila",
+      "cut": 20,
+      "technique": "inverse zoom-through",
+      "exit":  { "selector": "#ld-01", "axis": "z", "dir": -1 },
+      "entry": { "selector": "#ld-02", "axis": "z", "dir": -1, "scanRoot": "#ld-02" }
+    },
+    {
+      "id": "dispositivos→certificado",
+      "cut": 70,
+      "technique": "inverse zoom-through",
+      "exit":  { "selector": "#ld-04", "axis": "z", "dir": -1 },
+      "entry": { "selector": "#ld-05", "axis": "z", "dir": -1, "scanRoot": "#ld-05" }
+    },
+    {
+      "id": "certificado→cierre",
+      "cut": 84,
+      "technique": "inverse zoom-through",
+      "exit":  { "selector": "#ld-05", "axis": "z", "dir": -1 },
+      "entry": { "selector": "#ld-06", "axis": "z", "dir": -1, "scanRoot": "#ld-06" }
+    }
+  ]
+}

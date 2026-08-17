@@ -1,0 +1,95 @@
+<!-- Cuadro 7 — «Placa final» · 6s
+     camera: assembly · blueprint `logo-assemble-lockup` · metaphor: Brand close.
+     Las piezas convergen desde el PLANO DE LA IMAGEN, no desde la profundidad: por
+     eso no se declara `spatial-depth` y no hay translateZ.
+
+     Es el cuadro de cierre y por tanto el único que puede animarse hacia fuera: no
+     hay costura después. El lockup se sostiene y el cuadro se apaga sobre él.
+
+     Seis segundos para cuatro palabras. La lentitud es deliberada — es la única
+     parte del video donde el silencio trabaja a favor.
+
+     Bloque de marca en navy (el mismo azul de la banda hero del producto), con
+     tinta clara encima. El ámbar va como relleno de la píldora y como acento del
+     lockup, NUNCA como color de texto sobre claro.
+
+     El nombre del equipo NO se rellena aquí: no se inventan cadenas que el
+     storyboard no entregó. Añadirlo es una línea en .cr-equipo. -->
+<template id="scene-06-cierre-template">
+  <div data-composition-id="scene-06-cierre" data-width="1920" data-height="1080">
+
+    <div class="cr-lockup">
+      <img class="cr-logo" src="public/assets/logo-alumco.png" alt="">
+      <h1 class="cr-word"><span class="cr-a">Kimün</span><span class="cr-b">Ko</span></h1>
+      <div class="cr-rule"></div>
+      <p class="cr-tag">Sabiduría del agua</p>
+      <div class="cr-pill"><span class="cr-url">kimunko.vercel.app</span></div>
+    </div>
+
+    <style>
+      [data-composition-id="scene-06-cierre"]{position:absolute;inset:0;overflow:hidden;
+        display:flex;align-items:center;justify-content:center;
+        background:radial-gradient(120% 120% at 50% 12%,#233C85 0%,#182F6E 58%,#111728 100%);
+        font-family:"Geist",system-ui,sans-serif}
+      [data-composition-id="scene-06-cierre"] .cr-lockup{display:flex;flex-direction:column;
+        align-items:center;text-align:center}
+
+      [data-composition-id="scene-06-cierre"] .cr-logo{width:270px;height:auto;
+        filter:brightness(0) invert(1);opacity:0;visibility:hidden;margin-bottom:38px}
+
+      [data-composition-id="scene-06-cierre"] .cr-word{font-family:"Fraunces",Georgia,serif;
+        font-weight:600;font-size:132px;line-height:1;margin:0;letter-spacing:-.01em}
+      [data-composition-id="scene-06-cierre"] .cr-a{color:#FFFDF6;opacity:0;visibility:hidden;
+        display:inline-block}
+      [data-composition-id="scene-06-cierre"] .cr-b{color:#F5A623;opacity:0;visibility:hidden;
+        display:inline-block}
+
+      [data-composition-id="scene-06-cierre"] .cr-rule{width:0;height:2px;margin:34px 0 30px;
+        background:rgba(255,253,246,.34)}
+
+      [data-composition-id="scene-06-cierre"] .cr-tag{margin:0;font-size:42px;font-weight:400;
+        color:rgba(255,253,246,.86);opacity:0;visibility:hidden}
+
+      [data-composition-id="scene-06-cierre"] .cr-pill{margin-top:46px;padding:16px 34px;
+        border-radius:999px;background:#F5A623;opacity:0;visibility:hidden}
+      [data-composition-id="scene-06-cierre"] .cr-url{color:#111728;font-weight:600;font-size:30px;
+        font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        var ROOT = '[data-composition-id="scene-06-cierre"]';
+        var tl = gsap.timeline({ paused: true });
+
+        /* Convergencia en el plano: las dos mitades del wordmark entran desde los lados
+           y se asientan juntas. Sin profundidad, sin giro. */
+        tl.fromTo(ROOT + ' .cr-a', { x: -64, autoAlpha: 0 },
+          { x: 0, autoAlpha: 1, duration: 0.85, ease: 'power3.out' }, 0.25);
+        tl.fromTo(ROOT + ' .cr-b', { x: 64, autoAlpha: 0 },
+          { x: 0, autoAlpha: 1, duration: 0.85, ease: 'power3.out' }, 0.25);
+
+        tl.fromTo(ROOT + ' .cr-logo', { y: -18, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.7, ease: 'power2.out' }, 0.55);
+
+        /* La regla se dibuja de dentro hacia fuera: cierra el lockup. */
+        tl.fromTo(ROOT + ' .cr-rule', { width: 0 },
+          { width: 300, duration: 0.7, ease: 'power2.inOut' }, 1.15);
+
+        tl.fromTo(ROOT + ' .cr-tag', { y: 14, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.6, ease: 'power2.out' }, 1.45);
+
+        tl.fromTo(ROOT + ' .cr-pill', { y: 16, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.55, ease: 'power3.out' }, 1.95);
+
+        /* Cuadro de cierre: aquí SÍ hay salida, porque no hay costura después.
+           El lockup se sostiene 3.1s y el cuadro se apaga sobre él. */
+        tl.to(ROOT + ' .cr-lockup',
+          { autoAlpha: 0, duration: 0.55, ease: 'power2.in' }, 5.45);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines['scene-06-cierre'] = tl;
+      })();
+    </script>
+  </div>
+</template>

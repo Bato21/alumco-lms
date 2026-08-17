@@ -1,0 +1,172 @@
+<!-- Cuadro 1 — «El papeleo» · 10s
+     Beat de metáfora (Pain / overwhelm), blueprint `overwhelm-surround`.
+     No hay captura: las metáforas se dibujan, no se filman.
+     Orden de exposición obligado por density: dense → una hoja, luego planillas,
+     luego correos, al final carpetas. El centro queda tapado a los 10s.
+     Ningún texto legible: los papeles llevan reglones, nunca datos con apariencia real. -->
+<template id="scene-00-papeleo-template">
+  <div data-composition-id="scene-00-papeleo" data-width="1920" data-height="1080">
+
+    <div class="pp-world" data-layout-allow-overflow>
+      <div class="pp-sheet pp-hero" id="pp-hero"></div>
+      <div class="pp-pile" id="pp-pile"></div>
+    </div>
+    <div class="pp-vignette"></div>
+
+    <style>
+      [data-composition-id="scene-00-papeleo"]{position:absolute;inset:0;overflow:hidden;
+        background:#FAF6ED;font-family:"Geist",system-ui,sans-serif}
+      [data-composition-id="scene-00-papeleo"] .pp-world{position:absolute;inset:0;
+        display:flex;align-items:center;justify-content:center;transform-origin:50% 50%}
+      [data-composition-id="scene-00-papeleo"] .pp-pile{position:absolute;inset:0}
+
+      /* Hoja central: el punto de partida que acaba sepultado */
+      [data-composition-id="scene-00-papeleo"] .pp-sheet{position:absolute;
+        background:#FFFDF6;border:1px solid #E3E2E0;border-radius:6px;
+        box-shadow:0 2px 6px rgba(17,23,40,.05),0 24px 60px rgba(17,23,40,.14);
+        visibility:hidden;opacity:0}
+      [data-composition-id="scene-00-papeleo"] .pp-hero{width:360px;height:470px;
+        left:50%;top:50%;margin-left:-180px;margin-top:-235px;z-index:5}
+
+      /* Reglones: textura de documento sin decir nada */
+      [data-composition-id="scene-00-papeleo"] .pp-rule{position:absolute;height:9px;
+        border-radius:5px;background:#C9C7C6}
+      [data-composition-id="scene-00-papeleo"] .pp-rule.dark{background:#4A647F;opacity:.55}
+
+      /* Planilla: rejilla de celdas */
+      [data-composition-id="scene-00-papeleo"] .pp-cell{position:absolute;
+        border:1px solid #E3E2E0;background:#FAF6ED}
+
+      /* Correo: banda de cabecera + chevron de sobre */
+      [data-composition-id="scene-00-papeleo"] .pp-band{position:absolute;left:0;right:0;top:0;
+        height:26%;background:#182F6E;opacity:.10}
+      [data-composition-id="scene-00-papeleo"] .pp-chevron{position:absolute;left:14%;right:14%;
+        top:8%;height:34%;border:2px solid #182F6E;opacity:.30;
+        clip-path:polygon(0 0,100% 0,50% 62%)}
+
+      /* Carpeta: pestaña superior, tono arena */
+      [data-composition-id="scene-00-papeleo"] .pp-folder{background:#F1E4CD;border-color:#D9C7A6}
+      [data-composition-id="scene-00-papeleo"] .pp-tab{position:absolute;top:-22px;left:18px;
+        width:38%;height:24px;background:#F1E4CD;border:1px solid #D9C7A6;border-bottom:none;
+        border-radius:6px 6px 0 0}
+
+      /* Viñeta hacia el lienzo: cierra el cuadro por los bordes */
+      [data-composition-id="scene-00-papeleo"] .pp-vignette{position:absolute;inset:0;
+        pointer-events:none;
+        background:radial-gradient(115% 105% at 50% 50%,rgba(250,246,237,0) 46%,rgba(250,246,237,.85) 100%)}
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        var ROOT = '[data-composition-id="scene-00-papeleo"]';
+        var root = document.querySelector(ROOT);
+        var pile = root.querySelector('#pp-pile');
+        var hero = root.querySelector('#pp-hero');
+
+        /* Reglones de la hoja central. Longitudes fijas: nada aleatorio, nada legible. */
+        [[46,74],[46,120],[46,166],[46,212],[46,258],[46,304],[46,350],[46,396]]
+          .forEach(function (p, i) {
+            var r = document.createElement('div');
+            r.className = 'pp-rule' + (i === 0 ? ' dark' : '');
+            r.style.left = p[0] + 'px';
+            r.style.top = p[1] + 'px';
+            r.style.width = (i === 0 ? 180 : [268,240,255,210,262,228,190][(i - 1) % 7]) + 'px';
+            hero.appendChild(r);
+          });
+
+        /* Tres oleadas. `from` es el punto de entrada fuera de cuadro; `to` el reposo.
+           x/y en px respecto al centro del lienzo. Todo fijado a mano: seek-safe. */
+        var WAVES = [
+          { kind:'plan',   at:1.15, items:[
+            {w:300,h:400,x:-470,y:-150,rot:-9, fx:-1250,fy:-360},
+            {w:280,h:380,x: 430,y:-190,rot: 11, fx: 1250,fy:-420},
+            {w:290,h:390,x:-390,y: 210,rot:  7, fx:-1250,fy: 520},
+            {w:270,h:360,x: 400,y: 230,rot:-6, fx: 1250,fy: 560} ] },
+          { kind:'mail',   at:3.85, items:[
+            {w:250,h:180,x:-250,y:-300,rot:-5, fx:-560,fy:-900},
+            {w:240,h:172,x: 250,y:-320,rot:  6, fx: 560,fy:-900},
+            {w:245,h:176,x:-300,y: 330,rot:  4, fx:-620,fy: 900},
+            {w:238,h:170,x: 300,y: 340,rot: -7, fx: 620,fy: 900},
+            {w:232,h:168,x:   0,y:-380,rot:  2, fx:   0,fy:-900} ] },
+          { kind:'folder', at:6.15, items:[
+            {w:330,h:250,x:-560,y:  40,rot: -4, fx:-1350,fy:  60},
+            {w:320,h:245,x: 560,y:  20,rot:  5, fx: 1350,fy:  40},
+            {w:315,h:240,x:-170,y: 300,rot:  3, fx:-360,fy: 950},
+            {w:325,h:248,x: 190,y: 310,rot: -3, fx: 380,fy: 950},
+            {w:310,h:236,x:  10,y: -60,rot:  1, fx:  20,fy:-950} ] }
+        ];
+
+        var tl = gsap.timeline({ paused: true });
+
+        /* Empuje de cámara: un solo movimiento repartido en los 10s (energy: build).
+           Adelantarlo es el fallo de PowerPoint. */
+        tl.fromTo(ROOT + ' .pp-world', { scale: 1.0 },
+          { scale: 1.16, duration: 10, ease: 'power1.inOut' }, 0);
+
+        /* La hoja sola primero: el ojo lee UN documento antes que el volumen. */
+        tl.fromTo(hero, { y: 26, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.7, ease: 'power3.out' }, 0.15);
+
+        WAVES.forEach(function (wave, wi) {
+          wave.items.forEach(function (it, ii) {
+            var el = document.createElement('div');
+            el.className = 'pp-sheet' + (wave.kind === 'folder' ? ' pp-folder' : '');
+            el.style.width = it.w + 'px';
+            el.style.height = it.h + 'px';
+            el.style.left = 'calc(50% + ' + (it.x - it.w / 2) + 'px)';
+            el.style.top = 'calc(50% + ' + (it.y - it.h / 2) + 'px)';
+            el.style.zIndex = String(10 + wi * 10 + ii);
+
+            if (wave.kind === 'plan') {
+              for (var r = 0; r < 6; r++) for (var c = 0; c < 3; c++) {
+                var cell = document.createElement('div');
+                cell.className = 'pp-cell';
+                cell.style.left = (18 + c * ((it.w - 36) / 3)) + 'px';
+                cell.style.top = (26 + r * ((it.h - 52) / 6)) + 'px';
+                cell.style.width = ((it.w - 36) / 3) + 'px';
+                cell.style.height = ((it.h - 52) / 6) + 'px';
+                el.appendChild(cell);
+              }
+            } else if (wave.kind === 'mail') {
+              var band = document.createElement('div'); band.className = 'pp-band';
+              var chev = document.createElement('div'); chev.className = 'pp-chevron';
+              el.appendChild(band); el.appendChild(chev);
+              [0.62, 0.74, 0.86].forEach(function (f, k) {
+                var rr = document.createElement('div');
+                rr.className = 'pp-rule';
+                rr.style.left = '16px';
+                rr.style.top = (it.h * f) + 'px';
+                rr.style.width = ([0.68, 0.52, 0.60][k] * it.w) + 'px';
+                el.appendChild(rr);
+              });
+            } else {
+              var tab = document.createElement('div'); tab.className = 'pp-tab'; tab.setAttribute('data-layout-allow-overflow','');
+              el.appendChild(tab);
+              [0.36, 0.52, 0.68].forEach(function (f, k) {
+                var rr2 = document.createElement('div');
+                rr2.className = 'pp-rule';
+                rr2.style.left = '20px';
+                rr2.style.top = (it.h * f) + 'px';
+                rr2.style.width = ([0.62, 0.48, 0.55][k] * it.w) + 'px';
+                el.appendChild(rr2);
+              });
+            }
+
+            pile.appendChild(el);
+
+            /* Llegada escalonada dentro de la oleada: el grupo lee como un solo beat. */
+            tl.fromTo(el,
+              { x: it.fx - it.x, y: it.fy - it.y, rotate: it.rot * 2.4, autoAlpha: 0 },
+              { x: 0, y: 0, rotate: it.rot, autoAlpha: 1,
+                duration: 1.05, ease: 'power3.out' },
+              wave.at + ii * 0.10);
+          });
+        });
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines['scene-00-papeleo'] = tl;
+      })();
+    </script>
+  </div>
+</template>

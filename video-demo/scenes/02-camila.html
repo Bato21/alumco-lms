@@ -1,0 +1,83 @@
+<!-- Cuadro 3 — «La jornada de Camila» · 18s
+     Clip real. camera: follow · motion: `camera-cursor-tracking`, `viewport-change`.
+     Contrato de clip (Wiring S): id + data-start + data-duration + data-media-start
+     + data-track-index. data-duration = ventana COMPLETA del cargador en index.html,
+     es decir 18s + 0.7s de extensión de transición = 18.7. Si el vídeo terminase en
+     los 18s nominales, el runtime lo ocultaría durante la costura y el cuadro
+     saliente quedaría vacío.
+     El clip no está recortado en origen: data-media-start = 0. -->
+<template id="scene-02-camila-template">
+  <div data-composition-id="scene-02-camila" data-width="1920" data-height="1080">
+
+    <div class="cm-stage">
+      <div class="cm-frame">                         <!-- ENVOLTORIO ANIMADO — nunca el <video> -->
+        <div class="cm-bar">
+          <span class="cm-dot cm-r"></span><span class="cm-dot cm-y"></span><span class="cm-dot cm-g"></span>
+          <span class="cm-host" data-layout-allow-overlap>kimunko.vercel.app/cursos</span>
+        </div>
+        <video id="vid-camila" class="cm-vid"
+               src="public/clips/scene-02-camila.mp4"
+               data-start="0" data-duration="18.7" data-media-start="0"
+               data-track-index="0" muted playsinline></video>
+      </div>
+    </div>
+    <div class="cm-vignette"></div>
+
+    <style>
+      [data-composition-id="scene-02-camila"]{position:absolute;inset:0;overflow:hidden;
+        display:flex;align-items:center;justify-content:center;
+        background:radial-gradient(120% 120% at 50% 0%,#FFFDF6 0%,#FAF6ED 100%);
+        font-family:"Geist",system-ui,sans-serif}
+      [data-composition-id="scene-02-camila"] .cm-stage{position:relative;z-index:1;width:100%;display:flex;
+        align-items:center;justify-content:center}
+      [data-composition-id="scene-02-camila"] .cm-frame{position:relative;width:76%;
+        max-width:1460px;border-radius:14px;overflow:hidden;background:#FFFDF6;
+        visibility:hidden;opacity:0;
+        box-shadow:0 0 0 1px rgba(17,23,40,.06),3px 2px 6px rgba(17,23,40,.05),
+                   9px 40px 90px rgba(17,23,40,.18),inset 0 1px 0 rgba(255,255,255,.5)}
+      [data-composition-id="scene-02-camila"] .cm-bar{display:flex;align-items:center;gap:9px;
+        padding:14px 18px;background:#F4F1EA;border-bottom:1px solid #E3E2E0}
+      [data-composition-id="scene-02-camila"] .cm-dot{width:13px;height:13px;border-radius:50%}
+      [data-composition-id="scene-02-camila"] .cm-r{background:#BB3A2E}
+      [data-composition-id="scene-02-camila"] .cm-y{background:#D3A467}
+      [data-composition-id="scene-02-camila"] .cm-g{background:#1C5C40}
+      [data-composition-id="scene-02-camila"] .cm-host{margin-left:14px;color:#4A647F;
+        font:18px ui-monospace,SFMono-Regular,Menlo,monospace}
+      [data-composition-id="scene-02-camila"] .cm-vid{display:block;width:100%;height:auto}
+      [data-composition-id="scene-02-camila"] .cm-vignette{position:absolute;inset:0;z-index:0;
+        pointer-events:none;
+        background:radial-gradient(120% 110% at 50% 50%,rgba(250,246,237,0) 58%,rgba(250,246,237,.72) 100%)}
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        var ROOT = '[data-composition-id="scene-02-camila"]';
+        var video = document.getElementById('vid-camila');
+        var SPEED = 1.0;
+        if (!Number.isFinite(SPEED) || SPEED < 0.1 || SPEED > 5.0) {
+          throw new Error('scene-02-camila: SPEED fuera del rango soportado');
+        }
+        video.defaultPlaybackRate = SPEED;
+        video.playbackRate = SPEED;
+
+        var tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(ROOT + ' .cm-frame', { y: 40, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.6, ease: 'power3.out' }, 0.1);
+
+        /* El encuadre se cierra al llegar a la evaluación y se abre cuando aparece el
+           resultado. Es el único acento de cámara del cuadro (1 dispositivo de énfasis).
+           Se libera en 16.0s, muy antes de la ventana de costura (17.3s), para que no
+           tire hacia atrás en mitad de la transición. */
+        tl.to(ROOT + ' .cm-frame',
+          { scale: 1.13, transformOrigin: '50% 44%', duration: 1.6, ease: 'power2.inOut' }, 6.2);
+        tl.to(ROOT + ' .cm-frame',
+          { scale: 1.0, transformOrigin: '50% 44%', duration: 1.4, ease: 'power2.inOut' }, 14.6);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines['scene-02-camila'] = tl;
+      })();
+    </script>
+  </div>
+</template>

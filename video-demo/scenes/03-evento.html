@@ -1,0 +1,73 @@
+<!-- Cuadro 4 — «La administradora arma el evento» · 16s
+     Clip real. camera: pan · blueprint `spatial-pan-stations`. energy: calm.
+     El recorrido lateral ya está EN el metraje (la página se desplaza sola), así que
+     la cámara se queda quieta: añadir un empuje encima pelearía con el movimiento
+     que ya cuenta el beat. `energy: calm` pide exactamente eso — quietud o una
+     deriva tan pequeña que se lea como quietud.
+     data-duration = 16s + 0.7s de extensión de costura = 16.7. -->
+<template id="scene-03-evento-template">
+  <div data-composition-id="scene-03-evento" data-width="1920" data-height="1080">
+
+    <div class="ev-stage">
+      <div class="ev-frame">
+        <div class="ev-bar">
+          <span class="ev-dot ev-r"></span><span class="ev-dot ev-y"></span><span class="ev-dot ev-g"></span>
+          <span class="ev-host" data-layout-allow-overlap>kimunko.vercel.app/admin/eventos</span>
+        </div>
+        <video id="vid-evento" class="ev-vid"
+               src="public/clips/scene-03-evento.mp4"
+               data-start="0" data-duration="16.7" data-media-start="0"
+               data-track-index="0" muted playsinline></video>
+      </div>
+    </div>
+    <div class="ev-vignette"></div>
+
+    <style>
+      [data-composition-id="scene-03-evento"]{position:absolute;inset:0;overflow:hidden;
+        display:flex;align-items:center;justify-content:center;
+        background:radial-gradient(120% 120% at 50% 0%,#FFFDF6 0%,#FAF6ED 100%);
+        font-family:"Geist",system-ui,sans-serif}
+      [data-composition-id="scene-03-evento"] .ev-stage{position:relative;z-index:1;width:100%;display:flex;
+        align-items:center;justify-content:center}
+      [data-composition-id="scene-03-evento"] .ev-frame{position:relative;width:76%;
+        max-width:1460px;border-radius:14px;overflow:hidden;background:#FFFDF6;
+        visibility:hidden;opacity:0;
+        box-shadow:0 0 0 1px rgba(17,23,40,.06),3px 2px 6px rgba(17,23,40,.05),
+                   9px 40px 90px rgba(17,23,40,.18),inset 0 1px 0 rgba(255,255,255,.5)}
+      [data-composition-id="scene-03-evento"] .ev-bar{display:flex;align-items:center;gap:9px;
+        padding:14px 18px;background:#F4F1EA;border-bottom:1px solid #E3E2E0}
+      [data-composition-id="scene-03-evento"] .ev-dot{width:13px;height:13px;border-radius:50%}
+      [data-composition-id="scene-03-evento"] .ev-r{background:#BB3A2E}
+      [data-composition-id="scene-03-evento"] .ev-y{background:#D3A467}
+      [data-composition-id="scene-03-evento"] .ev-g{background:#1C5C40}
+      [data-composition-id="scene-03-evento"] .ev-host{margin-left:14px;color:#4A647F;
+        font:18px ui-monospace,SFMono-Regular,Menlo,monospace}
+      [data-composition-id="scene-03-evento"] .ev-vid{display:block;width:100%;height:auto}
+      [data-composition-id="scene-03-evento"] .ev-vignette{position:absolute;inset:0;z-index:0;
+        pointer-events:none;
+        background:radial-gradient(120% 110% at 50% 50%,rgba(250,246,237,0) 58%,rgba(250,246,237,.72) 100%)}
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <script>
+      (function () {
+        var ROOT = '[data-composition-id="scene-03-evento"]';
+        var video = document.getElementById('vid-evento');
+        var SPEED = 1.0;
+        if (!Number.isFinite(SPEED) || SPEED < 0.1 || SPEED > 5.0) {
+          throw new Error('scene-03-evento: SPEED fuera del rango soportado');
+        }
+        video.defaultPlaybackRate = SPEED;
+        video.playbackRate = SPEED;
+
+        var tl = gsap.timeline({ paused: true });
+
+        tl.fromTo(ROOT + ' .ev-frame', { y: 34, autoAlpha: 0 },
+          { y: 0, autoAlpha: 1, duration: 0.6, ease: 'power3.out' }, 0.1);
+
+        window.__timelines = window.__timelines || {};
+        window.__timelines['scene-03-evento'] = tl;
+      })();
+    </script>
+  </div>
+</template>

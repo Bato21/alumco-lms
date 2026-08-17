@@ -1,90 +1,114 @@
-# Link de plataforma
+# KimünKo — LMS para ONG Alumco
 
-https://kimunko.vercel.app/
+**Plataforma en producción: [kimunko.vercel.app](https://kimunko.vercel.app/)**
 
-# Alumco LMS
+Plataforma de gestión de aprendizaje y gestión interna construida para **ONG Alumco**, organización dedicada al cuidado de adultos mayores en ELEAMs (Establecimientos de Larga Estadía para Adultos Mayores) en Chile. Capacita de forma asíncrona a los trabajadores de sus sedes, homologa conocimientos clínicos y operativos, emite certificados verificables, y coordina la operación diaria: eventos institucionales, días administrativos y soporte interno.
 
-Plataforma de gestión de aprendizaje (LMS) construida para **ONG Alumco**, organización dedicada al cuidado de adultos mayores en ELEAMs (Establecimientos de Larga Estadía para Adultos Mayores) en Chile. La aplicación permite capacitar de forma asíncrona a los trabajadores de las dos sedes (Hualpén y Coyhaique), homologando conocimientos clínicos y operativos, y emitiendo certificados oficiales al aprobar las evaluaciones.
-
-> **Stack:** Next.js 16 (App Router) + Supabase (Auth, PostgreSQL, Storage) + TypeScript estricto + Tailwind CSS v4.
+> **Stack:** Next.js 16 (App Router) + Supabase (Auth, PostgreSQL, Storage) + TypeScript estricto + Tailwind CSS v4. PWA instalable con notificaciones push.
 
 ---
 
-## 🎯 ¿Para qué sirve?
+## 🎯 Qué hace la plataforma
 
-La plataforma cubre el ciclo completo de capacitación interna:
+### Capacitación (el núcleo)
 
 1. **Solicitud de acceso** — los nuevos trabajadores se registran indicando RUT, sede y áreas de trabajo. Un admin revisa cada solicitud antes de habilitar el acceso.
 2. **Asignación de cursos por área** — cada curso tiene `target_areas` (ej. Enfermería, Kinesiología). Los trabajadores solo ven los cursos relevantes para su rol.
-3. **Aprendizaje asincrónico** — los trabajadores avanzan a su ritmo a través de módulos de **video** (YouTube), **PDF** (Supabase Storage) o **quiz** (selección múltiple).
+3. **Aprendizaje asincrónico** — módulos de **video** (YouTube), **PDF** (Supabase Storage), **texto** (HTML saneado en servidor) o **quiz**, con desbloqueo secuencial.
 4. **Evaluaciones con intentos** — cada quiz acepta hasta N intentos con porcentaje mínimo de aprobación. Los intentos son inmutables (auditoría) y solo el admin puede resetear el progreso.
-5. **Certificación automática** — al completar el último módulo del curso (incluyendo quiz si lo hay), el sistema genera un certificado PDF firmado digitalmente con datos del trabajador, sello institucional y firmas del instructor y la directora técnica.
-6. **Trazabilidad y reportes** — el admin visualiza progreso por sede/área, alertas por deadlines vencidos, certificados emitidos y exporta reportes en CSV.
+5. **Certificación automática y verificable** — al completar el último módulo se genera un certificado PDF con sello institucional, firmas y un **QR con folio único** que cualquier tercero puede verificar en una página pública, sin cuenta.
+6. **Trazabilidad y reportes** — progreso por sede/área, alertas por deadlines vencidos, cobertura anual contra meta, certificados emitidos y export CSV.
+
+### Gestión interna (módulos complementarios)
+
+| Módulo | Qué resuelve |
+|---|---|
+| **Eventos institucionales** | Planificación de 18 de septiembre, Navidad y Año Nuevo por sede: secciones con encargado y colaboradores, checklist de tareas con plazos, documentos (incl. dificultades alimenticias de los residentes) y galería de fotos. |
+| **Días administrativos** | Solicitud, aprobación y control de cupo de días libres, con cupo configurable por área y período de renovación. |
+| **Soporte** | Tickets internos con categoría, prioridad, hilo de mensajes y estados. |
+| **Sedes** | ABM de sedes: la plataforma dejó de tener dos sedes fijas y las administra el admin. |
+| **Feedback de cursos** | Los trabajadores califican el curso al terminarlo; el admin lo revisa por curso. |
+| **Preferencias de accesibilidad** | Escala tipográfica por usuario (`normal` / `grande` / `extra`), persistida en su perfil. |
+| **Modo vista previa** | Un admin puede recorrer la plataforma tal como la ve un colaborador, con banner permanente y salida en un clic. |
+| **Mundo demo** | Cuentas `is_demo` con datos propios que se reinician periódicamente, aisladas del mundo real y siempre rotuladas. |
 
 ---
 
-## 🚀 Tecnologías Principales
+## 🚀 Tecnologías principales
 
 | Capa | Tecnología | Notas |
 |---|---|---|
 | Framework | **Next.js 16** (App Router) + **React 19** | Server Components y Server Actions. NO Pages Router. |
-| Lenguaje | **TypeScript** estricto | Sin `any`. Tipos en `src/lib/types/database.ts`. |
-| Base de datos | **PostgreSQL** vía Supabase | Con Row Level Security (RLS), triggers y vistas. |
-| Auth | **Supabase Auth** (`@supabase/ssr`) | Cookies SSR + middleware Next.js. |
-| Storage | **Supabase Storage** | PDFs de cursos, firmas digitales (`firmas/`). |
-| Estilos | **Tailwind CSS v4** | Paleta corporativa Alumco (`#2B4FA0`, `#F5A623`). |
+| Lenguaje | **TypeScript** estricto | Sin `any`. Tipos en `src/lib/types/databases.ts`. |
+| Base de datos | **PostgreSQL** vía Supabase | Row Level Security, triggers y funciones. |
+| Auth | **Supabase Auth** (`@supabase/ssr`) | Cookies SSR + middleware de Next.js. |
+| Storage | **Supabase Storage** | Firmas, banners de curso, documentos y fotos de eventos. |
+| Estilos | **Tailwind CSS v4** | Paleta corporativa Alumco y tokens verificados por contraste. |
 | UI base | **shadcn/ui** + **Radix UI** | Primitivos con buena base de accesibilidad; la conformidad de la app se mide aparte (ver más abajo). |
 | Iconos | **Lucide React** | — |
 | Forms | **React Hook Form** + **Zod** | Validación cliente + servidor. |
-| Drag & Drop | **@dnd-kit/core** + sortable | Para el constructor de cursos. |
+| Gráficos | **Recharts** | Dashboard admin (cobertura, cumplimiento por área, certificados por mes). |
+| Drag & Drop | **@dnd-kit/core** + sortable | Constructor de cursos. |
+| PDFs | **pdf-lib** + **qrcode** | Certificados generados en servidor, con QR de verificación. |
+| Saneado HTML | **sanitize-html** | Módulos de tipo texto (se guarda ya saneado). |
+| Push / PWA | **web-push** (VAPID) + `public/sw.js` | Service worker propio, manifest, página offline. |
 | Estado servidor | Server Components + Server Actions | Sin REST/GraphQL adicional. |
-| Estado cliente | **TanStack React Query** | Solo donde el client-side caching aporta. |
-| Notificaciones | **Sonner** | Toasts. |
-| PDFs | **pdf-lib** | Generación de certificados desde el servidor. |
-| Temas | **next-themes** | (Modo oscuro/claro disponible). |
+| Estado cliente | **TanStack React Query** | Solo donde el caching en cliente aporta. |
+| Notificaciones UI | **Sonner** | Toasts. |
+| Temas | **next-themes** | Modo claro/oscuro. |
+| Tests | **Vitest** | `tests/` — gates de módulo, rate limit, saneado, verificación de folios. |
 
 ---
 
 ## 👥 Roles y permisos
 
-La plataforma maneja tres roles que determinan qué rutas y acciones están disponibles:
-
 | Rol | Acceso | Capacidad |
 |---|---|---|
-| `trabajador` | `/inicio`, `/cursos`, `/perfil`, `/mis-certificados` | Toma cursos asignados a sus áreas, rinde quizzes, descarga certificados, edita su perfil. |
-| `admin` | Todo lo anterior + `/admin/*` | Aprobar solicitudes, CRUD de trabajadores, constructor de cursos, reportes, métricas globales. |
-| `profesor` | Acceso administrativo limitado | Crear/editar sus propios cursos y revisar progreso. |
+| `trabajador` | `/inicio`, `/cursos`, `/eventos`, `/dias-administrativos`, `/soporte`, `/perfil`, `/mis-certificados` | Toma los cursos de sus áreas, rinde quizzes, descarga certificados, participa en eventos, pide días administrativos, abre tickets. |
+| `admin` | Todo lo anterior + `/admin/*` | Aprueba solicitudes, CRUD de trabajadores y sedes, constructor de cursos, eventos, días administrativos, soporte, reportes y métricas globales. |
+| `profesor` | Acceso administrativo acotado | Crear/editar cursos y revisar progreso (`requireAdmin` lo acepta junto con `admin`). |
 
-Los trabajadores solo se crean en estado `pendiente` y necesitan aprobación admin (que asigna `sede`, `area_trabajo[]` y `role`) antes de poder iniciar sesión.
+Los trabajadores se crean siempre en estado `pendiente` y necesitan aprobación admin (que asigna `sede`, `area_trabajo[]` y `role`) antes de poder iniciar sesión.
 
 ---
 
-## 🧭 Mapa funcional de rutas
+## 🧭 Mapa de rutas
 
-### Rutas públicas (`src/app/(auth)/`)
-- `/login` — login con email/contraseña; verifica `profile.status === 'activo'`.
-- `/registro` — formulario de solicitud (queda en estado `pendiente`).
+### Públicas
+- `/` — landing institucional (misión, valores, memorias, contacto).
+- `/login` — verifica credenciales y `profile.status === 'activo'`.
+- `/registro` — solicitud de acceso (queda `pendiente`).
+- `/reset-password` — restablecimiento de contraseña.
+- `/certificados/verificar/[codigo]` — **verificación pública de un certificado por folio**, sin sesión. Con rate limit por IP y exposición mínima de datos.
+- `/offline` — pantalla de la PWA sin conexión.
 
-### Rutas trabajador (`src/app/(dashboard)/`)
-- `/inicio` — dashboard con stats personales, calendario de plazos y banner de cursos vencidos.
+### Trabajador — `src/app/(dashboard)/`
+- `/inicio` — stats personales, próximo evento, calendario de plazos y banner de cursos vencidos.
 - `/cursos` — listado filtrado por área, con tabs (Todos / En progreso / Completados / Sin iniciar).
-- `/cursos/[id]` — detalle del curso con índice de módulos y estado de progreso.
-- `/cursos/[id]/modulos/[moduleId]` — visor de módulo (video YouTube, PDF embebido o intro a quiz).
+- `/cursos/[id]` — detalle con índice de módulos y progreso.
+- `/cursos/[id]/modulos/[moduleId]` — visor de módulo (video, PDF, texto o intro al quiz).
 - `/cursos/[id]/modulos/[moduleId]/quiz` — quiz player con intentos, score y feedback.
-- `/mis-certificados` — galería de certificados aprobados y descargables.
-- `/perfil` — datos personales editables, fecha de nacimiento, firma digital, stats de cumplimiento.
-- `/certificado/[certificateId]` — vista pública del certificado (con verificación de propiedad o rol admin).
+- `/eventos` y `/eventos/[id]` — eventos de su sede, sus secciones y sus tareas.
+- `/dias-administrativos` — saldo, historial y solicitud de días.
+- `/soporte` y `/soporte/[id]` — tickets propios y su hilo.
+- `/mis-certificados` — certificados aprobados y descargables.
+- `/perfil` — datos personales, firma digital, preferencias de accesibilidad, stats de cumplimiento.
+- `/certificado/[certificateId]` — vista del certificado (requiere ser el titular o staff).
 
-### Rutas administrativas (`src/app/admin/`)
-- `/admin/dashboard` — KPIs, comparativa Hualpén vs. Coyhaique, actividad reciente, top cursos, alertas.
+### Admin — `src/app/admin/`
+- `/admin/dashboard` — KPIs, cobertura anual contra meta, cumplimiento por área, certificados por mes, comparativa entre sedes, actividad reciente y alertas.
 - `/admin/trabajadores` — vista unificada con tabs (`?tab=activos|suspendidos|solicitudes`).
-- `/admin/trabajadores/[id]` — detalle de trabajador con su progreso y certificados.
-- `/admin/cursos` — listado de cursos creados.
-- `/admin/cursos/nuevo` — constructor visual basado en bloques (drag & drop con dnd-kit).
-- `/admin/cursos/[id]/editar` — mismo constructor en modo edición + publicar/despublicar.
-- `/admin/reportes` — reporte de cumplimiento por trabajador, con filtros por sede/área y export CSV.
+- `/admin/trabajadores/[id]` — detalle con progreso y certificados.
+- `/admin/cursos` — listado, publicar/despublicar, duplicar.
+- `/admin/cursos/nuevo` y `/admin/cursos/[id]/editar` — constructor visual por bloques (drag & drop con dnd-kit).
+- `/admin/cursos/[id]/feedback` — feedback recibido de ese curso.
+- `/admin/eventos`, `/admin/eventos/nuevo`, `/admin/eventos/[id]` — wizard de creación y gestión de secciones, tareas, documentos y fotos.
+- `/admin/dias-administrativos` — solicitudes, aprobación y configuración de cupos.
+- `/admin/soporte` y `/admin/soporte/[id]` — bandeja de tickets.
+- `/admin/sedes` — ABM de sedes.
+- `/admin/reportes` — cumplimiento por trabajador, filtros por sede/área, export CSV.
 - `/admin/certificados` — todos los certificados emitidos.
-- `/admin/perfil` — perfil del propio admin (incluye subida de firma digital).
+- `/admin/perfil` — perfil del admin (incluye subida de firma digital).
 
 ---
 
@@ -93,25 +117,48 @@ Los trabajadores solo se crean en estado `pendiente` y necesitan aprobación adm
 ### Modelo de datos (PostgreSQL / Supabase)
 
 ```text
-profiles            ── extiende auth.users; trigger on_auth_user_created lo crea automáticamente
-                       campos clave: role, sede, area_trabajo[], status, rut, firma_url
-courses             ── título, descripción, deadline, target_areas[], created_by
-modules             ── pertenece a un course; content_type ∈ {video, pdf, slides, quiz}
-                       order_index para ordenar; is_final_module marca el último
-quizzes             ── 1:1 con módulo de tipo quiz; passing_score, max_attempts
-questions           ── pertenece a quizzes; options en JSONB tipado
-quiz_attempts       ── INMUTABLE (sin UPDATE/DELETE); auditoría completa de intentos
-course_progress    ── 1 fila por (user, course); completed_modules[], is_completed,
-                       last_quiz_reset_at (para reseteos del admin)
-certificates       ── generado al completar; quiz_attempt_id (opcional), pdf_url
+── Personas y organización ─────────────────────────────────────────────
+profiles              extiende auth.users (trigger on_auth_user_created)
+                      role, sede, area_trabajo[], status, rut, firma_url,
+                      onboarding_completed, is_demo
+sedes                 sedes administrables (id, nombre, activa)
+user_preferences      escala tipográfica y ajustes por usuario
+
+── Capacitación ────────────────────────────────────────────────────────
+courses               título, deadline, target_areas[], is_published,
+                      duplicated_from, is_demo
+modules               content_type ∈ {video, pdf, slides, texto, quiz};
+                      order_index, is_final_module, content_html (saneado)
+quizzes               1:1 con módulo tipo quiz; passing_score, max_attempts
+questions             options en JSONB tipado; correct_option
+quiz_attempts         INMUTABLE (sin UPDATE/DELETE) — auditoría de intentos
+course_progress       1 fila por (user, course); completed_modules[],
+                      is_completed, last_quiz_reset_at
+certificates          verification_code (folio Crockford base32 de 12),
+                      quiz_attempt_id opcional, pdf_url
+course_feedback       calificación y comentario del curso
+
+── Gestión interna ─────────────────────────────────────────────────────
+events                por sede y tipo (dieciocho | navidad | ano_nuevo)
+event_sections        secciones custom del evento
+event_section_members encargado | colaborador (PK compuesta)
+event_tasks           pendiente | en_progreso | completada, con due_date/time
+event_documents       docs del evento (incl. dificultades alimenticias)
+event_photos          galería
+admin_day_requests    pendiente | aprobada | rechazada | cancelada
+admin_day_config      período de renovación y cupo por defecto
+admin_day_area_quotas cupo por área
+support_tickets       categoría, prioridad, estado
+support_ticket_messages hilo del ticket
+platform_settings     ajustes globales (meta anual de cobertura, etc.)
+push_subscriptions    endpoints Web Push por usuario
 ```
 
-**Triggers operativos:**
-- `on_auth_user_created` → crea `profiles` con `status='pendiente'`.
-- `check_attempt_limit_trigger` → valida intentos respetando `last_quiz_reset_at`.
-- `set_*_updated_at` → mantiene `updated_at` automático.
+**Triggers y funciones operativas:** `on_auth_user_created` (crea el perfil en `pendiente`), `check_attempt_limit_trigger` (respeta `last_quiz_reset_at`), `set_certificate_verification_code` (folio del certificado), `set_*_updated_at`, y helpers de RLS (`is_admin`, `is_staff`, `is_event_member`, `is_section_encargado`, `user_sede`, `viewer_is_demo`).
 
-**Row Level Security:** los trabajadores solo leen/escriben sus propios datos; el admin accede al estado global vía `createAdminClient()` (service role), nunca vía políticas RLS complejas.
+**Row Level Security:** los trabajadores solo leen/escriben sus propios datos y los de su sede donde corresponde; el admin accede al estado global vía `createAdminClient()` (service role), nunca con políticas RLS complejas y autorreferenciales.
+
+Las migraciones aplicadas fuera del esquema base viven en [`supabase/propuestas/`](./supabase/propuestas/) (un `.sql` por feature) y los rollbacks del mundo demo en [`scripts/`](./scripts/).
 
 ### Flujo de autenticación
 
@@ -135,16 +182,19 @@ status='pendiente'        Trabajador habilitado          - admin → /admin/dash
                           para iniciar sesión             - trabajador → /inicio
 ```
 
-El middleware (`src/middleware.ts` → `src/proxy.ts` → `src/lib/supabase/middleware.ts`) corre en cada request: refresca la sesión, redirige usuarios no autenticados a `/login` y a usuarios logueados los saca de `/login` o `/registro`. La verificación fina de **rol** y **status** vive en los layouts (`(dashboard)/layout.tsx` y `admin/layout.tsx`).
+El middleware (`src/middleware.ts` → `src/proxy.ts` → `src/lib/supabase/middleware.ts`) corre en cada request: refresca la sesión, redirige a `/login` a quien no tenga sesión y saca de `/login` o `/registro` a quien sí la tenga. La verificación fina de **rol** y **status** vive en los layouts (`(dashboard)/layout.tsx` y `admin/layout.tsx`).
 
 ### Patrón Server / Client
 
-- **Server Components** son el default (todo lo que no necesita interacción).
-- **Client Components** llevan `'use client'` en la primera línea y se reservan para interactividad (forms, drag & drop, modales).
+- **Server Components** son el default; **Client Components** (`'use client'` en la primera línea) solo para interactividad.
 - **Server Actions** (`'use server'`) son las únicas mutaciones. Devuelven `{ success | error }` y disparan `revalidatePath`.
 - **Dos clientes Supabase:**
-  - `createClient()` (cookies del usuario) — usar para lecturas/escrituras del propio usuario; respeta RLS.
-  - `createAdminClient()` (service role) — solo para operaciones administrativas verificadas (bypassa RLS). Toda función que lo use **debe** verificar previamente `auth.getUser()` + `profiles.role === 'admin'`.
+  - `createClient()` (cookies del usuario) — lecturas/escrituras del propio usuario; respeta RLS.
+  - `createAdminClient()` (service role) — solo operaciones administrativas verificadas. Toda función que lo use **debe** pasar antes por `requireAdmin()` (`src/lib/auth/requireAdmin.ts`).
+
+### PWA y notificaciones
+
+`public/sw.js` (registrado por `ServiceWorkerRegistrar`, solo en producción) da instalación, caché de shell y la pantalla `/offline`. Las notificaciones push usan **VAPID** con `web-push`: la suscripción se guarda por usuario desde `ActivarNotificaciones` y los envíos salen desde `src/lib/push/send.ts` (eventos, tareas asignadas y plazos).
 
 ---
 
@@ -152,112 +202,84 @@ El middleware (`src/middleware.ts` → `src/proxy.ts` → `src/lib/supabase/midd
 
 ```text
 alumco-lms/
-├── public/                              # Assets estáticos
+├── public/
+│   ├── sw.js                            # Service worker de la PWA
+│   ├── icons/                           # Iconos PWA (192, 512, apple-touch)
+│   ├── banners/                         # Banners de curso por temática
+│   └── hero-*.jpg / LogoAlumco.png      # Assets de landing y marca
 │
 ├── src/
 │   ├── middleware.ts                    # Re-exporta proxy.ts como middleware Next.js
-│   ├── proxy.ts                         # Configuración del matcher; delega a supabase/middleware.ts
+│   ├── proxy.ts                         # Matcher; delega en supabase/middleware.ts
 │   │
-│   ├── app/                             # App Router (Next.js)
-│   │   ├── layout.tsx                   # Layout raíz (HTML, fonts, providers globales)
-│   │   ├── page.tsx                     # Landing / redirect inicial
-│   │   ├── globals.css                  # Tailwind v4 + tokens corporativos Alumco
-│   │   ├── not-found.tsx                # 404 personalizada
-│   │   ├── error.tsx                    # Error boundary global
+│   ├── app/
+│   │   ├── layout.tsx                   # Layout raíz (fonts, providers, skip link)
+│   │   ├── page.tsx                     # Landing institucional
+│   │   ├── globals.css                  # Tailwind v4 + tokens corporativos
+│   │   ├── manifest.ts / offline/       # PWA
+│   │   ├── not-found.tsx / error.tsx
 │   │   │
-│   │   ├── (auth)/                      # Grupo público — sin chrome del dashboard
-│   │   │   ├── layout.tsx
-│   │   │   ├── login/page.tsx
-│   │   │   └── registro/page.tsx
-│   │   │
-│   │   ├── (dashboard)/                 # Grupo trabajador — verifica status='activo'
-│   │   │   ├── layout.tsx               # Sidebar + TopBar + redirect admins
-│   │   │   ├── TopBar.tsx
-│   │   │   ├── inicio/                  # Dashboard del trabajador
-│   │   │   ├── cursos/                  # Listado, detalle, módulos, quiz
-│   │   │   │   └── [id]/modulos/[moduleId]/quiz/
-│   │   │   ├── mis-certificados/
-│   │   │   └── perfil/
-│   │   │
-│   │   ├── admin/                       # Verifica role='admin' (o 'profesor' donde aplica)
-│   │   │   ├── layout.tsx
-│   │   │   ├── AdminNav.tsx
-│   │   │   ├── TopBar.tsx
-│   │   │   ├── dashboard/               # KPIs y gráficos
-│   │   │   ├── trabajadores/            # Vista unificada con tabs por URL
-│   │   │   │   └── [id]/                # Detalle de trabajador
-│   │   │   ├── cursos/                  # CRUD de cursos
-│   │   │   │   ├── nuevo/
-│   │   │   │   └── [id]/editar/
-│   │   │   ├── reportes/
-│   │   │   ├── certificados/
-│   │   │   └── perfil/
-│   │   │
-│   │   └── certificado/[certificateId]/ # Vista pública del certificado
+│   │   ├── (auth)/                      # login · registro · reset-password
+│   │   ├── (dashboard)/                 # inicio · cursos · eventos ·
+│   │   │                                # dias-administrativos · soporte ·
+│   │   │                                # mis-certificados · perfil
+│   │   ├── admin/                       # dashboard · trabajadores · cursos ·
+│   │   │                                # eventos · dias-administrativos ·
+│   │   │                                # soporte · sedes · reportes ·
+│   │   │                                # certificados · perfil
+│   │   ├── certificado/[certificateId]/ # Vista del certificado (titular o staff)
+│   │   └── certificados/verificar/[codigo]/  # Verificación pública por folio
 │   │
 │   ├── components/
 │   │   ├── ui/                          # shadcn/ui (no modificar manualmente)
-│   │   │   ├── button.tsx, card.tsx, dialog.tsx, ...
-│   │   │
-│   │   └── alumco/                      # Componentes específicos del negocio
-│   │       ├── AdminSidebar.tsx
-│   │       ├── WorkerSidebar.tsx
-│   │       ├── BottomNav.tsx
-│   │       ├── TopBar / NotificationBell / SearchBar
-│   │       ├── LoginForm / RegisterForm / ForgotPasswordForm
-│   │       ├── ApprovalPanel / WorkerEditPanel
-│   │       ├── VideoPlayer / PdfViewer / ModuleIndex
-│   │       ├── CertificateBadge / DownloadCertificateButton
-│   │       ├── DeadlineCalendar / WelcomeModal / Skeletons
-│   │       ├── CourseCard / AlumcoLogo / LogoutButton / PrintButton
-│   │       └── CourseBuilder/           # Constructor visual drag & drop
-│   │           ├── CourseBuilder.tsx
-│   │           ├── BlockCanvas.tsx
-│   │           ├── BlockCard.tsx
-│   │           ├── BlockPalette.tsx
-│   │           ├── BlockPropertiesPanel.tsx
-│   │           ├── CourseData.tsx
-│   │           ├── QuizQuestionsEditor.tsx
-│   │           └── QuestionForm.tsx
+│   │   └── alumco/                      # Componentes de negocio, por dominio
+│   │       ├── admin/                   # ApprovalPanel, WorkerEditPanel,
+│   │       │   └── CourseBuilder/       #   constructor drag & drop
+│   │       ├── auth/                    # Login / Register / Forgot / Reset
+│   │       ├── certificado/             # Badge, descarga, impresión
+│   │       ├── curso/                   # VideoPlayer, PdfViewer, ModuleIndex,
+│   │       │                            # TextoModulo, feedback, calendario
+│   │       ├── dashboard/               # Gráficos Recharts y meta anual
+│   │       ├── dias/                    # Solicitud de días administrativos
+│   │       ├── ds/                      # Design system interno (Icono, etc.)
+│   │       ├── eventos/                 # Wizard, secciones, tareas, docs, fotos
+│   │       ├── landing/                 # Secciones de la landing pública
+│   │       ├── nav/                     # AdminSidebar, WorkerSidebar, TopNav
+│   │       ├── shared/                  # Accesibilidad, notificaciones, búsqueda,
+│   │       │                            # DemoBanner, PreviewMode, SW, skeletons
+│   │       └── support/                 # Tickets y su hilo
 │   │
 │   ├── hooks/
-│   │   └── usePendingRequestsCount.ts   # Contador de solicitudes pendientes (admin)
-│   │
 │   ├── lib/
 │   │   ├── actions/                     # Server Actions ('use server')
-│   │   │   ├── auth.ts                  # loginAction, logoutAction
-│   │   │   ├── registro.ts              # registerRequestAction, approveWorkerAction, rejectWorkerAction
-│   │   │   ├── trabajadores.ts          # CRUD trabajadores, suspend/reactivate, perfiles, firmas
-│   │   │   ├── courses.ts               # CRUD cursos y módulos, reorder, publish
-│   │   │   ├── admin-questions.ts       # Crear/editar preguntas del quiz
-│   │   │   ├── progress.ts              # Marcar módulo completo, reset, last_module
-│   │   │   ├── quiz.ts                  # submitQuizAction, getQuizStatus, history
-│   │   │   ├── certificates.ts          # generateCertificate, generateCertificatePDF
-│   │   │   ├── alerts.ts                # Alertas de deadlines (admin y trabajador)
-│   │   │   └── search.ts                # Búsqueda global
+│   │   │   ├── auth.ts registro.ts trabajadores.ts sedes.ts
+│   │   │   ├── courses.ts admin-questions.ts progress.ts quiz.ts
+│   │   │   ├── certificates.ts feedback.ts alerts.ts analytics.ts
+│   │   │   ├── events.ts admin-days.ts support.ts
+│   │   │   └── preferences.ts preview.ts push.ts search.ts
 │   │   │
-│   │   ├── supabase/
-│   │   │   ├── client.ts                # Cliente browser (componentes 'use client')
-│   │   │   ├── server.ts                # createClient + createAdminClient (server only)
-│   │   │   └── middleware.ts            # updateSession para el middleware Next.js
-│   │   │
-│   │   ├── types/
-│   │   │   ├── database.ts              # Tipos del esquema (Profile, Course, Quiz, ...)
-│   │   │   └── databases.ts
-│   │   │
-│   │   └── utils.ts                     # cn(), formatDate, calcularEdad, sedeLabel,
-│   │                                    # filterCoursesByWorkerAreas, scoreLabel
+│   │   ├── auth/                        # requireAdmin, previewMode, demoScope
+│   │   ├── certificates/verify.ts       # Verificación pública por folio
+│   │   ├── eventos/                     # Fotos y próximo evento
+│   │   ├── push/send.ts                 # Envío Web Push (VAPID)
+│   │   ├── supabase/                    # client · server · middleware
+│   │   ├── types/                       # databases.ts (fuente) + database.ts (re-export)
+│   │   ├── rateLimit.ts                 # Límite en memoria (ruta pública)
+│   │   ├── sanitizeHtml.ts              # Saneado de módulos de texto
+│   │   └── utils.ts                     # cn, formatDate, calcularEdad,
+│   │                                    # filterCoursesByWorkerAreas, gates…
 │   │
-│   └── testing/
-│       └── bugs.md                      # Reporte de QA (registro de bugs y fixes)
+│   └── testing/bugs.md                  # Registro de QA
 │
-├── CLAUDE.md                            # Contexto y normativas para asistentes de código
-├── components.json                      # Config shadcn/ui
-├── eslint.config.mjs
-├── next.config.ts
-├── package.json
-├── postcss.config.mjs
-└── tsconfig.json
+├── tests/                               # Vitest (moduleGates, rateLimit,
+│                                        # sanitizeHtml, verification)
+├── supabase/propuestas/                 # SQL por feature aplicado a la DB
+├── scripts/                             # Auditoría móvil + rollbacks demo
+├── docs/                                # Guías, auditorías y handoffs
+├── CLAUDE.md                            # Contexto y normativas para asistentes
+├── components.json · eslint.config.mjs · next.config.ts
+├── package.json · postcss.config.mjs · tsconfig.json · vitest.config.mts
+└── README.md
 ```
 
 ---
@@ -267,32 +289,40 @@ alumco-lms/
 ### 1. Requisitos previos
 - [Node.js](https://nodejs.org/) **20 o superior**.
 - Un gestor de paquetes (`npm`, `pnpm`, `yarn` o `bun`).
-- Acceso a un proyecto de **Supabase** con el esquema de Alumco LMS aplicado (tablas, triggers, RLS y vistas).
+- Acceso a un proyecto de **Supabase** con el esquema de KimünKo aplicado (tablas, triggers, RLS y las migraciones de `supabase/propuestas/`).
 
-### 2. Clonar el repositorio
+### 2. Clonar e instalar
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/Bato21/alumco-lms.git
 cd alumco-lms
-```
-
-### 3. Instalar dependencias
-```bash
 npm install
-# o pnpm install / yarn install / bun install
 ```
 
-### 4. Configurar variables de entorno
-Crea un archivo `.env.local` en la raíz con las credenciales de Supabase:
+### 3. Variables de entorno
+
+Crear `.env.local` en la raíz:
 
 ```env
+# ── Obligatorias ────────────────────────────────────────────────────
 NEXT_PUBLIC_SUPABASE_URL=https://<tu-proyecto>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
-SUPABASE_SERVICE_ROLE_KEY=<service-role-key>   # solo en server, nunca exponer
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>   # solo servidor, nunca exponer
+
+# ── Recomendadas ────────────────────────────────────────────────────
+NEXT_PUBLIC_SITE_URL=https://kimunko.vercel.app  # base del QR de certificados
+                                                 # y del link de reset de clave
+
+# ── Notificaciones push (opcional; sin esto, activarlas devuelve error) ──
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=<clave-publica-vapid>
+VAPID_PRIVATE_KEY=<clave-privada-vapid>
+VAPID_SUBJECT=mailto:contacto@ongalumco.cl
 ```
 
-> El `SUPABASE_SERVICE_ROLE_KEY` es necesario para `createAdminClient()` (operaciones administrativas que bypassan RLS). **Nunca** se debe importar desde un Client Component.
+> El par VAPID se genera una sola vez con `npx web-push generate-vapid-keys`. Si cambia, todas las suscripciones existentes dejan de recibir notificaciones.
+>
+> El `SUPABASE_SERVICE_ROLE_KEY` habilita `createAdminClient()` (bypassa RLS). **Nunca** debe importarse desde un Client Component.
 
-#### Variables opcionales
+#### Variable de grabación (uso excepcional)
 
 | Variable | Efecto | Por defecto |
 | :--- | :--- | :--- |
@@ -300,10 +330,8 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>   # solo en server, nunca exponer
 
 Con `NEXT_PUBLIC_MODO_GRABACION='true'` cambian dos cosas, ambas solo para cuentas demo:
 
-1. **No se monta la barra amarilla de MODO DEMO** (`src/app/(dashboard)/layout.tsx`,
-   `src/app/admin/layout.tsx`).
-2. **La sede demo se rotula "Hualpén"** en la página pública de verificación de
-   certificado, en vez de "Demostración" (`src/lib/certificates/verify.ts`).
+1. **No se monta la barra amarilla de MODO DEMO** (`src/app/(dashboard)/layout.tsx`, `src/app/admin/layout.tsx`).
+2. **La sede demo se rotula "Hualpén"** en la página pública de verificación de certificado, en vez de "Demostración" (`src/lib/certificates/verify.ts`).
 
 > ⚠️ **`NEXT_PUBLIC_MODO_GRABACION` es exclusivamente para producir material
 > audiovisual.** La barra de MODO DEMO es información real y necesaria para
@@ -318,22 +346,24 @@ Con `NEXT_PUBLIC_MODO_GRABACION='true'` cambian dos cosas, ambas solo para cuent
 > redesplegar. Al ser una variable `NEXT_PUBLIC_*` queda incrustada en el build,
 > así que **el cambio no surte efecto hasta un nuevo deploy**; en local, reiniciar
 > `npm run dev`.
->
-> El componente `DemoBanner` y su botón de ocultar por sesión (`sessionStorage`)
-> siguen intactos: esta variable es un interruptor de grabación, no una
-> eliminación de la funcionalidad.
 
-### 5. Configurar Supabase Storage
-Crear (si no existen) los siguientes buckets:
-- `firmas` — público, para firmas digitales del personal.
-- `cursos` — público, para PDFs de los módulos.
+### 4. Buckets de Supabase Storage
 
-### 6. Iniciar el servidor de desarrollo
+| Bucket | Público | Contenido | Estado en el proyecto vivo |
+|---|---|---|---|
+| `course-banners` | sí | Portadas subidas desde el constructor de cursos. | ✅ existe |
+| `event-documents` | no | Documentos de eventos (incl. dificultades alimenticias). | ✅ existe |
+| `event-photos` | no | Galería de fotos de eventos. | ✅ existe |
+| `firmas` | sí | Firmas digitales del personal (`uploadFirmaAction`). | ⚠️ **no creado** — ver "Pendientes conocidos" |
+
+Los módulos de tipo PDF **no usan Storage**: guardan una URL externa en `modules.content_url`. Ver la advertencia sobre el visor embebido en "Pendientes conocidos".
+
+### 5. Levantar el proyecto
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin debe crearse manualmente en Supabase (en `auth.users` + `profiles` con `role='admin'` y `status='activo'`).
+Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin debe crearse manualmente en Supabase (`auth.users` + `profiles` con `role='admin'` y `status='activo'`).
 
 ---
 
@@ -341,27 +371,22 @@ Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin deb
 
 | Script | Descripción |
 |---|---|
-| `npm run dev` | Inicia la app en modo desarrollo con hot-reload. |
-| `npm run build` | Compila la aplicación para producción. |
-| `npm run start` | Sirve el build de producción (requiere `build` previo). |
-| `npm run lint` | Ejecuta ESLint sobre todo el código, incluido `jsx-a11y` en modo estricto. |
-| `npm test` | Vitest: lógica de autorización, saneado y verificación de folios. |
+| `npm run dev` | App en modo desarrollo con hot-reload. |
+| `npm run build` | Build de producción. |
+| `npm run start` | Sirve el build (requiere `build` previo). |
+| `npm run lint` | ESLint sobre todo el código, incluido `jsx-a11y` en modo estricto. |
+| `npm test` | Vitest: gates de módulo, rate limit, saneado HTML y verificación de folios. |
+| `npm run test:watch` | Vitest en watch. |
 | `npm run typecheck` | `tsc --noEmit`. |
 
 ---
 
 ## 🎨 Branding y accesibilidad
 
-- **Paleta corporativa Alumco:**
-  - Primary blue `#2B4FA0`
-  - Accent gold `#F5A623`
-  - Success `#27AE60`
-  - Error `#E74C3C`
-  - Background `#F5F5F5`
-  - Dark text `#1A1A2E`
+- **Paleta corporativa Alumco:** Primary blue `#2B4FA0` · Accent gold `#F5A623` · Success `#27AE60` · Error `#E74C3C` · Background `#F5F5F5` · Dark text `#1A1A2E`.
 - **Logo oficial:** `https://ongalumco.cl/wp-content/uploads/2023/11/logo-alumco-completoccc-300x102.png`
-- **Tipografía base:** `html { font-size: 112.5% }` ≈ 18px con la configuración por defecto del navegador, y escala si la persona subió el tamaño de fuente del sistema.
-- **Sedes (nomenclatura oficial):** `sede_1` → "Sede Hualpén", `sede_2` → "Sede Coyhaique".
+- **Tipografía base:** `html { font-size: 112.5% }` ≈ 18px con la configuración por defecto del navegador, y escala si la persona subió el tamaño de fuente del sistema. Cada usuario puede además elegir escala `normal` / `grande` / `extra` desde su perfil.
+- **Sedes:** administrables desde `/admin/sedes`. Las dos históricas son "Sede Hualpén" (`sede_1`) y "Sede Coyhaique" (`sede_2`); `sede_demo` pertenece al mundo demo.
 
 ### Accesibilidad — estado verificado
 
@@ -376,17 +401,17 @@ Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin deb
 
 > La afirmación genérica "WCAG AA" que figuraba antes en este README no estaba respaldada por
 > ninguna verificación. La auditoría de 2026-08-10 encontró **31 incumplimientos**, 8 de ellos
-> bloqueantes; tres barridos posteriores encontraron 7 más, uno de ellos de nivel A. Los 38 están corregidos. Este bloque se
-> mantiene actualizado con el estado real, no con el objetivo — y el estado real sigue siendo
-> **revisión de código**: nada se ha probado con lector de pantalla, con axe en navegador ni con
-> usuarios.
+> bloqueantes; tres barridos posteriores encontraron 7 más, uno de ellos de nivel A. Los 38 están
+> corregidos. Este bloque se mantiene actualizado con el estado real, no con el objetivo — y el
+> estado real sigue siendo **revisión de código**: nada se ha probado con lector de pantalla, con
+> axe en navegador ni con usuarios.
 
 **Verificación permanente en el repositorio:**
 
 - `npm run lint` incluye `eslint-plugin-jsx-a11y` en preset **`strict`** con todas sus reglas
-  elevadas a `error`, de modo que una regresión de accesibilidad rompe el build. Los tres
-  overrides (dos reglas desactivadas y dos ajustes de opciones) están justificados por escrito
-  en `eslint.config.mjs`.
+  elevadas a `error`, de modo que una regresión de accesibilidad rompe el build. Los overrides
+  (dos reglas desactivadas y dos ajustes de opciones) están justificados por escrito en
+  `eslint.config.mjs`.
 - Las normas que debe cumplir todo código nuevo están en la sección
   **"Normas de accesibilidad"** de [`CLAUDE.md`](./CLAUDE.md).
 - Suite de humo con `@axe-core/playwright` sobre 15 rutas autenticadas: **propuesta, pendiente
@@ -396,18 +421,53 @@ Abre [http://localhost:3000](http://localhost:3000). El primer usuario admin deb
 
 ## 🔒 Seguridad
 
-- **Toda Server Action que use `createAdminClient()`** debe verificar al inicio: usuario autenticado + rol adecuado. El patrón está centralizado en `src/lib/auth/requireAdmin.ts` (cuando exista) y replicado en `trabajadores.ts`.
-- **Filtrado por área:** las queries de cursos visibles para trabajadores deben incluir `target_areas` en el `select` y pasar por `filterCoursesByWorkerAreas`.
-- **Certificados:** la descarga del PDF verifica propiedad (caller es dueño del cert) o rol admin/profesor.
-- **`quiz_attempts` es inmutable** — la auditoría no permite UPDATE ni DELETE. Para "resetear" intentos se usa `course_progress.last_quiz_reset_at`.
+- **`requireAdmin()`** (`src/lib/auth/requireAdmin.ts`) es el único portón para las Server Actions que usan `createAdminClient()`: verifica sesión y rol (`admin` o `profesor`) antes de tocar service role.
+- **Filtrado por área:** las queries de cursos visibles para trabajadores incluyen `target_areas` en el `select` y pasan por `filterCoursesByWorkerAreas`. El acceso a módulo y quiz se revalida en servidor (`computeModuleGates`, `validateModuleAccess`).
+- **Certificados:** la vista y descarga del PDF verifican propiedad (el caller es el titular) o rol staff. La **verificación pública** solo devuelve nombre, curso, fecha, sede y si es demo — nunca RUT, correo, área ni ids internos —, exige folio con formato válido y está limitada por IP (`src/lib/rateLimit.ts`).
+- **Módulos de texto:** el HTML se sanea en el servidor con `sanitize-html` **antes** de guardarse; el cliente nunca sanea.
+- **`quiz_attempts` es inmutable** — sin UPDATE ni DELETE. Para "resetear" intentos se usa `course_progress.last_quiz_reset_at`.
+- **Mundo demo aislado:** `demoScope` mantiene a las cuentas `is_demo` viendo solo datos demo, y el contenido demo fuera del mundo real.
 
-Para auditorías de QA y registro de bugs ver [`src/testing/bugs.md`](./src/testing/bugs.md).
+Registro de QA y bugs cerrados: [`src/testing/bugs.md`](./src/testing/bugs.md).
+
+---
+
+## ⚠️ Pendientes conocidos
+
+Verificado el **2026-08-17** contra el proyecto Supabase vivo y el deploy de producción. Ninguno de estos puntos se arregla desde el código de este repositorio solo: todos requieren tocar el panel de Supabase, las variables de Vercel o el contenido cargado.
+
+### Bloqueantes para considerar la entrega "limpia"
+
+| # | Pendiente | Efecto hoy | Cómo se cierra |
+|---|---|---|---|
+| 1 | **`NEXT_PUBLIC_MODO_GRABACION='true'` sigue activa en producción** | La barra de MODO DEMO no se muestra a las cuentas demo, y `/certificados/verificar/…` rotula la sede demo como "Hualpén" (sede real). | Borrar la variable en Vercel **y redesplegar** (es `NEXT_PUBLIC_*`: no basta con borrarla). |
+| 2 | **El bucket `firmas` no existe en el proyecto Supabase** | `uploadFirmaAction` falla siempre ("Error al subir la firma"); hoy **0 perfiles** tienen `firma_url` y los certificados PDF salen con las líneas de firma en blanco. | Crear el bucket `firmas` como público y volver a subir las firmas del instructor y la dirección técnica. |
+| 3 | **El visor de PDF embebido no carga los documentos externos** | Los 7 módulos de tipo PDF apuntan a URLs externas (MINSAL, SENAMA, SEGG…). La mayoría de esos servidores responde `X-Frame-Options: SAMEORIGIN`, y 2 usan `http://` (contenido mixto): el `<iframe>` de `PdfViewer` queda en blanco. El botón "Descargar PDF" sí funciona. | Alojar los PDFs en un bucket propio (`cursos`) y apuntar `modules.content_url` ahí, o cambiar el visor a descarga/enlace en vez de `<iframe>`. |
+
+### Deuda de base de datos
+
+Linter de Supabase (`get_advisors`):
+
+| Nivel | Hallazgo | Nota |
+|---|---|---|
+| ERROR | Vista `public.reporte_avance` es `SECURITY DEFINER` | La app **ya no la usa** (se reemplazó por queries directas en BUG-14). Lo correcto es eliminarla. |
+| WARN | `reset_demo_world()` ejecutable por el rol `anon` | Solo reinicia el mundo demo, pero es un RPC público que muta datos: conviene revocar `EXECUTE` a `anon`. |
+| WARN | Protección de contraseñas filtradas desactivada | Se activa con un clic en Auth → Passwords (chequeo contra HaveIBeenPwned). |
+| WARN | `search_path` mutable en 7 funciones | Endurecimiento recomendado (`SET search_path = ''`), sin impacto conocido hoy. |
+
+### Accesibilidad
+
+- **1.2.2 (subtítulos de video)** sigue no conforme: los videos de curso son de YouTube y dependen de que se carguen subtítulos en cada uno. Es flujo editorial, no código.
+- La conformidad declarada proviene de **revisión de código**, no de pruebas con lector de pantalla, axe en navegador ni con usuarios.
 
 ---
 
 ## 📚 Documentación adicional
 
-- **`CLAUDE.md`** — Contexto completo del proyecto, normativas de código (incluidas las **normas de accesibilidad** obligatorias) y fases de desarrollo. Imprescindible para entender decisiones de arquitectura.
-- **`docs/CONFORMIDAD_A11Y.md`** — Declaración de conformidad WCAG 2.2 AA: alcance, metodología, criterio por criterio y qué falta. Es el documento de evidencia para la entrega y para el cliente.
-- **`docs/AUDITORIA_A11Y.md`** — Auditoría técnica con los 38 hallazgos, ratios de contraste medidos y fix propuesto para cada uno.
-- **`src/testing/bugs.md`** — Reporte de QA con bugs detectados, severidad y fix paso a paso.
+- [`CLAUDE.md`](./CLAUDE.md) — Contexto completo del proyecto, normativas de código (incluidas las **normas de accesibilidad** obligatorias) y fases de desarrollo.
+- [`docs/README.md`](./docs/README.md) — Índice de la documentación.
+- [`docs/equipo/GUIA-EQUIPO.md`](./docs/equipo/GUIA-EQUIPO.md) — Onboarding del equipo: qué es la plataforma, cómo entrar, tour por la app y mapa del código.
+- [`docs/CONFORMIDAD_A11Y.md`](./docs/CONFORMIDAD_A11Y.md) — Declaración de conformidad WCAG 2.2 AA: alcance, metodología y criterio por criterio. Documento de evidencia para la entrega.
+- [`docs/AUDITORIA_A11Y.md`](./docs/AUDITORIA_A11Y.md) — Auditoría técnica con los 38 hallazgos, ratios de contraste medidos y fix de cada uno.
+- [`docs/flujo-plataforma/FLUJO.md`](./docs/flujo-plataforma/FLUJO.md) — Flujo end-to-end con capturas.
+- [`src/testing/bugs.md`](./src/testing/bugs.md) — Reporte de QA con bugs, severidad y fix.

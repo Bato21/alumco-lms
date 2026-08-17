@@ -9,22 +9,20 @@ theme: light
 renderer: HyperFrames
 product_surface: ui
 emotional_journey: desorden → reconocimiento → alivio → confianza
-capture_plan: 6 bound artifacts
+capture_plan: 5 bound artifacts
 web_capture_source: navigate
 ---
 
 ## Frame 1 — El papeleo
 
-- status: outline
+- status: animated
 - src: scenes/00-papeleo.html
 - duration: 10s
 - scene: planillas, correos y carpetas físicas se cierran sobre el centro del cuadro
 - voiceover: "En un ELEAM, cada trabajador debe cumplir horas de capacitación obligatoria al año. Hoy eso vive en planillas, correos y papeles sueltos."
 - poster: 6s
 - window: 0s → 10s
-- screenshot: none — material físico suministrado
-- capture: supplied
-- clip: public/clips/scene-00-papeleo.mp4
+- screenshot: none — beat de metáfora, escena construida
 - goal: el espectador reconoce su propio desorden administrativo antes de que aparezca ninguna plataforma
 - abstraction: literal
 - complexity: atomic
@@ -36,16 +34,23 @@ web_capture_source: navigate
 - blueprint: overwhelm-surround
 - capabilities: timeline-choreography
 
-Abre sobre una sola carpeta abierta y la cámara empuja hacia el centro mientras el resto del
-material entra por los bordes: primero las planillas impresas, después los correos, al final las
-carpetas apiladas. Ese es el orden de exposición que exige la densidad alta — el ojo lee un
-documento, luego el volumen, nunca los tres a la vez. El encierro es el argumento: a los diez
-segundos el centro del cuadro está tapado, que es exactamente lo que se siente al preparar una
-fiscalización con este método. Sin gráficos ni cifras inventadas: solo el material real.
+Escena construida, sin metraje: el beat es una metáfora (`Pain / overwhelm`) y las metáforas se
+dibujan, no se filman. Abre sobre **una sola hoja** en el centro del cuadro y la cámara empuja
+mientras el resto del material entra por los bordes: primero las planillas, después los correos,
+al final las carpetas apiladas. Ese es el orden de exposición que exige la densidad alta — el ojo
+lee un documento, luego el volumen, nunca los tres a la vez.
+
+El encierro es el argumento: a los diez segundos el centro del cuadro está tapado, que es
+exactamente lo que se siente al preparar una fiscalización con este método.
+
+Las piezas son formas y tipografía en la paleta Alumco — nada de fotografía de archivo, que
+chocaría con las capturas reales de los beats siguientes. **Ningún dato inventado con apariencia
+de real**: los papeles llevan texto ilegible o genérico, nunca nombres, RUT ni cifras que un
+espectador pueda leer como un dato de verdad.
 
 ## Frame 2 — La plataforma
 
-- status: outline
+- status: animated
 - src: scenes/01-plataforma.html
 - duration: 10s
 - transition_in: zoom-through
@@ -76,7 +81,7 @@ en pantalla se redibuja.
 
 ## Frame 3 — La jornada de Camila
 
-- status: outline
+- status: animated
 - src: scenes/02-camila.html
 - duration: 18s
 - transition_in: zoom-through
@@ -112,7 +117,7 @@ puede borrar ni corregir. Se graba **de una sola vez y la última** entre las to
 
 ## Frame 4 — La administradora arma el evento
 
-- status: outline
+- status: animated
 - src: scenes/03-evento.html
 - duration: 16s
 - transition_in: crossfade
@@ -147,18 +152,17 @@ la interfaz.
 
 ## Frame 5 — Del computador al bolsillo
 
-- status: outline
+- status: animated
 - src: scenes/04-dos-dispositivos.html
 - duration: 16s
 - transition_in: crossfade
 - transition_speed: medium
-- scene: plano físico de notebook y teléfono sobre la mesa; la misma tarea aparece en los dos
+- scene: escritorio y teléfono en el mismo plano; la misma tarea aparece en los dos
 - voiceover: "La administradora asigna desde el computador. A Camila le llega al teléfono — es la misma plataforma, instalada como app, sin bajar nada de ninguna tienda."
 - poster: 9s
 - window: 54s → 70s
-- screenshot: none — grabación física suministrada
-- capture: supplied
-- clip: public/clips/scene-04-dos-dispositivos.mp4
+- screenshot: public/screenshots/scene-04-movil-tarea.png
+- capture: screenshot
 - goal: el espectador entiende que la plataforma alcanza al personal en turno, en el teléfono que ya lleva encima
 - abstraction: literal
 - complexity: atomic
@@ -170,18 +174,20 @@ la interfaz.
 - motion: `depth-of-field-blur`, `viewport-change`
 - capabilities: timeline-choreography, spatial-depth
 
-Los dos dispositivos conviven en el mismo plano y el foco viaja del uno al otro sin que la cámara
-se mueva: primero el notebook, nítido, mientras el teléfono espera desenfocado en primer plano;
-cuando la notificación llega, el foco salta. Ese salto **es** el argumento del beat, y por eso no
-se resuelve con un corte: un corte diría "otra escena", el rack-focus dice "el mismo momento, el
-mismo sitio". Un solo elemento importa en cada mitad del beat.
+Escena compuesta, no metraje físico: el escritorio de la administradora
+(`public/screenshots/scene-01-dashboard.png`) ocupa el plano de fondo, y el teléfono de Camila
+—captura real de la PWA a 390×844, dentro de un marco de dispositivo— entra en primer plano a la
+derecha. Las dos son capturas reales de la misma plataforma, que es justo lo que afirma la voz.
 
-⚠️ Plano físico con cámara — el pipeline controla Chrome de escritorio y no puede filmar una mesa.
-Encuadrarlo pensado para 16:9 desde la toma: no se puede recomponer después.
+El foco viaja de uno al otro sin que la cámara se mueva: primero el escritorio, nítido, mientras el
+teléfono espera desenfocado; cuando la notificación aparece sobre el teléfono, el foco salta. Ese
+salto **es** el argumento del beat, y por eso no se resuelve con un corte: un corte diría "otra
+escena", el rack-focus dice "el mismo momento, el mismo sitio". Un solo elemento importa en cada
+mitad del beat.
 
 ## Frame 6 — El folio verificable
 
-- status: outline
+- status: animated
 - src: scenes/05-certificado.html
 - duration: 14s
 - transition_in: zoom-through
@@ -216,7 +222,7 @@ antes de esta captura y se cierra después (`VIDEO_BRIEF.md` § 8, bloque A).
 
 ## Frame 7 — Placa final
 
-- status: outline
+- status: animated
 - src: scenes/06-cierre.html
 - duration: 6s
 - transition_in: zoom-through
